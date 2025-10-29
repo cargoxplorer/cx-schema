@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "mutation Action",
+  "type": "object",
+  "properties": {
+    "mutation": {
+      "type": "object",
+      "properties": {
+        "command": { "type": "string", "description": "GraphQL mutation string" },
+        "variables": { "type": "object", "description": "Mutation variables" },
+        "onSuccess": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onError": { "$ref": "../schemas.json#/definitions/actionsList" }
+      },
+      "x-examples": [
+        {
+          "command": "mutation DeleteCalendarMutation($input: DeleteCalendarInput!) { deleteCalendar(input: $input) { deleteResult { rowsAffected } } }",
+          "variables": {
+            "input": { "organizationId": "{{number organizationId }}", "calendarId": "{{number calendarId }}" }
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

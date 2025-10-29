@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DateTime Range Field Type",
+  "description": "Schema for rangedatetime input field type",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "rangedatetime" },
+    "label": {
+      "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+      "description": "Field label",
+      "x-example": { "en-US": "Delivery Window" }
+    },
+    "placeholder": { "type": "string", "description": "Field placeholder text", "x-example": "Select date range" },
+    "required": { "type": "boolean", "description": "Whether field is required", "x-example": false },
+    "disabled": { "type": "boolean", "description": "Whether field is disabled", "x-example": false },
+    "options": {
+      "type": "object",
+      "description": "DateTime range configuration options",
+      "properties": {
+        "dateFormat": { "type": "string", "description": "Display format", "x-example": "MM/dd/yyyy h:mm aa" },
+        "showTimeSelect": { "type": "boolean", "description": "Show time selection", "x-example": true },
+        "showTimeSelectOnly": { "type": "boolean", "description": "Time only (no date)", "x-example": false },
+        "timeIntervals": { "type": "number", "description": "Time intervals in minutes", "x-example": 60 },
+        "timeCaption": { "type": "string", "description": "Time caption label", "x-example": "Time" },
+        "useTimezone": { "type": "boolean", "description": "Enable timezone-aware handling", "x-example": false },
+        "storeAsUTC": { "type": "boolean", "description": "When useTimezone is true, store in UTC", "x-example": true },
+        "timezone": { "type": "string", "description": "Fixed timezone for display", "x-example": "America/New_York" },
+        "format": { "type": "string", "description": "Custom storage format" },
+        "isClearable": { "type": "boolean", "description": "Show clear button", "x-example": true }
+      },
+      "additionalProperties": true
+    },
+    "transformValue": {
+      "type": "object",
+      "description": "Value transformation configuration",
+      "properties": {
+        "onLoad": { "type": "string", "description": "Template expression to transform value on load" },
+        "onChange": { "type": "string", "description": "Template expression to transform value on change" },
+        "onBlur": { "type": "string", "description": "Template expression to transform value on blur" }
+      }
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
+  },
+  "required": ["type"]
+}

@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Navbar Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "navbar"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "object",
+          "description": "Additional options for the navbar"
+        },
+        "brand": {
+          "type": "object",
+          "description": "Brand/logo configuration",
+          "properties": {
+            "component": {
+              "type": "string",
+              "description": "Component type for brand"
+            },
+            "name": {
+              "type": "string",
+              "description": "Component name identifier"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "description": "Text value for brand"
+                },
+                "options": {
+                  "type": "object",
+                  "properties": {
+                    "className": {
+                      "type": "string",
+                      "description": "CSS classes for styling"
+                    }
+                  }
+                },
+                "onClick": {
+                  "$ref": "../schemas.json#/definitions/actionsList"
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Label text"
+                },
+                "to": {
+                  "type": "string",
+                  "description": "Navigation URL"
+                }
+              }
+            }
+          }
+        },
+        "items": {
+          "type": "array",
+          "description": "Main navigation items",
+          "items": {
+            "$ref": "../schemas.json#/definitions/component"
+          }
+        },
+        "contextItems": {
+          "type": "array",
+          "description": "Context menu items (e.g., user menu)",
+          "items": {
+            "$ref": "../schemas.json#/definitions/component"
+          }
+        }
+      }
+    }
+  },
+  "required": ["component", "props"]
+}

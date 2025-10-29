@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Field Types Index",
+  "description": "Index of all available field types for CargoXplorer TMS",
+  "definitions": {
+    "fieldType": {
+      "oneOf": [
+        { "$ref": "./text.json" },
+        { "$ref": "./number.json" },
+        { "$ref": "./email.json" },
+        { "$ref": "./password.json" },
+        { "$ref": "./tel.json" },
+        { "$ref": "./url.json" },
+        { "$ref": "./date.json" },
+        { "$ref": "./datetime.json" },
+        { "$ref": "./rangedatetime.json" },
+        { "$ref": "./time.json" },
+        { "$ref": "./select.json" },
+        { "$ref": "./select-async.json" },
+        { "$ref": "./autocomplete-googleplaces.json" },
+        { "$ref": "./checkbox.json" },
+        { "$ref": "./radio.json" },
+        { "$ref": "./textarea.json" },
+        { "$ref": "./attachment.json" }
+      ]
+    }
+  },
+  "fieldTypes": {
+    "text": { "description": "Basic text input field", "schema": "./text.json" },
+    "number": { "description": "Numeric input field with validation", "schema": "./number.json" },
+    "email": { "description": "Email input field with validation", "schema": "./email.json" },
+    "password": { "description": "Password input field with security features", "schema": "./password.json" },
+    "tel": { "description": "Telephone number input field", "schema": "./tel.json" },
+    "url": { "description": "URL input field with validation", "schema": "./url.json" },
+    "date": { "description": "Date picker field", "schema": "./date.json" },
+    "datetime": { "description": "Date/time picker field with timezone options", "schema": "./datetime.json" },
+    "rangedatetime": { "description": "Date/time range picker field", "schema": "./rangedatetime.json" },
+    "time": { "description": "Time picker field", "schema": "./time.json" },
+    "select": { "description": "Dropdown select field with static options", "schema": "./select.json" },
+    "select-async": {
+      "description": "Async dropdown select field with GraphQL queries",
+      "schema": "./select-async.json"
+    },
+    "autocomplete-googleplaces": {
+      "description": "Google Places autocomplete field for addresses",
+      "schema": "./autocomplete-googleplaces.json"
+    },
+    "checkbox": { "description": "Checkbox input field", "schema": "./checkbox.json" },
+    "radio": { "description": "Radio button group field", "schema": "./radio.json" },
+    "textarea": { "description": "Multi-line text input field", "schema": "./textarea.json" },
+    "attachment": { "description": "Attachment picker/uploader field (images or files)", "schema": "./attachment.json" }
+  }
+}

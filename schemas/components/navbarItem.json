@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Navbar Item Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "navbarItem"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Item label text"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Boolean expression for conditional rendering"
+        }
+      }
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component"]
+}

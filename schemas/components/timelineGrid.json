@@ -1,0 +1,324 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Timeline Grid Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "timeline-grid"
+    },
+    "name": {
+      "type": "string",
+      "description": "Component instance name for referencing in actions/variables"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input parameters for the timeline grid"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "view": {
+          "type": "string",
+          "enum": ["hour", "day", "week", "month"],
+          "default": "day",
+          "description": "Zoom level preset. Works with timescale."
+        },
+        "startDate": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Initial lower bound for visible window (ISO or expression)",
+          "x-example": "{{ today() }}"
+        },
+        "endDate": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Initial upper bound for visible window",
+          "x-example": "{{ addDays today 7 }}"
+        },
+        "defaultDate": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Initial focal date when range not provided",
+          "x-example": "{{ today() }}"
+        },
+        "options": {
+          "type": "object",
+          "description": "Visual/behavioral options",
+          "properties": {
+            "height": {
+              "oneOf": [
+                { "type": "number", "description": "Height in pixels" },
+                { "type": "string", "description": "CSS size (e.g., '600px', '50vh')" }
+              ],
+              "default": "600px",
+              "description": "Grid height"
+            },
+            "rowHeight": {
+              "type": "number",
+              "default": 44,
+              "description": "Row height in pixels"
+            },
+            "timescale": {
+              "type": "string",
+              "enum": ["hour", "day", "week", "month"],
+              "default": "hour",
+              "description": "Time unit on X-axis"
+            },
+            "timeStepMinutes": {
+              "type": "number",
+              "default": 30,
+              "description": "Cell width resolution when timescale=hour"
+            },
+            "snapToMinutes": {
+              "type": "number",
+              "default": 15,
+              "description": "Drag/resize snap step"
+            },
+            "showNowMarker": {
+              "type": "boolean",
+              "default": true,
+              "description": "Displays current time marker line"
+            },
+            "showNonWorking": {
+              "type": "boolean",
+              "default": true,
+              "description": "Shades non-working periods"
+            },
+            "workingHours": {
+              "type": "array",
+              "description": "Daily working window [startHH:mm, endHH:mm]",
+              "items": { "type": "string" },
+              "minItems": 2,
+              "maxItems": 2,
+              "x-example": ["06:00", "22:00"]
+            },
+            "weekendDays": {
+              "type": "array",
+              "description": "Weekend day numbers (1=Mon..7=Sun)",
+              "items": { "type": "number", "minimum": 1, "maximum": 7 },
+              "x-example": [6, 7]
+            },
+            "allowOverlap": {
+              "type": "boolean",
+              "default": false,
+              "description": "Allow overlaps within the same row"
+            },
+            "editable": {
+              "type": "object",
+              "properties": {
+                "move": { "type": "boolean", "default": true },
+                "resize": { "type": "boolean", "default": true },
+                "reassign": { "type": "boolean", "default": true }
+              },
+              "description": "Enable editing interactions"
+            },
+            "virtualization": {
+              "type": "boolean",
+              "default": true,
+              "description": "Virtualize rows for performance"
+            },
+            "stickyHeaders": {
+              "type": "boolean",
+              "default": true,
+              "description": "Keep time header and row headers sticky"
+            }
+          }
+        },
+        "rowTemplate": {
+          "$ref": "../schemas.json#/definitions/component",
+          "description": "Custom render for row header cell; receives 'row' context"
+        },
+        "itemTemplate": {
+          "$ref": "../schemas.json#/definitions/component",
+          "description": "Template for items; receives 'item' context"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Boolean expression for conditional rendering"
+        }
+      },
+      "required": ["options"]
+    },
+    "rowSources": {
+      "type": "array",
+      "description": "Data providers for resources (rows)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "object",
+            "description": "GraphQL query configuration",
+            "properties": {
+              "command": { "type": "string", "description": "GraphQL document string" },
+              "variables": {
+                "type": "object",
+                "description": "Variables for the query (template expressions supported)",
+                "additionalProperties": true
+              }
+            },
+            "required": ["command"]
+          },
+          "path": { "type": "string", "description": "Dot path to array of rows in response" },
+          "mapping": {
+            "description": "Mapping from source item to row fields",
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "rows": {
+                    "type": "string",
+                    "description": "Template expression resolving to an array of rows objects"
+                  }
+                },
+                "required": ["rows"],
+                "additionalProperties": true,
+                "x-example": {
+                  "rows": "{{ eval item.lanes.map(l=>({ rowId:l.id, label:l.name, group:item.name })) }}"
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "rowId": {
+                    "oneOf": [{ "type": "string" }, { "type": "number" }],
+                    "description": "Unique row identifier"
+                  },
+                  "label": { "type": "string", "description": "Row display label" },
+                  "group": { "type": "string", "description": "Group name for collapsible grouping" },
+                  "status": { "type": "string" },
+                  "type": { "type": "string" },
+                  "color": { "type": "string" }
+                },
+                "required": ["rowId", "label"],
+                "additionalProperties": true
+              }
+            ]
+          }
+        },
+        "required": ["query", "path", "mapping"]
+      }
+    },
+    "itemSources": {
+      "type": "array",
+      "description": "Data providers for time spans (items) for the visible window",
+      "items": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "object",
+            "description": "GraphQL query configuration",
+            "properties": {
+              "command": { "type": "string", "description": "GraphQL document string" },
+              "variables": {
+                "type": "object",
+                "description": "Variables for the query; should include start and end",
+                "additionalProperties": true
+              }
+            },
+            "required": ["command"]
+          },
+          "path": { "type": "string", "description": "Dot path to array of items in response" },
+          "mapping": {
+            "type": "object",
+            "description": "Mapping from source item to grid item fields",
+            "properties": {
+              "id": { "oneOf": [{ "type": "string" }, { "type": "number" }], "description": "Unique item identifier" },
+              "rowId": { "oneOf": [{ "type": "string" }, { "type": "number" }], "description": "Row association" },
+              "start": { "type": "string", "description": "Start datetime (ISO)" },
+              "end": { "type": "string", "description": "End datetime (ISO)" },
+              "title": { "type": "string", "description": "Display title" },
+              "description": { "type": "string" },
+              "status": { "type": "string" },
+              "priority": { "oneOf": [{ "type": "string" }, { "type": "number" }] },
+              "color": { "type": "string" },
+              "textColor": { "type": "string" },
+              "className": { "type": "string" }
+            },
+            "required": ["id", "rowId", "start", "end", "title"],
+            "additionalProperties": true
+          }
+        },
+        "required": ["query", "path", "mapping"]
+      }
+    },
+    "events": {
+      "type": "object",
+      "description": "Interaction handlers",
+      "properties": {
+        "onItemClick": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onItemMove": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onItemResize": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onItemReassign": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onRangeChange": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onEmptySlotClick": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onLoading": { "$ref": "../schemas.json#/definitions/actionsList" }
+      }
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component", "props", "rowSources", "itemSources"],
+  "x-examples": [
+    {
+      "component": "timelineGrid",
+      "name": "vehicleScheduler",
+      "props": {
+        "view": "day",
+        "options": {
+          "height": "600px",
+          "timescale": "hour",
+          "timeStepMinutes": 30,
+          "snapToMinutes": 15,
+          "showNowMarker": true,
+          "editable": { "move": true, "resize": true, "reassign": true }
+        },
+        "itemTemplate": {
+          "component": "card",
+          "props": {
+            "title": "{{ item.title }}",
+            "description": "{{ item.description }}",
+            "backgroundColor": "{{ item.color || '#3788d8' }}",
+            "textColor": "white"
+          }
+        }
+      },
+      "rowSources": [
+        {
+          "query": {
+            "command": "query GetVehicles($organizationId: Int!) { vehicles(organizationId: $organizationId) { id code status type } }",
+            "variables": { "organizationId": "{{ number organizationId }}" }
+          },
+          "path": "vehicles",
+          "mapping": {
+            "rowId": "{{ item.id }}",
+            "label": "{{ item.code }}",
+            "status": "{{ item.status }}",
+            "type": "{{ item.type }}"
+          }
+        }
+      ],
+      "itemSources": [
+        {
+          "query": {
+            "command": "query VehicleAssignments($organizationId: Int!, $start: String!, $end: String!) { vehicleAssignments(organizationId: $organizationId, start: $start, end: $end) { id vehicleId start end shipmentId status priority } }",
+            "variables": {
+              "organizationId": "{{ number organizationId }}",
+              "start": "{{ startDate }}",
+              "end": "{{ endDate }}"
+            }
+          },
+          "path": "vehicleAssignments",
+          "mapping": {
+            "id": "{{ item.id }}",
+            "rowId": "{{ item.vehicleId }}",
+            "start": "{{ item.start }}",
+            "end": "{{ item.end }}",
+            "title": "Shipment {{ item.shipmentId }}",
+            "status": "{{ item.status }}",
+            "priority": "{{ item.priority }}",
+            "color": "{{ eval item.status === 'delayed' ? '#e53e3e' : (item.priority === 'high' ? '#ffa726' : '#4ecdc4') }}"
+          }
+        }
+      ]
+    }
+  ]
+}

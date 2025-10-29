@@ -1,0 +1,120 @@
+# Sample Module for CX Schema Validator
+# This is an example of a valid module structure
+
+module:
+  name: SampleModule
+  appModuleId: 12345678-1234-1234-1234-123456789012
+  displayName:
+    en-US: "Sample Module"
+  description:
+    en-US: "A sample module for testing validation"
+  application: CargoXplorer
+
+components:
+  - name: SampleModule/ListItems
+    displayName:
+      en-US: "List Items"
+    platforms:
+      - web
+      - mobile
+    layout:
+      component: layout
+      props:
+        title:
+          en-US: "Sample Items"
+      children:
+        - component: dataGrid
+          props:
+            views:
+              - name: all
+                displayName:
+                  en-US: "All Items"
+                query: |
+                  query ListItems {
+                    items {
+                      id
+                      name
+                      description
+                      created
+                    }
+                  }
+            columns:
+              - field: name
+                displayName:
+                  en-US: "Name"
+                width: 200
+              - field: description
+                displayName:
+                  en-US: "Description"
+                width: 300
+              - field: created
+                displayName:
+                  en-US: "Created"
+                width: 150
+                template: "{{ format created L }}"
+
+  - name: SampleModule/CreateItem
+    displayName:
+      en-US: "Create Item"
+    platforms:
+      - web
+    layout:
+      component: form
+      props:
+        submitMutation: |
+          mutation CreateItem($input: CreateItemInput!) {
+            createItem(input: $input) {
+              id
+              name
+            }
+          }
+        submitActions:
+          - type: notification
+            message:
+              en-US: "Item created successfully"
+          - type: navigate
+            path: "~/sample-module"
+      children:
+        - component: field
+          props:
+            name: name
+            fieldType: text
+            label:
+              en-US: "Name"
+            required: true
+            validation:
+              required:
+                en-US: "Name is required"
+        - component: field
+          props:
+            name: description
+            fieldType: textarea
+            label:
+              en-US: "Description"
+            rows: 4
+
+routes:
+  - path: /sample-module
+    component: SampleModule/ListItems
+    permission: sampleModule.view
+  - path: /sample-module/create
+    component: SampleModule/CreateItem
+    permission: sampleModule.create
+
+entities:
+  - name: Item
+    fields:
+      - name: id
+        type: ID
+      - name: name
+        type: String
+      - name: description
+        type: String
+      - name: created
+        type: DateTime
+
+permissions:
+  - sampleModule.view
+  - sampleModule.create
+  - sampleModule.edit
+  - sampleModule.delete

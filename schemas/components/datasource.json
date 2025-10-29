@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Datasource Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "datasource"
+    },
+    "name": {
+      "type": "string",
+      "description": "Datasource name identifier",
+      "x-example": "dataSourceCommodities"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Internal name for the datasource",
+          "x-example": "dataSourceCommodities"
+        },
+        "refreshHandler": {
+          "type": "string",
+          "description": "Name of the refresh handler for this datasource",
+          "x-example": "datasourcePickupOptions"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Boolean expression for conditional rendering",
+          "x-example": "{{ eval !pickupForm.contactAddressId || !pickupForm.pickupDate }}"
+        },
+        "queries": {
+          "type": "array",
+          "description": "Array of queries or workflows to execute",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Unique name for the query or workflow",
+                "x-example": "commodities"
+              },
+              "query": {
+                "type": "object",
+                "description": "GraphQL query configuration",
+                "properties": {
+                  "command": {
+                    "type": "string",
+                    "description": "GraphQL query string",
+                    "x-example": "query($organizationId: Int!, $filter: String!) { commodities(organizationId: $organizationId, filter: $filter) { items { commodityId description } } }"
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Path to extract data from query result",
+                    "x-example": "country"
+                  },
+                  "variables": {
+                    "type": "object",
+                    "description": "Query variables with template expressions",
+                    "additionalProperties": true,
+                    "x-example": {
+                      "organizationId": "{{number organizationId }}",
+                      "filter": "{{string filter }}"
+                    }
+                  },
+                  "mapping": {
+                    "type": "object",
+                    "description": "Optional mapping transformation applied to each item at the resolved path",
+                    "additionalProperties": true,
+                    "x-example": {
+                      "id": "{{ item.commodityId }}",
+                      "text": "{{ item.description }}"
+                    }
+                  }
+                },
+                "required": ["command"],
+                "x-example": {
+                  "command": "query($organizationId: Int!, $filter: String!) { commodities(organizationId: $organizationId, filter: $filter) { items { commodityId description } } }",
+                  "path": "commodities.items",
+                  "variables": {
+                    "organizationId": "{{ number organizationId }}",
+                    "filter": "{{ string filter }}"
+                  },
+                  "mapping": {
+                    "id": "{{ item.commodityId }}",
+                    "text": "{{ item.description }}"
+                  }
+                }
+              },
+              "workflow": {
+                "type": "object",
+                "description": "Workflow execution configuration",
+                "properties": {
+                  "workflowId": {
+                    "type": "string",
+                    "description": "Unique identifier of the workflow to execute",
+                    "x-example": "6563ba2f-1883-4b4e-9fd8-bb431e40c159"
+                  },
+                  "inputs": {
+                    "type": "object",
+                    "description": "Input values for the workflow",
+                    "additionalProperties": true,
+                    "x-example": {
+                      "contactAddressId": "{{ number pickupForm.contactAddressId }}",
+                      "dispatchDate": "{{ format pickupForm.pickupDate YYYY-MM-DD }}"
+                    }
+                  }
+                },
+                "required": ["workflowId"]
+              }
+            },
+            "oneOf": [
+              {
+                "required": ["name", "query"]
+              },
+              {
+                "required": ["name", "workflow"]
+              }
+            ]
+          }
+        },
+        "onSuccess": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute when datasource loads successfully"
+        },
+        "onError": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute when datasource fails to load"
+        },
+        "onLoad": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute when datasource starts loading"
+        },
+        "autoLoad": {
+          "type": "boolean",
+          "description": "Whether to automatically load data when component mounts",
+          "default": true,
+          "x-example": true
+        },
+        "enableStore": {
+          "type": "boolean",
+          "description": "Whether to store loaded data in the application store",
+          "x-example": false
+        }
+      },
+      "required": ["queries"]
+    }
+  },
+  "required": ["component", "name"]
+}

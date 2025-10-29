@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Number Field Type",
+  "description": "Schema for number input field type",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "number"
+    },
+    "label": {
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "../schemas.json#/definitions/localized" }
+      ],
+      "description": "Field label",
+      "x-example": {
+        "en-US": "Quantity"
+      }
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Field placeholder text",
+      "x-example": "Enter quantity"
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required",
+      "x-example": true
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Whether field is disabled",
+      "x-example": false
+    },
+    "min": {
+      "type": "number",
+      "description": "Minimum value",
+      "x-example": 0
+    },
+    "max": {
+      "type": "number",
+      "description": "Maximum value",
+      "x-example": 9999
+    },
+    "step": {
+      "type": "number",
+      "description": "Step increment",
+      "x-example": 1
+    },
+    "decimals": {
+      "type": "number",
+      "description": "Number of decimal places",
+      "x-example": 2
+    },
+    "transformValue": {
+      "type": "object",
+      "description": "Value transformation configuration",
+      "properties": {
+        "onLoad": {
+          "type": "string",
+          "description": "Template expression to transform value on load",
+          "x-example": "{{ eval Number(value) }}"
+        },
+        "onChange": {
+          "type": "string", 
+          "description": "Template expression to transform value on change",
+          "x-example": "{{ eval Number((pieces * quantity * unitaryValue).toFixed(2)) }}"
+        },
+        "onBlur": {
+          "type": "string",
+          "description": "Template expression to transform value on blur",
+          "x-example": "{{ eval Number(value).toFixed(2) }}"
+        }
+      }
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
+  },
+  "required": ["type"]
+}

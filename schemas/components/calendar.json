@@ -1,0 +1,489 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Calendar Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "calendar"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name identifier for the calendar"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input parameters for the calendar"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "calendarId": {
+          "oneOf": [
+            {
+              "type": "number",
+              "description": "Unique integer identifier for the calendar instance"
+            },
+            {
+              "type": "string",
+              "pattern": "\\{\\{.*\\}\\}",
+              "description": "Template expression that resolves to a calendar ID"
+            }
+          ],
+          "x-example": "{{ number calendarId }}"
+        },
+        "toolbar": {
+          "type": "array",
+          "description": "Toolbar components",
+          "items": { "$ref": "../schemas.json#/definitions/component" }
+        },
+        "contextMenu": {
+          "type": "object",
+          "description": "Context menu (3-dots menu) configuration",
+          "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Icon for the menu trigger (default: 'ellipsis-v' or 'more-vert')",
+              "default": "ellipsis-v"
+            },
+            "position": {
+              "type": "string",
+              "enum": ["top-right", "top-left", "bottom-right", "bottom-left"],
+              "description": "Position of the menu icon",
+              "default": "top-right"
+            },
+            "items": {
+              "type": "array",
+              "description": "Menu items to display",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+                    "description": "Display text for the menu item"
+                  },
+                  "icon": {
+                    "type": "string",
+                    "description": "Optional icon for the menu item"
+                  },
+                  "divider": {
+                    "type": "boolean",
+                    "description": "Show as a divider instead of menu item"
+                  },
+                  "onClick": {
+                    "$ref": "../schemas.json#/definitions/actionsList",
+                    "description": "Actions to execute when item is clicked"
+                  },
+                  "permission": {
+                    "$ref": "../schemas.json#/definitions/permissions",
+                    "description": "Permission required to view this item"
+                  },
+                  "isHidden": {
+                    "$ref": "../schemas.json#/definitions/templateExpression",
+                    "description": "Conditionally hide this menu item"
+                  },
+                  "disabled": {
+                    "$ref": "../schemas.json#/definitions/templateExpression",
+                    "description": "Conditionally disable this menu item"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "initialView": {
+          "type": "string",
+          "enum": [
+            "dayGridMonth",
+            "timeGridWeek",
+            "timeGridDay",
+            "listWeek",
+            "listMonth",
+            "multiMonthYear",
+            "resourceTimeGridDay",
+            "resourceTimeGridWeek"
+          ],
+          "default": "dayGridMonth",
+          "description": "Initial view to display when calendar loads",
+          "x-example": "dayGridMonth"
+        },
+        "height": {
+          "oneOf": [
+            {
+              "type": "number",
+              "description": "Calendar height in pixels"
+            },
+            {
+              "type": "string",
+              "enum": ["auto"],
+              "description": "Auto height based on content"
+            }
+          ],
+          "default": 600,
+          "x-example": 600
+        },
+        "aspectRatio": {
+          "type": "number",
+          "description": "Width-to-height ratio for the calendar",
+          "default": 1.35,
+          "x-example": 1.35
+        },
+        "options": {
+          "type": "object",
+          "description": "FullCalendar configuration options",
+          "properties": {
+            "headerToolbar": {
+              "type": "object",
+              "description": "Header toolbar configuration",
+              "properties": {
+                "left": {
+                  "type": "string",
+                  "description": "Left toolbar buttons",
+                  "x-example": "prev,next today"
+                },
+                "center": {
+                  "type": "string",
+                  "description": "Center toolbar content",
+                  "x-example": "title"
+                },
+                "right": {
+                  "type": "string",
+                  "description": "Right toolbar buttons",
+                  "x-example": "dayGridMonth,timeGridWeek,timeGridDay"
+                }
+              }
+            },
+            "footerToolbar": {
+              "type": "object",
+              "description": "Footer toolbar configuration",
+              "properties": {
+                "left": { "type": "string" },
+                "center": { "type": "string" },
+                "right": { "type": "string" }
+              }
+            },
+            "selectable": {
+              "type": "boolean",
+              "description": "Allow date/time selection",
+              "default": false,
+              "x-example": true
+            },
+            "selectMirror": {
+              "type": "boolean",
+              "description": "Show selection preview while selecting",
+              "default": false
+            },
+            "editable": {
+              "type": "boolean",
+              "description": "Allow event editing (drag/drop/resize)",
+              "default": false,
+              "x-example": true
+            },
+            "droppable": {
+              "type": "boolean",
+              "description": "Allow dropping external elements",
+              "default": false
+            },
+            "weekends": {
+              "type": "boolean",
+              "description": "Display weekends",
+              "default": true
+            },
+            "locale": {
+              "type": "string",
+              "description": "Language/locale setting",
+              "x-example": "en-US"
+            },
+            "timeZone": {
+              "type": "string",
+              "description": "Time zone setting",
+              "x-example": "America/New_York"
+            },
+            "nowIndicator": {
+              "type": "boolean",
+              "description": "Show current time indicator",
+              "default": false
+            },
+            "slotMinTime": {
+              "type": "string",
+              "description": "Earliest time slot (HH:MM:SS format)",
+              "x-example": "06:00:00"
+            },
+            "slotMaxTime": {
+              "type": "string",
+              "description": "Latest time slot (HH:MM:SS format)",
+              "x-example": "22:00:00"
+            },
+            "slotDuration": {
+              "type": "string",
+              "description": "Duration of each time slot (HH:MM:SS format)",
+              "x-example": "00:30:00"
+            },
+            "eventDisplay": {
+              "type": "string",
+              "enum": ["auto", "block", "list-item", "background"],
+              "description": "How events are displayed",
+              "default": "auto"
+            },
+            "dayMaxEvents": {
+              "oneOf": [{ "type": "number" }, { "type": "boolean" }],
+              "description": "Maximum events per day before '+more' link",
+              "x-example": 3
+            },
+            "moreLinkClick": {
+              "type": "string",
+              "enum": ["popover", "week", "day"],
+              "description": "Action when clicking '+more' link"
+            },
+            "events": {
+              "type": "array",
+              "description": "Static event data",
+              "items": {
+                "$ref": "../schemas.json#/definitions/calendarEvent"
+              }
+            },
+            "eventSources": {
+              "type": "array",
+              "description": "Multiple event sources configuration",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "object",
+                    "description": "GraphQL query configuration",
+                    "properties": {
+                      "command": {
+                        "type": "string",
+                        "description": "GraphQL query string"
+                      },
+                      "variables": {
+                        "type": "object",
+                        "description": "Query variables",
+                        "additionalProperties": true
+                      },
+                      "path": {
+                        "type": "string",
+                        "description": "Path to extract data from query result"
+                      },
+                      "mapping": {
+                        "type": "object",
+                        "description": "Optional mapping transformation from each item to calendar event fields",
+                        "additionalProperties": true,
+                        "x-example": {
+                          "id": "{{ item.calendarEventId }}",
+                          "title": "{{ item.summary }}",
+                          "start": "{{ item.start }}",
+                          "end": "{{ item.end }}"
+                        }
+                      }
+                    },
+                    "required": ["command"],
+                    "x-example": {
+                      "command": "query GetCalendarEventsQuery($calendarId: Int!, $startDate: DateTime, $endDate: DateTime) { calendarEvents(calendarId: $calendarId, startDate: $startDate, endDate: $endDate) { items { calendarEventId summary description start end } } }",
+                      "variables": {
+                        "calendarId": "{{ number calendarId }}",
+                        "startDate": "{{ startDate }}",
+                        "endDate": "{{ endDate }}"
+                      },
+                      "path": "calendarEvents.items",
+                      "mapping": {
+                        "id": "{{ item.calendarEventId }}",
+                        "title": "{{ item.summary }}",
+                        "start": "{{ item.start }}",
+                        "end": "{{ item.end }}"
+                      }
+                    }
+                  },
+                  "events": {
+                    "oneOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "../schemas.json#/definitions/calendarEvent"
+                        }
+                      },
+                      {
+                        "type": "string",
+                        "description": "Template expression resolving to events array"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "type": "string",
+                    "description": "Default color for events from this source"
+                  },
+                  "textColor": {
+                    "type": "string",
+                    "description": "Default text color for events from this source"
+                  },
+                  "borderColor": {
+                    "type": "string",
+                    "description": "Default border color for events from this source"
+                  }
+                }
+              }
+            },
+            "resources": {
+              "type": "array",
+              "description": "Resource definitions for resource-based calendars",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Unique resource identifier"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Resource display title"
+                  },
+                  "eventColor": {
+                    "type": "string",
+                    "description": "Default color for events in this resource"
+                  }
+                },
+                "required": ["id", "title"]
+              }
+            },
+            "eventContent": {
+              "$ref": "../schemas.json#/definitions/component",
+              "description": "Custom event content rendering using components"
+            },
+            "dayHeaderContent": {
+              "$ref": "../schemas.json#/definitions/component",
+              "description": "Custom day header content rendering"
+            },
+            "dayCellContent": {
+              "$ref": "../schemas.json#/definitions/component",
+              "description": "Custom day cell content rendering"
+            },
+            "moreLinkContent": {
+              "$ref": "../schemas.json#/definitions/component",
+              "description": "Custom 'more' link content rendering"
+            }
+          }
+        },
+        "events": {
+          "type": "object",
+          "description": "Event handlers for calendar interactions",
+          "properties": {
+            "onDateClick": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when a date/time is clicked"
+            },
+            "onEventClick": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when an event is clicked"
+            },
+            "onSelect": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when a date/time range is selected"
+            },
+            "onUnselect": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when selection is cleared"
+            },
+            "onEventDrop": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when an event is dragged/dropped"
+            },
+            "onEventResize": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when an event is resized"
+            },
+            "onEventChange": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when an event is modified"
+            },
+            "onDatesSet": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when view/date range changes"
+            },
+            "onLoading": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when loading state changes"
+            }
+          }
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Boolean expression for conditional rendering"
+        }
+      },
+      "required": ["calendarId"]
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component"],
+  "x-examples": [
+    {
+      "component": "calendar",
+      "name": "teamCalendar",
+      "props": {
+        "calendarId": "{{ number calendarId }}",
+        "initialView": "dayGridMonth",
+        "toolbar": [
+          {
+            "component": "button",
+            "props": {
+              "label": { "en-US": "New Event" },
+              "onClick": [{ "dialog": { "name": "createEvent", "component": { "component": "Events/Create" } } }]
+            }
+          },
+          {
+            "component": "button",
+            "props": { "label": { "en-US": "Today" }, "onClick": [{ "refresh": "teamCalendar" }] }
+          }
+        ],
+        "contextMenu": {
+          "icon": "ellipsis-v",
+          "position": "top-right",
+          "items": [
+            {
+              "label": { "en-US": "Export Calendar" },
+              "icon": "download",
+              "onClick": [
+                { "action": "exportCalendar", "params": { "calendarId": "{{ number calendarId }}", "format": "ics" } }
+              ]
+            },
+            {
+              "label": { "en-US": "Print" },
+              "icon": "print",
+              "onClick": [
+                { "action": "print", "params": { "target": "teamCalendar" } }
+              ]
+            },
+            {
+              "label": { "en-US": "Share" },
+              "icon": "share",
+              "onClick": [
+                { "dialog": { "name": "shareCalendar", "component": { "component": "Calendar/Share" } } }
+              ]
+            },
+            {
+              "divider": true
+            },
+            {
+              "label": { "en-US": "Settings" },
+              "icon": "cog",
+              "onClick": [
+                { "dialog": { "name": "calendarSettings", "component": { "component": "Calendar/Settings" } } }
+              ],
+              "permission": "calendar.settings"
+            },
+            {
+              "label": { "en-US": "Sync" },
+              "icon": "sync",
+              "onClick": [
+                { "action": "syncCalendar", "params": { "calendarId": "{{ number calendarId }}" } },
+                { "refresh": "teamCalendar" }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

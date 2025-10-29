@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "query Action",
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "command": { "type": "string", "description": "GraphQL query string" },
+        "variables": { "type": "object", "description": "Query variables" },
+        "onSuccess": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onError": { "$ref": "../schemas.json#/definitions/actionsList" }
+      },
+      "x-example": {
+        "command": "query ($organizationId: Int!, $filter: String!) { attachments(organizationId: $organizationId, filter: $filter) { items { attachmentId } } }",
+        "variables": {
+          "organizationId": "{{ number organizationId }}",
+          "filter": "parentId:{{ orderId }}"
+        },
+        "onSuccess": [
+          {
+            "setFields": {
+              "attachmentIds": "{{ eval attachments.items.map(x => x.attachmentId) }}"
+            }
+          }
+        ],
+        "onError": [{ "notification": { "message": "Failed to load attachments", "type": "error" } }]
+      }
+    }
+  },
+  "additionalProperties": false
+}

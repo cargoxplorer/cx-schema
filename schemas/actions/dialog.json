@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "dialog Action",
+  "type": "object",
+  "properties": {
+    "dialog": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Dialog identifier" },
+        "props": { "type": "object", "description": "Props to pass to dialog" },
+        "component": { "$ref": "../schemas.json#/definitions/component" },
+        "onClose": { "$ref": "../schemas.json#/definitions/actionsList" }
+      },
+      "x-examples": [
+        { "name": "addCommoditiesDialog", "props": { "title": { "en-US": "Add Commodities" } } },
+        {
+          "component": "States/CreateState",
+          "props": { "title": "Create New State" },
+          "onClose": [{ "selectValue": "{{ result }}" }]
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Nav Dropdown Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "navDropdown"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "permission": {
+          "$ref": "../schemas.json#/definitions/permissions"
+        },
+        "label": {
+          "type": "string",
+          "description": "Dropdown label text"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon class name"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Boolean expression for conditional rendering"
+        }
+      },
+      "required": ["label"]
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component", "props"]
+}

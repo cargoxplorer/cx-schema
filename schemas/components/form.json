@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Form Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "form"
+    },
+    "name": {
+      "type": "string",
+      "description": "Form name identifier",
+      "x-example": "countryForm"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input parameters for the form",
+      "additionalProperties": true,
+      "x-example": {}
+    },
+    "props": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "x-example": {
+            "en-US": "Country"
+          }
+        },
+        "cols": {
+          "type": "integer",
+          "description": "Number of columns for form layout",
+          "x-example": 2
+        },
+        "orientation": {
+          "type": "string",
+          "enum": ["horizontal", "vertical"],
+          "description": "Form layout orientation",
+          "x-example": "vertical"
+        },
+        "initialValues": {
+          "type": "object",
+          "description": "Initial form values",
+          "properties": {
+            "fromQuery": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Query name to fetch initial values",
+                  "x-example": "getCountry"
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Path to data in query result",
+                  "x-example": "country"
+                }
+              },
+              "required": ["name", "path"],
+              "x-example": {
+                "name": "getCountry",
+                "path": "country"
+              }
+            },
+            "append": {
+              "type": "object",
+              "description": "Additional values to append",
+              "additionalProperties": true,
+              "x-example": {
+                "customValues": {},
+                "isActive": true
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        "queries": {
+          "type": "array",
+          "description": "Form-associated queries",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Unique name for the query",
+                "x-example": "getCountry"
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "command": {
+                    "type": "string",
+                    "description": "GraphQL query string"
+                  },
+                  "variables": {
+                    "type": "object",
+                    "description": "Query variables with template expressions",
+                    "additionalProperties": true
+                  }
+                },
+                "required": ["command"]
+              }
+            },
+            "required": ["name", "query"]
+          }
+        },
+        "validationSchema": {
+          "type": "object",
+          "description": "Form-level validation schema",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["string", "number", "boolean", "array", "object"]
+              },
+              "required": {
+                "oneOf": [
+                  { "type": "boolean" },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                ]
+              },
+              "min": {
+                "type": "object",
+                "properties": {
+                  "length": { "type": "number" },
+                  "message": { "type": "string" }
+                }
+              },
+              "max": {
+                "type": "object",
+                "properties": {
+                  "length": { "type": "number" },
+                  "message": { "type": "string" }
+                }
+              },
+              "nullable": {
+                "type": "boolean"
+              },
+              "schema": {
+                "type": "object",
+                "description": "Nested schema for object types",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "autoSave": {
+          "type": "boolean",
+          "description": "Enable automatic form saving"
+        },
+        "resetOnSubmit": {
+          "type": "boolean",
+          "description": "Reset form values after successful submission"
+        },
+        "preventDefault": {
+          "type": "boolean",
+          "description": "Prevent default form submission behavior"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Boolean expression for conditional rendering"
+        },
+        "onSubmit": {
+          "$ref": "../schemas.json#/definitions/actionsList"
+        },
+        "onLoad": {
+          "$ref": "../schemas.json#/definitions/actionsList"
+        },
+        "onReset": {
+          "$ref": "../schemas.json#/definitions/actionsList"
+        },
+        "onValidate": {
+          "$ref": "../schemas.json#/definitions/actionsList"
+        },
+        "onError": {
+          "$ref": "../schemas.json#/definitions/actionsList"
+        }
+      },
+      "required": ["validationSchema"]
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component", "name"]
+}

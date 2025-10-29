@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DataGrid Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "dataGrid"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name identifier for the dataGrid"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input parameters for the dataGrid"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "refreshHandler": {
+          "type": "string",
+          "description": "Name of the refresh handler",
+          "x-example": "states"
+        },
+        "enableStore": {
+          "type": "boolean",
+          "description": "Enable store for the datagrid, row data will be placed in the store"
+        },
+        "views": {
+          "type": "array",
+          "description": "Array of view configurations",
+          "items": {
+            "$ref": "../schemas.json#/definitions/dataGridView"
+          },
+          "x-example": [
+            {
+              "name": "allStates",
+              "displayName": { "en-US": "All States" },
+              "columns": [
+                { "name": "stateCode", "label": { "en-US": "State code" } },
+                { "name": "name", "label": { "en-US": "State Name" } },
+                { "name": "countryCode", "label": { "en-US": "Country code" } },
+                {
+                  "name": "created",
+                  "label": { "en-US": "Created" },
+                  "showAs": { "component": "text", "props": { "value": "{{ format created L }}" } }
+                }
+              ]
+            }
+          ]
+        },
+        "dotsMenu": {
+          "type": "object",
+          "description": "Dots menu configuration for row-level actions",
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+                  },
+                  "icon": {
+                    "type": "string",
+                    "description": "Icon name for the menu item"
+                  },
+                  "onClick": {
+                    "$ref": "../schemas.json#/definitions/actionsList"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "options": {
+          "$ref": "../schemas.json#/definitions/dataGridOptions",
+          "x-examples": [
+            {
+              "query": "states",
+              "rootEntityName": "State",
+              "entityKeys": ["countryCode", "stateCode"],
+              "enableDynamicGrid": true,
+              "defaultView": "allStates"
+            },
+            {
+              "query": "allOrderCommodities",
+              "rootEntityName": "OrderCommodity",
+              "entityKeys": ["commodityId"],
+              "navigationType": "store",
+              "enableDynamicGrid": true,
+              "enableViews": false,
+              "enableSearch": true,
+              "enablePagination": true,
+              "defaultView": "commodities"
+            }
+          ]
+        },
+        "toolbar": {
+          "type": "array",
+          "description": "Toolbar components",
+          "items": {
+            "$ref": "../schemas.json#/definitions/component"
+          }
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Boolean expression for conditional rendering"
+        }
+      },
+      "required": ["options"]
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component", "name", "props"]
+}

@@ -1,0 +1,8 @@
+src/
+tsconfig.json
+*.test.ts
+.vscode/
+.idea/
+.git/
+examples/
+*.log

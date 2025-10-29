@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "URL Field Type",
+  "description": "Schema for URL input field type",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "url"
+    },
+    "label": {
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "../schemas.json#/definitions/localized" }
+      ],
+      "description": "Field label",
+      "x-example": {
+        "en-US": "Website URL"
+      }
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Field placeholder text",
+      "x-example": "https://example.com"
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required",
+      "x-example": false
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Whether field is disabled",
+      "x-example": false
+    },
+    "pattern": {
+      "type": "string",
+      "description": "Custom URL validation pattern",
+      "x-example": "^https?:\\/\\/[\\w\\-]+(\\.[\\w\\-]+)+[/#?]?.*$"
+    },
+    "transformValue": {
+      "type": "object",
+      "description": "Value transformation configuration",
+      "properties": {
+        "onLoad": {
+          "type": "string",
+          "description": "Template expression to transform value on load"
+        },
+        "onChange": {
+          "type": "string", 
+          "description": "Template expression to transform value on change"
+        },
+        "onBlur": {
+          "type": "string",
+          "description": "Template expression to transform value on blur",
+          "x-example": "{{ eval value.trim().toLowerCase() }}"
+        }
+      }
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
+  },
+  "required": ["type"]
+}

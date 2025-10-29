@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "fileDownload Action",
+  "type": "object",
+  "properties": {
+    "fileDownload": {
+      "type": "object",
+      "properties": {
+        "url": { "type": "string", "description": "File download URL" },
+        "filename": { "type": "string", "description": "Suggested filename" }
+      },
+      "x-examples": [{ "url": "{{ outputs.labelUrl }}", "filename": "label.pdf" }]
+    }
+  },
+  "additionalProperties": false
+}

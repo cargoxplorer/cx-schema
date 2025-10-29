@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Component Schemas Index",
+  "description": "Index of all available CargoXplorer component schemas",
+  "type": "object",
+  "definitions": {
+    "appComponent": {
+      "$ref": "appComponent.json"
+    },
+    "navbar": {
+      "$ref": "navbar.json"
+    },
+    "navbarItem": {
+      "$ref": "navbarItem.json"
+    },
+    "navDropdown": {
+      "$ref": "navDropdown.json"
+    },
+    "navbarLink": {
+      "$ref": "navbarLink.json"
+    },
+    "collection": {
+      "$ref": "collection.json"
+    },
+    "row": {
+      "$ref": "row.json"
+    },
+    "dataGrid": {
+      "$ref": "dataGrid.json"
+    },
+    "card": {
+      "$ref": "card.json"
+    },
+    "barcodeScanner": {
+      "$ref": "barcodeScanner.json"
+    },
+    "button": {
+      "$ref": "button.json"
+    },
+    "form": {
+      "$ref": "form.json"
+    },
+    "layout": {
+      "$ref": "layout.json"
+    },
+    "tabs": {
+      "$ref": "tabs.json"
+    },
+    "tab": {
+      "$ref": "tab.json"
+    },
+    "field": {
+      "$ref": "field.json"
+    },
+    "dropdown": {
+      "$ref": "dropdown.json"
+    },
+    "datasource": {
+      "$ref": "datasource.json"
+    },
+    "calendar": {
+      "$ref": "calendar.json"
+    },
+    "module": {
+      "$ref": "module.json"
+    }
+  }
+}

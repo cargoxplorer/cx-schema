@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Radio Field Type",
+  "description": "Schema for radio button field type",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "radio"
+    },
+    "label": {
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "../schemas.json#/definitions/localized" }
+      ],
+      "description": "Field label",
+      "x-example": {
+        "en-US": "Payment Method"
+      }
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required",
+      "x-example": true
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Whether field is disabled",
+      "x-example": false
+    },
+    "orientation": {
+      "type": "string",
+      "enum": ["horizontal", "vertical"],
+      "description": "Layout orientation of radio options",
+      "x-example": "vertical"
+    },
+    "items": {
+      "type": "array",
+      "description": "Radio button options",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "oneOf": [
+              { "type": "string" },
+              { "$ref": "../schemas.json#/definitions/localized" }
+            ],
+            "description": "Option label"
+          },
+          "value": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "number" },
+              { "type": "boolean" }
+            ],
+            "description": "Option value"
+          },
+          "disabled": {
+            "type": "boolean",
+            "description": "Whether this option is disabled"
+          }
+        },
+        "required": ["label", "value"]
+      },
+      "x-example": [
+        {
+          "label": { "en-US": "Credit Card" },
+          "value": "credit_card"
+        },
+        {
+          "label": { "en-US": "Bank Transfer" },
+          "value": "bank_transfer"
+        },
+        {
+          "label": { "en-US": "Cash" },
+          "value": "cash"
+        }
+      ]
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
+  },
+  "required": ["type", "items"]
+}

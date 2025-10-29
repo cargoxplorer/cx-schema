@@ -1,0 +1,172 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Timeline Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "timeline"
+    },
+    "name": {
+      "type": "string",
+      "description": "Instance name for referencing in actions/variables"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input parameters for the timeline"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "orientation": {
+          "type": "string",
+          "enum": ["horizontal", "vertical"],
+          "default": "horizontal",
+          "description": "Timeline axis direction"
+        },
+        "view": {
+          "type": "string",
+          "enum": ["day", "week", "month", "year"],
+          "default": "day",
+          "description": "Zoom level controlling granularity and visible window"
+        },
+        "startDate": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Initial lower bound for the visible date range (ISO or expression)",
+          "x-example": "{{ today() }}"
+        },
+        "endDate": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Initial upper bound for the visible date range",
+          "x-example": "{{ addDays today 7 }}"
+        },
+        "defaultDate": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Initial focal date when no specific range is set",
+          "x-example": "{{ today() }}"
+        },
+        "options": {
+          "type": "object",
+          "description": "Visual/behavioral options for the timeline",
+          "properties": {
+            "height": {
+              "oneOf": [
+                { "type": "number", "description": "Height in pixels" },
+                { "type": "string", "description": "CSS size (e.g., '400px', '50vh')" }
+              ],
+              "default": "400px",
+              "description": "Timeline container height"
+            }
+          }
+        },
+        "eventTemplate": {
+          "$ref": "../schemas.json#/definitions/component",
+          "description": "Component used to render each event; receives 'item' bound to mapped fields"
+        },
+        "eventSources": {
+          "type": "array",
+          "description": "Data providers executed for the current visible range",
+          "items": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "object",
+                "description": "GraphQL source executed when the visible range changes",
+                "properties": {
+                  "command": {
+                    "type": "string",
+                    "description": "GraphQL document string"
+                  },
+                  "variables": {
+                    "type": "object",
+                    "description": "Variables for the GraphQL command (template expressions supported)",
+                    "additionalProperties": true
+                  }
+                },
+                "required": ["command"]
+              },
+              "path": {
+                "type": "string",
+                "description": "Dot path to the array of items in the result (e.g., 'orders.items')"
+              },
+              "mapping": {
+                "type": "object",
+                "description": "Maps source fields to timeline event fields",
+                "properties": {
+                  "date": { "type": "string", "description": "ISO date/time for the event" },
+                  "title": { "type": "string", "description": "Display title" },
+                  "id": {
+                    "oneOf": [{ "type": "string" }, { "type": "number" }],
+                    "description": "Stable identifier"
+                  },
+                  "endDate": { "type": "string", "description": "ISO end date/time for ranged spans" },
+                  "description": { "type": "string" },
+                  "backgroundColor": { "type": "string" },
+                  "textColor": { "type": "string" },
+                  "icon": { "type": "string" },
+                  "iconColor": { "type": "string" },
+                  "iconSize": { "oneOf": [{ "type": "string" }, { "type": "number" }] }
+                },
+                "required": ["date", "title"],
+                "additionalProperties": true,
+                "x-example": {
+                  "id": "{{ item.orderId }}",
+                  "date": "{{ item.orderDate }}",
+                  "endDate": "{{ item.orderEnd }}",
+                  "title": "{{ item.orderNumber }}",
+                  "description": "Order created on {{ item.orderDate }}",
+                  "icon": "package"
+                }
+              }
+            },
+            "required": ["query", "path", "mapping"]
+          }
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Boolean expression for conditional rendering"
+        }
+      }
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component", "props"],
+  "x-examples": [
+    {
+      "component": "timeline",
+      "name": "shipmentTimeline",
+      "props": {
+        "orientation": "horizontal",
+        "view": "day",
+        "options": { "height": "360px" },
+        "eventTemplate": {
+          "component": "card",
+          "props": {
+            "title": "{{ item.title }}",
+            "description": "{{ item.description }}"
+          }
+        },
+        "eventSources": [
+          {
+            "query": {
+              "command": "query GetOrders($organizationId: Int!, $filter: String) { orders(organizationId: $organizationId, take: 500, filter: $filter) { items { orderId orderDate orderNumber } } }",
+              "variables": {
+                "organizationId": "{{ number organizationId }}",
+                "filter": "orderDate:[{{startDate}} TO {{endDate}}]"
+              }
+            },
+            "path": "orders.items",
+            "mapping": {
+              "id": "{{ item.orderId }}",
+              "date": "{{ item.orderDate }}",
+              "title": "{{ item.orderNumber }}",
+              "description": "Order created on {{ item.orderDate }}"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tabs Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "tabs"
+    },
+    "name": {
+      "type": "string",
+      "description": "Tabs name identifier"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "toolbar": {
+          "type": "array",
+          "description": "Toolbar components",
+          "items": {
+            "$ref": "../schemas.json#/definitions/component"
+          }
+        },
+        "defaultTab": {
+          "type": "string",
+          "description": "Default active tab name"
+        }
+      }
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component"]
+}

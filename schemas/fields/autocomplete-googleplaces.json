@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Autocomplete Google Places Field Type",
+  "description": "Schema for autocomplete-googleplaces field type with Google Places API integration",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "autocomplete-googleplaces"
+    },
+    "label": {
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "../schemas.json#/definitions/localized" }
+      ],
+      "description": "Field label",
+      "x-example": {
+        "en-US": "Address"
+      }
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Field placeholder text",
+      "x-example": "Enter address"
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required",
+      "x-example": false
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Whether field is disabled",
+      "x-example": false
+    },
+    "options": {
+      "type": "object",
+      "description": "Google Places specific options",
+      "properties": {
+        "itemLabelTemplate": {
+          "type": "string",
+          "description": "Template expression for displaying items",
+          "x-example": "{{ description }}"
+        },
+        "searchQuery": {
+          "type": "object",
+          "description": "Google Places search parameters",
+          "properties": {
+            "params": {
+              "type": "object",
+              "properties": {
+                "input": {
+                  "type": "string",
+                  "description": "Search input template",
+                  "x-example": "{{ string search }}"
+                },
+                "types": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Place types to search for",
+                  "x-example": ["address"]
+                },
+                "language": {
+                  "type": "string",
+                  "description": "Language code for results",
+                  "x-example": "en"
+                }
+              },
+              "required": ["input"]
+            }
+          },
+          "required": ["params"]
+        },
+        "valueQuery": {
+          "type": "object",
+          "description": "Parameters for place details query",
+          "properties": {
+            "params": {
+              "type": "object",
+              "properties": {
+                "fields": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Fields to retrieve from place details",
+                  "x-example": ["name", "address_components", "formatted_address", "geometry", "business_status"]
+                }
+              },
+              "required": ["fields"]
+            }
+          },
+          "required": ["params"]
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Field name prefix for form fields",
+          "x-example": "orderEntityPickups[{{shipperIndex}}]."
+        }
+      },
+      "required": ["searchQuery", "valueQuery"]
+    },
+    "onSelectValue": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when a place is selected",
+      "x-example": [
+        {
+          "setFields": {
+            "{{prefix}}countryCode": "{{ selectedItem.countryCode }}",
+            "{{prefix}}stateCode": "{{ selectedItem.stateCode }}",
+            "{{prefix}}cityName": "{{ selectedItem.city }}",
+            "{{prefix}}postalCode": "{{ selectedItem.postalCode }}",
+            "{{prefix}}customValues.address": "{{eval [selectedItem.name, selectedItem.addressLine].filter(Boolean).join(\", \") }}"
+          }
+        }
+      ]
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
+  },
+  "required": ["type", "options"]
+}

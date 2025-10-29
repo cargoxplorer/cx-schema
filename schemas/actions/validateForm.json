@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "validateForm Action",
+  "type": "object",
+  "properties": {
+    "validateForm": {
+      "type": "object",
+      "properties": {
+        "validationSchema": { "type": "object", "description": "Form validation schema" }
+      },
+      "x-examples": [{ "validationSchema": { "fieldName": { "type": "string", "required": true } } }]
+    }
+  },
+  "additionalProperties": false
+}

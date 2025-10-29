@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tel Field Type",
+  "description": "Schema for telephone input field type",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "tel"
+    },
+    "label": {
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "../schemas.json#/definitions/localized" }
+      ],
+      "description": "Field label",
+      "x-example": {
+        "en-US": "Phone Number"
+      }
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Field placeholder text",
+      "x-example": "(555) 123-4567"
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required",
+      "x-example": false
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Whether field is disabled",
+      "x-example": false
+    },
+    "pattern": {
+      "type": "string",
+      "description": "Regex pattern for phone number validation",
+      "x-example": "^\\+?[1-9]\\d{1,14}$"
+    },
+    "format": {
+      "type": "string",
+      "description": "Phone number format mask",
+      "x-example": "(999) 999-9999"
+    },
+    "transformValue": {
+      "type": "object",
+      "description": "Value transformation configuration",
+      "properties": {
+        "onLoad": {
+          "type": "string",
+          "description": "Template expression to transform value on load"
+        },
+        "onChange": {
+          "type": "string", 
+          "description": "Template expression to transform value on change",
+          "x-example": "{{ eval value.replace(/\\D/g, '') }}"
+        },
+        "onBlur": {
+          "type": "string",
+          "description": "Template expression to transform value on blur"
+        }
+      }
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
+  },
+  "required": ["type"]
+}

@@ -1,0 +1,265 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Field Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "field"
+    },
+    "name": {
+      "type": "string",
+      "description": "Field name (form field path)",
+      "x-example": "countryCode"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "x-example": {
+            "en-US": "Country Code"
+          }
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Field placeholder text",
+          "x-example": "Enter Country Code"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "text",
+            "number",
+            "email",
+            "password",
+            "tel",
+            "url",
+            "date",
+            "datetime",
+            "rangedatetime",
+            "time",
+            "select",
+            "select-async",
+            "autocomplete-googleplaces",
+            "checkbox",
+            "radio",
+            "textarea",
+            "attachment"
+          ],
+          "description": "Field input type",
+          "x-example": "select-async"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether field is required",
+          "x-example": true
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether field is disabled",
+          "x-example": false
+        },
+        "options": {
+          "type": "object",
+          "description": "Field options for select types",
+          "properties": {
+            "variant": { "type": "string" },
+            "size": { "type": "string" },
+            "allowInlineCreate": { "type": "boolean" },
+            "allowCreate": { "type": "boolean", "description": "Alias for allowInlineCreate" },
+            "allowMultiple": { "type": "boolean" },
+            "allowClear": { "type": "boolean" },
+            "allowSearch": { "type": "boolean" },
+            "placeholder": { "type": "string" },
+            "minWidth": { "type": "string" },
+            "valueFieldName": {
+              "type": "string",
+              "description": "Field name to use as the value for select options",
+              "x-example": "countryCode"
+            },
+            "itemLabelTemplate": {
+              "type": "string",
+              "description": "Template expression for option labels",
+              "x-example": "{{countryName}}"
+            },
+            "itemValueTemplate": {
+              "type": "string",
+              "description": "Template expression for option values",
+              "x-example": "{{countryCode}}"
+            },
+            "navigateActionPermission": {
+              "type": "string",
+              "description": "Permission required for navigation actions",
+              "x-example": "System/Countries/Update"
+            },
+            "searchQuery": {
+              "type": "object",
+              "description": "Query configuration for async search",
+              "properties": {
+                "name": { "type": "string", "x-example": "getCountries" },
+                "path": {
+                  "type": "string",
+                  "description": "Path to data in query result",
+                  "x-example": "countries.items"
+                },
+                "params": {
+                  "type": "object",
+                  "description": "Query parameters",
+                  "additionalProperties": true,
+                  "x-example": {
+                    "search": "{{ string search }}",
+                    "take": "{{ number pageSize }}",
+                    "skip": "{{ number skip }}",
+                    "filter": "{{ string filter }}"
+                  }
+                }
+              }
+            },
+            "valueQuery": {
+              "type": "object",
+              "description": "Query configuration for fetching selected value",
+              "properties": {
+                "name": { "type": "string" },
+                "path": { "type": "string", "description": "Path to data in query result" },
+                "params": { "type": "object", "description": "Query parameters", "additionalProperties": true }
+              }
+            },
+            "defaultValues": {
+              "type": "object",
+              "description": "Default values for the field",
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        },
+        "dropDownToolbar": {
+          "type": "array",
+          "description": "Toolbar components for dropdown",
+          "items": { "$ref": "../schemas.json#/definitions/component" }
+        },
+        "queries": {
+          "type": "array",
+          "description": "Field-specific queries for select-async fields",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "command": { "type": "string" },
+                  "variables": { "type": "object", "additionalProperties": true }
+                }
+              }
+            }
+          }
+        },
+        "onEditClick": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onOptionTagClick": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute when clicking on an option tag/chip in the dropdown"
+        },
+        "items": {
+          "type": "array",
+          "description": "Static options for select fields",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "value": { "oneOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }] }
+            },
+            "required": ["label", "value"]
+          }
+        },
+        "transformValue": {
+          "type": "object",
+          "description": "Value transformation configuration",
+          "properties": {
+            "onLoad": { "type": "string", "description": "Template expression to transform value on load" },
+            "onChange": { "type": "string", "description": "Template expression to transform value on change" },
+            "onBlur": { "type": "string", "description": "Template expression to transform value on blur" }
+          }
+        },
+        "onChange": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onBlur": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onFocus": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onSelectValue": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute when a value is selected in select-async fields"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "props": { "properties": { "type": { "const": "select" } } } } },
+      "then": { "properties": { "props": { "required": ["items"] } } }
+    }
+  ],
+  "required": ["component", "name"],
+  "x-examples": [
+    {
+      "component": "field",
+      "name": "calendarType",
+      "props": {
+        "label": { "en-US": "Calendar Type" },
+        "type": "select",
+        "options": { "placeholder": "Select Calendar Type" },
+        "items": [
+          { "label": "Standard", "value": "Standard" },
+          { "label": "Resource", "value": "Resource" },
+          { "label": "Personal", "value": "Personal" }
+        ]
+      }
+    },
+    {
+      "component": "field",
+      "name": "countryId",
+      "props": {
+        "label": { "en-US": "Country" },
+        "type": "select-async",
+        "options": {
+          "allowSearch": true,
+          "allowClear": true,
+          "searchQuery": {
+            "name": "getCountries",
+            "path": "countries.items",
+            "params": {
+              "search": "{{ string search }}",
+              "take": "{{ number pageSize }}",
+              "skip": "{{ number skip }}",
+              "filter": "{{ string filter }}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "component": "field",
+      "name": "tags",
+      "props": {
+        "label": { "en-US": "Tags" },
+        "type": "select-async",
+        "onOptionTagClick": [
+          {
+            "dialog": {
+              "name": "editTagDialog",
+              "props": { "title": { "en-US": "Edit Tag" } },
+              "component": { "component": "layout", "children": [{ "component": "Tags/EditTag" }] }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "component": "field",
+      "name": "description",
+      "props": {
+        "label": { "en-US": "Description" },
+        "type": "text",
+        "placeholder": "Enter description"
+      }
+    }
+  ]
+}

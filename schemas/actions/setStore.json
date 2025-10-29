@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "setStore Action",
+  "type": "object",
+  "properties": {
+    "setStore": {
+      "type": "object",
+      "description": "Store values to set",
+      "x-examples": [{ "scannedBarcode": "{{ result.data }}" }, { "scannedBarcodes": "{{ result.barcodes }}" }]
+    }
+  },
+  "additionalProperties": false
+}

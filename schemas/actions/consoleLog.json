@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "consoleLog Action",
+  "type": "object",
+  "properties": {
+    "consoleLog": {
+      "type": "object",
+      "properties": {
+        "message": { "type": "string", "description": "Message to log" },
+        "level": { "type": "string", "enum": ["log", "info", "warn", "error"], "default": "log" }
+      },
+      "x-examples": [{ "message": "Scanned: {{ result.data }}", "level": "info" }]
+    }
+  },
+  "additionalProperties": false
+}

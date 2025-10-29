@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "workflow Action",
+  "type": "object",
+  "properties": {
+    "workflow": {
+      "type": "object",
+      "properties": {
+        "workflowId": { "type": "string", "description": "Workflow identifier" },
+        "inputs": { "type": "object", "description": "Workflow inputs" },
+        "onSuccess": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onError": { "$ref": "../schemas.json#/definitions/actionsList" }
+      },
+      "x-examples": [
+        {
+          "workflowId": "b7c4ffa9-bf7e-4e2c-8e57-8f24f4a2b8a8",
+          "inputs": { "request": { "message": "Hello, World!" } },
+          "onSuccess": [{ "notification": { "message": "Echo executed successfully. {{ response.echo.message }}" } }]
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

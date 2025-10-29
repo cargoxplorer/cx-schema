@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "confirm Action",
+  "type": "object",
+  "properties": {
+    "confirm": {
+      "type": "object",
+      "properties": {
+        "title": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
+        "message": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] }
+      },
+      "x-examples": [
+        {
+          "title": { "en-US": "Delete Calendar" },
+          "message": { "en-US": "Are you sure you want to delete this calendar?" }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

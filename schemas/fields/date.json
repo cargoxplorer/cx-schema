@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Date Field Type",
+  "description": "Schema for date input field type",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "date"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "Timezone identifier (e.g., America/New_York)",
+      "x-example": "America/New_York"
+    },
+    "label": {
+      "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+      "description": "Field label",
+      "x-example": {
+        "en-US": "Order Date"
+      }
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Field placeholder text",
+      "x-example": "Select date"
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required",
+      "x-example": true
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Whether field is disabled",
+      "x-example": false
+    },
+    "min": {
+      "type": "string",
+      "format": "date",
+      "description": "Minimum date (YYYY-MM-DD)",
+      "x-example": "2024-01-01"
+    },
+    "max": {
+      "type": "string",
+      "format": "date",
+      "description": "Maximum date (YYYY-MM-DD)",
+      "x-example": "2025-12-31"
+    },
+    "format": {
+      "type": "string",
+      "description": "Date display format",
+      "x-example": "MM/DD/YYYY"
+    },
+    "transformValue": {
+      "type": "object",
+      "description": "Value transformation configuration",
+      "properties": {
+        "onLoad": {
+          "type": "string",
+          "description": "Template expression to transform value on load",
+          "x-example": "{{ format value 'YYYY-MM-DD' }}"
+        },
+        "onChange": {
+          "type": "string",
+          "description": "Template expression to transform value on change"
+        },
+        "onBlur": {
+          "type": "string",
+          "description": "Template expression to transform value on blur"
+        }
+      }
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
+  },
+  "required": ["type"]
+}

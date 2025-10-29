@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Layout Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "layout"
+    },
+    "name": {
+      "type": "string",
+      "description": "Layout name identifier"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon class name"
+        },
+        "permission": {
+          "$ref": "../schemas.json#/definitions/permissions"
+        },
+        "cols": {
+          "type": "integer",
+          "description": "Number of columns"
+        },
+        "orientation": {
+          "type": "string",
+          "enum": ["horizontal", "vertical"],
+          "description": "Layout orientation"
+        },
+        "toolbar": {
+          "type": "array",
+          "description": "Toolbar components",
+          "items": {
+            "$ref": "../schemas.json#/definitions/component"
+          }
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "description": "Layout input parameters",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "props": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component"]
+}

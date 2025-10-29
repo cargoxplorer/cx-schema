@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "setFields Action",
+  "type": "object",
+  "properties": {
+    "setFields": {
+      "type": "object",
+      "description": "Fields to set in form or store",
+      "x-examples": [
+        {
+          "orderSummary.totalWeight": "{{ format order.orderSummary.totalWeight 0.00}}",
+          "orderSummary.weightUnit": "{{ order.orderSummary.weightUnit }}",
+          "orderSummary.totalVolume": "{{ format order.orderSummary.totalVolume 0.00}}",
+          "orderSummary.volumeUnit": "{{ order.orderSummary.volumeUnit }}",
+          "orderSummary.totalQuantity": "{{ order.orderSummary.totalQuantity }}"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "openBarcodeScanner Action",
+  "type": "object",
+  "properties": {
+    "openBarcodeScanner": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "description": "Optional title text for the scanner UI"
+        },
+        "minBarcodeLength": {
+          "type": "integer",
+          "description": "Minimum length for recognized barcodes",
+          "default": 1
+        },
+        "allowMultiple": {
+          "type": "boolean",
+          "description": "Allow scanning multiple barcodes before closing",
+          "default": false
+        },
+        "maxBarcodes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of barcodes to collect in multi-scan mode"
+        },
+        "onScan": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute after each successful scan"
+        },
+        "onComplete": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute when the scanner UI finishes multi-scan and closes"
+        },
+        "onClose": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute when the scanner UI is closed without completing"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "allowMultiple": { "const": false } }, "required": ["allowMultiple"] },
+          "then": { "not": { "required": ["maxBarcodes"] } }
+        }
+      ],
+      "x-examples": [
+        {
+          "title": "Scan Item",
+          "minBarcodeLength": 8,
+          "onScan": [
+            { "setStore": { "scannedBarcode": "{{ result.data }}" } },
+            { "notification": { "message": "Scanned: {{ result.data }}" } }
+          ],
+          "onClose": [{ "notification": { "message": "Scanner closed" } }]
+        },
+        {
+          "title": "Scan multiple items",
+          "allowMultiple": true,
+          "minBarcodeLength": 8,
+          "onScan": [{ "notification": { "message": "Captured: {{ result.data }}" } }],
+          "onComplete": [
+            { "setStore": { "scannedBarcodes": "{{ result.barcodes }}" } },
+            { "notification": { "message": "Collected {{ result.barcodes.length }} barcodes" } }
+          ]
+        },
+        {
+          "title": "Scan up to 5 items",
+          "allowMultiple": true,
+          "maxBarcodes": 5,
+          "minBarcodeLength": 8,
+          "onScan": [{ "notification": { "message": "Added: {{ result.data }}" } }],
+          "onComplete": [
+            { "setStore": { "scannedBarcodes": "{{ result.barcodes }}" } },
+            { "notification": { "message": "Scanning completed ({{ result.barcodes.length }} items)" } }
+          ]
+        },
+        {
+          "title": "Scan or log",
+          "minBarcodeLength": 10,
+          "allowMultiple": true,
+          "maxBarcodes": 3,
+          "onScan": [
+            {
+              "if": "{{ eval result.format === 'QR_CODE' }}",
+              "then": [{ "navigate": "~/qr-details" }],
+              "else": [
+                {
+                  "mutation": {
+                    "command": "logBarcodeScan",
+                    "variables": { "barcodeData": "{{ result.data }}", "format": "{{ result.format }}" }
+                  }
+                },
+                { "notification": { "message": "Barcode logged" } }
+              ]
+            }
+          ],
+          "onComplete": [{ "notification": { "message": "Finished scanning" } }]
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

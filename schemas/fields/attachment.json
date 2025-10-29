@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Attachment Field Type",
+  "description": "Schema for attachment field type supporting images and files",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "attachment"
+    },
+    "label": {
+      "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+      "description": "Field label",
+      "x-example": { "en-US": "File Attachment" }
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Field placeholder text",
+      "x-example": "Add Attachment / Take Photo"
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required",
+      "x-example": false
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Whether field is disabled",
+      "x-example": false
+    },
+    "options": {
+      "type": "object",
+      "description": "Attachment field options",
+      "properties": {
+        "allowMultiple": {
+          "type": "boolean",
+          "description": "Allow selecting or uploading multiple attachments"
+        },
+        "allowClear": {
+          "type": "boolean",
+          "description": "Allow clearing the current selection"
+        },
+        "displayAs": {
+          "type": "string",
+          "enum": ["image", "file"],
+          "description": "Preferred display mode for attachments"
+        },
+        "previewWidth": {
+          "type": "integer",
+          "description": "Preview thumbnail width in pixels"
+        },
+        "previewHeight": {
+          "type": "integer",
+          "description": "Preview thumbnail height in pixels"
+        },
+        "maxSize": {
+          "type": "integer",
+          "description": "Maximum file size in bytes"
+        },
+        "allowedExtensions": {
+          "type": "array",
+          "description": "Allowed MIME types or extensions",
+          "items": { "type": "string" }
+        },
+        "parentType": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/templateExpression" }],
+          "description": "Logical parent type/entity for the attachment (e.g., Order, Contact)"
+        }
+      }
+    }
+  },
+  "required": ["type"],
+  "x-examples": [
+    {
+      "type": "attachment",
+      "label": "File Attachment",
+      "options": {
+        "allowMultiple": true,
+        "allowClear": true,
+        "displayAs": "image",
+        "previewWidth": 100,
+        "previewHeight": 100,
+        "maxSize": 10485760,
+        "allowedExtensions": ["image/*", "application/pdf"]
+      }
+    },
+    {
+      "type": "attachment",
+      "label": { "en-US": "Logo" },
+      "options": {
+        "allowMultiple": false,
+        "allowClear": true,
+        "displayAs": "image",
+        "previewWidth": 100,
+        "previewHeight": 100,
+        "maxSize": 1048576,
+        "allowedExtensions": ["image/*"]
+      }
+    },
+    {
+      "type": "attachment",
+      "label": { "en-US": "Upload Document" },
+      "options": {
+        "allowMultiple": false,
+        "allowClear": true,
+        "displayAs": "file",
+        "maxSize": 10485760,
+        "parentType": "Order"
+      }
+    }
+  ]
+}

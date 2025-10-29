@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DateTime Field Type",
+  "description": "Schema for datetime input field type",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "datetime" },
+    "label": {
+      "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+      "description": "Field label",
+      "x-example": { "en-US": "Appointment Time" }
+    },
+    "placeholder": { "type": "string", "description": "Field placeholder text", "x-example": "Select date/time" },
+    "required": { "type": "boolean", "description": "Whether field is required", "x-example": false },
+    "disabled": { "type": "boolean", "description": "Whether field is disabled", "x-example": false },
+    "options": {
+      "type": "object",
+      "description": "DateTime configuration options",
+      "properties": {
+        "dateFormat": {
+          "type": "string",
+          "description": "Display format for the date/time",
+          "x-example": "MM/dd/yyyy h:mm aa"
+        },
+        "showTimeSelect": {
+          "type": "boolean",
+          "description": "Show time selection in addition to date",
+          "x-example": true
+        },
+        "showTimeSelectOnly": {
+          "type": "boolean",
+          "description": "Show only a time picker without date",
+          "x-example": false
+        },
+        "timeIntervals": { "type": "number", "description": "Time selection intervals in minutes", "x-example": 30 },
+        "timeCaption": { "type": "string", "description": "Label displayed for the time section", "x-example": "Time" },
+        "useTimezone": { "type": "boolean", "description": "Enable timezone-aware date handling", "x-example": false },
+        "storeAsUTC": {
+          "type": "boolean",
+          "description": "When useTimezone is true, store date/time in UTC",
+          "x-example": true
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Fixed timezone for display (e.g., America/New_York)",
+          "x-example": "America/New_York"
+        },
+        "format": { "type": "string", "description": "Custom storage format; if omitted, inferred by options" }
+      },
+      "additionalProperties": true
+    },
+    "transformValue": {
+      "type": "object",
+      "description": "Value transformation configuration",
+      "properties": {
+        "onLoad": { "type": "string", "description": "Template expression to transform value on load" },
+        "onChange": { "type": "string", "description": "Template expression to transform value on change" },
+        "onBlur": { "type": "string", "description": "Template expression to transform value on blur" }
+      }
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
+  },
+  "required": ["type"]
+}

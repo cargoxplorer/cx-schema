@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Textarea Field Type",
+  "description": "Schema for textarea input field type",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "textarea"
+    },
+    "label": {
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "../schemas.json#/definitions/localized" }
+      ],
+      "description": "Field label",
+      "x-example": {
+        "en-US": "Description"
+      }
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Field placeholder text",
+      "x-example": "Enter description"
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required",
+      "x-example": false
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Whether field is disabled",
+      "x-example": false
+    },
+    "rows": {
+      "type": "number",
+      "description": "Number of visible text lines",
+      "x-example": 4
+    },
+    "cols": {
+      "type": "number",
+      "description": "Visible width of text area",
+      "x-example": 50
+    },
+    "maxLength": {
+      "type": "number",
+      "description": "Maximum character length",
+      "x-example": 1000
+    },
+    "minLength": {
+      "type": "number",
+      "description": "Minimum character length",
+      "x-example": 10
+    },
+    "resize": {
+      "type": "string",
+      "enum": ["none", "both", "horizontal", "vertical"],
+      "description": "Resize behavior",
+      "x-example": "vertical"
+    },
+    "transformValue": {
+      "type": "object",
+      "description": "Value transformation configuration",
+      "properties": {
+        "onLoad": {
+          "type": "string",
+          "description": "Template expression to transform value on load"
+        },
+        "onChange": {
+          "type": "string", 
+          "description": "Template expression to transform value on change"
+        },
+        "onBlur": {
+          "type": "string",
+          "description": "Template expression to transform value on blur",
+          "x-example": "{{ eval value.trim() }}"
+        }
+      }
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
+  },
+  "required": ["type"]
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Collection Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "collection"
+    },
+    "name": {
+      "type": "string",
+      "description": "Collection name identifier"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "string",
+          "description": "Template expression for items array"
+        },
+        "itemName": {
+          "type": "string",
+          "description": "Variable name for current item in iteration"
+        },
+        "cols": {
+          "type": "integer",
+          "description": "Number of columns for layout"
+        },
+        "orientation": {
+          "type": "string",
+          "enum": ["horizontal", "vertical"],
+          "description": "Layout orientation"
+        },
+        "containerTag": {
+          "type": "string",
+          "description": "HTML container tag"
+        },
+        "className": {
+          "type": "string",
+          "description": "CSS classes for styling"
+        },
+        "childClassName": {
+          "type": "string",
+          "description": "CSS classes for child elements"
+        }
+      },
+      "required": ["items", "itemName"]
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component", "props"]
+}

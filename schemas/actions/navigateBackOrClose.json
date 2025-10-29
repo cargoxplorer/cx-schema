@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "navigateBackOrClose Action",
+  "type": "object",
+  "properties": {
+    "navigateBackOrClose": {
+      "type": "object",
+      "properties": {
+        "fallback": {
+          "type": "string",
+          "description": "Fallback path if no previous page; used when navigation history is empty"
+        },
+        "result": {
+          "description": "Result payload to supply when navigating back or closing"
+        }
+      },
+      "x-examples": [{ "fallback": "~/delivery-schedules" }, { "fallback": "users" }, { "result": { "saved": true } }]
+    }
+  },
+  "additionalProperties": false
+}

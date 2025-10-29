@@ -1,0 +1,618 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "field-collection-component",
+  "title": "Field Collection Component",
+  "description": "A component for managing arrays of form fields with built-in add/remove functionality, grouping, and templates. Supports grouping items by any field (e.g., day of week, status, category) with per-group add buttons and custom group templates.",
+  "type": "object",
+  "required": ["component", "props"],
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "field-collection",
+      "description": "Component type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique identifier for the component",
+      "x-example": "businessHoursCollection"
+    },
+    "props": {
+      "type": "object",
+      "required": ["fieldName", "itemTemplate"],
+      "properties": {
+        "fieldName": {
+          "type": "string",
+          "description": "The form field name this collection binds to",
+          "x-example": "businessHours"
+        },
+        "itemTemplate": {
+          "oneOf": [
+            {
+              "type": "object",
+              "description": "Single component template for each item"
+            },
+            {
+              "type": "array",
+              "description": "Multiple component templates for each item",
+              "items": {
+                "type": "object"
+              }
+            }
+          ],
+          "x-example": {
+            "component": "layout",
+            "props": {
+              "cols": 3
+            },
+            "children": [
+              {
+                "component": "field",
+                "name": "startTime",
+                "props": {
+                  "type": "time",
+                  "label": "Start"
+                }
+              },
+              {
+                "component": "field",
+                "name": "endTime",
+                "props": {
+                  "type": "time",
+                  "label": "End"
+                }
+              }
+            ]
+          }
+        },
+        "options": {
+          "type": "object",
+          "description": "Collection management options",
+          "properties": {
+            "allowAdd": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow adding new items",
+              "x-example": true
+            },
+            "allowRemove": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow removing individual items",
+              "x-example": true
+            },
+            "allowRemoveAll": {
+              "type": "boolean",
+              "default": false,
+              "description": "Show remove all button",
+              "x-example": false
+            },
+            "allowReorder": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow drag-and-drop reordering",
+              "x-example": true
+            },
+            "minItems": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "description": "Minimum number of items required",
+              "x-example": 1
+            },
+            "maxItems": {
+              "type": "integer",
+              "minimum": 1,
+              "default": null,
+              "description": "Maximum number of items allowed",
+              "x-example": 10
+            }
+          },
+          "x-example": {
+            "allowAdd": true,
+            "allowRemove": true,
+            "allowReorder": true,
+            "minItems": 0,
+            "maxItems": 7
+          }
+        },
+        "addButton": {
+          "type": "object",
+          "description": "Customize the add button",
+          "properties": {
+            "label": {
+              "type": ["string", "object"],
+              "description": "Button label (can be localized)",
+              "x-example": {
+                "en-US": "Add Time Slot"
+              }
+            },
+            "icon": {
+              "type": "string",
+              "default": "plus",
+              "description": "FontAwesome icon name",
+              "x-example": "plus"
+            },
+            "variant": {
+              "type": "string",
+              "enum": ["text", "outlined", "contained"],
+              "default": "outlined",
+              "description": "Material-UI button variant",
+              "x-example": "contained"
+            },
+            "position": {
+              "type": "string",
+              "enum": ["top", "bottom", "both"],
+              "default": "bottom",
+              "description": "Where to show the add button",
+              "x-example": "bottom"
+            }
+          },
+          "x-example": {
+            "label": {
+              "en-US": "Add New Item"
+            },
+            "icon": "plus",
+            "variant": "contained",
+            "position": "bottom"
+          }
+        },
+        "removeButton": {
+          "type": "object",
+          "description": "Customize the remove button",
+          "properties": {
+            "label": {
+              "type": ["string", "object"],
+              "description": "Button label (can be localized)",
+              "x-example": {
+                "en-US": "Remove"
+              }
+            },
+            "icon": {
+              "type": "string",
+              "default": "trash",
+              "description": "FontAwesome icon name",
+              "x-example": "trash"
+            },
+            "variant": {
+              "type": "string",
+              "enum": ["text", "outlined", "contained"],
+              "default": "outlined",
+              "description": "Material-UI button variant",
+              "x-example": "outlined"
+            }
+          },
+          "x-example": {
+            "icon": "trash",
+            "variant": "outlined"
+          }
+        },
+        "defaultItem": {
+          "type": ["object", "array", "string", "number", "boolean"],
+          "description": "Default values for new items",
+          "x-example": {
+            "dayOfWeek": 1,
+            "startTime": "09:00:00",
+            "endTime": "17:00:00",
+            "isClosed": false
+          }
+        },
+        "groupMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable grouping of items. When enabled, items are organized into groups based on the groupBy field value. Each group gets its own add button that automatically sets the groupBy field value for new items.",
+          "x-example": true
+        },
+        "groupBy": {
+          "type": "string",
+          "description": "Field name to group items by (required if groupMode is true). Common examples: 'dayOfWeek' for business hours, 'status' for tasks, 'category' for products.",
+          "x-example": "dayOfWeek"
+        },
+        "groups": {
+          "type": "array",
+          "description": "Define available groups. When groupMode is enabled, items are organized into these groups based on the groupBy field value. Each group gets its own add button when allowAdd is true.",
+          "items": {
+            "type": "object",
+            "required": ["key", "label"],
+            "properties": {
+              "key": {
+                "type": ["string", "number"],
+                "description": "Group identifier (matches the value in groupBy field)",
+                "x-example": 1
+              },
+              "label": {
+                "type": ["string", "object"],
+                "description": "Group display label (can be localized)",
+                "x-example": {
+                  "en-US": "Monday"
+                }
+              },
+              "icon": {
+                "type": "string",
+                "description": "FontAwesome icon for the group",
+                "x-example": "calendar"
+              }
+            }
+          },
+          "x-example": [
+            {
+              "key": "pending",
+              "label": {
+                "en-US": "Pending"
+              },
+              "icon": "clock"
+            },
+            {
+              "key": "completed",
+              "label": {
+                "en-US": "Completed"
+              },
+              "icon": "check"
+            }
+          ]
+        },
+        "groupTemplate": {
+          "type": "object",
+          "description": "Custom template for group headers",
+          "x-example": {
+            "component": "layout",
+            "children": [
+              {
+                "component": "text",
+                "props": {
+                  "value": "{{ groupLabel }} ({{ groupCount }})",
+                  "type": "h5"
+                }
+              }
+            ]
+          }
+        },
+        "layout": {
+          "type": "string",
+          "enum": ["list", "grid", "accordion"],
+          "default": "list",
+          "description": "Layout style for items",
+          "x-example": "grid"
+        },
+        "cols": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12,
+          "default": 1,
+          "description": "Number of columns for grid layout",
+          "x-example": 2
+        },
+        "spacing": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 2,
+          "description": "Spacing between items (Material-UI spacing units)",
+          "x-example": 3
+        },
+        "showIndex": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show item index numbers",
+          "x-example": true
+        },
+        "showDragHandle": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show drag handle for reordering",
+          "x-example": true
+        },
+        "containerClass": {
+          "type": "string",
+          "description": "CSS class for the container",
+          "x-example": "business-hours-container"
+        },
+        "itemClass": {
+          "type": "string",
+          "description": "CSS class for each item",
+          "x-example": "collection-item"
+        }
+      }
+    }
+  },
+  "x-examples": {
+    "simplifiedBusinessHours": {
+      "component": "field-collection",
+      "name": "businessHoursSimple",
+      "props": {
+        "fieldName": "businessHours",
+        "groupMode": true,
+        "groupBy": "dayOfWeek",
+        "groups": [
+          { "key": 1, "label": "Monday" },
+          { "key": 2, "label": "Tuesday" },
+          { "key": 3, "label": "Wednesday" },
+          { "key": 4, "label": "Thursday" },
+          { "key": 5, "label": "Friday" },
+          { "key": 6, "label": "Saturday" },
+          { "key": 0, "label": "Sunday" }
+        ],
+        "layout": "accordion",
+        "defaultItem": {
+          "startTime": "09:00:00",
+          "endTime": "17:00:00"
+        },
+        "itemTemplate": {
+          "component": "layout",
+          "props": { "cols": 2 },
+          "children": [
+            {
+              "component": "field",
+              "name": "startTime",
+              "props": { "type": "time", "label": "Start" }
+            },
+            {
+              "component": "field",
+              "name": "endTime",
+              "props": { "type": "time", "label": "End" }
+            }
+          ]
+        }
+      }
+    },
+    "simple": {
+      "component": "field-collection",
+      "name": "phoneNumbers",
+      "props": {
+        "fieldName": "contacts.phoneNumbers",
+        "itemTemplate": {
+          "component": "field",
+          "name": "number",
+          "props": { "type": "tel", "label": "Phone Number" }
+        },
+        "defaultItem": { "number": "" },
+        "addButton": { "label": "Add Phone Number" }
+      }
+    },
+    "businessHours": {
+      "component": "field-collection",
+      "name": "mondayHours",
+      "props": {
+        "fieldName": "businessHoursMonday",
+        "options": { "allowAdd": true, "allowRemove": true, "minItems": 0, "maxItems": 3 },
+        "addButton": {
+          "label": { "en-US": "Add Time Slot" },
+          "icon": "plus",
+          "position": "bottom"
+        },
+        "defaultItem": { "dayOfWeek": 1, "startTime": "09:00:00", "endTime": "17:00:00" },
+        "layout": "list",
+        "showIndex": true,
+        "itemTemplate": {
+          "component": "layout",
+          "props": { "cols": 2 },
+          "children": [
+            { "component": "field", "name": "startTime", "props": { "label": "Start", "type": "time" } },
+            { "component": "field", "name": "endTime", "props": { "label": "End", "type": "time" } }
+          ]
+        }
+      }
+    },
+    "groupedTasks": {
+      "component": "field-collection",
+      "name": "tasksCollection",
+      "props": {
+        "fieldName": "project.tasks",
+        "groupMode": true,
+        "groupBy": "status",
+        "groups": [
+          { "key": "todo", "label": { "en-US": "To Do" }, "icon": "list" },
+          { "key": "in_progress", "label": { "en-US": "In Progress" }, "icon": "spinner" },
+          { "key": "done", "label": { "en-US": "Done" }, "icon": "check-circle" }
+        ],
+        "groupTemplate": {
+          "component": "layout",
+          "props": { "className": "group-header bg-gray-100 p-2 rounded" },
+          "children": [
+            { "component": "text", "props": { "value": "{{ groupLabel }}", "type": "h6" } },
+            { "component": "badge", "props": { "value": "{{ groupCount }}" } }
+          ]
+        },
+        "layout": "accordion",
+        "options": { "allowAdd": true, "allowRemove": true, "allowReorder": true },
+        "defaultItem": { "title": "", "description": "", "status": "todo", "assignee": null },
+        "addButton": { "label": { "en-US": "New Task" }, "icon": "plus", "variant": "contained", "position": "top" },
+        "itemTemplate": {
+          "component": "card",
+          "props": { "variant": "outlined" },
+          "children": [
+            {
+              "component": "layout",
+              "props": { "cols": 3 },
+              "children": [
+                {
+                  "component": "field",
+                  "name": "title",
+                  "props": { "label": "Title", "type": "text", "required": true }
+                },
+                {
+                  "component": "field",
+                  "name": "status",
+                  "props": {
+                    "label": "Status",
+                    "type": "select",
+                    "options": [
+                      { "value": "todo", "label": "To Do" },
+                      { "value": "in_progress", "label": "In Progress" },
+                      { "value": "done", "label": "Done" }
+                    ]
+                  }
+                },
+                {
+                  "component": "field",
+                  "name": "assignee",
+                  "props": { "label": "Assignee", "type": "select", "options": "{{ users }}" }
+                }
+              ]
+            },
+            {
+              "component": "field",
+              "name": "description",
+              "props": { "label": "Description", "type": "textarea", "rows": 3 }
+            }
+          ]
+        }
+      }
+    },
+    "gridContacts": {
+      "component": "field-collection",
+      "name": "contactsGrid",
+      "props": {
+        "fieldName": "company.contacts",
+        "layout": "grid",
+        "cols": 3,
+        "spacing": 3,
+        "options": {
+          "allowAdd": true,
+          "allowRemove": true,
+          "allowRemoveAll": true,
+          "allowReorder": false,
+          "minItems": 1,
+          "maxItems": 12
+        },
+        "showDragHandle": false,
+        "showIndex": false,
+        "defaultItem": { "firstName": "", "lastName": "", "email": "", "phone": "", "department": "" },
+        "addButton": {
+          "label": { "en-US": "Add Contact" },
+          "icon": "user-plus",
+          "variant": "contained",
+          "position": "both"
+        },
+        "containerClass": "contacts-grid",
+        "itemClass": "contact-card",
+        "itemTemplate": {
+          "component": "card",
+          "props": { "variant": "elevation", "elevation": 2 },
+          "children": [
+            {
+              "component": "layout",
+              "props": { "cols": 1 },
+              "children": [
+                {
+                  "component": "field",
+                  "name": "firstName",
+                  "props": { "label": "First Name", "type": "text", "required": true }
+                },
+                {
+                  "component": "field",
+                  "name": "lastName",
+                  "props": { "label": "Last Name", "type": "text", "required": true }
+                },
+                {
+                  "component": "field",
+                  "name": "email",
+                  "props": { "label": "Email", "type": "email", "required": true }
+                },
+                { "component": "field", "name": "phone", "props": { "label": "Phone", "type": "tel" } },
+                {
+                  "component": "field",
+                  "name": "department",
+                  "props": {
+                    "label": "Department",
+                    "type": "select",
+                    "options": [
+                      { "value": "sales", "label": "Sales" },
+                      { "value": "support", "label": "Support" },
+                      { "value": "engineering", "label": "Engineering" },
+                      { "value": "management", "label": "Management" }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "businessHoursByDay": {
+      "component": "field-collection",
+      "name": "businessHoursCollection",
+      "props": {
+        "fieldName": "businessHours",
+        "groupMode": true,
+        "groupBy": "dayOfWeek",
+        "groups": [
+          { "key": 0, "label": { "en-US": "Sunday" }, "icon": "calendar-check" },
+          { "key": 1, "label": { "en-US": "Monday" }, "icon": "calendar" },
+          { "key": 2, "label": { "en-US": "Tuesday" }, "icon": "calendar" },
+          { "key": 3, "label": { "en-US": "Wednesday" }, "icon": "calendar" },
+          { "key": 4, "label": { "en-US": "Thursday" }, "icon": "calendar" },
+          { "key": 5, "label": { "en-US": "Friday" }, "icon": "calendar" },
+          { "key": 6, "label": { "en-US": "Saturday" }, "icon": "calendar-check" }
+        ],
+        "groupTemplate": {
+          "component": "layout",
+          "props": { "className": "d-flex justify-content-between align-items-center" },
+          "children": [
+            { "component": "text", "props": { "value": "{{ groupLabel }}", "type": "h6" } },
+            {
+              "component": "badge",
+              "props": {
+                "value": "{{ groupCount > 0 ? 'Open' : 'Closed' }}",
+                "variant": "{{ groupCount > 0 ? 'success' : 'danger' }}"
+              }
+            }
+          ]
+        },
+        "layout": "accordion",
+        "options": { "allowAdd": true, "allowRemove": true, "allowReorder": true, "minItems": 0, "maxItems": 21 },
+        "defaultItem": { "startTime": "09:00:00", "endTime": "17:00:00", "isOpen": true },
+        "showDragHandle": true,
+        "containerClass": "business-hours-container",
+        "itemTemplate": {
+          "component": "card",
+          "props": { "variant": "outlined" },
+          "children": [
+            {
+              "component": "layout",
+              "props": { "cols": 3 },
+              "children": [
+                {
+                  "component": "field",
+                  "name": "startTime",
+                  "props": { "label": "Opening Time", "type": "time", "required": true }
+                },
+                {
+                  "component": "field",
+                  "name": "endTime",
+                  "props": { "label": "Closing Time", "type": "time", "required": true }
+                },
+                { "component": "field", "name": "isOpen", "props": { "label": "Open", "type": "checkbox" } }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "multipleTemplates": {
+      "component": "field-collection",
+      "name": "addressesCollection",
+      "props": {
+        "fieldName": "user.addresses",
+        "itemTemplate": [
+          { "component": "text", "props": { "value": "Address {{ index + 1 }}", "type": "h6" } },
+          {
+            "component": "layout",
+            "props": { "cols": 2 },
+            "children": [
+              { "component": "field", "name": "street", "props": { "label": "Street Address", "type": "text" } },
+              { "component": "field", "name": "city", "props": { "label": "City", "type": "text" } },
+              { "component": "field", "name": "state", "props": { "label": "State", "type": "text" } },
+              { "component": "field", "name": "zipCode", "props": { "label": "ZIP Code", "type": "text" } }
+            ]
+          },
+          { "component": "field", "name": "isPrimary", "props": { "label": "Primary Address", "type": "checkbox" } }
+        ],
+        "defaultItem": { "street": "", "city": "", "state": "", "zipCode": "", "isPrimary": false },
+        "options": { "allowAdd": true, "allowRemove": true, "allowReorder": true, "minItems": 1, "maxItems": 5 },
+        "showIndex": true,
+        "showDragHandle": true
+      }
+    }
+  }
+}

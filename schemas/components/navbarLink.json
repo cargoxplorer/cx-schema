@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Navbar Link Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "navbarLink"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "permission": {
+          "$ref": "../schemas.json#/definitions/permissions"
+        },
+        "label": {
+          "type": "string",
+          "description": "Link label text"
+        },
+        "to": {
+          "type": "string",
+          "description": "Navigation URL (supports template variables)"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Boolean expression for conditional rendering"
+        },
+        "onClick": {
+          "$ref": "../schemas.json#/definitions/actionsList"
+        }
+      },
+      "required": ["label"]
+    }
+  },
+  "required": ["component", "props"]
+}

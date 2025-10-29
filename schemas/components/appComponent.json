@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generic CargoXplorer App Component",
+  "type": "object",
+  "description": "Base schema for any CargoXplorer component that can be used within the application",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Component name in format 'ModuleName/ComponentName'",
+      "pattern": "^[A-Za-z0-9]+/[A-Za-z0-9]+$"
+    },
+    "permissions": {
+      "$ref": "../schemas.json#/definitions/permissions"
+    },
+    "priority": {
+      "type": "integer",
+      "default": 0,
+      "description": "Component priority (higher number = higher priority)"
+    },
+    "displayName": {
+      "$ref": "../schemas.json#/definitions/localized"
+    },
+    "props": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Properties passed to the component when targeting a slot",
+          "properties": {
+            "targetSlot": {
+              "type": "string",
+              "description": "Name of the slot this component targets"
+            },
+            "order": {
+              "type": "integer",
+              "description": "Order of the component in the target slot"
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "layout": {
+      "$ref": "../schemas.json#/definitions/component"
+    }
+  },
+  "required": ["name", "layout"]
+}

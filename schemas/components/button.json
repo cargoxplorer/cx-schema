@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Button Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "button"
+    },
+    "name": {
+      "type": "string",
+      "description": "Button name identifier"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon class name"
+        },
+        "size": {
+          "type": "object",
+          "description": "Responsive size configuration",
+          "additionalProperties": true
+        },
+        "options": {
+          "type": "object",
+          "description": "Button options. these are the same as the button component attributes ",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["submit", "reset", "button"]
+            },
+            "variant": {
+              "type": "string",
+              "enum": [
+                "primary",
+                "secondary",
+                "outline-primary",
+                "outline-secondary",
+                "danger",
+                "success",
+                "warning",
+                "info"
+              ],
+              "description": "Button variant style"
+            },
+            "disabled": {
+              "type": "boolean",
+              "description": "Disable the button"
+            }
+          },
+          "additionalProperties": true
+        },
+        "onClick": {
+          "$ref": "../schemas.json#/definitions/actionsList"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression"
+        }
+      }
+    }
+  },
+  "required": ["component"],
+  "x-examples": [
+    {
+      "component": "button",
+      "name": "openDialog",
+      "props": {
+        "label": { "en-US": "New Order" },
+        "icon": "plus",
+        "options": { "variant": "primary", "type": "button" },
+        "onClick": [
+          {
+            "dialog": {
+              "name": "createOrder",
+              "props": { "title": { "en-US": "Create Order" } },
+              "component": { "component": "layout", "children": [{ "component": "Orders/CreateOrder" }] }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "component": "button",
+      "name": "submitFormBtn",
+      "props": {
+        "label": "Save",
+        "options": { "type": "submit", "variant": "success", "disabled": false }
+      }
+    },
+    {
+      "component": "button",
+      "name": "export",
+      "props": {
+        "label": { "en-US": "Export" },
+        "icon": "download",
+        "options": { "variant": "outline-primary" },
+        "onClick": [
+          {
+            "workflow": {
+              "workflowId": "24f504ad-2ca3-4432-b2a4-c540c48fee31",
+              "inputs": { "exportName": "orders" }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "component": "button",
+      "name": "back",
+      "props": {
+        "label": "Back",
+        "options": { "type": "button", "variant": "secondary" },
+        "onClick": [{ "navigateBack": { "fallback": "/home" } }],
+        "isHidden": "{{ eval !canGoBack }}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Barcode Scanner Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "barcodeScanner"
+    },
+    "name": {
+      "type": "string",
+      "description": "Component name identifier"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "minBarcodeLength": {
+          "type": "integer",
+          "description": "Minimum length for recognized barcodes"
+        },
+        "onScan": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute when a barcode is successfully scanned"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Boolean expression for conditional rendering"
+        }
+      }
+    }
+  },
+  "required": ["component"],
+  "x-examples": [
+    {
+      "component": "barcodeScanner",
+      "props": {
+        "minBarcodeLength": 8,
+        "onScan": [
+          { "setStore": { "scannedBarcode": "{{ result.data }}" } },
+          { "notification": { "message": "Barcode scanned: {{ result.data }}" } }
+        ]
+      }
+    },
+    {
+      "component": "barcodeScanner",
+      "props": {
+        "minBarcodeLength": 10,
+        "onScan": [
+          {
+            "if": "{{ eval result.format === 'QR_CODE' }}",
+            "then": [{ "setStore": { "qrCodeData": "{{ result.data }}" } }, { "navigate": "/qr-details" }],
+            "else": [
+              {
+                "mutation": {
+                  "command": "logBarcodeScan",
+                  "variables": {
+                    "barcodeData": "{{ result.data }}",
+                    "format": "{{ result.format }}"
+                  }
+                }
+              },
+              { "notification": { "message": "Barcode logged: {{ result.data }}" } }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

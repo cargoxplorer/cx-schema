@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "All Actions",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "navigate.json" },
+    { "$ref": "navigateBack.json" },
+    { "$ref": "navigateBackOrClose.json" },
+    { "$ref": "refresh.json" },
+    { "$ref": "notification.json" },
+    { "$ref": "confirm.json" },
+    { "$ref": "mutation.json" },
+    { "$ref": "query.json" },
+    { "$ref": "setFields.json" },
+    { "$ref": "setStore.json" },
+    { "$ref": "validateForm.json" },
+    { "$ref": "dialog.json" },
+    { "$ref": "workflow.json" },
+    { "$ref": "fileDownload.json" },
+    { "$ref": "forEach.json" },
+    { "$ref": "if.json" },
+    { "$ref": "consoleLog.json" },
+    { "$ref": "openBarcodeScanner.json" }
+  ]
+}

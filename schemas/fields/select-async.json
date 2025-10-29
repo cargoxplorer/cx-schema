@@ -1,0 +1,334 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Select Async Field Type",
+  "description": "Schema for select-async field type with GraphQL query support",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "select-async"
+    },
+    "label": {
+      "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+      "description": "Field label",
+      "x-example": {
+        "en-US": "Select Order"
+      }
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Field placeholder text",
+      "x-example": "Search and select an order"
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required",
+      "x-example": false
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Whether field is disabled",
+      "x-example": false
+    },
+    "options": {
+      "type": "object",
+      "description": "Select-async specific options",
+      "properties": {
+        "valueFieldName": {
+          "type": "string",
+          "description": "Field name to use as the value for select options",
+          "x-example": "orderId"
+        },
+        "itemLabelTemplate": {
+          "type": "string",
+          "description": "Template expression for option labels",
+          "x-example": "{{eval `Id ${orderId} - ${trackingNumber ? `Tracking Number ${trackingNumber}` : `Order Number ${orderNumber}`} - ${orderType}` }}"
+        },
+        "itemValueTemplate": {
+          "type": "string",
+          "description": "Template expression for option values",
+          "x-example": "{{orderId}}"
+        },
+        "navigateActionPermission": {
+          "type": "string",
+          "description": "Permission required for navigation actions",
+          "x-example": "System/Orders/Update"
+        },
+        "searchQuery": {
+          "type": "object",
+          "description": "Query configuration for async search",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Query name",
+              "x-example": "getOrders"
+            },
+            "path": {
+              "type": "string",
+              "description": "Path to data in query result",
+              "x-example": "orders.items"
+            },
+            "params": {
+              "type": "object",
+              "description": "Query parameters with template expressions",
+              "additionalProperties": true,
+              "x-example": {
+                "search": "{{ string search }}",
+                "take": "{{ number pageSize }}",
+                "skip": "{{ number skip }}",
+                "filter": "{{ string filter }}"
+              }
+            }
+          },
+          "required": ["name", "path"]
+        },
+        "valueQuery": {
+          "type": "object",
+          "description": "Query configuration for fetching selected value details",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Query name"
+            },
+            "path": {
+              "type": "string",
+              "description": "Path to data in query result"
+            },
+            "params": {
+              "type": "object",
+              "description": "Query parameters",
+              "additionalProperties": true
+            }
+          },
+          "required": ["name", "path"],
+          "x-example": {
+            "name": "getOrder",
+            "path": "order",
+            "params": {
+              "orderId": "{{ orderId }}"
+            }
+          }
+        },
+        "allowMultiple": {
+          "type": "boolean",
+          "description": "Allow multiple selection",
+          "x-example": false
+        },
+        "allowClear": {
+          "type": "boolean",
+          "description": "Allow clearing selection",
+          "x-example": true
+        },
+        "allowSearch": {
+          "type": "boolean",
+          "description": "Enable search functionality",
+          "x-example": true
+        },
+        "minWidth": {
+          "type": "string",
+          "description": "Minimum width for the dropdown",
+          "x-example": "300px"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Prefix for form field names, used in dynamic forms",
+          "x-example": "orderEntityCarriers[{{carrierIndex}}]."
+        },
+        "filter": {
+          "type": "string",
+          "description": "Filter expression for search queries",
+          "x-example": "contactType: Carrier"
+        },
+        "allowCreate": {
+          "type": "boolean",
+          "description": "Allow creating new items inline",
+          "x-example": true
+        },
+        "transformValue": {
+          "type": "object",
+          "description": "Value transformation configuration",
+          "properties": {
+            "onLoad": {
+              "type": "string",
+              "description": "Template expression to transform value on load"
+            },
+            "onChange": {
+              "type": "string",
+              "description": "Template expression to transform value on change"
+            },
+            "onBlur": {
+              "type": "string",
+              "description": "Template expression to transform value on blur"
+            }
+          }
+        }
+      },
+      "required": ["searchQuery"]
+    },
+    "dropDownToolbar": {
+      "type": "array",
+      "description": "Toolbar components for dropdown (create buttons, etc)",
+      "items": {
+        "$ref": "../schemas.json#/definitions/component"
+      },
+      "x-example": [
+        {
+          "component": "button",
+          "name": "createBtn",
+          "props": {
+            "permission": "System/Orders/Create",
+            "label": {
+              "en-US": "Create New Order"
+            },
+            "icon": "plus",
+            "options": {
+              "className": "create-entity-select-btn btn btn-sm btn-primary w-100",
+              "variant": "primary"
+            },
+            "onClick": [
+              {
+                "dialog": {
+                  "component": "Orders/CreateOrder",
+                  "props": {
+                    "title": "Create New Order"
+                  },
+                  "onClose": [{ "selectValue": "{{ result }}" }]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "queries": {
+      "type": "array",
+      "description": "GraphQL queries for the field",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Query name"
+          },
+          "query": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "GraphQL query string"
+              },
+              "variables": {
+                "type": "object",
+                "description": "Query variables",
+                "additionalProperties": true
+              }
+            },
+            "required": ["command"]
+          }
+        },
+        "required": ["name", "query"]
+      },
+      "x-example": [
+        {
+          "name": "getOrders",
+          "query": {
+            "command": "query($organizationId: Int!, $filter: String!, $search: String!, $take: Int!, $skip: Int!) { orders(organizationId: $organizationId, filter: $filter, search: $search, take: $take, skip: $skip) { items { orderId orderNumber trackingNumber orderType } totalCount } }",
+            "variables": {
+              "organizationId": "{{number organizationId}}",
+              "search": "{{string search}}",
+              "take": "{{number pageSize}}",
+              "skip": "{{number skip}}",
+              "filter": "{{ string filter }}"
+            }
+          }
+        }
+      ]
+    },
+    "onSelectValue": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when a value is selected",
+      "x-example": [
+        {
+          "setStore": {
+            "orderForm.selectedOrder": "{{eval {...selectedItem} }}"
+          }
+        },
+        {
+          "setFields": {
+            "orderNumber": "{{ selectedItem.orderNumber }}",
+            "trackingNumber": "{{ selectedItem.trackingNumber }}"
+          }
+        }
+      ]
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    },
+    "onOptionTagClick": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when clicking on an option tag/chip in the dropdown",
+      "x-example": [
+        {
+          "dialog": {
+            "props": {
+              "organizationId": "{{ organizationId }}",
+              "jobId": "{{ item.jobId }}",
+              "title": {
+                "en-US": "Update Job"
+              }
+            },
+            "component": {
+              "layout": {
+                "component": "layout",
+                "children": [{ "component": "Jobs/UpdateJob" }]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "onEditClick": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when edit action is clicked",
+      "x-example": [
+        {
+          "dialog": {
+            "props": {
+              "organizationId": "{{ organizationId }}",
+              "countryCode": "{{ countryCode }}",
+              "title": {
+                "en-US": "Update Country"
+              }
+            },
+            "component": {
+              "layout": {
+                "component": "layout",
+                "children": [{ "component": "Countries/UpdateCountry" }]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "filter": {
+      "type": "string",
+      "description": "Filter expression applied to queries",
+      "x-example": "contactType: Contact"
+    },
+    "className": {
+      "type": "string",
+      "description": "CSS class names for the field",
+      "x-example": "col-3"
+    }
+  },
+  "required": ["type", "options"]
+}

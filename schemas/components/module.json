@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StoreVista Module",
+  "type": "object",
+  "properties": {
+    "module": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Module name"
+        },
+        "description": {
+          "$ref": "../schemas.json#/definitions/localized"
+        },
+        "appModuleId": {
+          "type": "string",
+          "description": "Unique module identifier (UUID)"
+        },
+        "displayName": {
+          "$ref": "../schemas.json#/definitions/localized"
+        },
+        "application": {
+          "type": "string",
+          "description": "Application name"
+        },
+        "priority": {
+          "type": "integer",
+          "description": "Module priority for override resolution"
+        }
+      },
+      "required": ["name", "appModuleId", "displayName", "application"]
+    },
+    "components": {
+      "type": "array",
+      "description": "Module components",
+      "items": {
+        "$ref": "../schemas.json#/components/schemas/appComponent"
+      }
+    },
+    "routes": {
+      "type": "array",
+      "description": "Module routes",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Route name"
+          },
+          "path": {
+            "type": "string",
+            "description": "Route path pattern"
+          },
+          "platforms": {
+            "type": "array",
+            "description": "Target platforms for this route",
+            "items": {
+              "type": "string",
+              "enum": ["web", "mobile"]
+            },
+            "default": ["web", "mobile"]
+          },
+          "component": {
+            "type": "string",
+            "description": "Component name to render"
+          },
+          "props": {
+            "type": "object",
+            "description": "Route-specific properties",
+            "properties": {
+              "title": {
+                "$ref": "../schemas.json#/definitions/localized"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon class name"
+              },
+              "permission": {
+                "type": "string",
+                "description": "Required permission to access this route"
+              }
+            },
+            "required": ["title"],
+            "additionalProperties": true
+          },
+          "children": {
+            "type": "array",
+            "description": "Child routes",
+            "items": {
+              "$ref": "../schemas.json#"
+            }
+          }
+        },
+        "required": ["name", "path", "component"]
+      }
+    },
+    "entities": {
+      "type": "array",
+      "description": "Module entities",
+      "items": {
+        "$ref": "../schemas.json#/definitions/entity"
+      }
+    },
+    "permissions": {
+      "type": "array",
+      "description": "Module permissions",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Permission name"
+          },
+          "displayName": {
+            "$ref": "../schemas.json#/definitions/localized"
+          },
+          "description": {
+            "$ref": "../schemas.json#/definitions/localized"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Roles that have this permission"
+          }
+        },
+        "required": ["name", "roles"]
+      }
+    }
+  },
+  "required": ["module"]
+}

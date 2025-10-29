@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "notification Action",
+  "type": "object",
+  "properties": {
+    "notification": {
+      "type": "object",
+      "properties": {
+        "message": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
+        "type": { "type": "string", "enum": ["success", "error", "warning", "info"] }
+      },
+      "x-examples": [
+        { "message": { "en-US": "Selected Route Legs were added to the Route successfully" }, "type": "success" },
+        { "message": "Scanner closed" }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

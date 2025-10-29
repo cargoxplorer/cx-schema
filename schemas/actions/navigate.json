@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "navigate Action",
+  "type": "object",
+  "properties": {
+    "navigate": {
+      "type": "string",
+      "description": "Navigation path",
+      "x-examples": [
+        "~/team-calendars/view/{{ calendarId }}",
+        "warehouseReceipts/{{ orderId }}",
+        "receiving/{{ encodedTrackingNumber }}",
+        "vessels/{{ vesselId }}"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

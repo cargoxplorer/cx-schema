@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dropdown Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "dropdown"
+    },
+    "name": {
+      "type": "string",
+      "description": "Dropdown name identifier"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon class name"
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "variant": {
+              "type": "string",
+              "enum": ["primary", "secondary", "outline-primary", "outline-secondary"],
+              "description": "Dropdown variant style"
+            }
+          },
+          "additionalProperties": true
+        },
+        "items": {
+          "type": "array",
+          "description": "Dropdown menu items",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+              },
+              "onClick": {
+                "$ref": "../schemas.json#/definitions/actionsList"
+              },
+              "isHidden": {
+                "$ref": "../schemas.json#/definitions/templateExpression"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["component"]
+}
