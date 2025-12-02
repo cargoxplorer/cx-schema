@@ -40,18 +40,39 @@
           "type": "boolean",
           "description": "Allow clearing the current selection"
         },
+        "allowCamera": {
+          "type": "boolean",
+          "description": "Show camera capture button",
+          "default": true
+        },
+        "cameraQuality": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "maximum"],
+          "description": "Camera capture quality setting",
+          "default": "high"
+        },
+        "captureFormat": {
+          "type": "string",
+          "enum": ["jpeg", "png"],
+          "description": "Camera capture image format",
+          "default": "jpeg"
+        },
+        "instantCamera": {
+          "type": "boolean",
+          "description": "Instant capture mode - auto-upload after capture"
+        },
         "displayAs": {
           "type": "string",
           "enum": ["image", "file"],
           "description": "Preferred display mode for attachments"
         },
         "previewWidth": {
-          "type": "integer",
-          "description": "Preview thumbnail width in pixels"
+          "oneOf": [{ "type": "integer" }, { "type": "string" }],
+          "description": "Preview thumbnail width (pixels or CSS value)"
         },
         "previewHeight": {
-          "type": "integer",
-          "description": "Preview thumbnail height in pixels"
+          "oneOf": [{ "type": "integer" }, { "type": "string" }],
+          "description": "Preview thumbnail height (pixels or CSS value)"
         },
         "maxSize": {
           "type": "integer",
@@ -62,9 +83,21 @@
           "description": "Allowed MIME types or extensions",
           "items": { "type": "string" }
         },
+        "parentId": {
+          "oneOf": [{ "type": "string" }, { "type": "integer" }, { "$ref": "../schemas.json#/definitions/templateExpression" }],
+          "description": "Parent entity ID for linking attachment"
+        },
         "parentType": {
           "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/templateExpression" }],
           "description": "Logical parent type/entity for the attachment (e.g., Order, Contact)"
+        },
+        "onUploaded": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/actions" }],
+          "description": "Actions to execute after successful upload"
+        },
+        "clearAfterUpload": {
+          "type": "boolean",
+          "description": "Clear field after upload, showing success message briefly. Use for drop zone mode."
         }
       }
     }
@@ -105,6 +138,17 @@
         "allowClear": true,
         "displayAs": "file",
         "maxSize": 10485760,
+        "parentType": "Order"
+      }
+    },
+    {
+      "type": "attachment",
+      "label": { "en-US": "Upload to Order" },
+      "options": {
+        "allowMultiple": true,
+        "allowCamera": true,
+        "clearAfterUpload": true,
+        "parentId": "{{ orderId }}",
         "parentType": "Order"
       }
     }
