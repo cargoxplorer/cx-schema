@@ -159,6 +159,47 @@
           "type": "boolean",
           "description": "Reset form values after successful submission"
         },
+        "dirtyGuard": {
+          "type": "object",
+          "description": "Configuration for unsaved changes warning dialog",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enables or disables the dirty guard feature"
+            },
+            "title": {
+              "$ref": "../schemas.json#/definitions/localized",
+              "description": "Localized dialog title"
+            },
+            "message": {
+              "$ref": "../schemas.json#/definitions/localized",
+              "description": "Localized dialog message explaining the warning"
+            },
+            "confirmLabel": {
+              "$ref": "../schemas.json#/definitions/localized",
+              "description": "Localized confirm button text"
+            },
+            "cancelLabel": {
+              "$ref": "../schemas.json#/definitions/localized",
+              "description": "Localized cancel button text"
+            },
+            "onConfirm": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when user confirms leaving (discards changes)"
+            },
+            "onCancel": {
+              "$ref": "../schemas.json#/definitions/actionsList",
+              "description": "Actions to execute when user cancels and stays on the page"
+            }
+          },
+          "x-example": {
+            "enabled": true,
+            "title": { "en-US": "Unsaved Changes" },
+            "message": { "en-US": "You have unsaved changes. Are you sure you want to leave?" },
+            "confirmLabel": { "en-US": "Leave" },
+            "cancelLabel": { "en-US": "Stay" }
+          }
+        },
         "preventDefault": {
           "type": "boolean",
           "description": "Prevent default form submission behavior"

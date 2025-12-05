@@ -20,6 +20,7 @@
     { "$ref": "forEach.json" },
     { "$ref": "if.json" },
     { "$ref": "consoleLog.json" },
-    { "$ref": "openBarcodeScanner.json" }
+    { "$ref": "openBarcodeScanner.json" },
+    { "$ref": "resetDirtyState.json" }
   ]
 }

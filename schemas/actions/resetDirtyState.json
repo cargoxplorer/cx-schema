@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "resetDirtyState Action",
+  "type": "object",
+  "properties": {
+    "resetDirtyState": {
+      "type": "object",
+      "description": "Resets the dirty state of a form to false, indicating the form no longer has unsaved changes",
+      "properties": {
+        "formName": {
+          "type": "string",
+          "description": "The name of the form to reset (optional, defaults to the current form context)"
+        }
+      },
+      "x-examples": [
+        { "formName": "myForm" },
+        {}
+      ]
+    }
+  },
+  "additionalProperties": false
+}
