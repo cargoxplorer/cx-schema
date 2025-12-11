@@ -4051,6 +4051,8 @@ type WorkflowRuntime {
   priority: Int
   tags: [String!]
   concurrency: Concurrency
+  "File name/path for the workflow YAML file in the repository. Creates a direct link to the workflow definition file location."
+  fileName: String
 }
 
 type WorkflowTask {

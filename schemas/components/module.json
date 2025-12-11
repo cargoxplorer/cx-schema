@@ -27,6 +27,10 @@
         "priority": {
           "type": "integer",
           "description": "Module priority for override resolution"
+        },
+        "fileName": {
+          "type": "string",
+          "description": "File name/path for the module YAML file in the repository. Creates a direct link to the module definition file location. Default is modules/{name}-module.yaml"
         }
       },
       "required": ["name", "appModuleId", "displayName", "application"]
