@@ -23,6 +23,10 @@
   ],
   "author": "CargoXplorer",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cargoxplorer/cx-schema.git"
+  },
   "files": [
     "dist",
     "schemas",
