@@ -26,7 +26,8 @@
   "files": [
     "dist",
     "schemas",
-    "scripts"
+    "scripts",
+    "templates"
   ],
   "dependencies": {
     "ajv": "^8.12.0",
