@@ -18,6 +18,7 @@ import { ValidationResult, ValidationError } from './types';
 
 type ValidationType = 'module' | 'workflow' | 'auto';
 type OutputFormat = 'pretty' | 'json' | 'compact';
+type ReportFormat = 'html' | 'markdown' | 'json';
 
 interface CLIOptions {
   help: boolean;
@@ -31,6 +32,26 @@ interface CLIOptions {
   listSchemas: boolean;
   listTasks: boolean;
   quiet: boolean;
+  report?: string;
+  reportFormat: ReportFormat;
+}
+
+interface FileValidationResult {
+  file: string;
+  fileType: ValidationType;
+  result: ValidationResult;
+}
+
+interface ReportData {
+  timestamp: string;
+  totalFiles: number;
+  passedFiles: number;
+  failedFiles: number;
+  totalErrors: number;
+  totalWarnings: number;
+  errorsByType: Record<string, number>;
+  errorsByFile: Record<string, number>;
+  files: FileValidationResult[];
 }
 
 interface ParsedArgs {
@@ -66,6 +87,7 @@ ${chalk.bold.yellow('USAGE:')}
 
 ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('validate')}        Validate YAML file(s) ${chalk.gray('(default command)')}
+  ${chalk.green('report')}          Generate validation report for multiple files
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
   ${chalk.green('list')}            List available schemas (modules, workflows, tasks)
@@ -79,6 +101,8 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('-s, --schemas <path>')}    Path to schemas directory
   ${chalk.green('--verbose')}               Show detailed output with schema paths
   ${chalk.green('--quiet')}                 Only show errors, suppress other output
+  ${chalk.green('-r, --report <file>')}     Generate report to file (html, md, or json)
+  ${chalk.green('--report-format <fmt>')}   Report format: ${chalk.cyan('html')}, ${chalk.cyan('markdown')}, or ${chalk.cyan('json')} ${chalk.gray('(default: auto from extension)')}
 
 ${chalk.bold.yellow('VALIDATION EXAMPLES:')}
   ${chalk.gray('# Validate a module YAML file')}
