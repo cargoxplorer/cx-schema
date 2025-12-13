@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Job Tasks",
+  "description": "Job entity CRUD and assignment operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "Job/Create@1",
+        "Job/Update@1",
+        "Job/Delete@1",
+        "Job/Get@1",
+        "Job/Assign@1",
+        "Job/Unassign@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Job operation inputs",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "description": "Job ID"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Associated order ID"
+        },
+        "assigneeId": {
+          "type": "string",
+          "description": "Assignee ID (for assign/unassign)"
+        },
+        "entity": {
+          "type": "object",
+          "description": "Job entity data",
+          "additionalProperties": true
+        },
+        "partial": {
+          "type": "boolean",
+          "description": "Partial update (patch)"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

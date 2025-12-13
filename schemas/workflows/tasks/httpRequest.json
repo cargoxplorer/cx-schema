@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HTTP Request Task",
+  "description": "Make HTTP API requests",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["Utilities/HttpRequest@1"],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "HTTP request inputs",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Request URL"
+        },
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+          "description": "HTTP method"
+        },
+        "contentType": {
+          "type": "string",
+          "description": "Content-Type header value"
+        },
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {}
+            },
+            "required": ["name", "value"]
+          },
+          "description": "Request headers"
+        },
+        "body": {
+          "description": "Request body (can be string or object)"
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Request timeout in milliseconds"
+        },
+        "retry": {
+          "type": "object",
+          "properties": {
+            "count": {
+              "type": "integer"
+            },
+            "delay": {
+              "type": "integer"
+            }
+          },
+          "description": "Retry configuration"
+        },
+        "cache": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "duration": {
+              "type": "string"
+            }
+          },
+          "description": "Response caching configuration"
+        }
+      },
+      "required": ["url", "method"],
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task", "inputs"],
+  "additionalProperties": true
+}

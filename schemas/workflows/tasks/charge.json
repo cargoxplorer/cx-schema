@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Charge Tasks",
+  "description": "Charge/billing operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "Charge/Create@1",
+        "Charge/Update",
+        "Charge/Delete@1",
+        "Charge/Calculate"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Charge operation inputs",
+      "properties": {
+        "chargeId": {
+          "type": "string",
+          "description": "Charge ID"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Associated order ID"
+        },
+        "jobId": {
+          "type": "string",
+          "description": "Associated job ID"
+        },
+        "chargeType": {
+          "type": "string",
+          "description": "Type of charge"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Charge amount"
+        },
+        "entity": {
+          "type": "object",
+          "description": "Charge entity data",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

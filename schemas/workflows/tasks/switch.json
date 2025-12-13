@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Switch Task",
+  "description": "Conditional branching with multiple cases",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "const": "switch",
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      },
+      "description": "Conditions for execution"
+    },
+    "continueOnError": {
+      "type": "boolean",
+      "description": "Continue on error"
+    },
+    "cases": {
+      "type": "array",
+      "description": "Switch cases",
+      "items": {
+        "type": "object",
+        "properties": {
+          "when": {
+            "type": "string",
+            "description": "Condition expression for this case"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "generic.json"
+            },
+            "minItems": 1
+          }
+        },
+        "required": ["when", "steps"],
+        "additionalProperties": true
+      },
+      "minItems": 1
+    },
+    "default": {
+      "type": "object",
+      "description": "Default case if no conditions match",
+      "properties": {
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "generic.json"
+          }
+        }
+      }
+    }
+  },
+  "required": ["task", "cases"],
+  "additionalProperties": true
+}

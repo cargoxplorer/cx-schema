@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Attachment Tasks",
+  "description": "Attachment entity CRUD operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "Attachment/Create@1",
+        "Attachment/Update@1",
+        "Attachment/Delete@1",
+        "Attachment/Get@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Attachment operation inputs",
+      "properties": {
+        "attachmentId": {
+          "type": "string",
+          "description": "Attachment ID"
+        },
+        "entityName": {
+          "type": "string",
+          "description": "Parent entity name"
+        },
+        "entityId": {
+          "type": "string",
+          "description": "Parent entity ID"
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Attachment file name"
+        },
+        "content": {
+          "type": "string",
+          "description": "File content (base64)"
+        },
+        "contentType": {
+          "type": "string",
+          "description": "MIME content type"
+        },
+        "entity": {
+          "type": "object",
+          "description": "Attachment entity data",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

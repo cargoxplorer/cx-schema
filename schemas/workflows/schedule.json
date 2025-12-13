@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow Schedule",
+  "description": "Definition of a scheduled workflow execution",
+  "type": "object",
+  "properties": {
+    "cron": {
+      "type": "string",
+      "description": "Cron expression for scheduled execution (e.g., '30 0 1-7 * 6')"
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Human-readable description of the schedule"
+    },
+    "enabled": {
+      "type": "boolean",
+      "description": "Whether the schedule is enabled"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "Timezone for the schedule"
+    }
+  },
+  "required": ["cron"],
+  "additionalProperties": true
+}

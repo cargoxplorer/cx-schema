@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Commodity Tasks",
+  "description": "Commodity entity CRUD operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "Commodity/Create@1",
+        "Commodity/Update@1",
+        "Commodity/Delete@1",
+        "Commodity/Get@1",
+        "Commodity/Repack@1",
+        "OrderCommodity/Create@1",
+        "OrderCommodity/Update@1",
+        "OrderCommodity/Delete@1",
+        "CommodityTrackingNumber/Create@1",
+        "CommodityTrackingNumber/Update@1",
+        "CommodityTrackingNumber/Delete@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Commodity operation inputs",
+      "properties": {
+        "commodityId": {
+          "type": "string",
+          "description": "Commodity ID"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Associated order ID"
+        },
+        "entity": {
+          "type": "object",
+          "description": "Commodity entity data",
+          "additionalProperties": true
+        },
+        "partial": {
+          "type": "boolean",
+          "description": "Partial update (patch)"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

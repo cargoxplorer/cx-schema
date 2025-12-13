@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Contact Tasks",
+  "description": "Contact entity CRUD operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "Contact/Create@1",
+        "Contact/Update@1",
+        "Contact/Delete@1",
+        "Contact/Get@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Contact operation inputs",
+      "properties": {
+        "contactId": {
+          "type": "string",
+          "description": "Contact ID (for update/delete/get operations)"
+        },
+        "contactType": {
+          "type": "string",
+          "description": "Contact type"
+        },
+        "entity": {
+          "type": "object",
+          "description": "Contact entity data",
+          "additionalProperties": true
+        },
+        "partial": {
+          "type": "boolean",
+          "description": "Partial update (patch)"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CSV Task",
+  "description": "Parse or generate CSV data",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["Utilities/CSV@1", "Utilities/CsvParse"],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "CSV inputs",
+      "properties": {
+        "data": {
+          "type": "string",
+          "description": "CSV data to parse"
+        },
+        "delimiter": {
+          "type": "string",
+          "description": "Column delimiter (default: ',')"
+        },
+        "hasHeader": {
+          "type": "boolean",
+          "description": "Whether first row is header"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Column names"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

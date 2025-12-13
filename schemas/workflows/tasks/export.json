@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Export Task",
+  "description": "Export data to various formats (CSV, XLSX, JSON)",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["Utilities/Export@1"],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Export inputs",
+      "properties": {
+        "data": {
+          "description": "Data to export"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["csv", "xlsx", "json"],
+          "description": "Export format"
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Output file name"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "header": {
+                "type": "string"
+              },
+              "mapping": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Column definitions"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Validation Task",
+  "description": "Validate data with rules",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["Validation/Validate@1"],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      },
+      "description": "Conditions for execution"
+    },
+    "continueOnError": {
+      "type": "boolean",
+      "description": "Continue on error"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Validation inputs",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "description": "Validation rules",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["required", "expression"],
+                "description": "Validation rule type"
+              },
+              "expression": {
+                "type": "string",
+                "description": "Expression to validate (for expression type)"
+              },
+              "value": {
+                "type": "string",
+                "description": "Value to validate (for required type)"
+              },
+              "message": {
+                "type": "string",
+                "description": "Error message if validation fails"
+              }
+            },
+            "required": ["type"]
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      },
+      "description": "Output mappings"
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

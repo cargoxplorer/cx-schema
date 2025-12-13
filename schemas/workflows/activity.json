@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow Activity",
+  "description": "Definition of a workflow activity containing steps",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+      "description": "Activity name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Activity description"
+    },
+    "conditions": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Single condition expression"
+        },
+        {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "object",
+                "properties": {
+                  "expression": { "type": "string" }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "description": "Conditions for activity execution"
+    },
+    "continueOnError": {
+      "type": "boolean",
+      "description": "Whether to continue workflow on error"
+    },
+    "variables": {
+      "type": "array",
+      "description": "Activity-scoped variables",
+      "items": {
+        "$ref": "variable.json"
+      }
+    },
+    "steps": {
+      "type": "array",
+      "description": "Steps within the activity",
+      "items": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "Task type identifier"
+          },
+          "name": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "outputs": {
+            "type": "array"
+          },
+          "conditions": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array" }
+            ]
+          },
+          "continueOnError": {
+            "type": "boolean"
+          }
+        },
+        "required": ["task"],
+        "additionalProperties": true
+      },
+      "minItems": 1
+    },
+    "events": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Activity-level event handlers as object",
+          "properties": {
+            "onActivityStarted": { "type": "array" },
+            "onActivityCompleted": { "type": "array" },
+            "onActivityFailed": { "type": "array" }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "array",
+          "description": "Activity-level event handlers as array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      ],
+      "description": "Activity-level event handlers"
+    }
+  },
+  "required": ["name", "steps"],
+  "additionalProperties": true
+}

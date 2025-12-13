@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow Input Parameter",
+  "description": "Definition of a workflow input parameter",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+      "description": "Input parameter name (must be valid identifier)"
+    },
+    "type": {
+      "type": "string",
+      "description": "Input parameter type (e.g., text, number, integer, boolean, date, datetime, options, object, array, or custom entity types)"
+    },
+    "props": {
+      "type": "object",
+      "description": "Input properties and configuration",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "Human-readable display name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the input parameter"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether input is required"
+        },
+        "multiple": {
+          "type": "boolean",
+          "description": "Whether multiple values are allowed"
+        },
+        "visible": {
+          "type": "boolean",
+          "description": "Whether input is visible in UI"
+        },
+        "defaultValue": {
+          "description": "Default value for the input"
+        },
+        "mapping": {
+          "type": "string",
+          "description": "Maps to entity property (e.g., 'order.orderId')"
+        },
+        "filter": {
+          "type": "string",
+          "description": "Filter expression for entity inputs"
+        },
+        "options": {
+          "type": "array",
+          "description": "Available options for 'options' type",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {}
+            },
+            "required": ["name", "value"]
+          }
+        },
+        "additionalProperties": {
+          "type": "object",
+          "description": "Additional input properties",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": true
+}

@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GraphQL Query Task",
+  "description": "Execute GraphQL queries",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["Query/GraphQL", "Query/GraphQL@1"],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "GraphQL query inputs",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "GraphQL query string"
+        },
+        "variables": {
+          "type": "object",
+          "description": "Query variables (can contain expressions)",
+          "additionalProperties": true
+        },
+        "cacheKey": {
+          "type": "string",
+          "description": "Cache key for query results"
+        },
+        "cacheDuration": {
+          "type": "string",
+          "description": "Cache duration (e.g., '5m', '1h', 'EndOfDay|EST')"
+        }
+      },
+      "required": ["query"],
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

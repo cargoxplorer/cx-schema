@@ -77,3 +77,55 @@ export interface YAMLModule {
   permissions?: any[];
   [key: string]: any;
 }
+
+/**
+ * Workflow error types
+ */
+export type WorkflowErrorType =
+  | 'yaml_syntax_error'
+  | 'missing_property'
+  | 'schema_violation'
+  | 'invalid_task_type'
+  | 'invalid_expression'
+  | 'invalid_activity'
+  | 'circular_reference'
+  | 'version_mismatch'
+  | 'deprecated_task'
+  | 'file_not_found'
+  | 'unexpected_error';
+
+/**
+ * YAML workflow structure (partial, for validation purposes)
+ */
+export interface YAMLWorkflow {
+  workflow?: {
+    workflowId?: string;
+    name?: string;
+    description?: string;
+    version?: string;
+    executionMode?: 'Sync' | 'Async';
+    logLevel?: string;
+    isActive?: boolean;
+    enableAudit?: boolean;
+    enableTransaction?: boolean;
+    tags?: string[];
+    workflowType?: 'Document' | 'Quote' | 'EmailTemplate';
+    [key: string]: any;
+  };
+  inputs?: any[];
+  outputs?: any[];
+  variables?: any[];
+  activities?: any[];
+  triggers?: any[];
+  schedules?: any[];
+  events?: any;
+  [key: string]: any;
+}
+
+/**
+ * Workflow validation options
+ */
+export interface WorkflowValidatorOptions extends ValidatorOptions {
+  validateTasks?: boolean;
+  validateExpressions?: boolean;
+}

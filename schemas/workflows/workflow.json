@@ -1,0 +1,172 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CargoXplorer Workflow",
+  "description": "Schema for CargoXplorer workflow YAML files",
+  "type": "object",
+  "properties": {
+    "workflow": {
+      "type": "object",
+      "description": "Workflow metadata and configuration",
+      "properties": {
+        "workflowId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique workflow identifier (UUID)"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Workflow name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Workflow description"
+        },
+        "version": {
+          "type": "string",
+          "description": "Workflow version (e.g., '1.0')"
+        },
+        "executionMode": {
+          "type": "string",
+          "enum": ["Sync", "Async"],
+          "description": "Execution mode - synchronous or asynchronous"
+        },
+        "logLevel": {
+          "type": "string",
+          "enum": ["None", "Trace", "Debug", "Information", "Warning", "Error"],
+          "description": "Logging level for workflow execution"
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Whether the workflow is active"
+        },
+        "enableAudit": {
+          "type": "boolean",
+          "description": "Enable audit logging"
+        },
+        "enableTransaction": {
+          "type": "boolean",
+          "description": "Enable transaction support"
+        },
+        "enableActionEvents": {
+          "type": "boolean",
+          "description": "Enable action events"
+        },
+        "priority": {
+          "type": "number",
+          "description": "Workflow priority (higher = higher priority)"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags for categorization and filtering"
+        },
+        "workflowType": {
+          "type": "string",
+          "enum": ["Document", "Quote", "EmailTemplate"],
+          "description": "Workflow type classification"
+        },
+        "runAs": {
+          "type": "string",
+          "description": "User context for workflow execution"
+        },
+        "concurrency": {
+          "type": "object",
+          "properties": {
+            "group": {
+              "type": "string",
+              "description": "Concurrency group identifier"
+            },
+            "waitTime": {
+              "type": "number",
+              "description": "Seconds to wait for lock"
+            }
+          },
+          "additionalProperties": true
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Path to the workflow YAML file"
+        },
+        "actionEvent": {
+          "type": "object",
+          "description": "Workflow action event configuration",
+          "additionalProperties": true
+        },
+        "additionalProperties": {
+          "type": "object",
+          "description": "Custom additional properties",
+          "additionalProperties": true
+        }
+      },
+      "required": ["workflowId", "name"],
+      "additionalProperties": true
+    },
+    "inputs": {
+      "type": ["array", "null"],
+      "description": "Workflow input parameters",
+      "items": {
+        "$ref": "input.json"
+      }
+    },
+    "outputs": {
+      "type": ["array", "null"],
+      "description": "Workflow output definitions",
+      "items": {
+        "$ref": "output.json"
+      }
+    },
+    "variables": {
+      "type": ["array", "null"],
+      "description": "Workflow variables",
+      "items": {
+        "$ref": "variable.json"
+      }
+    },
+    "activities": {
+      "type": "array",
+      "description": "Workflow activities containing steps",
+      "items": {
+        "$ref": "activity.json"
+      },
+      "minItems": 1
+    },
+    "triggers": {
+      "type": "array",
+      "description": "Workflow triggers",
+      "items": {
+        "$ref": "trigger.json"
+      }
+    },
+    "schedules": {
+      "type": "array",
+      "description": "Scheduled execution configurations",
+      "items": {
+        "$ref": "schedule.json"
+      }
+    },
+    "events": {
+      "type": "object",
+      "description": "Workflow-level event handlers",
+      "properties": {
+        "onWorkflowStarted": {
+          "type": "array",
+          "description": "Steps to execute when workflow starts"
+        },
+        "onWorkflowExecuted": {
+          "type": "array",
+          "description": "Steps to execute when workflow completes"
+        },
+        "onWorkflowFailed": {
+          "type": "array",
+          "description": "Steps to execute when workflow fails"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["workflow", "activities"],
+  "additionalProperties": true
+}

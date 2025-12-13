@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow Variable",
+  "description": "Definition of a workflow variable",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+      "description": "Variable name"
+    },
+    "value": {
+      "description": "Static variable value or template expression"
+    },
+    "fromConfig": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Configuration key to load value from"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "configName": {
+              "type": "string",
+              "description": "Configuration name (e.g., 'apps.novaposhta')"
+            },
+            "key": {
+              "type": "string",
+              "description": "Optional key within configuration"
+            }
+          },
+          "required": ["configName"],
+          "additionalProperties": true
+        }
+      ],
+      "description": "Load value from configuration"
+    },
+    "expression": {
+      "type": "string",
+      "description": "NCalc expression to compute value"
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": true
+}

@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Payment Tasks",
+  "description": "Payment processing operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["Payment/Create", "Payment/Create@1"],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Payment inputs",
+      "properties": {
+        "paymentId": {
+          "type": "string",
+          "description": "Payment ID"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Payment amount"
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Customer contact ID"
+        },
+        "invoiceId": {
+          "type": "string",
+          "description": "Invoice to apply payment to"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Payment method"
+        },
+        "entity": {
+          "type": "object",
+          "description": "Payment entity data",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

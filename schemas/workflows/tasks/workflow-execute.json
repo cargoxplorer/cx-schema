@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow Execute Task",
+  "description": "Execute another workflow",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["Workflow/Execute@1"],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Workflow execution inputs",
+      "properties": {
+        "workflowId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "ID of workflow to execute"
+        },
+        "workflowName": {
+          "type": "string",
+          "description": "Name of workflow to execute (alternative to workflowId)"
+        },
+        "workflowInputs": {
+          "type": "object",
+          "description": "Inputs to pass to the child workflow",
+          "additionalProperties": true
+        },
+        "async": {
+          "type": "boolean",
+          "description": "Execute asynchronously"
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Execution timeout in milliseconds"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

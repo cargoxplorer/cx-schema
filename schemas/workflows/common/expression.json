@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NCalc Expression",
+  "description": "NCalc expression patterns for workflow conditions and calculations",
+  "definitions": {
+    "expression": {
+      "type": "string",
+      "description": "NCalc expression string",
+      "x-examples": [
+        "[orderTotal] > 1000",
+        "[status] = 'Approved'",
+        "isNullOrEmpty([value?]) = false",
+        "[status] = 'Completed' || [status] = 'Failed'",
+        "format('{0:F2}', [weight])",
+        "convertWeight([value], [fromUnit], [toUnit])",
+        "formatDate([date], 'MM.dd.yyyy hh:mm', 'en-US')",
+        "sum([collection], [each.property])",
+        "distinct([collection])",
+        "length([array])",
+        "All([items], [item.isValid])",
+        "Any([items], [item.status] = 'Complete')",
+        "contains([text], 'search')",
+        "base64(format('{0}:{1}', [user], [password]))",
+        "replace([value], 'pattern', 'replacement')",
+        "lower([value])",
+        "upper([value])",
+        "trim(first(split([string], '(')))",
+        "join([array], [item.name], ', ')"
+      ]
+    },
+    "templateExpression": {
+      "type": "string",
+      "description": "Template expression with variable substitution",
+      "x-examples": [
+        "{{ orderId }}",
+        "{{ customer.name }}",
+        "{{ order?.customValues?.isConsolidated? }}",
+        "Order-{{ orderNumber }}-{{ Date.Now.ToString('yyyyMMdd') }}"
+      ]
+    },
+    "safeNavigation": {
+      "type": "string",
+      "description": "Path with optional chaining using ?",
+      "x-examples": [
+        "order?.customer?.email?",
+        "items?[0]?.name?",
+        "activity?.step?.output?"
+      ]
+    },
+    "variableConverters": {
+      "type": "string",
+      "description": "Variable type converters",
+      "enum": [
+        "string",
+        "int",
+        "decimal",
+        "bool",
+        "datetime",
+        "luceneString",
+        "emptyIfNull",
+        "nullIfEmpty",
+        "transliterate",
+        "parseJson",
+        "toJson"
+      ],
+      "x-examples": [
+        "[int orderId]",
+        "[decimal amount]",
+        "[string value]",
+        "[bool isActive]",
+        "[datetime createdDate]",
+        "[luceneString searchTerm]"
+      ]
+    }
+  }
+}

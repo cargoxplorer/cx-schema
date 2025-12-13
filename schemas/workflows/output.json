@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow Output",
+  "description": "Definition of a workflow output",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Output name identifier"
+    },
+    "mapping": {
+      "type": "string",
+      "description": "Path to variable value (e.g., 'activityName.stepName.outputVar')"
+    },
+    "additionalProperties": {
+      "type": "object",
+      "description": "Additional output configuration",
+      "properties": {
+        "displayName": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["json", "text"]
+        },
+        "multiple": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["name", "mapping"],
+  "additionalProperties": true
+}

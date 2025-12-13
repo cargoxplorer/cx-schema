@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Document Render Task",
+  "description": "Render documents from templates using JSReport",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["Document/Render", "Document/Render@1"],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Document render inputs",
+      "properties": {
+        "template": {
+          "type": "object",
+          "description": "Template configuration",
+          "properties": {
+            "content": {
+              "type": "string",
+              "description": "Template content (HTML)"
+            },
+            "engine": {
+              "type": "string",
+              "enum": ["jsrender", "handlebars"],
+              "description": "Template engine"
+            },
+            "recipe": {
+              "type": "string",
+              "enum": ["html", "chrome-pdf", "xlsx", "docx", "csv"],
+              "description": "Output recipe/format"
+            },
+            "chrome": {
+              "type": "object",
+              "description": "Chrome PDF options",
+              "properties": {
+                "marginTop": { "type": "string" },
+                "marginBottom": { "type": "string" },
+                "marginLeft": { "type": "string" },
+                "marginRight": { "type": "string" },
+                "landscape": { "type": "boolean" },
+                "format": { "type": "string" },
+                "printBackground": { "type": "boolean" }
+              },
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        },
+        "data": {
+          "type": "object",
+          "description": "Data for template rendering",
+          "additionalProperties": true
+        },
+        "options": {
+          "type": "object",
+          "description": "Rendering options",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

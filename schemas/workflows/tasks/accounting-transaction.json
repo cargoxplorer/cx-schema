@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Accounting Transaction Tasks",
+  "description": "Accounting transaction operations (invoices, bills, payments)",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "AccountingTransaction/Generate@1",
+        "AccountingTransaction/Update@1",
+        "AccountingTransaction/Delete@1",
+        "AccountingTransaction/ApplyCreditToInvoices@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Accounting transaction inputs",
+      "properties": {
+        "accountingTransactionId": {
+          "type": "string",
+          "description": "Transaction ID"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["Invoice", "Bill", "CreditMemo", "Payment"],
+          "description": "Transaction type"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Associated order ID"
+        },
+        "jobId": {
+          "type": "string",
+          "description": "Associated job ID"
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Customer contact ID"
+        },
+        "appendToExistingInvoice": {
+          "type": "boolean",
+          "description": "Append charges to existing unpaid invoice"
+        },
+        "entity": {
+          "type": "object",
+          "description": "Transaction entity data",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

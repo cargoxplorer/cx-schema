@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow Trigger",
+  "description": "Definition of a workflow trigger",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["Manual", "Entity"],
+      "description": "Trigger type"
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Display name for manual triggers (button text)"
+    },
+    "entityName": {
+      "type": "string",
+      "description": "Entity name for the trigger context"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": ["Added", "Modified", "Deleted"],
+      "description": "Entity event type (for Entity triggers)"
+    },
+    "position": {
+      "type": "string",
+      "enum": ["Before", "After"],
+      "description": "When to execute relative to entity operation"
+    },
+    "conditions": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Single condition expression"
+        },
+        {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "expression": {
+                    "type": "string"
+                  }
+                },
+                "required": ["expression"]
+              }
+            ]
+          },
+          "description": "Array of condition expressions"
+        }
+      ],
+      "description": "Conditions for trigger activation"
+    },
+    "additionalProperties": {
+      "type": "object",
+      "description": "Additional trigger properties",
+      "properties": {
+        "silent": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "Entity"
+          }
+        },
+        "required": ["type"]
+      },
+      "then": {
+        "required": ["entityName", "eventType"]
+      }
+    }
+  ],
+  "additionalProperties": true
+}

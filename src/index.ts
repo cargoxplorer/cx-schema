@@ -3,11 +3,15 @@
  */
 
 export { ModuleValidator } from './validator';
+export { WorkflowValidator } from './workflowValidator';
 export {
   ValidationResult,
   ValidationError,
   ValidationWarning,
   ValidationSummary,
   ValidatorOptions,
-  YAMLModule
+  WorkflowValidatorOptions,
+  YAMLModule,
+  YAMLWorkflow,
+  WorkflowErrorType
 } from './types';

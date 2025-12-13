@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ForEach Task",
+  "description": "Iterate over a collection and execute steps for each item",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "const": "foreach",
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "collection": {
+      "type": "string",
+      "description": "Expression evaluating to array (e.g., 'activityName.stepName.items')"
+    },
+    "item": {
+      "type": "string",
+      "description": "Variable name for current item (default: 'item')"
+    },
+    "index": {
+      "type": "string",
+      "description": "Variable name for current index"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      },
+      "description": "Conditions for execution"
+    },
+    "continueOnError": {
+      "type": "boolean",
+      "description": "Continue on error"
+    },
+    "steps": {
+      "type": "array",
+      "description": "Steps to execute for each item",
+      "items": {
+        "$ref": "generic.json"
+      },
+      "minItems": 1
+    },
+    "parallel": {
+      "type": "boolean",
+      "description": "Execute iterations in parallel"
+    },
+    "maxParallelism": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Maximum parallel executions"
+    }
+  },
+  "required": ["task", "collection", "steps"],
+  "additionalProperties": true
+}
