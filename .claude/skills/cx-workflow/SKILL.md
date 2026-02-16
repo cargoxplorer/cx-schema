@@ -21,6 +21,7 @@ Always start by running the CLI to generate a schema-valid YAML file.
 | `utility` | Reusable helper | No triggers, inputs/outputs only, called via Workflow/Execute |
 | `ftp-tracking` | Import tracking events from FTP | Scheduled SFTP Connect/List/Download, `Order/Import@1` with tracking events, MoveFile to processed |
 | `ftp-edi` | Import orders from FTP via EDI | Scheduled SFTP Connect/List/Download, `Workflow/Execute` EDI parser, `Order/Import@1`, MoveFile to processed |
+| `api-tracking` | Fetch tracking from carrier API | Scheduled, query orders needing updates, `HttpRequest` to carrier API, parse response, `Order/Import@1` with `matchByEventDefinition` |
 
 ```bash
 npx cx-cli create workflow <name> --template <template>
@@ -45,9 +46,11 @@ npx cx-cli create workflow <name> --template <template> --feature <feature-name>
 
 **`ftp-edi`** — update `ftpConfig` configName, `directory` in ListFiles, set `workflowId` or `workflowName` in `Workflow/Execute@1` to point to your EDI parser sub-workflow. Map parsed EDI output to `orders` for `Order/Import@1`. Configure `orderMatchByFields` and `commodityMatchByFields`. Adjust `cron` schedule and MoveFile destination path.
 
+**`api-tracking`** — update `apiConfig` configName with carrier API credentials (`baseUrl`, `apiKey`, `carrierId`). Update the GraphQL filter to select orders needing tracking. Map the carrier's API response structure in ParseTrackingResponse (foreach path, field names for `eventDate`, `location`, `statusCode`). Configure `trackingEventMatchByFields` and `matchByEventDefinition` custom value keys.
+
 **All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowExecuted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed.
 
-**Flow workflows** — scaffold with `basic` then set `workflowType: Flow`, remove `activities`/`triggers`, add `entity`, `states`, `transitions`, `aggregations`. See: `!cat .claude/skills/cx-workflow/ref-flow.md`
+**Flow workflows** — scaffold with `basic` then set `workflowType: Flow`, remove `activities`/`triggers`, add `entity`, `states`, `transitions`, `aggregations`. Load Flow reference: `!cat .claude/skills/cx-workflow/ref-flow.md`
 
 ### Step 4: Validate
 
@@ -93,9 +96,6 @@ inputs:
       visible: true
       defaultValue: "..."
       mapping: "order.orderId"              # Maps to entity property
-      options:                              # For type: options
-        - name: "Option A"
-          value: "a"
 
 outputs:
   - name: outputName
@@ -113,6 +113,10 @@ activities:
   - name: ActivityName
     conditions:
       - expression: "[shouldRun] = true"
+    events:                                 # Activity-level event handlers
+      onActivityStarted: [...]
+      onActivityCompleted: [...]
+      onActivityFailed: [...]
     steps:
       - task: "TaskType"
         name: StepName
@@ -131,65 +135,15 @@ triggers:
     entityName: "Order"
     eventType: Added | Modified | Deleted
     position: Before | After
-    conditions:
-      - expression: "any([changes], [each.key] = 'Status') = true"
 
 schedules:
   - cron: "0 8 * * 1-5"
     displayName: "Daily morning run"
 
-events:                                       # Workflow-level event handlers
-  onWorkflowStarted:
-    - task: "Utilities/Log@1"
-      name: LogStarted
-      inputs:
-        message: "Workflow started"
-        level: Information
-  onWorkflowExecuted:
-    - task: "Utilities/Log@1"
-      name: LogSuccess
-      inputs:
-        message: "Workflow completed"
-        level: Information
-  onWorkflowFailed:
-    - task: "Utilities/Log@1"
-      name: LogFailed
-      inputs:
-        message: "Workflow failed: {{exception.message}}"
-        level: Error
-```
-
-### Activity Events
-
-Activities support their own event handlers via an `events` property:
-
-```yaml
-activities:
-  - name: Main
-    events:                                     # Activity-level event handlers
-      onActivityStarted:
-        - task: "Utilities/Log@1"
-          name: LogActivityStarted
-          inputs:
-            message: "Activity Main started"
-            level: Information
-      onActivityCompleted:
-        - task: "Utilities/Log@1"
-          name: LogActivityCompleted
-          inputs:
-            message: "Activity Main completed"
-            level: Information
-      onActivityFailed:
-        - task: "Utilities/Log@1"
-          name: LogActivityFailed
-          inputs:
-            message: "Activity Main failed: {{exception.message}}"
-            level: Error
-    steps:
-      - task: "Utilities/Log@1"
-        name: DoWork
-        inputs:
-          message: "Processing..."
+events:                                     # Workflow-level event handlers
+  onWorkflowStarted: [...]
+  onWorkflowExecuted: [...]
+  onWorkflowFailed: [...]
 ```
 
 ---
@@ -204,7 +158,7 @@ activities:
 
 **Conditions**: Any step/activity can have `conditions` — all must be true (AND) or step is skipped.
 
-**Events**: `onWorkflowStarted`, `onWorkflowExecuted`, `onWorkflowFailed`, `onActivityStarted`, `onActivityExecuted`, `onActivityFailed`
+**Events**: `onWorkflowStarted`, `onWorkflowExecuted`, `onWorkflowFailed`, `onActivityStarted`, `onActivityCompleted`, `onActivityFailed`
 
 **Task naming**: `Namespace/TaskName@Version` — version optional, defaults to highest.
 
@@ -212,67 +166,44 @@ activities:
 
 ## Variable References (quick summary)
 
-Two syntaxes — for full reference: `!cat .claude/skills/cx-workflow/ref-expressions.md`
+For full reference: `!cat .claude/skills/cx-workflow/ref-expressions.md`
 
 **`{{ path }}`** — in step inputs. Single `{{ }}` returns raw object. Multiple returns string interpolation.
-```yaml
-orderId: "{{ inputs.orderId }}"
-amount: "{{ decimal totalAmount }}"          # Type converter prefix
-```
-
 **`[variable]`** — in conditions and `expression:` directives. NCalc syntax.
-```yaml
-conditions:
-  - expression: "[status] = 'Active' AND isNullOrEmpty([order?]) = false"
-```
-
 **Value directives**: `expression`, `coalesce`, `foreach`, `switch`, `extends`, `$raw`
-
-**38 custom functions** + NCalc built-ins. Key ones: `isNullOrEmpty()`, `any([items], [each.x])`, `all()`, `count()`, `sum()`, `first()`, `last()`, `contains()`, `join()`, `split()`, `format()`, `now()`, `addDays()`, `formatDate()`, `if()`, `Round()`, `bool()`, `length()`, `replace()`, `groupBy()`, `concat()`, `distinct()`
-
-**Iterator variables**: `[each.*]` in any/all/sum/join, `[item.*]` in first/last/groupBy
+**38 custom functions** + NCalc built-ins. Key ones: `isNullOrEmpty()`, `any()`, `all()`, `count()`, `sum()`, `first()`, `last()`, `contains()`, `join()`, `split()`, `format()`, `now()`, `addDays()`, `formatDate()`, `if()`, `groupBy()`, `concat()`, `distinct()`
 
 ---
 
 ## System Tasks (Control Flow)
 
 ### foreach
-
 ```yaml
 - task: foreach
   name: ProcessItems
   collection: "Data.GetOrders.result.items"
   item: "currentOrder"                       # default: "item"
-  continueOnError: false
-  conditions:
-    - expression: "isNullOrEmpty([Data.GetOrders.result.items]) = false"
+  continueOnError: true
   steps: [...]
 ```
 Implicit variables: `index` (zero-based), `{item}` (current item).
 
 ### switch
-
 Evaluates cases in order, executes first match (implicit break). Optional `default`.
-
 ```yaml
 - task: switch
   name: RouteByStatus
   cases:
     - when:
-        - expression: "[Data.GetOrder.order.status] = 'Active'"
-      steps: [...]
-    - when:
-        - expression: "[Data.GetOrder.order.status] = 'Draft'"
+        - expression: "[status] = 'Active'"
       steps: [...]
   default:
     - task: "Utilities/Log@1"
       name: LogOther
-      inputs:
-        message: "Unknown status"
+      inputs: { message: "Unknown status" }
 ```
 
 ### while
-
 ```yaml
 - task: while
   name: PageLoop
@@ -285,66 +216,59 @@ Implicit variable: `iteration` (zero-based).
 
 ---
 
-## Task Reference (load by category)
+## Task Reference (load on demand by category)
 
-!cat .claude/skills/cx-workflow/ref-utilities.md
-!cat .claude/skills/cx-workflow/ref-query.md
-!cat .claude/skills/cx-workflow/ref-entity.md
-!cat .claude/skills/cx-workflow/ref-communication.md
-!cat .claude/skills/cx-workflow/ref-filetransfer.md
-!cat .claude/skills/cx-workflow/ref-accounting.md
-!cat .claude/skills/cx-workflow/ref-other.md
+| Category | Tasks | Load Reference |
+|----------|-------|----------------|
+| Utilities | SetVariable, Log, Error, HttpRequest, Map, Template, Import, Export, CsvParse | `!cat .claude/skills/cx-workflow/ref-utilities.md` |
+| Query & Workflow | Query/GraphQL, Validation, Workflow/Execute | `!cat .claude/skills/cx-workflow/ref-query.md` |
+| Entity CRUD | Order, Contact, Commodity, Job, Charge, Discount, Inventory, Movement | `!cat .claude/skills/cx-workflow/ref-entity.md` |
+| Communication | Email/Send, Document/Render, Attachment, PdfDocument/Merge | `!cat .claude/skills/cx-workflow/ref-communication.md` |
+| File Transfer | Connect, Disconnect, ListFiles, Download, Upload, Move, Delete | `!cat .claude/skills/cx-workflow/ref-filetransfer.md` |
+| Accounting | AccountingTransaction, Payment, Number/Generate, SequenceNumber | `!cat .claude/skills/cx-workflow/ref-accounting.md` |
+| Other | User, Auth, Caching, EDI, Flow/Transition, Notes, AppModule, ActionEvent | `!cat .claude/skills/cx-workflow/ref-other.md` |
 
-| Category | Tasks | Reference |
-|----------|-------|-----------|
-| Utilities | SetVariable, Log, Error, HttpRequest, Map, Template, Import, Export, CsvParse | ref-utilities.md |
-| Query & Workflow | Query/GraphQL, Validation, Workflow/Execute | ref-query.md |
-| Entity CRUD | Order, Contact, Commodity, Job, Charge, Discount, Inventory, Movement | ref-entity.md |
-| Communication | Email/Send, Document/Render, Attachment, PdfDocument/Merge | ref-communication.md |
-| File Transfer | Connect, Disconnect, ListFiles, Download, Upload, Move, Delete | ref-filetransfer.md |
-| Accounting | AccountingTransaction, Payment, Number/Generate, SequenceNumber | ref-accounting.md |
-| Other | User, Auth, Caching, EDI, Flow/Transition, Notes, AppModule, ActionEvent | ref-other.md |
+## Entity Field Reference (load on demand via cx-core)
 
-## Entity Field Reference (shared via cx-core)
-
-For full entity field reference, load from cx-core skill:
-
-!cat .claude/skills/cx-core/SKILL.md
-
-Load specific entity references on demand:
-
-!cat .claude/skills/cx-core/ref-entity-order.md
-!cat .claude/skills/cx-core/ref-entity-contact.md
-!cat .claude/skills/cx-core/ref-entity-commodity.md
-!cat .claude/skills/cx-core/ref-entity-accounting.md
-!cat .claude/skills/cx-core/ref-entity-order-sub.md
-!cat .claude/skills/cx-core/ref-entity-job.md
-!cat .claude/skills/cx-core/ref-entity-rate.md
-!cat .claude/skills/cx-core/ref-entity-shared.md
-!cat .claude/skills/cx-core/ref-entity-geography.md
-!cat .claude/skills/cx-core/ref-entity-warehouse.md
+| Entity | Load Reference |
+|--------|----------------|
+| Overview | `!cat .claude/skills/cx-core/SKILL.md` |
+| Order | `!cat .claude/skills/cx-core/ref-entity-order.md` |
+| Contact | `!cat .claude/skills/cx-core/ref-entity-contact.md` |
+| Commodity | `!cat .claude/skills/cx-core/ref-entity-commodity.md` |
+| Accounting | `!cat .claude/skills/cx-core/ref-entity-accounting.md` |
+| Order Sub-entities | `!cat .claude/skills/cx-core/ref-entity-order-sub.md` |
+| Job | `!cat .claude/skills/cx-core/ref-entity-job.md` |
+| Rate | `!cat .claude/skills/cx-core/ref-entity-rate.md` |
+| Shared | `!cat .claude/skills/cx-core/ref-entity-shared.md` |
+| Geography | `!cat .claude/skills/cx-core/ref-entity-geography.md` |
+| Warehouse | `!cat .claude/skills/cx-core/ref-entity-warehouse.md` |
 
 **CustomValues in workflows** — Access: `{{ entity.customValues.fieldName }}`. Update: `CustomValues.fieldName: "value"` or bulk `customValues: { ... }`. Merge semantics (upserts, not replace).
 
-## Additional References
+## Additional References (load on demand)
 
-!cat .claude/skills/cx-workflow/ref-expressions.md
-!cat .claude/skills/cx-workflow/ref-flow.md
+| Reference | Load |
+|-----------|------|
+| Expressions & Functions | `!cat .claude/skills/cx-workflow/ref-expressions.md` |
+| Flow Workflows (state machines) | `!cat .claude/skills/cx-workflow/ref-flow.md` |
 
-## Dynamic Schema Access
+## Dynamic Schema Access (load on demand)
 
-!cat .cx-schema/workflows/workflow.json
-!cat .cx-schema/workflows/activity.json
-!cat .cx-schema/workflows/input.json
-!cat .cx-schema/workflows/output.json
-!cat .cx-schema/workflows/variable.json
-!cat .cx-schema/workflows/trigger.json
-!cat .cx-schema/workflows/schedule.json
-!cat .cx-schema/workflows/tasks/all.json
-!cat .cx-schema/workflows/flow/entity.json
-!cat .cx-schema/workflows/flow/state.json
-!cat .cx-schema/workflows/flow/transition.json
-!cat .cx-schema/workflows/flow/aggregation.json
+| Schema | Load |
+|--------|------|
+| Workflow | `!cat .cx-schema/workflows/workflow.json` |
+| Activity | `!cat .cx-schema/workflows/activity.json` |
+| Input | `!cat .cx-schema/workflows/input.json` |
+| Output | `!cat .cx-schema/workflows/output.json` |
+| Variable | `!cat .cx-schema/workflows/variable.json` |
+| Trigger | `!cat .cx-schema/workflows/trigger.json` |
+| Schedule | `!cat .cx-schema/workflows/schedule.json` |
+| All Tasks | `!cat .cx-schema/workflows/tasks/all.json` |
+| Flow Entity | `!cat .cx-schema/workflows/flow/entity.json` |
+| Flow State | `!cat .cx-schema/workflows/flow/state.json` |
+| Flow Transition | `!cat .cx-schema/workflows/flow/transition.json` |
+| Flow Aggregation | `!cat .cx-schema/workflows/flow/aggregation.json` |
 
 ---
 
