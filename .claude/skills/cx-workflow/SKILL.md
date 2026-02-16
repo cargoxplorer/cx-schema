@@ -19,6 +19,8 @@ Always start by running the CLI to generate a schema-valid YAML file.
 | `document` | Generate PDF/Excel | `workflowType: Document`, Sync, Document/Render, file/fileName outputs |
 | `scheduled` | Cron batch jobs | `schedules` with cron, while-loop pagination, foreach processing |
 | `utility` | Reusable helper | No triggers, inputs/outputs only, called via Workflow/Execute |
+| `ftp-tracking` | Import tracking events from FTP | Scheduled SFTP Connect/List/Download, `Order/Import@1` with tracking events, MoveFile to processed |
+| `ftp-edi` | Import orders from FTP via EDI | Scheduled SFTP Connect/List/Download, `Workflow/Execute` EDI parser, `Order/Import@1`, MoveFile to processed |
 
 ```bash
 npx cx-cli create workflow <name> --template <template>
@@ -38,6 +40,12 @@ npx cx-cli create workflow <name> --template <template> --feature <feature-name>
 **`scheduled`** — set `cron`, `pageSize`, GraphQL filter, foreach processing body. Add `runAs`, `continueOnError` for unattended execution.
 
 **`utility`** — define `inputs`/`outputs`, keep `executionMode: Sync`, no triggers. Called via `Workflow/Execute@1`.
+
+**`ftp-tracking`** — update `ftpConfig` configName, `directory` and `pattern` in ListFiles, map downloaded content to `trackingEvents` array in ParseContent step, configure `Order/Import@1` match fields and `trackingEventMatchByFields`. Adjust `cron` schedule and MoveFile destination path.
+
+**`ftp-edi`** — update `ftpConfig` configName, `directory` in ListFiles, set `workflowId` or `workflowName` in `Workflow/Execute@1` to point to your EDI parser sub-workflow. Map parsed EDI output to `orders` for `Order/Import@1`. Configure `orderMatchByFields` and `commodityMatchByFields`. Adjust `cron` schedule and MoveFile destination path.
+
+**All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowExecuted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed.
 
 **Flow workflows** — scaffold with `basic` then set `workflowType: Flow`, remove `activities`/`triggers`, add `entity`, `states`, `transitions`, `aggregations`. See: `!cat .claude/skills/cx-workflow/ref-flow.md`
 
@@ -130,9 +138,58 @@ schedules:
   - cron: "0 8 * * 1-5"
     displayName: "Daily morning run"
 
-events:
-  - type: onWorkflowFailed
-    steps: [...]
+events:                                       # Workflow-level event handlers
+  onWorkflowStarted:
+    - task: "Utilities/Log@1"
+      name: LogStarted
+      inputs:
+        message: "Workflow started"
+        level: Information
+  onWorkflowExecuted:
+    - task: "Utilities/Log@1"
+      name: LogSuccess
+      inputs:
+        message: "Workflow completed"
+        level: Information
+  onWorkflowFailed:
+    - task: "Utilities/Log@1"
+      name: LogFailed
+      inputs:
+        message: "Workflow failed: {{exception.message}}"
+        level: Error
+```
+
+### Activity Events
+
+Activities support their own event handlers via an `events` property:
+
+```yaml
+activities:
+  - name: Main
+    events:                                     # Activity-level event handlers
+      onActivityStarted:
+        - task: "Utilities/Log@1"
+          name: LogActivityStarted
+          inputs:
+            message: "Activity Main started"
+            level: Information
+      onActivityCompleted:
+        - task: "Utilities/Log@1"
+          name: LogActivityCompleted
+          inputs:
+            message: "Activity Main completed"
+            level: Information
+      onActivityFailed:
+        - task: "Utilities/Log@1"
+          name: LogActivityFailed
+          inputs:
+            message: "Activity Main failed: {{exception.message}}"
+            level: Error
+    steps:
+      - task: "Utilities/Log@1"
+        name: DoWork
+        inputs:
+          message: "Processing..."
 ```
 
 ---

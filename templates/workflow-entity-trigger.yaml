@@ -25,6 +25,25 @@ triggers:
 
 activities:
   - name: Data
+    events:
+      onActivityStarted:
+        - task: "Utilities/Log@1"
+          name: LogActivityStarted
+          inputs:
+            message: "Activity Data started"
+            level: Information
+      onActivityCompleted:
+        - task: "Utilities/Log@1"
+          name: LogActivityCompleted
+          inputs:
+            message: "Activity Data completed"
+            level: Information
+      onActivityFailed:
+        - task: "Utilities/Log@1"
+          name: LogActivityFailed
+          inputs:
+            message: "Activity Data failed: {{exception.message}}"
+            level: Error
     steps:
       - task: "Query/GraphQL"
         name: GetOrder
@@ -49,3 +68,23 @@ activities:
         inputs:
           message: "{{displayName}}: Order \{{Data.GetOrder.order.orderNumber}} status changed"
           level: Information
+
+events:
+  onWorkflowStarted:
+    - task: "Utilities/Log@1"
+      name: LogWorkflowStarted
+      inputs:
+        message: "{{displayName}} workflow started"
+        level: Information
+  onWorkflowExecuted:
+    - task: "Utilities/Log@1"
+      name: LogWorkflowExecuted
+      inputs:
+        message: "{{displayName}} workflow completed successfully"
+        level: Information
+  onWorkflowFailed:
+    - task: "Utilities/Log@1"
+      name: LogWorkflowFailed
+      inputs:
+        message: "{{displayName}} workflow failed: {{exception.message}}"
+        level: Error

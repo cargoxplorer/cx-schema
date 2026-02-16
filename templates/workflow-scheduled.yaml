@@ -29,6 +29,25 @@ schedules:
 
 activities:
   - name: BatchProcess
+    events:
+      onActivityStarted:
+        - task: "Utilities/Log@1"
+          name: LogActivityStarted
+          inputs:
+            message: "Activity BatchProcess started"
+            level: Information
+      onActivityCompleted:
+        - task: "Utilities/Log@1"
+          name: LogActivityCompleted
+          inputs:
+            message: "Activity BatchProcess completed"
+            level: Information
+      onActivityFailed:
+        - task: "Utilities/Log@1"
+          name: LogActivityFailed
+          inputs:
+            message: "Activity BatchProcess failed: {{exception.message}}"
+            level: Error
     steps:
       - task: "while"
         name: PageLoop
@@ -84,3 +103,23 @@ activities:
         inputs:
           message: "{{displayName}} completed"
           level: Information
+
+events:
+  onWorkflowStarted:
+    - task: "Utilities/Log@1"
+      name: LogWorkflowStarted
+      inputs:
+        message: "{{displayName}} workflow started"
+        level: Information
+  onWorkflowExecuted:
+    - task: "Utilities/Log@1"
+      name: LogWorkflowExecuted
+      inputs:
+        message: "{{displayName}} workflow completed successfully"
+        level: Information
+  onWorkflowFailed:
+    - task: "Utilities/Log@1"
+      name: LogWorkflowFailed
+      inputs:
+        message: "{{displayName}} workflow failed: {{exception.message}}"
+        level: Error

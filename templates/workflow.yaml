@@ -32,6 +32,25 @@ variables:
 
 activities:
   - name: Main
+    events:
+      onActivityStarted:
+        - task: "Utilities/Log@1"
+          name: LogActivityStarted
+          inputs:
+            message: "Activity Main started"
+            level: Information
+      onActivityCompleted:
+        - task: "Utilities/Log@1"
+          name: LogActivityCompleted
+          inputs:
+            message: "Activity Main completed"
+            level: Information
+      onActivityFailed:
+        - task: "Utilities/Log@1"
+          name: LogActivityFailed
+          inputs:
+            message: "Activity Main failed: {{exception.message}}"
+            level: Error
     steps:
       - task: "Utilities/Log@1"
         name: LogStart
@@ -95,6 +114,26 @@ activities:
         inputs:
           message: "Completed {{displayName}} workflow"
           level: Information
+
+events:
+  onWorkflowStarted:
+    - task: "Utilities/Log@1"
+      name: LogWorkflowStarted
+      inputs:
+        message: "{{displayName}} workflow started"
+        level: Information
+  onWorkflowExecuted:
+    - task: "Utilities/Log@1"
+      name: LogWorkflowExecuted
+      inputs:
+        message: "{{displayName}} workflow completed successfully"
+        level: Information
+  onWorkflowFailed:
+    - task: "Utilities/Log@1"
+      name: LogWorkflowFailed
+      inputs:
+        message: "{{displayName}} workflow failed: {{exception.message}}"
+        level: Error
 
 triggers:
   - type: Manual
