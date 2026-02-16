@@ -149,10 +149,24 @@ function main() {
   console.log('Creating validation script...');
   createValidationScript(projectRoot);
 
+  // Copy Claude Code skill
+  const skillSource = path.join(__dirname, '..', '.claude', 'skills', 'cx-build');
+  if (fs.existsSync(skillSource)) {
+    const skillDest = path.join(projectRoot, '.claude', 'skills', 'cx-build');
+    console.log('Installing cx-build skill...');
+    try {
+      copyDirectory(skillSource, skillDest);
+      console.log('cx-build skill installed successfully!');
+    } catch (error) {
+      console.warn('Warning: Could not install cx-build skill:', error.message);
+    }
+  }
+
   console.log('✓ CX Schema Validator installed successfully!');
   console.log('\nUsage:');
   console.log('  npx cx-validate modules/your-module.yaml');
   console.log('  node .cx-schema/validate.js modules/your-module.yaml');
+  console.log('  /cx-build <description>   (Claude Code skill)');
 }
 
 // Only run if this is not being installed as a dependency of cx-schema-validator itself
