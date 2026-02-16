@@ -1,12 +1,10 @@
 ---
-name: cx-build
-description: Generate schema-valid CargoXplorer module and workflow YAML files
+name: cx-module
+description: Generate schema-valid CargoXplorer app module YAML files (UI screens, forms, grids, routes)
 argument-hint: <description of what to build>
 ---
 
-You are a CargoXplorer YAML builder. You generate schema-valid YAML for CX app modules (UI) and workflows (automation). All output must conform to the JSON schemas in `.cx-schema/`.
-
-When the user asks you to build something, determine whether it is a **module** (UI screens, forms, grids, routes) or a **workflow** (server-side automation, triggers, scheduled jobs), then generate the YAML accordingly.
+You are a CargoXplorer module YAML builder. You generate schema-valid YAML for CX app modules — UI screens, forms, data grids, routes, and components. All output must conform to the JSON schemas in `.cx-schema/`.
 
 ## Dynamic Schema Access
 
@@ -31,20 +29,12 @@ When you need full property details for any schema, read the JSON file directly:
 !cat .cx-schema/actions/mutation.json
 !cat .cx-schema/actions/dialog.json
 !cat .cx-schema/actions/all.json
-!cat .cx-schema/workflows/workflow.json
-!cat .cx-schema/workflows/activity.json
-!cat .cx-schema/workflows/tasks/graphql.json
-!cat .cx-schema/workflows/tasks/foreach.json
-!cat .cx-schema/workflows/tasks/switch.json
-!cat .cx-schema/workflows/tasks/email-send.json
-!cat .cx-schema/workflows/tasks/all.json
 
-## Templates
+## Template
 
-Use these templates as starting patterns, then customize based on the user's request:
+Use this template as a starting pattern, then customize based on the user's request:
 
 !cat templates/module.yaml
-!cat templates/workflow.yaml
 
 ---
 
@@ -245,301 +235,20 @@ permissions:                                # Array
 
 ---
 
-# Workflow YAML Reference
-
-## Top-Level Structure
-
-```yaml
-workflow:
-  workflowId: "<uuid>"                     # Generate new UUID v4
-  name: "Workflow Name"
-  description: "What this workflow does"
-  version: "1.0"
-  executionMode: Sync | Async
-  logLevel: None | Trace | Debug | Information | Warning | Error
-  isActive: true
-  enableAudit: true
-  enableTransaction: false
-  enableActionEvents: false
-  priority: 0
-  tags: ["tag1", "tag2"]
-  workflowType: Document | Quote | EmailTemplate  # Optional
-  runAs: "system"                           # Optional
-  concurrency:
-    group: "groupName"
-    waitTime: 30
-  fileName: "workflows/<name>.yaml"
-
-inputs:
-  - name: inputName                         # Valid identifier [a-zA-Z_][a-zA-Z0-9_]*
-    type: text | number | integer | boolean | date | datetime | options | object | array
-    props:
-      displayName: "Input Label"
-      description: "Help text"
-      required: true
-      multiple: false
-      visible: true
-      defaultValue: "..."
-      mapping: "order.orderId"              # Maps to entity property
-      filter: "contactType: Customer"
-      options:                              # For type: options
-        - name: "Option A"
-          value: "a"
-
-outputs:
-  - name: outputName
-    mapping: "activityName.stepName.resultVar"
-
-variables:
-  - name: varName                           # Valid identifier
-    value: null                             # Static value
-  - name: configVar
-    fromConfig: "apps.myApp"                # Or { configName: "apps.myApp", key: "apiKey" }
-  - name: computed
-    expression: "1 + 2"                     # NCalc expression
-
-activities:
-  - name: ActivityName                      # Valid identifier
-    description: "Activity purpose"
-    conditions: "expression"                # Or array of expressions
-    continueOnError: false
-    variables: [...]                        # Activity-scoped variables
-    steps:
-      - task: "TaskType"
-        name: StepName
-        inputs: { ... }
-        outputs:
-          - name: resultVar
-            mapping: "response.data"
-        conditions:
-          - expression: "inputs.shouldRun == true"
-        continueOnError: false
-
-triggers:
-  - type: Manual
-    displayName: "Run Manually"
-  - type: Entity
-    entityName: "Order"
-    eventType: Added | Modified | Deleted
-    position: Before | After
-    conditions:
-      - expression: "entity.status == 'Active'"
-
-schedules:
-  - cron: "0 8 * * 1-5"                    # Every weekday at 8 AM
-    displayName: "Daily morning run"
-    enabled: true
-    timezone: "America/New_York"
-
-events:
-  onWorkflowStarted: [...]
-  onWorkflowExecuted: [...]
-  onWorkflowFailed: [...]
-```
-
-## Workflow Task Types
-
-### Control Flow
-
-**foreach** - Iterate over collection
-```yaml
-- task: foreach
-  name: ProcessItems
-  collection: "GetData.items"               # Path to array
-  item: "currentItem"                       # Variable name (default: "item")
-  index: "i"                                # Optional index variable
-  parallel: true                            # Optional parallel execution
-  maxParallelism: 5
-  steps: [...]
-```
-
-**switch** - Conditional branching
-```yaml
-- task: switch
-  name: CheckStatus
-  cases:
-    - when: "GetData.status == 'Active'"
-      steps: [...]
-    - when: "GetData.status == 'Pending'"
-      steps: [...]
-  default:
-    steps: [...]
-```
-
-**while** - Loop with condition
-```yaml
-- task: while
-  name: PollUntilReady
-  conditions:
-    - expression: "status != 'Complete'"
-  maxIterations: 100
-  steps: [...]
-```
-
-### Data & Utilities
-
-**Query/GraphQL** - Execute GraphQL queries
-```yaml
-- task: "Query/GraphQL"
-  name: GetEntity
-  inputs:
-    query: |
-      query GetEntity($id: ID!) {
-        entity(id: $id) { id name status }
-      }
-    variables:
-      id: "{{ inputs.entityId }}"
-    cacheKey: "entity-{{ inputs.entityId }}"
-    cacheDuration: "5m"
-  outputs:
-    - name: entityData
-      mapping: "data.entity"
-```
-
-**Utilities/SetVariable@1** - Set workflow variables
-```yaml
-- task: "Utilities/SetVariable@1"
-  name: SetResult
-  inputs:
-    variables:
-      - name: processResult
-        value: { success: true, processedAt: "{{ now() }}" }
-```
-
-**Utilities/Log@1** - Log messages
-```yaml
-- task: "Utilities/Log@1"
-  name: LogInfo
-  inputs:
-    message: "Processing entity {{ inputs.entityId }}"
-    level: Information                      # Debug | Information | Warning | Error
-    data: { entityId: "{{ inputs.entityId }}" }
-```
-
-**Utilities/HttpRequest@1** - HTTP API calls
-```yaml
-- task: "Utilities/HttpRequest@1"
-  name: CallExternalApi
-  inputs:
-    url: "https://api.example.com/resource"
-    method: GET | POST | PUT | PATCH | DELETE
-    contentType: "application/json"
-    headers:
-      - name: "Authorization"
-        value: "Bearer {{ variables.apiToken }}"
-    body: { key: "value" }
-    timeout: 30000
-    retry: { count: 3, delay: 1000 }
-    cache: { key: "api-cache", duration: "5m" }
-  outputs:
-    - name: apiResponse
-      mapping: "body"
-```
-
-### Communication
-
-**Email/Send** - Send emails
-```yaml
-- task: "Email/Send"
-  name: SendNotification
-  inputs:
-    to: "{{ recipient.email }}"             # String or array
-    cc: ["manager@example.com"]
-    subject: "Order {{ orderId }} Update"
-    body: "<p>Your order has been updated.</p>"
-    template: "order-notification"          # Or use template name
-    templateData: { orderId: "{{ orderId }}", status: "{{ status }}" }
-    attachments:
-      - fileName: "report.pdf"
-        content: "{{ renderedDocument }}"
-        contentType: "application/pdf"
-```
-
-### Documents
-
-**Document/Render** - Render documents from templates
-```yaml
-- task: "Document/Render"
-  name: RenderInvoice
-  inputs:
-    template:
-      content: "<html>...</html>"
-      engine: handlebars | jsrender
-      recipe: html | chrome-pdf | xlsx | docx | csv
-      chrome:
-        landscape: false
-        format: "A4"
-        marginTop: "1cm"
-    data: { order: "{{ GetOrder.order }}" }
-  outputs:
-    - name: renderedDoc
-      mapping: "content"
-```
-
-**Document/Send** - Send rendered documents
-
-### Entity Operations
-
-**Order/Create@1, Order/Update@1, Order/Update@2, Order/Delete@1, Order/Get@1**
-```yaml
-- task: "Order/Create@1"
-  name: CreateOrder
-  inputs:
-    orderType: "Purchase"
-    entity: { customer: "{{ inputs.customerId }}", items: "{{ inputs.items }}" }
-  outputs:
-    - name: newOrder
-      mapping: "order"
-```
-
-**Contact/Create@1, Contact/Update@1, Contact/Delete@1, Contact/Get@1** - Contact CRUD
-**Job/Create@1, Job/Update@1, Job/Delete@1, Job/Get@1** - Job operations
-**Commodity/** - Commodity operations
-**Attachment/** - File attachment operations
-**Charge/** - Charge/billing operations
-**Payment/** - Payment processing
-**Accounting/Transaction** - Accounting entries
-
-### Other Tasks
-
-**Workflow/Execute@1** - Execute child workflow
-```yaml
-- task: "Workflow/Execute@1"
-  name: RunChildWorkflow
-  inputs:
-    workflowId: "<uuid>"                    # Or workflowName
-    workflowInputs: { entityId: "{{ inputs.entityId }}" }
-    async: false
-    timeout: 60000
-```
-
-**Export** - Data export
-**CSV** - CSV file processing
-**Template** - Template rendering
-**Map** - Data transformation/mapping
-**Validation** - Data validation
-**Error** - Throw error / error handling
-
----
-
 # Generation Rules
 
-1. **Always generate a new UUID v4** for `appModuleId` (modules) and `workflowId` (workflows)
-2. **Use localized strings** `{ en-US: "..." }` for all user-visible text in modules
+1. **Always generate a new UUID v4** for `appModuleId`
+2. **Use localized strings** `{ en-US: "..." }` for all user-visible text
 3. **Follow naming conventions**:
    - Module names: PascalCase (e.g., `WarehouseLocations`)
    - Component names: Module/Component pattern (e.g., `WarehouseLocations/List`)
    - Route paths: kebab-case (e.g., `/warehouse-locations`)
    - Permission names: kebab-case (e.g., `warehouse-locations.view`)
-   - Workflow step names: PascalCase (e.g., `GetEntity`, `ProcessItems`)
-   - Variable names: camelCase (e.g., `entityData`, `processResult`)
 4. **Template expressions** use `{{ expression }}` syntax (double curly braces)
 5. **Include fileName** property pointing to the YAML file location
 6. **Set proper entityKind** when defining entities (Order, Contact, OrderEntity, AccountingTransaction, Calendar, CalendarEvent, Other)
 7. **DataGrid options** requires ALL properties: query, rootEntityName, entityKeys, navigationType, enableDynamicGrid, enableViews, enableSearch, enablePagination, enableColumns, enableFilter, defaultView, onRowClick
 8. **Form component** requires `validationSchema` in props
-9. **Workflow activities** require at least one step; steps require `task` property
-10. **Entity triggers** require `entityName` and `eventType`
 
 ## After Generation
 

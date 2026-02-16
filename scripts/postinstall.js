@@ -149,16 +149,30 @@ function main() {
   console.log('Creating validation script...');
   createValidationScript(projectRoot);
 
-  // Copy Claude Code skill
-  const skillSource = path.join(__dirname, '..', '.claude', 'skills', 'cx-build');
-  if (fs.existsSync(skillSource)) {
-    const skillDest = path.join(projectRoot, '.claude', 'skills', 'cx-build');
-    console.log('Installing cx-build skill...');
+  // Copy Claude Code skills
+  const skillNames = ['cx-module', 'cx-workflow'];
+  for (const skillName of skillNames) {
+    const skillSource = path.join(__dirname, '..', '.claude', 'skills', skillName);
+    if (fs.existsSync(skillSource)) {
+      const skillDest = path.join(projectRoot, '.claude', 'skills', skillName);
+      console.log(`Installing ${skillName} skill...`);
+      try {
+        copyDirectory(skillSource, skillDest);
+        console.log(`${skillName} skill installed successfully!`);
+      } catch (error) {
+        console.warn(`Warning: Could not install ${skillName} skill:`, error.message);
+      }
+    }
+  }
+
+  // Remove old cx-build skill if it exists
+  const oldSkillDest = path.join(projectRoot, '.claude', 'skills', 'cx-build');
+  if (fs.existsSync(oldSkillDest)) {
     try {
-      copyDirectory(skillSource, skillDest);
-      console.log('cx-build skill installed successfully!');
+      fs.rmSync(oldSkillDest, { recursive: true });
+      console.log('Removed deprecated cx-build skill.');
     } catch (error) {
-      console.warn('Warning: Could not install cx-build skill:', error.message);
+      // Ignore cleanup errors
     }
   }
 
@@ -166,7 +180,8 @@ function main() {
   console.log('\nUsage:');
   console.log('  npx cx-validate modules/your-module.yaml');
   console.log('  node .cx-schema/validate.js modules/your-module.yaml');
-  console.log('  /cx-build <description>   (Claude Code skill)');
+  console.log('  /cx-module <description>   (Claude Code skill - UI modules)');
+  console.log('  /cx-workflow <description>  (Claude Code skill - workflows)');
 }
 
 // Only run if this is not being installed as a dependency of cx-schema-validator itself
