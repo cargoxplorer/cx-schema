@@ -22,6 +22,7 @@ Always start by running the CLI to generate a schema-valid YAML file.
 | `ftp-tracking` | Import tracking events from FTP | Scheduled SFTP Connect/List/Download, `Order/Import@1` with tracking events, MoveFile to processed |
 | `ftp-edi` | Import orders from FTP via EDI | Scheduled SFTP Connect/List/Download, `Workflow/Execute` EDI parser, `Order/Import@1`, MoveFile to processed |
 | `api-tracking` | Fetch tracking from carrier API | Scheduled, query orders needing updates, `HttpRequest` to carrier API, parse response, `Order/Import@1` with `matchByEventDefinition` |
+| `mcp-tool` | Expose workflow as MCP tool | `executionMode: Sync`, `tags: [mcp-tool]`, `agentInstruction`, typed inputs, structured output |
 
 ```bash
 npx cx-cli create workflow <name> --template <template>
@@ -47,6 +48,8 @@ npx cx-cli create workflow <name> --template <template> --feature <feature-name>
 **`ftp-edi`** — update `ftpConfig` configName, `directory` in ListFiles, set `workflowId` or `workflowName` in `Workflow/Execute@1` to point to your EDI parser sub-workflow. Map parsed EDI output to `orders` for `Order/Import@1`. Configure `orderMatchByFields` and `commodityMatchByFields`. Adjust `cron` schedule and MoveFile destination path.
 
 **`api-tracking`** — update `apiConfig` configName with carrier API credentials (`baseUrl`, `apiKey`, `carrierId`). Update the GraphQL filter to select orders needing tracking. Map the carrier's API response structure in ParseTrackingResponse (foreach path, field names for `eventDate`, `location`, `statusCode`). Configure `trackingEventMatchByFields` and `matchByEventDefinition` custom value keys.
+
+**`mcp-tool`** — write a clear `agentInstruction` describing when to use the tool, expected inputs, and return values. Keep `executionMode: Sync` so the agent gets results immediately. Define typed `inputs` with descriptive `props` (the AI reads these). Return structured data via `outputs`. The `mcp-tool` tag is required — it's what makes the workflow discoverable via `list_custom_tools` in the MCP server. Validate inputs with `Utilities/Error@1` conditions.
 
 **All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowExecuted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed.
 
@@ -269,6 +272,16 @@ Implicit variable: `iteration` (zero-based).
 | Flow State | `!cat .cx-schema/workflows/flow/state.json` |
 | Flow Transition | `!cat .cx-schema/workflows/flow/transition.json` |
 | Flow Aggregation | `!cat .cx-schema/workflows/flow/aggregation.json` |
+
+---
+
+## Debugging Workflow Executions
+
+When TMS MCP returns gzip file URLs for workflow execution logs, decompress with:
+
+```bash
+node -e "const https=require('https'),zlib=require('zlib');https.get(process.argv[1],r=>r.pipe(zlib.createGunzip()).pipe(process.stdout))" "<url>"
+```
 
 ---
 
