@@ -44,16 +44,65 @@ Read the generated YAML file so you have the scaffold with the correct workflowI
 
 ### Step 3: Customize for the use case
 
-Determine whether this is a **standard** workflow (sequential automation with activities and steps) or a **Flow** workflow (declarative state machine for entity lifecycle management).
+Edit the generated file based on which template was used:
 
-Edit the generated file to add/modify:
-- **workflow metadata**: update `name`, `description`, `executionMode`, `workflowType`, `tags`, etc.
-- **inputs**: add/change input parameters for the use case
-- **variables**: add workflow-scoped variables as needed
-- **activities & steps**: replace the placeholder Log step with the actual task steps
-- **outputs**: add output mappings if the workflow returns data
-- **triggers**: update triggers (Manual, Entity, Schedule) as needed
-- For **Flow workflows**: remove `activities`, add `entity`, `states`, `transitions`, `aggregations`
+**All templates** — common edits:
+- Update `name`, `description`, `tags` in workflow metadata
+- Add/change `inputs` for the use case
+- Add `variables` (static values or `fromConfig` for app config)
+- Replace placeholder steps with actual task logic
+- Read task schemas from `.cx-schema/workflows/tasks/` when you need exact property details
+
+**`basic`** — add activities, steps, triggers, outputs as needed. This is a blank slate.
+
+**`entity-trigger`** — customize:
+- `triggers[0].entityName` — which entity to watch (Order, Contact, Commodity, etc.)
+- `triggers[0].eventType` — Modified, Created, or Deleted
+- `triggers[0].position` — Before (validate/block) or After (react)
+- `triggers[0].conditions` — expression on `changes` array (e.g., `any([changes], [each.key] = 'Status')`)
+- Access triggered entity via `{{ entity.orderId }}`, `{{ entity.status }}`, etc.
+- Access changed fields via `{{ changes }}` array
+- Add `runAs` if workflow needs elevated permissions
+- For Before triggers: use `Validation/Validate@1` to block invalid changes
+- For After triggers: use entity Update/Create tasks to cascade changes
+
+**`document`** — customize:
+- `inputs` — what data identifiers the document needs (orderId, blNumber, etc.)
+- `outputs` — keep `file`, `fileName`, `fileDisposition` structure
+- `variables.fileName` — dynamic name pattern (e.g., `Report_{{ orderNumber }}.pdf`)
+- FetchData activity — add GraphQL queries to load all data the template needs
+- GenerateDocument activity — update `Document/Render@1`:
+  - `engine`: `handlebars` (for PDF via chrome-pdf) or `jsrender` (for Excel via html-to-xlsx)
+  - `recipe`: `chrome-pdf`, `html-to-xlsx`, `html`, `xlsx`, `docx`, `csv`
+  - `content`: HTML template with `{{ field }}` (handlebars) or `{{:field}}` (jsrender)
+  - `data`: map fetched data into template variables
+- For Excel: use `jsrender` engine + `html-to-xlsx` recipe with `<table>` HTML
+- For PDF: use `handlebars` engine + `chrome-pdf` recipe with full HTML/CSS
+
+**`scheduled`** — customize:
+- `schedules[0].cron` — cron expression (e.g., `*/5 * * * *` every 5 min, `0 8 * * 1-5` weekday mornings)
+- `schedules[0].displayName` — human-readable schedule name
+- `variables.pageSize` — batch size per page
+- GraphQL query in the while loop — filter for entities to process
+- foreach body — replace Log with actual processing (entity updates, child workflow calls, API calls)
+- Add `runAs` for elevated permissions if needed
+- Add error handling (Slack notifications, continueOnError) for unattended execution
+- Consider calling utility workflows via `Workflow/Execute@1` for per-item processing
+
+**`utility`** — customize:
+- `inputs` — parameters this reusable workflow accepts
+- `outputs` — what it returns to the caller (mapped from activity.step.output)
+- Keep `executionMode: Sync` (callers wait for result)
+- No triggers needed — called via `Workflow/Execute@1` from other workflows
+- Focus on single responsibility: calculation, data fetch, entity update, etc.
+
+**Flow workflows** — no CLI template; scaffold with `basic` then restructure:
+- Set `workflowType: Flow`
+- Remove `activities` and `triggers`
+- Add `entity` with name/type/includes/query
+- Add `states` array with isInitial/isFinal
+- Add `transitions` with from/to/trigger
+- Add `aggregations` for reusable conditions
 
 ### Step 4: Validate
 
