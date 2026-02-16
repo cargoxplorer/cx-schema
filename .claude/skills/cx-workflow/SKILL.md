@@ -248,6 +248,27 @@ Implicit variable: `iteration` (zero-based).
 | Accounting | AccountingTransaction, Payment, Number/Generate, SequenceNumber | ref-accounting.md |
 | Other | User, Auth, Caching, EDI, Flow/Transition, Notes, AppModule, ActionEvent | ref-other.md |
 
+## Entity Field Reference (shared via cx-core)
+
+For full entity field reference, load from cx-core skill:
+
+!cat .claude/skills/cx-core/SKILL.md
+
+Load specific entity references on demand:
+
+!cat .claude/skills/cx-core/ref-entity-order.md
+!cat .claude/skills/cx-core/ref-entity-contact.md
+!cat .claude/skills/cx-core/ref-entity-commodity.md
+!cat .claude/skills/cx-core/ref-entity-accounting.md
+!cat .claude/skills/cx-core/ref-entity-order-sub.md
+!cat .claude/skills/cx-core/ref-entity-job.md
+!cat .claude/skills/cx-core/ref-entity-rate.md
+!cat .claude/skills/cx-core/ref-entity-shared.md
+!cat .claude/skills/cx-core/ref-entity-geography.md
+!cat .claude/skills/cx-core/ref-entity-warehouse.md
+
+**CustomValues in workflows** — Access: `{{ entity.customValues.fieldName }}`. Update: `CustomValues.fieldName: "value"` or bulk `customValues: { ... }`. Merge semantics (upserts, not replace).
+
 ## Additional References
 
 !cat .claude/skills/cx-workflow/ref-expressions.md

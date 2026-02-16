@@ -97,21 +97,24 @@ npx cx-cli create module "Country" --template select --options '{
 
 ## Entity Field Reference (shared via cx-core)
 
-When building modules for entities, load the field reference for accurate field names, types, and enums:
+For full entity field reference, load from cx-core skill:
+
+!cat .claude/skills/cx-core/SKILL.md
+
+Load specific entity references on demand:
 
 !cat .claude/skills/cx-core/ref-entity-order.md
 !cat .claude/skills/cx-core/ref-entity-contact.md
 !cat .claude/skills/cx-core/ref-entity-commodity.md
 !cat .claude/skills/cx-core/ref-entity-accounting.md
+!cat .claude/skills/cx-core/ref-entity-order-sub.md
+!cat .claude/skills/cx-core/ref-entity-job.md
+!cat .claude/skills/cx-core/ref-entity-rate.md
+!cat .claude/skills/cx-core/ref-entity-shared.md
+!cat .claude/skills/cx-core/ref-entity-geography.md
+!cat .claude/skills/cx-core/ref-entity-warehouse.md
 
-| Entity | Use For | Reference |
-|--------|---------|-----------|
-| Order | Order grids, forms, entity fields, customValues columns | cx-core/ref-entity-order.md |
-| Contact | Contact selects, address forms, contact type filters | cx-core/ref-entity-contact.md |
-| Commodity | Commodity grids, weight/dim fields, tracking numbers | cx-core/ref-entity-commodity.md |
-| AccountingTransaction | Invoice/Bill grids, charge tables, payment forms | cx-core/ref-entity-accounting.md |
-
-**CustomValues in modules** — Use `customValues.fieldName` for GraphQL sort/filter paths. Entity field definitions use `isCustomField: true` with `name: "customValues.fieldName"`. Full reference: `!cat .claude/skills/cx-core/SKILL.md`
+**CustomValues in modules** — Use `customValues.fieldName` for GraphQL sort/filter paths. Entity field definitions use `isCustomField: true` with `name: "customValues.fieldName"`.
 
 ---
 
