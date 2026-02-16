@@ -707,7 +707,10 @@ function applyFieldsToForm(form: any, fields: CreateFieldOption[]): void {
   if (form.props.queries && Array.isArray(form.props.queries)) {
     for (const q of form.props.queries) {
       if (q.query?.command && typeof q.query.command === 'string') {
-        q.query.command = updateQueryFields(q.query.command, fieldNames);
+        // Preserve 'id' in query if it was originally present and not in custom fields
+        const preserveId = !fieldNames.includes('id') && /\bid\b/.test(q.query.command);
+        const queryFieldNames = preserveId ? ['id', ...fieldNames] : fieldNames;
+        q.query.command = updateQueryFields(q.query.command, queryFieldNames);
       }
     }
   }
