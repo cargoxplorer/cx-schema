@@ -181,6 +181,10 @@ export class WorkflowValidator {
       // Validate workflow structure
       this.validateWorkflowStructure(workflowData, errors, warnings);
 
+      // Validate inputs and variables
+      this.validateInputs(workflowData, errors);
+      this.validateVariables(workflowData, errors);
+
       // Validate against main workflow schema
       const validate = this.ajv.getSchema('workflow.json');
       if (validate && !validate(workflowData)) {
@@ -268,6 +272,59 @@ export class WorkflowValidator {
 
     // Check for deprecated properties
     this.checkDeprecatedProperties(workflow, 'workflow', warnings);
+  }
+
+  /**
+   * Validate workflow inputs.
+   * Top-level input properties are: name, type, props.
+   * Settings like required, displayName, description belong inside props.
+   */
+  private validateInputs(
+    workflowData: YAMLWorkflow,
+    errors: ValidationError[]
+  ): void {
+    const inputs = workflowData.inputs;
+    if (!inputs || !Array.isArray(inputs)) return;
+
+    const propsOnlyFields = ['required', 'isRequired', 'displayName', 'description', 'multiple', 'visible', 'defaultValue', 'mapping', 'filter', 'options'];
+
+    inputs.forEach((input: any, index: number) => {
+      const inputPath = `inputs[${index}]`;
+
+      for (const field of propsOnlyFields) {
+        if (field in input) {
+          errors.push({
+            type: 'schema_violation',
+            path: `${inputPath}.${field}`,
+            message: `Invalid top-level property '${field}'. Move it inside 'props'`
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Validate workflow variables.
+   * Top-level variable properties are: name, value, fromConfig.
+   */
+  private validateVariables(
+    workflowData: YAMLWorkflow,
+    errors: ValidationError[]
+  ): void {
+    const variables = workflowData.variables;
+    if (!variables || !Array.isArray(variables)) return;
+
+    variables.forEach((variable: any, index: number) => {
+      const varPath = `variables[${index}]`;
+
+      if ('type' in variable) {
+        errors.push({
+          type: 'schema_violation',
+          path: `${varPath}.type`,
+          message: `Invalid property 'type' on variable. Variables only support 'name', 'value', and 'fromConfig'`
+        });
+      }
+    });
   }
 
   /**

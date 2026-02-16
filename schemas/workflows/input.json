@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Workflow Input Parameter",
-  "description": "Definition of a workflow input parameter",
+  "description": "Definition of a workflow input parameter. Only 'name', 'type', and 'props' are valid top-level properties. All other settings (required, displayName, description, etc.) belong inside 'props'.",
   "type": "object",
   "properties": {
     "name": {
@@ -61,16 +61,11 @@
             },
             "required": ["name", "value"]
           }
-        },
-        "additionalProperties": {
-          "type": "object",
-          "description": "Additional input properties",
-          "additionalProperties": true
         }
       },
       "additionalProperties": true
     }
   },
   "required": ["name"],
-  "additionalProperties": true
+  "additionalProperties": false
 }
