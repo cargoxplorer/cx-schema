@@ -260,188 +260,372 @@ events:
   onWorkflowFailed: [...]
 ```
 
-## Workflow Task Types
+## Execution Model
 
-### Control Flow
+Workflows execute as: **Workflow -> Activities (sequential) -> Steps (sequential)**
 
-**foreach** - Iterate over collection
+### Variable Scoping
+
+| Scope | Contents | Lifetime |
+|-------|----------|----------|
+| GlobalVariables | Workflow inputs, trigger data, all step outputs, SetVariable results | Entire workflow |
+| activityVariables | Copy of GlobalVariables + activity-level variable definitions | Per activity |
+| scopedVariables | Copy of activityVariables + step `inputs` (after template resolution) | Per step |
+
+### Step Output Naming Convention
+
+Task outputs are stored as: **`ActivityName.StepName.outputKey`**
+
+Outputs are written to both activityVariables and GlobalVariables, so later steps and activities can access them.
+
 ```yaml
-- task: foreach
-  name: ProcessItems
-  collection: "GetData.items"               # Path to array
-  item: "currentItem"                       # Variable name (default: "item")
-  index: "i"                                # Optional index variable
-  parallel: true                            # Optional parallel execution
-  maxParallelism: 5
-  steps: [...]
+activities:
+  - name: Data
+    steps:
+      - task: "Query/GraphQL"
+        name: GetOrder
+        outputs:
+          - name: order
+            mapping: "order"
+# Output accessible as: Data.GetOrder.order
+# Nested: Data.GetOrder.order.orderNumber
 ```
 
-**switch** - Conditional branching
+If `continueOnError: true` and the step fails, the error is stored at `ActivityName.StepName.error`.
+
+### System Variables (auto-injected)
+
+| Variable | Description |
+|----------|-------------|
+| `workflowId` | Current workflow ID |
+| `organizationId` | Organization ID |
+| `currentUserId` | Triggering user ID |
+| `executionId` | Unique execution ID |
+| `triggerType` | `Entity` or `Manual` |
+| `eventType` | `Added`, `Modified`, `Deleted` |
+| `position` | `Before` or `After` |
+| `entityName` | Entity name that triggered |
+| `entityId` | Entity ID that triggered |
+| `data` | Entity data for entity triggers |
+| `entity` | Entity object for entity triggers |
+| `changes` | Changed fields array for Modified triggers |
+
+### Conditions (apply to any step/activity)
+
+Any step or activity can have `conditions`. All must evaluate to `true` (AND logic) or the step is skipped.
+
 ```yaml
-- task: switch
-  name: CheckStatus
-  cases:
-    - when: "GetData.status == 'Active'"
-      steps: [...]
-    - when: "GetData.status == 'Pending'"
-      steps: [...]
-  default:
+steps:
+  - task: "Utilities/Log@1"
+    name: LogActive
+    conditions:
+      - expression: "[status] = 'Active'"
+      - expression: "isNullOrEmpty([Data.GetOrder.order?]) = false"
+    inputs:
+      message: "Order is active"
+```
+
+### Workflow Events
+
+```yaml
+events:
+  - type: onWorkflowStarted     # Before workflow execution
+    steps: [...]
+  - type: onWorkflowExecuted    # After workflow execution (finally)
+    steps: [...]
+  - type: onWorkflowFailed      # On unhandled error
     steps: [...]
 ```
 
-**while** - Loop with condition
+Activities support: `onActivityStarted`, `onActivityExecuted`, `onActivityFailed`.
+
+### Task Naming Convention
+
+Format: **`Namespace/TaskName@Version`** — version is optional. Without version, the highest available version is used.
+
+```yaml
+- task: "Utilities/Log@1"        # Explicit version 1
+- task: "Utilities/HttpRequest"  # Uses highest version
+- task: "Query/GraphQL"          # No version = latest
+- task: "foreach"                # Control flow tasks have no namespace
+```
+
+---
+
+## Variable References & Expressions
+
+There are **two distinct syntaxes** for referencing variables, used in different contexts:
+
+### Template Expressions: `{{ path }}` (in step inputs)
+
+Used in step `inputs` values. Resolves variable paths from scoped variables.
+
+```yaml
+inputs:
+  orderId: "{{ inputs.orderId }}"                    # Simple reference
+  url: "{{ chopinConfig.baseUrl }}/api/v1"           # String interpolation
+  order: "{{ Data.GetOrder.order }}"                 # Raw object (single {{ }})
+  name: "Order {{ Data.GetOrder.order.orderNumber }}" # String interpolation (multiple)
+```
+
+**Key behavior**: A single `{{ path }}` returns the **raw object** (preserving type). Multiple `{{ }}` in a string returns string interpolation.
+
+#### Type Converters (prefix in {{ }})
+
+```yaml
+organizationId: "{{ int organizationId }}"
+amount: "{{ decimal totalAmount }}"
+isActive: "{{ bool isActive }}"
+flag: "{{ boolOrFalse someFlag }}"        # null → false
+notes: "{{ emptyIfNull notes }}"          # null → ""
+notes: "{{ nullIfEmpty notes }}"          # "" → null
+config: "{{ fromJson configJsonString }}" # JSON string → object
+payload: "{{ toJson someObject }}"        # Object → JSON string
+name: "{{ trim value }}"
+```
+
+#### Value Directives (in YAML input mappings)
+
+**`expression`** — Evaluate NCalc expression as a value:
+```yaml
+amount:
+  expression: "[price] * [quantity]"
+```
+
+**`coalesce`** — First non-null value:
+```yaml
+displayName:
+  coalesce:
+    - "{{ customer.name? }}"
+    - "{{ customer.email? }}"
+    - "Unknown"
+```
+
+**`foreach`** (value context) — Transform collections inline:
+```yaml
+commodities:
+  foreach: "sourceCommodities"
+  item: "item"
+  conditions: "[item.isActive] = true"
+  mapping:
+    name: "{{ item.name }}"
+    quantity: "{{ item.qty }}"
+```
+
+**`switch`** (value context) — Value-based switch:
+```yaml
+perLb:
+  switch: "{{ contact.commissionTier }}"
+  cases:
+    "tier1": "{{ rate.customValues.commission_per_lb_tier1 }}"
+    "tier2": "{{ rate.customValues.commission_per_lb_tier2 }}"
+  default: "0"
+```
+
+**`extends`** — Extend/merge an existing object:
+```yaml
+orderData:
+  extends: "{{ existingOrder }}"
+  mapping:
+    status: "Updated"
+    notes: "{{ newNotes }}"
+```
+
+**`$raw`** — Prevent template parsing (pass as-is):
+```yaml
+template:
+  $raw: "This {{ won't }} be parsed"
+```
+
+### NCalc Expressions: `[variable]` (in conditions and expression directives)
+
+Used in `conditions[].expression`, `switch` case `when`, and `expression:` value directives. Variables use **square bracket** `[name]` syntax.
+
+```yaml
+conditions:
+  - expression: "[status] = 'Active' AND [amount] > 100"
+  - expression: "isNullOrEmpty([Data.GetOrder.order?]) = false"
+  - expression: "any([changes], [each.key] = 'Status') = true"
+```
+
+#### Operators
+
+| Type | Operators |
+|------|-----------|
+| Comparison | `=`, `!=`, `<>`, `<`, `>`, `<=`, `>=` |
+| Logical | `AND`, `OR`, `NOT` (also `&&`, `\|\|`, `!`) |
+| Arithmetic | `+`, `-`, `*`, `/`, `%` |
+| Ternary | `if(condition, trueVal, falseVal)` |
+| Membership | `in(value, val1, val2, ...)` |
+
+#### Collection Functions
+
+| Function | Description |
+|----------|-------------|
+| `any([items], [each.prop] = 'val')` | True if any item matches |
+| `all([items], [each.prop] > 0)` | True if all items match |
+| `count([items])` | Count items |
+| `sum([items], [each.amount])` | Sum values (optional accessor) |
+| `first([items], [item.name])` | First item (optional accessor) |
+| `last([items], [item.name])` | Last item (optional accessor) |
+| `distinct([items])` | Remove duplicates |
+| `reverse([items])` | Reverse collection or string |
+| `contains([source], 'needle')` | Check if string/collection contains value |
+| `removeEmpty([items])` | Remove null/empty items |
+| `concat([list1], [list2])` | Concatenate collections |
+| `groupBy([items], [item.category])` | Group items → `[{key, items}]` |
+| `join([items], [each.name], ',')` | Join collection values with separator |
+| `split([fullName], ' ')` | Split string into list |
+
+#### String Functions
+
+| Function | Description |
+|----------|-------------|
+| `isNullOrEmpty([var])` | True if null, empty string, or empty list |
+| `length([var])` | String length or collection count |
+| `lower([name])` / `upper([code])` | Case conversion |
+| `left([code], 3)` / `right([code], 3)` | Substring from left/right |
+| `replace([name], ' ', '-')` | String replacement |
+| `trim([value])` | Trim whitespace |
+| `format('{0}-{1}', [prefix], [id])` | String.Format style formatting |
+| `base64([value])` / `fromBase64([encoded])` | Base64 encode/decode |
+| `bool([value])` | Convert to boolean |
+
+#### Date Functions
+
+| Function | Description |
+|----------|-------------|
+| `now()` | Current UTC datetime |
+| `now('yyyy-MM-dd', 'en-US')` | Formatted current time |
+| `addDays([created], 30)` | Add days to date (negative to subtract) |
+| `addHours([created], 2)` | Add hours to date |
+| `formatDate([date], 'dd/MM/yyyy', 'en-US')` | Format date |
+| `dateFromUnix([unixTime])` | Unix timestamp → DateTimeOffset |
+| `dateToUtc([localDate])` | Convert to UTC |
+
+#### Math Functions (NCalc built-in)
+
+`Abs(x)`, `Ceiling(x)`, `Floor(x)`, `Round(x, decimals)`, `Min(x, y)`, `Max(x, y)`, `Pow(x, y)`, `Sqrt(x)`, `Truncate(x)`
+
+### Property Path Syntax (in collection, mapping, variable paths)
+
+Used in `collection:` (foreach), `mapping:` (outputs), and variable resolution.
+
+| Pattern | Description | Example |
+|---------|-------------|---------|
+| `a.b.c` | Dot-separated nested path | `order.customer.name` |
+| `prop?` | Optional access (null if missing) | `order.customer?.name?` |
+| `list[0]` | Array index | `items[0]` |
+| `list[^1]` | Index from end (last item) | `items[^1]` |
+| `list[*]` | Flatten/wildcard (all items) | `containers[*].commodities` |
+| `list[**]` | Recursive flatten (all depths) | `containerCommodities[**]` |
+| `list[condition]` | Filter by condition | `items[status=Active]` |
+| `dict['key']` | Dictionary key access | `customValues['myField']` |
+
+---
+
+## System Tasks (Control Flow)
+
+The engine has exactly 3 built-in control-flow tasks. These are handled directly by the executor, not by task handlers.
+
+### foreach — Iterate over collection
+
+```yaml
+- task: foreach
+  name: ProcessItems
+  collection: "Data.GetOrders.result.items"  # Path to array in activity variables
+  item: "currentOrder"                       # Variable name (default: "item")
+  continueOnError: false
+  conditions:                                # Optional: check before entering loop
+    - expression: "isNullOrEmpty([Data.GetOrders.result.items]) = false"
+  steps:
+    - task: "Utilities/Log@1"
+      name: LogItem
+      inputs:
+        message: "Processing: {{ currentOrder.orderNumber }}"
+```
+
+**Implicit variables per iteration**: `index` (zero-based counter), `{item}` (current item from collection).
+
+### switch — Conditional branching
+
+Evaluates cases in order, executes the **first** matching case (implicit break). Optional `default` fallback.
+
+```yaml
+- task: switch
+  name: RouteByStatus
+  cases:
+    - when:
+        - expression: "[Data.GetOrder.order.status] = 'Active'"
+      description: "Active orders"
+      steps:
+        - task: "Utilities/Log@1"
+          name: LogActive
+          inputs:
+            message: "Order is active"
+
+    - when:
+        - expression: "[Data.GetOrder.order.status] = 'Draft'"
+      steps:
+        - task: "Utilities/Log@1"
+          name: LogDraft
+          inputs:
+            message: "Order is draft"
+
+  default:
+    - task: "Utilities/Log@1"
+      name: LogOther
+      inputs:
+        message: "Unknown status"
+```
+
+**case.when**: Array of conditions (all must be true). Uses NCalc `[variable]` syntax.
+
+### while — Loop with condition
+
 ```yaml
 - task: while
-  name: PollUntilReady
+  name: PageLoop
+  maxIterations: 100                         # Safety limit (default: 10000)
   conditions:
-    - expression: "status != 'Complete'"
-  maxIterations: 100
-  steps: [...]
+    - expression: "[hasMore] = true"
+  steps:
+    - task: "Query/GraphQL"
+      name: FetchPage
+      inputs:
+        query: "..."
+      outputs:
+        - name: hasMore
+          mapping: "response.hasMore"
 ```
 
-### Data & Utilities
+**Implicit variable**: `iteration` (zero-based counter, removed after while completes).
 
-**Query/GraphQL** - Execute GraphQL queries
-```yaml
-- task: "Query/GraphQL"
-  name: GetEntity
-  inputs:
-    query: |
-      query GetEntity($id: ID!) {
-        entity(id: $id) { id name status }
-      }
-    variables:
-      id: "{{ inputs.entityId }}"
-    cacheKey: "entity-{{ inputs.entityId }}"
-    cacheDuration: "5m"
-  outputs:
-    - name: entityData
-      mapping: "data.entity"
-```
+---
 
-**Utilities/SetVariable@1** - Set workflow variables
-```yaml
-- task: "Utilities/SetVariable@1"
-  name: SetResult
-  inputs:
-    variables:
-      - name: processResult
-        value: { success: true, processedAt: "{{ now() }}" }
-```
+## Task Reference (load by category)
 
-**Utilities/Log@1** - Log messages
-```yaml
-- task: "Utilities/Log@1"
-  name: LogInfo
-  inputs:
-    message: "Processing entity {{ inputs.entityId }}"
-    level: Information                      # Debug | Information | Warning | Error
-    data: { entityId: "{{ inputs.entityId }}" }
-```
+Load the reference file for the task category you need:
 
-**Utilities/HttpRequest@1** - HTTP API calls
-```yaml
-- task: "Utilities/HttpRequest@1"
-  name: CallExternalApi
-  inputs:
-    url: "https://api.example.com/resource"
-    method: GET | POST | PUT | PATCH | DELETE
-    contentType: "application/json"
-    headers:
-      - name: "Authorization"
-        value: "Bearer {{ variables.apiToken }}"
-    body: { key: "value" }
-    timeout: 30000
-    retry: { count: 3, delay: 1000 }
-    cache: { key: "api-cache", duration: "5m" }
-  outputs:
-    - name: apiResponse
-      mapping: "body"
-```
+!cat .claude/skills/cx-workflow/ref-utilities.md
+!cat .claude/skills/cx-workflow/ref-query.md
+!cat .claude/skills/cx-workflow/ref-entity.md
+!cat .claude/skills/cx-workflow/ref-communication.md
+!cat .claude/skills/cx-workflow/ref-filetransfer.md
+!cat .claude/skills/cx-workflow/ref-accounting.md
+!cat .claude/skills/cx-workflow/ref-other.md
 
-### Communication
+### Quick Task Lookup
 
-**Email/Send** - Send emails
-```yaml
-- task: "Email/Send"
-  name: SendNotification
-  inputs:
-    to: "{{ recipient.email }}"             # String or array
-    cc: ["manager@example.com"]
-    subject: "Order {{ orderId }} Update"
-    body: "<p>Your order has been updated.</p>"
-    template: "order-notification"          # Or use template name
-    templateData: { orderId: "{{ orderId }}", status: "{{ status }}" }
-    attachments:
-      - fileName: "report.pdf"
-        content: "{{ renderedDocument }}"
-        contentType: "application/pdf"
-```
-
-### Documents
-
-**Document/Render** - Render documents from templates
-```yaml
-- task: "Document/Render"
-  name: RenderInvoice
-  inputs:
-    template:
-      content: "<html>...</html>"
-      engine: handlebars | jsrender
-      recipe: html | chrome-pdf | xlsx | docx | csv
-      chrome:
-        landscape: false
-        format: "A4"
-        marginTop: "1cm"
-    data: { order: "{{ GetOrder.order }}" }
-  outputs:
-    - name: renderedDoc
-      mapping: "content"
-```
-
-**Document/Send** - Send rendered documents
-
-### Entity Operations
-
-**Order/Create@1, Order/Update@1, Order/Update@2, Order/Delete@1, Order/Get@1**
-```yaml
-- task: "Order/Create@1"
-  name: CreateOrder
-  inputs:
-    orderType: "Purchase"
-    entity: { customer: "{{ inputs.customerId }}", items: "{{ inputs.items }}" }
-  outputs:
-    - name: newOrder
-      mapping: "order"
-```
-
-**Contact/Create@1, Contact/Update@1, Contact/Delete@1, Contact/Get@1** - Contact CRUD
-**Job/Create@1, Job/Update@1, Job/Delete@1, Job/Get@1** - Job operations
-**Commodity/** - Commodity operations
-**Attachment/** - File attachment operations
-**Charge/** - Charge/billing operations
-**Payment/** - Payment processing
-**Accounting/Transaction** - Accounting entries
-
-### Other Tasks
-
-**Workflow/Execute@1** - Execute child workflow
-```yaml
-- task: "Workflow/Execute@1"
-  name: RunChildWorkflow
-  inputs:
-    workflowId: "<uuid>"                    # Or workflowName
-    workflowInputs: { entityId: "{{ inputs.entityId }}" }
-    async: false
-    timeout: 60000
-```
-
-**Export** - Data export
-**CSV** - CSV file processing
-**Template** - Template rendering
-**Map** - Data transformation/mapping
-**Validation** - Data validation
-**Error** - Throw error / error handling
+| Category | Tasks | Reference |
+|----------|-------|-----------|
+| Utilities | SetVariable, Log, Error, HttpRequest, Map, Template, Import, Export, CsvParse | ref-utilities.md |
+| Query & Workflow | Query/GraphQL, Validation, Workflow/Execute | ref-query.md |
+| Entity CRUD | Order, Contact, Commodity, Job, Charge, Discount, Inventory, Movement | ref-entity.md |
+| Communication | Email/Send, Document/Render, Attachment, PdfDocument/Merge | ref-communication.md |
+| File Transfer | Connect, Disconnect, ListFiles, Download, Upload, Move, Delete | ref-filetransfer.md |
+| Accounting | AccountingTransaction, Payment, Number/Generate, SequenceNumber | ref-accounting.md |
+| Other | User, Auth, Caching, EDI, Flow/Transition, Notes, AppModule, ActionEvent | ref-other.md |
 
 ---
 

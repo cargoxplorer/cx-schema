@@ -33,7 +33,7 @@ variables:
 activities:
   - name: Main
     steps:
-      - task: "Log@1"
+      - task: "Utilities/Log@1"
         name: LogStart
         inputs:
           message: "Starting {{displayName}} workflow for entity: \{{inputs.entityId}}"
@@ -55,32 +55,33 @@ activities:
 
       - task: "switch"
         name: CheckStatus
-        expression: "getData.entity.status"
+        inputs:
+          expression: "Main.GetEntity.entity.status"
         cases:
-          - value: "active"
+          - when: "active"
             steps:
-              - task: "Log@1"
+              - task: "Utilities/Log@1"
                 name: LogActive
                 inputs:
                   message: "Entity is active, processing..."
                   level: Information
 
-          - value: "inactive"
+          - when: "inactive"
             steps:
-              - task: "Log@1"
+              - task: "Utilities/Log@1"
                 name: LogInactive
                 inputs:
                   message: "Entity is inactive, skipping..."
                   level: Warning
 
         default:
-          - task: "Log@1"
+          - task: "Utilities/Log@1"
             name: LogUnknown
             inputs:
-              message: "Unknown status: \{{getData.entity.status}}"
+              message: "Unknown status: \{{Main.GetEntity.entity.status}}"
               level: Warning
 
-      - task: "SetVariable@1"
+      - task: "Utilities/SetVariable@1"
         name: SetResult
         inputs:
           name: processResult
@@ -89,7 +90,7 @@ activities:
             entityId: "\{{inputs.entityId}}"
             processedAt: "\{{now()}}"
 
-      - task: "Log@1"
+      - task: "Utilities/Log@1"
         name: LogEnd
         inputs:
           message: "Completed {{displayName}} workflow"

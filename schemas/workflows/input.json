@@ -48,6 +48,48 @@
           "type": "string",
           "description": "Filter expression for entity inputs"
         },
+        "default": {
+          "description": "Default value for the input (alternative to defaultValue)"
+        },
+        "itemType": {
+          "type": "string",
+          "description": "Item type for array inputs (e.g., 'number', 'text')"
+        },
+        "schema": {
+          "description": "Input validation schema. Can be a type assertion (e.g., {type: 'string'}), an object field list (multiline string), or an array field list with types/conditions.",
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Multiline field list describing expected object/array shape"
+            },
+            {
+              "type": "object",
+              "description": "Type assertion or structured schema",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Expected type (e.g., 'string', 'number', 'uuid')"
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        },
+        "additionalProperties": {
+          "type": "object",
+          "description": "DEPRECATED: Use 'visible' and 'mapping' directly on props instead. Legacy nested UI/mapping metadata.",
+          "properties": {
+            "visible": {
+              "type": "boolean",
+              "description": "Whether input is visible in UI (deprecated, use props.visible)"
+            },
+            "mapping": {
+              "type": "string",
+              "description": "Maps to entity property path (deprecated, use props.mapping)"
+            }
+          },
+          "additionalProperties": true
+        },
         "options": {
           "type": "array",
           "description": "Available options for 'options' type",

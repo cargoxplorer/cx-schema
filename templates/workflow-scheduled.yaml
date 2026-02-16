@@ -26,7 +26,6 @@ variables:
 schedules:
   - cron: "0 * * * *"
     displayName: "{{displayName}} - Hourly"
-    enabled: true
 
 activities:
   - name: BatchProcess
