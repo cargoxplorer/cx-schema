@@ -15,9 +15,9 @@ entities:
     displayName: "{{displayName}}"
 
 permissions:
-  - name: "view-{{name}}"
+  - name: "{{displayNameNoSpaces}}/View"
     displayName: "View {{displayName}}"
-  - name: "edit-{{name}}"
+  - name: "{{displayNameNoSpaces}}/Edit"
     displayName: "Edit {{displayName}}"
 
 routes:

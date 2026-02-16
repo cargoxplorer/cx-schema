@@ -6,6 +6,115 @@ argument-hint: <description of what to build>
 
 You are a CargoXplorer module YAML builder. You generate schema-valid YAML for CX app modules — UI screens, forms, data grids, routes, and components. All output must conform to the JSON schemas in `.cx-schema/`.
 
+## Generation Workflow
+
+### Step 1: Scaffold via CLI
+
+Always start by running the CLI to generate a schema-valid YAML file.
+
+| Template | Use Case | Key Structure |
+|----------|----------|---------------|
+| `default` | Generic module with form | Single form component, basic CRUD, validation |
+| `configuration` | Settings/config screen | Form with 3 fields, initialValues (fromQuery + append defaults), save mutation |
+| `grid` | List/table view | dataGrid with 3 views (All/Active/Archived), dotsMenu, entity fields |
+| `select` | Reusable async select | select-async field with searchQuery/valueQuery, dropDownToolbar, onEditClick |
+
+```bash
+# Basic scaffold
+npx cx-cli create module <name> --template <template>
+
+# With field customization (JSON array or object)
+npx cx-cli create module <name> --template <template> --options '<json>'
+npx cx-cli create module <name> --template <template> --options fields.json
+```
+
+### Step 2: Read the generated file
+
+### Step 3: Customize for the use case
+
+**All templates** — update module name, component names, entity fields, permissions, GraphQL queries/mutations.
+
+**`configuration`** — update form fields, initialValues.append defaults, validationSchema rules, query/mutation field lists. Add tabs for grouped settings.
+
+**`grid`** — update view columns, filters, entity fields. Add/remove views. Customize dotsMenu actions. Configure toolbar with export/import actions.
+
+**`select`** — update `valueFieldName`, `itemLabelTemplate`, `itemValueTemplate`. Customize GraphQL query fields and variables. Set `navigateActionPermission`. Configure `dropDownToolbar` create button dialog.
+
+### Step 4: Validate
+
+```bash
+npx cx-cli <generated-file.yaml>
+```
+
+---
+
+## --options Flag
+
+Customize generated modules at scaffold time with `--options`. Accepts inline JSON or a file path.
+
+### Field Array Format (all templates)
+
+```bash
+npx cx-cli create module "Tariff" --template grid --options '[
+  {"name": "code", "type": "text", "label": "Tariff Code", "required": true},
+  {"name": "rate", "type": "number", "label": "Rate %"},
+  {"name": "effectiveDate", "type": "date"},
+  {"name": "isActive", "type": "checkbox", "label": "Active"}
+]'
+```
+
+### Object Format (with entityName)
+
+```bash
+npx cx-cli create module "Country" --template select --options '{
+  "entityName": "Country",
+  "fields": [
+    {"name": "countryCode", "type": "text", "label": "Country Code"},
+    {"name": "countryName", "type": "text", "label": "Country Name"}
+  ]
+}'
+```
+
+### Field Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `name` | string | **Required.** Field name (camelCase) |
+| `type` | string | **Required.** text, number, checkbox, date, select, select-async, textarea, email |
+| `label` | string | Display label (auto-generated from name if omitted) |
+| `required` | boolean | Add to validationSchema as required |
+| `default` | any | Default value (configuration template: added to initialValues.append) |
+
+### What --options Customizes Per Template
+
+| Template | Fields | Entity | Queries |
+|----------|--------|--------|---------|
+| `configuration` | Form children, validationSchema, initialValues.append | Entity field definitions | GraphQL query field lists |
+| `grid` | View columns (with showAs by type), entity fields | Entity name + rootEntityName | — |
+| `select` | Entity fields, itemLabelTemplate | Entity name | GraphQL query field lists |
+
+---
+
+## Entity Field Reference (shared via cx-core)
+
+When building modules for entities, load the field reference for accurate field names, types, and enums:
+
+!cat .claude/skills/cx-core/ref-entity-order.md
+!cat .claude/skills/cx-core/ref-entity-contact.md
+!cat .claude/skills/cx-core/ref-entity-commodity.md
+!cat .claude/skills/cx-core/ref-entity-accounting.md
+
+| Entity | Use For | Reference |
+|--------|---------|-----------|
+| Order | Order grids, forms, entity fields, customValues columns | cx-core/ref-entity-order.md |
+| Contact | Contact selects, address forms, contact type filters | cx-core/ref-entity-contact.md |
+| Commodity | Commodity grids, weight/dim fields, tracking numbers | cx-core/ref-entity-commodity.md |
+| AccountingTransaction | Invoice/Bill grids, charge tables, payment forms | cx-core/ref-entity-accounting.md |
+
+**CustomValues in modules** — Use `customValues.fieldName` for GraphQL sort/filter paths. Entity field definitions use `isCustomField: true` with `name: "customValues.fieldName"`. Full reference: `!cat .claude/skills/cx-core/SKILL.md`
+
+---
+
 ## Dynamic Schema Access
 
 When you need full property details for any schema, read the JSON file directly:
@@ -30,11 +139,12 @@ When you need full property details for any schema, read the JSON file directly:
 !cat .cx-schema/actions/dialog.json
 !cat .cx-schema/actions/all.json
 
-## Template
-
-Use this template as a starting pattern, then customize based on the user's request:
+## Templates
 
 !cat templates/module.yaml
+!cat templates/module-configuration.yaml
+!cat templates/module-grid.yaml
+!cat templates/module-select.yaml
 
 ---
 
@@ -73,7 +183,7 @@ entities:
               options: { baseName: "contactId" }
 
 permissions:
-  - name: "permission-name"
+  - name: "ModuleName/Read"                   # PascalCase with slashes
     displayName: { en-US: "..." }
     roles: ["Admin", "Manager"]
 
@@ -227,32 +337,92 @@ isHidden: "{{ eval !canEdit }}"            # Conditional visibility
 
 ### Permissions
 ```yaml
-permission: "module.action"                 # Single string
+permission: "ModuleName/Read"                # Single string (PascalCase/Action)
 permissions:                                # Array
-  - "module.view"
-  - "module.edit"
+  - "ModuleName/Read"
+  - "ModuleName/Update"
+```
+
+### Async Select Component Pattern
+
+Reusable select components (e.g., `Countries/Select`, `Ports/Select`) follow this structure:
+
+```yaml
+- name: Entity/Select
+  displayName: { en-US: "Select Entity" }
+  platforms: [web, mobile]
+  layout:
+    component: field
+    name: entityId                           # Value binding field name
+    props:
+      type: select-async
+      label: { en-US: "Entity" }
+      options:
+        valueFieldName: "entityId"           # Which result field holds the value
+        itemLabelTemplate: "{{name}}"        # Handlebars template for labels
+        itemValueTemplate: "{{entityId}}"    # Handlebars template for values
+        navigateActionPermission: "Entity/Update"
+        searchQuery:                         # References list query below
+          name: getEntities
+          path: entities.items
+          params:
+            search: "{{ string search }}"
+            take: "{{ number pageSize }}"
+            skip: "{{ number skip }}"
+            filter: "{{ string filter }}"
+        valueQuery:                          # References single-item query below
+          name: getEntity
+          path: entity
+          params:
+            entityId: "{{entityId}}"
+        allowSearch: true
+        allowClear: true
+      dropDownToolbar:                       # Create button in dropdown
+        - component: button
+          name: createBtn
+          props:
+            label: { en-US: "Create Entity" }
+            icon: plus
+            onClick:
+              - dialog:
+                  component: Entity/CreateEntity
+                  onClose:
+                    - selectValue: "{{ result.entityId }}"
+      queries:
+        - name: getEntities                  # Paginated search query
+          query:
+            command: >-
+              query($organizationId: Int!, $filter: String!, $search: String!, $take: Int!, $skip: Int!) {
+                entities(...) { items { entityId name } totalCount }
+              }
+            variables: { organizationId: "{{number organizationId}}", ... }
+        - name: getEntity                    # Single-value lookup query
+          query:
+            command: >-
+              query($organizationId: Int!, $entityId: Int!) {
+                entity(...) { entityId name }
+              }
+            variables: { entityId: "{{number entityId}}" }
+      onEditClick:                           # Edit action on selected item
+        - dialog:
+            component: { layout: { component: layout, children: [{ component: Entity/UpdateEntity }] } }
 ```
 
 ---
 
 # Generation Rules
 
-1. **Always generate a new UUID v4** for `appModuleId`
+1. **Always scaffold via CLI first** — never write a module YAML from scratch
 2. **Use localized strings** `{ en-US: "..." }` for all user-visible text
 3. **Follow naming conventions**:
    - Module names: PascalCase (e.g., `WarehouseLocations`)
    - Component names: Module/Component pattern (e.g., `WarehouseLocations/List`)
    - Route paths: kebab-case (e.g., `/warehouse-locations`)
-   - Permission names: kebab-case (e.g., `warehouse-locations.view`)
+   - Permission names: PascalCase with slashes (e.g., `WarehouseLocations/Read`, `System/Contacts/Update`)
 4. **Template expressions** use `{{ expression }}` syntax (double curly braces)
 5. **Include fileName** property pointing to the YAML file location
 6. **Set proper entityKind** when defining entities (Order, Contact, OrderEntity, AccountingTransaction, Calendar, CalendarEvent, Other)
 7. **DataGrid options** requires ALL properties: query, rootEntityName, entityKeys, navigationType, enableDynamicGrid, enableViews, enableSearch, enablePagination, enableColumns, enableFilter, defaultView, onRowClick
 8. **Form component** requires `validationSchema` in props
-
-## After Generation
-
-After generating YAML, remind the user to validate:
-```bash
-npx cx-cli <generated-file.yaml>
-```
+9. **Do not change `appModuleId` or `fileName`** — set correctly by CLI scaffold
+10. **Always validate** the final YAML: `npx cx-cli <file.yaml>`

@@ -212,17 +212,17 @@ entities:
         fieldType: text
 
 permissions:
-  - name: "{{name}}.read"
+  - name: "{{displayNameNoSpaces}}/Read"
     displayName:
       en-US: "Read {{displayName}}"
     roles:
       - Admin
-  - name: "{{name}}.create"
+  - name: "{{displayNameNoSpaces}}/Create"
     displayName:
       en-US: "Create {{displayName}}"
     roles:
       - Admin
-  - name: "{{name}}.delete"
+  - name: "{{displayNameNoSpaces}}/Delete"
     displayName:
       en-US: "Delete {{displayName}}"
     roles:

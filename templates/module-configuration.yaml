@@ -98,12 +98,12 @@ routes:
         en-US: "{{displayName}}"
 
 permissions:
-  - name: "{{name}}.view"
+  - name: "{{displayNameNoSpaces}}/View"
     displayName:
       en-US: "View {{displayName}}"
     roles:
       - Admin
-  - name: "{{name}}.edit"
+  - name: "{{displayNameNoSpaces}}/Edit"
     displayName:
       en-US: "Edit {{displayName}}"
     roles:
