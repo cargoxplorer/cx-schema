@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flow Entity",
+  "description": "Entity configuration for Flow workflows. Specifies the entity whose lifecycle is managed by the flow.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "enum": [
+        "Order",
+        "Commodity",
+        "AccountingTransaction",
+        "Workflow",
+        "OrganizationConfig",
+        "Contact",
+        "AppModule",
+        "Attachment",
+        "OrderCommodity",
+        "TrackingEvent",
+        "JobOrder"
+      ],
+      "description": "The entity name whose lifecycle this flow manages"
+    },
+    "type": {
+      "type": "string",
+      "description": "The entity subtype. Required for Order, AccountingTransaction, and Contact entities."
+    },
+    "includes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Navigation paths for related data to load with the entity. Supports dot-notation for nested relationships (e.g., 'Customer.BillingAddress')."
+    },
+    "query": {
+      "type": "string",
+      "description": "GraphQL-style query string specifying the default fields to load for the entity. States can override this with their own query."
+    }
+  },
+  "required": ["name"],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "name": { "const": "Order" }
+        }
+      },
+      "then": {
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "enum": [
+              "Brokerage",
+              "ParcelShipment",
+              "Quote",
+              "WarehouseReceipt",
+              "AirShipmentOrder",
+              "OceanShipmentOrder",
+              "LoadOrder",
+              "DeliveryOrder"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": { "const": "AccountingTransaction" }
+        }
+      },
+      "then": {
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "enum": ["Invoice", "Bill", "CreditMemo"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": { "const": "Contact" }
+        }
+      },
+      "then": {
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "enum": ["Customer", "Carrier", "Vendor", "Driver", "Employee"]
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "x-examples": [
+    {
+      "name": "Order",
+      "type": "Brokerage",
+      "includes": ["Commodities", "Customer.BillingAddress", "Charges"],
+      "query": "{ commodities { id, quantity }, customer { name, email } }"
+    },
+    {
+      "name": "Contact",
+      "type": "Customer"
+    }
+  ]
+}

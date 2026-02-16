@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flow State",
+  "description": "State definition for Flow workflows. Each state represents a status in the entity lifecycle.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The state name. Must match an existing status entity name."
+    },
+    "stage": {
+      "type": "string",
+      "description": "Stage grouping for this state (e.g., 'Processing', 'Completed'). Used for organizing states in the UI."
+    },
+    "parent": {
+      "type": "string",
+      "description": "Parent state name for hierarchical organization. Child states inherit parent transitions."
+    },
+    "isInitial": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indicates this is the initial state for new entities. At most one state can be marked as initial."
+    },
+    "isFinal": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indicates this is a final/terminal state. Final states cannot be transition sources."
+    },
+    "requireConfirmation": {
+      "type": "boolean",
+      "default": false,
+      "description": "Requires user confirmation before transitioning to this state."
+    },
+    "onEnter": {
+      "type": "array",
+      "items": {
+        "$ref": "../tasks/all.json"
+      },
+      "description": "Steps to execute when entering this state. Executed after the transition steps."
+    },
+    "onExit": {
+      "type": "array",
+      "items": {
+        "$ref": "../tasks/all.json"
+      },
+      "description": "Steps to execute when exiting this state. Executed before the transition steps."
+    },
+    "query": {
+      "type": "string",
+      "description": "GraphQL-style query string specifying fields to load when entity is in this state. Overrides the entity-level query."
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": false,
+  "x-examples": [
+    {
+      "name": "Draft",
+      "stage": "Entry",
+      "isInitial": true
+    },
+    {
+      "name": "Shipped",
+      "stage": "Fulfillment",
+      "onEnter": [
+        {
+          "task": "SendEmail@1",
+          "inputs": {
+            "template": "shipped_notification"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delivered",
+      "stage": "Complete",
+      "isFinal": true
+    },
+    {
+      "name": "AwaitingPickup",
+      "parent": "Active",
+      "requireConfirmation": true
+    }
+  ]
+}

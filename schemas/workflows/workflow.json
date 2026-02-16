@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CargoXplorer Workflow",
-  "description": "Schema for CargoXplorer workflow YAML files",
+  "description": "Schema for CargoXplorer workflow YAML files. Supports standard task-based workflows and Flow (state machine) workflows.",
   "type": "object",
   "properties": {
     "workflow": {
@@ -50,11 +50,13 @@
         },
         "enableActionEvents": {
           "type": "boolean",
-          "description": "Enable action events"
+          "description": "Enable action events (deprecated)"
         },
         "priority": {
-          "type": "number",
-          "description": "Workflow priority (higher = higher priority)"
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Workflow priority (0-100, higher = higher priority, default: 50)"
         },
         "tags": {
           "type": "array",
@@ -65,30 +67,44 @@
         },
         "workflowType": {
           "type": "string",
-          "enum": ["Document", "Quote", "EmailTemplate"],
-          "description": "Workflow type classification"
+          "enum": ["Process", "Document", "Quote", "EmailTemplate", "Flow"],
+          "description": "Workflow type: Process (default task-based), Document, Quote, EmailTemplate, or Flow (declarative state machine)"
         },
         "runAs": {
           "type": "string",
-          "description": "User context for workflow execution"
+          "description": "Username or user ID for workflow execution context"
         },
         "concurrency": {
           "type": "object",
           "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Whether concurrency control is active"
+            },
             "group": {
               "type": "string",
               "description": "Concurrency group identifier"
             },
             "waitTime": {
               "type": "number",
-              "description": "Seconds to wait for lock"
+              "default": 15,
+              "description": "Seconds to wait for lock (default: 15)"
             }
           },
           "additionalProperties": true
         },
+        "filePath": {
+          "type": "string",
+          "description": "Repository file path under workflows/ or features/{name}/workflows/"
+        },
+        "agentInstruction": {
+          "type": "string",
+          "description": "AI agent instruction describing how to use this workflow, expected inputs, and returned outputs"
+        },
         "fileName": {
           "type": "string",
-          "description": "Path to the workflow YAML file"
+          "description": "Path to the workflow YAML file (deprecated, use filePath)"
         },
         "actionEvent": {
           "type": "object",
@@ -127,7 +143,7 @@
     },
     "activities": {
       "type": "array",
-      "description": "Workflow activities containing steps",
+      "description": "Workflow activities containing steps (required for standard workflows, not used in Flow workflows)",
       "items": {
         "$ref": "activity.json"
       },
@@ -148,25 +164,95 @@
       }
     },
     "events": {
-      "type": "object",
-      "description": "Workflow-level event handlers",
-      "properties": {
-        "onWorkflowStarted": {
-          "type": "array",
-          "description": "Steps to execute when workflow starts"
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Workflow-level event handlers as object",
+          "properties": {
+            "onWorkflowStarted": {
+              "type": "array",
+              "description": "Steps to execute when workflow starts"
+            },
+            "onWorkflowExecuted": {
+              "type": "array",
+              "description": "Steps to execute when workflow completes"
+            },
+            "onWorkflowFailed": {
+              "type": "array",
+              "description": "Steps to execute when workflow fails"
+            }
+          },
+          "additionalProperties": true
         },
-        "onWorkflowExecuted": {
+        {
           "type": "array",
-          "description": "Steps to execute when workflow completes"
-        },
-        "onWorkflowFailed": {
-          "type": "array",
-          "description": "Steps to execute when workflow fails"
+          "description": "Workflow-level event handlers as array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Event type"
+              },
+              "steps": {
+                "type": "array",
+                "description": "Steps to execute for this event"
+              }
+            },
+            "additionalProperties": true
+          }
         }
-      },
-      "additionalProperties": true
+      ]
+    },
+    "entity": {
+      "$ref": "flow/entity.json",
+      "description": "Entity configuration for Flow workflows"
+    },
+    "states": {
+      "type": "array",
+      "description": "State definitions for Flow workflows",
+      "items": {
+        "$ref": "flow/state.json"
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "description": "Transition definitions for Flow workflows",
+      "items": {
+        "$ref": "flow/transition.json"
+      }
+    },
+    "aggregations": {
+      "type": "array",
+      "description": "Aggregation definitions for Flow workflows",
+      "items": {
+        "$ref": "flow/aggregation.json"
+      }
     }
   },
-  "required": ["workflow", "activities"],
+  "required": ["workflow"],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "workflow": {
+            "properties": {
+              "workflowType": { "const": "Flow" }
+            },
+            "required": ["workflowType"]
+          }
+        }
+      },
+      "then": {
+        "required": ["workflow", "entity"],
+        "properties": {
+          "activities": false
+        }
+      },
+      "else": {
+        "required": ["workflow", "activities"]
+      }
+    }
+  ],
   "additionalProperties": true
 }

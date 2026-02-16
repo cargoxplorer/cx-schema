@@ -92,6 +92,12 @@ export class WorkflowValidator {
       this.loadSchemasFromDir(commonDir, 'common', schemas);
     }
 
+    // Load flow schemas from flow/ subdirectory
+    const flowDir = path.join(schemasDir, 'flow');
+    if (fs.existsSync(flowDir)) {
+      this.loadSchemasFromDir(flowDir, 'flow', schemas);
+    }
+
     return schemas;
   }
 
@@ -181,9 +187,16 @@ export class WorkflowValidator {
         this.addAjvErrors(validate.errors, '', errors);
       }
 
-      // Validate activities recursively
-      if (workflowData.activities && Array.isArray(workflowData.activities)) {
-        this.validateActivities(workflowData.activities, 'activities', errors, warnings);
+      const isFlowWorkflow = workflowData.workflow?.workflowType === 'Flow';
+
+      if (isFlowWorkflow) {
+        // Validate Flow-specific sections
+        this.validateFlowWorkflow(workflowData, errors, warnings);
+      } else {
+        // Validate activities recursively (standard workflows)
+        if (workflowData.activities && Array.isArray(workflowData.activities)) {
+          this.validateActivities(workflowData.activities, 'activities', errors, warnings);
+        }
       }
 
       return this.createResult(filePath, errors, warnings);
@@ -215,12 +228,24 @@ export class WorkflowValidator {
       return;
     }
 
-    if (!workflowData.activities) {
-      errors.push({
-        type: 'missing_property',
-        path: 'activities',
-        message: 'Missing required property: activities'
-      });
+    const isFlowWorkflow = workflowData.workflow?.workflowType === 'Flow';
+
+    if (isFlowWorkflow) {
+      if (!workflowData.entity) {
+        errors.push({
+          type: 'missing_property',
+          path: 'entity',
+          message: 'Missing required property: entity (required for Flow workflows)'
+        });
+      }
+    } else {
+      if (!workflowData.activities) {
+        errors.push({
+          type: 'missing_property',
+          path: 'activities',
+          message: 'Missing required property: activities'
+        });
+      }
     }
 
     // Validate workflow metadata
@@ -386,6 +411,263 @@ export class WorkflowValidator {
         });
       }
     }
+  }
+
+  /**
+   * Validate Flow workflow sections (entity, states, transitions, aggregations)
+   */
+  private validateFlowWorkflow(
+    workflowData: YAMLWorkflow,
+    errors: ValidationError[],
+    warnings: ValidationWarning[]
+  ): void {
+    this.validateFlowEntity(workflowData, errors);
+    const stateNames = this.validateFlowStates(workflowData, errors, warnings);
+    this.validateFlowTransitions(workflowData, stateNames, errors, warnings);
+    this.validateFlowAggregations(workflowData, errors);
+  }
+
+  /**
+   * Validate Flow entity section
+   */
+  private validateFlowEntity(
+    workflowData: YAMLWorkflow,
+    errors: ValidationError[]
+  ): void {
+    const entity = workflowData.entity;
+    if (!entity) return;
+
+    if (!entity.name) {
+      errors.push({
+        type: 'missing_property',
+        path: 'entity.name',
+        message: 'Entity name is required for Flow workflows'
+      });
+    }
+  }
+
+  /**
+   * Validate Flow states and return set of state names
+   */
+  private validateFlowStates(
+    workflowData: YAMLWorkflow,
+    errors: ValidationError[],
+    warnings: ValidationWarning[]
+  ): Set<string> {
+    const stateNames = new Set<string>();
+    const states = workflowData.states;
+    if (!states || !Array.isArray(states)) return stateNames;
+
+    let initialStateCount = 0;
+    const parentStates = new Set<string>();
+
+    // First pass: collect state names and parents
+    for (const state of states) {
+      if (state.name) stateNames.add(state.name);
+      if (state.parent) parentStates.add(state.parent);
+    }
+
+    // Second pass: validate each state
+    states.forEach((state: any, index: number) => {
+      const statePath = `states[${index}]`;
+
+      if (!state.name) {
+        errors.push({
+          type: 'missing_property',
+          path: `${statePath}.name`,
+          message: 'State name is required'
+        });
+        return;
+      }
+
+      // Check for duplicate names
+      const duplicates = states.filter(
+        (s: any) => s.name?.toLowerCase() === state.name?.toLowerCase()
+      );
+      if (duplicates.length > 1) {
+        errors.push({
+          type: 'schema_violation',
+          path: `${statePath}.name`,
+          message: `Duplicate state name '${state.name}'`
+        });
+      }
+
+      if (state.isInitial) initialStateCount++;
+
+      // Validate parent reference
+      if (state.parent && !stateNames.has(state.parent)) {
+        errors.push({
+          type: 'schema_violation',
+          path: `${statePath}.parent`,
+          message: `Parent state '${state.parent}' not found`
+        });
+      }
+
+      // Validate onEnter/onExit steps
+      if (state.onEnter && Array.isArray(state.onEnter)) {
+        state.onEnter.forEach((step: any, stepIndex: number) => {
+          this.validateStep(step, `${statePath}.onEnter[${stepIndex}]`, errors, warnings);
+        });
+      }
+      if (state.onExit && Array.isArray(state.onExit)) {
+        state.onExit.forEach((step: any, stepIndex: number) => {
+          this.validateStep(step, `${statePath}.onExit[${stepIndex}]`, errors, warnings);
+        });
+      }
+    });
+
+    if (initialStateCount > 1) {
+      errors.push({
+        type: 'schema_violation',
+        path: 'states',
+        message: `Found ${initialStateCount} initial states. At most one state can be marked as initial.`
+      });
+    }
+
+    return stateNames;
+  }
+
+  /**
+   * Validate Flow transitions
+   */
+  private validateFlowTransitions(
+    workflowData: YAMLWorkflow,
+    stateNames: Set<string>,
+    errors: ValidationError[],
+    warnings: ValidationWarning[]
+  ): void {
+    const transitions = workflowData.transitions;
+    if (!transitions || !Array.isArray(transitions)) return;
+
+    const transitionNames = new Set<string>();
+
+    transitions.forEach((transition: any, index: number) => {
+      const transPath = `transitions[${index}]`;
+
+      if (!transition.name) {
+        errors.push({
+          type: 'missing_property',
+          path: `${transPath}.name`,
+          message: 'Transition name is required'
+        });
+      } else if (transitionNames.has(transition.name.toLowerCase())) {
+        errors.push({
+          type: 'schema_violation',
+          path: `${transPath}.name`,
+          message: `Duplicate transition name '${transition.name}'`
+        });
+      } else {
+        transitionNames.add(transition.name.toLowerCase());
+      }
+
+      // Validate from states
+      if (transition.from && stateNames.size > 0) {
+        const fromStates = Array.isArray(transition.from) ? transition.from : [transition.from];
+        for (const fromState of fromStates) {
+          if (fromState !== '*' && !stateNames.has(fromState)) {
+            errors.push({
+              type: 'schema_violation',
+              path: `${transPath}.from`,
+              message: `Source state '${fromState}' not found in states`
+            });
+          }
+        }
+      }
+
+      // Validate to state
+      if (transition.to && stateNames.size > 0 && !stateNames.has(transition.to)) {
+        errors.push({
+          type: 'schema_violation',
+          path: `${transPath}.to`,
+          message: `Target state '${transition.to}' not found in states`
+        });
+      }
+
+      // Validate trigger
+      const validTriggers = ['auto', 'manual', 'event'];
+      if (transition.trigger && !validTriggers.includes(transition.trigger)) {
+        errors.push({
+          type: 'schema_violation',
+          path: `${transPath}.trigger`,
+          message: `Invalid trigger '${transition.trigger}'. Valid triggers: ${validTriggers.join(', ')}`
+        });
+      }
+
+      // Validate event trigger requires eventName
+      if (transition.trigger === 'event' && !transition.eventName) {
+        errors.push({
+          type: 'missing_property',
+          path: `${transPath}.eventName`,
+          message: "eventName is required when trigger is 'event'"
+        });
+      }
+
+      // Validate transition steps
+      if (transition.steps && Array.isArray(transition.steps)) {
+        transition.steps.forEach((step: any, stepIndex: number) => {
+          this.validateStep(step, `${transPath}.steps[${stepIndex}]`, errors, warnings);
+        });
+      }
+    });
+  }
+
+  /**
+   * Validate Flow aggregations
+   */
+  private validateFlowAggregations(
+    workflowData: YAMLWorkflow,
+    errors: ValidationError[]
+  ): void {
+    const aggregations = workflowData.aggregations;
+    if (!aggregations || !Array.isArray(aggregations)) return;
+
+    const validFunctions = ['all', 'any', 'sum', 'count', 'first', 'last', 'distinct', 'groupBy'];
+    const aggregationNames = new Set<string>();
+
+    aggregations.forEach((aggregation: any, index: number) => {
+      const aggPath = `aggregations[${index}]`;
+
+      if (!aggregation.name) {
+        errors.push({
+          type: 'missing_property',
+          path: `${aggPath}.name`,
+          message: 'Aggregation name is required'
+        });
+      } else if (aggregationNames.has(aggregation.name.toLowerCase())) {
+        errors.push({
+          type: 'schema_violation',
+          path: `${aggPath}.name`,
+          message: `Duplicate aggregation name '${aggregation.name}'`
+        });
+      } else {
+        aggregationNames.add(aggregation.name.toLowerCase());
+      }
+
+      if (!aggregation.expression) {
+        errors.push({
+          type: 'missing_property',
+          path: `${aggPath}.expression`,
+          message: 'Aggregation expression is required'
+        });
+      } else {
+        const fnMatch = aggregation.expression.match(/^(\w+)\s*\(/);
+        if (fnMatch) {
+          if (!validFunctions.includes(fnMatch[1].toLowerCase())) {
+            errors.push({
+              type: 'schema_violation',
+              path: `${aggPath}.expression`,
+              message: `Invalid aggregation function '${fnMatch[1]}'. Valid functions: ${validFunctions.join(', ')}`
+            });
+          }
+        } else {
+          errors.push({
+            type: 'schema_violation',
+            path: `${aggPath}.expression`,
+            message: 'Aggregation expression must start with a function call'
+          });
+        }
+      }
+    });
   }
 
   /**

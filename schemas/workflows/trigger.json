@@ -4,6 +4,10 @@
   "description": "Definition of a workflow trigger",
   "type": "object",
   "properties": {
+    "name": {
+      "type": "string",
+      "description": "Trigger name identifier"
+    },
     "type": {
       "type": "string",
       "enum": ["Manual", "Entity"],

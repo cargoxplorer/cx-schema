@@ -109,7 +109,14 @@ export interface YAMLWorkflow {
     enableAudit?: boolean;
     enableTransaction?: boolean;
     tags?: string[];
-    workflowType?: 'Document' | 'Quote' | 'EmailTemplate';
+    workflowType?: 'Process' | 'Document' | 'Quote' | 'EmailTemplate' | 'Flow';
+    filePath?: string;
+    agentInstruction?: string;
+    concurrency?: {
+      enabled?: boolean;
+      group?: string;
+      waitTime?: number;
+    };
     [key: string]: any;
   };
   inputs?: any[];
@@ -119,6 +126,15 @@ export interface YAMLWorkflow {
   triggers?: any[];
   schedules?: any[];
   events?: any;
+  entity?: {
+    name?: string;
+    type?: string;
+    includes?: string[];
+    query?: string;
+  };
+  states?: any[];
+  transitions?: any[];
+  aggregations?: any[];
   [key: string]: any;
 }
 

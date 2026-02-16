@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flow Transition",
+  "description": "Transition definition for Flow workflows. Defines how entities move between states.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique transition name within the workflow."
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Display name for UI presentation."
+    },
+    "from": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Single source state name, or '*' for wildcard (any non-final state)."
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Array of source state names. Transition is valid from any of them."
+        }
+      ],
+      "description": "Source state(s). Can be a single state, array of states, or '*' wildcard."
+    },
+    "to": {
+      "type": "string",
+      "description": "Target state name. Must be a leaf state (no children)."
+    },
+    "trigger": {
+      "type": "string",
+      "enum": ["auto", "manual", "event"],
+      "description": "Trigger type: 'auto' (condition-based), 'manual' (user-initiated), or 'event' (external event)."
+    },
+    "eventName": {
+      "type": "string",
+      "description": "Event name for 'event' trigger type. Required when trigger is 'event'."
+    },
+    "priority": {
+      "type": "integer",
+      "description": "Priority for ordering when multiple transitions are valid. Higher numbers = higher priority. Default is 50."
+    },
+    "conditions": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Single condition expression"
+        },
+        {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "object",
+                "properties": {
+                  "expression": { "type": "string" }
+                },
+                "required": ["expression"]
+              }
+            ]
+          },
+          "description": "Array of conditions that must all evaluate to true."
+        }
+      ],
+      "description": "Conditions for the transition to occur."
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "../tasks/all.json"
+      },
+      "description": "Steps to execute during the transition. Executed after onExit and before onEnter steps."
+    }
+  },
+  "required": ["name", "trigger"],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "trigger": { "const": "event" }
+        },
+        "required": ["trigger"]
+      },
+      "then": {
+        "required": ["eventName"]
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "x-examples": [
+    {
+      "name": "submit",
+      "from": "Draft",
+      "to": "Submitted",
+      "trigger": "manual"
+    },
+    {
+      "name": "auto_approve",
+      "displayName": "Auto Approve Order",
+      "from": "Submitted",
+      "to": "Approved",
+      "trigger": "auto",
+      "priority": 10,
+      "conditions": ["Order.TotalAmount < 1000"]
+    },
+    {
+      "name": "cancel",
+      "from": ["Draft", "Submitted", "Approved"],
+      "to": "Cancelled",
+      "trigger": "manual"
+    },
+    {
+      "name": "deliver",
+      "from": "Shipped",
+      "to": "Delivered",
+      "trigger": "event",
+      "eventName": "DeliveryConfirmed"
+    },
+    {
+      "name": "force_cancel",
+      "from": "*",
+      "to": "Cancelled",
+      "trigger": "manual"
+    }
+  ]
+}

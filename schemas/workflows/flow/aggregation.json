@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flow Aggregation",
+  "description": "Aggregation definition for Flow workflows. Defines reusable data queries for use in transition conditions.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique name for the aggregation. Referenced in conditions."
+    },
+    "expression": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(all|any|sum|count|first|last|distinct|groupBy)\\s*\\(",
+      "description": "Aggregation expression using supported functions: all(), any(), sum(), count(), first(), last(), distinct(), groupBy()."
+    },
+    "parameter": {
+      "type": "string",
+      "description": "Optional parameter name for parameterized aggregations."
+    }
+  },
+  "required": ["name", "expression"],
+  "additionalProperties": false,
+  "x-examples": [
+    {
+      "name": "allItemsReceived",
+      "expression": "all(Order.Commodities, item.ReceivedQuantity >= item.Quantity)"
+    },
+    {
+      "name": "totalWeight",
+      "expression": "sum(Order.Commodities, item.Weight)"
+    },
+    {
+      "name": "itemCount",
+      "expression": "count(Order.Commodities)"
+    },
+    {
+      "name": "chargesByType",
+      "expression": "sum(Order.Charges, item.Amount)",
+      "parameter": "chargeType"
+    }
+  ]
+}
