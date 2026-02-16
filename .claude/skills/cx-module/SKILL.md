@@ -15,6 +15,7 @@ Always start by running the CLI to generate a schema-valid YAML file.
 | Template | Use Case | Key Structure |
 |----------|----------|---------------|
 | `default` | Generic module with form | Single form component, basic CRUD, validation |
+| `form` | Entity create/edit form | Form with query, initialValues, validationSchema, save mutation, toolbar (Save/Cancel), dirtyGuard |
 | `configuration` | Settings/config screen | Form with 3 fields, initialValues (fromQuery + append defaults), save mutation |
 | `grid` | List/table view | dataGrid with 3 views (All/Active/Archived), dotsMenu, entity fields |
 | `select` | Reusable async select | select-async field with searchQuery/valueQuery, dropDownToolbar, onEditClick |
@@ -33,6 +34,8 @@ npx cx-cli create module <name> --template <template> --options fields.json
 ### Step 3: Customize for the use case
 
 **All templates** — update module name, component names, entity fields, permissions, GraphQL queries/mutations.
+
+**`form`** — update form fields, validationSchema, query/mutation field lists. Add tabs for grouped fields. Customize toolbar buttons. Update dirtyGuard messages.
 
 **`configuration`** — update form fields, initialValues.append defaults, validationSchema rules, query/mutation field lists. Add tabs for grouped settings.
 
@@ -83,71 +86,74 @@ npx cx-cli create module "Country" --template select --options '{
 | `type` | string | **Required.** text, number, checkbox, date, select, select-async, textarea, email |
 | `label` | string | Display label (auto-generated from name if omitted) |
 | `required` | boolean | Add to validationSchema as required |
-| `default` | any | Default value (configuration template: added to initialValues.append) |
+| `default` | any | Default value (form/configuration template: added to initialValues.append) |
 
 ### What --options Customizes Per Template
 
 | Template | Fields | Entity | Queries |
 |----------|--------|--------|---------|
+| `form` | Form children, validationSchema, initialValues.append | Entity field definitions | GraphQL query field lists (preserves `id`) |
 | `configuration` | Form children, validationSchema, initialValues.append | Entity field definitions | GraphQL query field lists |
 | `grid` | View columns (with showAs by type), entity fields | Entity name + rootEntityName | — |
 | `select` | Entity fields, itemLabelTemplate | Entity name | GraphQL query field lists |
 
 ---
 
-## Entity Field Reference (shared via cx-core)
+## On-Demand References
 
-For full entity field reference, load from cx-core skill:
+**Read these files only when needed for the current task.** Do not load all references upfront.
 
-!cat .claude/skills/cx-core/SKILL.md
+### Entity Fields (cx-core)
 
-Load specific entity references on demand:
+Read `.claude/skills/cx-core/SKILL.md` for entity overview. Then read specific entity refs:
 
-!cat .claude/skills/cx-core/ref-entity-order.md
-!cat .claude/skills/cx-core/ref-entity-contact.md
-!cat .claude/skills/cx-core/ref-entity-commodity.md
-!cat .claude/skills/cx-core/ref-entity-accounting.md
-!cat .claude/skills/cx-core/ref-entity-order-sub.md
-!cat .claude/skills/cx-core/ref-entity-job.md
-!cat .claude/skills/cx-core/ref-entity-rate.md
-!cat .claude/skills/cx-core/ref-entity-shared.md
-!cat .claude/skills/cx-core/ref-entity-geography.md
-!cat .claude/skills/cx-core/ref-entity-warehouse.md
+| Entity | File |
+|--------|------|
+| Order | `.claude/skills/cx-core/ref-entity-order.md` |
+| Contact | `.claude/skills/cx-core/ref-entity-contact.md` |
+| Commodity | `.claude/skills/cx-core/ref-entity-commodity.md` |
+| Accounting | `.claude/skills/cx-core/ref-entity-accounting.md` |
+| Order Sub-entities | `.claude/skills/cx-core/ref-entity-order-sub.md` |
+| Job | `.claude/skills/cx-core/ref-entity-job.md` |
+| Rate | `.claude/skills/cx-core/ref-entity-rate.md` |
+| Shared | `.claude/skills/cx-core/ref-entity-shared.md` |
+| Geography | `.claude/skills/cx-core/ref-entity-geography.md` |
+| Warehouse | `.claude/skills/cx-core/ref-entity-warehouse.md` |
 
 **CustomValues in modules** — Use `customValues.fieldName` for GraphQL sort/filter paths. Entity field definitions use `isCustomField: true` with `name: "customValues.fieldName"`.
 
----
+### Component Directory
 
-## Dynamic Schema Access
+Read the relevant category ref file when building specific component types:
 
-When you need full property details for any schema, read the JSON file directly:
+| Category | Components | File |
+|----------|-----------|------|
+| **Layout & Structure** | `layout`, `row`, `col`, `header`, `tabs`, `toolbar`, `card`, `line` | `.claude/skills/cx-module/ref-components-layout.md` |
+| **Forms & Input** | `form`, `field`, `field-collection`, `barcodeScanner` | `.claude/skills/cx-module/ref-components-forms.md` |
+| **Data Display** | `dataGrid`, `text`, `markup`, `badge`, `icon`, `image`, `photo`, `summary`, `diff`, `viewer`, `embed` | `.claude/skills/cx-module/ref-components-display.md` |
+| **Interactive & Nav** | `button`, `dropdown`, `menuButton`, `link`, `redirect`, `navbar`, `navbarItem`, `navbarLink`, `navDropdown` | `.claude/skills/cx-module/ref-components-interactive.md` |
+| **Data & Collections** | `collection`, `list`, `listItem`, `datasource`, `script` | `.claude/skills/cx-module/ref-components-data.md` |
+| **Specialized** | `calendar`, `notes`, `dashboard`, `dashboard-widget`, `widget`, `timeline`, `timeline-grid`, `oauth2` | `.claude/skills/cx-module/ref-components-specialized.md` |
 
-!cat .cx-schema/schemas.json
-!cat .cx-schema/components/layout.json
-!cat .cx-schema/components/form.json
-!cat .cx-schema/components/dataGrid.json
-!cat .cx-schema/components/field.json
-!cat .cx-schema/components/button.json
-!cat .cx-schema/components/tabs.json
-!cat .cx-schema/components/card.json
-!cat .cx-schema/components/calendar.json
-!cat .cx-schema/components/collection.json
-!cat .cx-schema/components/appComponent.json
-!cat .cx-schema/components/module.json
-!cat .cx-schema/fields/text.json
-!cat .cx-schema/fields/select.json
-!cat .cx-schema/fields/select-async.json
-!cat .cx-schema/actions/navigate.json
-!cat .cx-schema/actions/mutation.json
-!cat .cx-schema/actions/dialog.json
-!cat .cx-schema/actions/all.json
+### Templates
 
-## Templates
+Read the relevant template after scaffolding to understand the generated structure:
 
-!cat templates/module.yaml
-!cat templates/module-configuration.yaml
-!cat templates/module-grid.yaml
-!cat templates/module-select.yaml
+| Template | File |
+|----------|------|
+| default | `templates/module.yaml` |
+| form | `templates/module-form.yaml` |
+| configuration | `templates/module-configuration.yaml` |
+| grid | `templates/module-grid.yaml` |
+| select | `templates/module-select.yaml` |
+
+### JSON Schemas
+
+Read schema files from `.cx-schema/` only when debugging validation errors:
+- `schemas.json` — main schema definitions
+- `components/<type>.json` — component schemas (layout, form, dataGrid, field, button, tabs, card, calendar, collection, appComponent, module)
+- `fields/<type>.json` — field schemas (text, select, select-async)
+- `actions/<type>.json` — action schemas (navigate, mutation, dialog, all)
 
 ---
 
@@ -208,69 +214,6 @@ components:
       component: layout                    # Root must be a component
       # ... component tree
 ```
-
-## Component Types
-
-### layout
-Container component for organizing children.
-- **props**: title (string|localized), icon, permission, cols (int), orientation (horizontal|vertical), toolbar (component[])
-- **children**: array of child components
-
-### form
-Data entry form with validation and submission.
-- **Required**: component="form", name, props.validationSchema
-- **props**: title, cols, orientation, initialValues (fromQuery{name,path}, append{}), queries[{name, query{command,variables}}], validationSchema, autoSave, resetOnSubmit, dirtyGuard{enabled,title,message,confirmLabel,cancelLabel,onConfirm,onCancel}, preventDefault, isHidden
-- **events**: onSubmit, onLoad, onReset, onValidate, onError (all are action lists)
-- **children**: field components
-
-### dataGrid
-Data table with views, filtering, and row actions.
-- **Required**: component="dataGrid", name, props.options
-- **props.options** (all required): query, rootEntityName, entityKeys[], navigationType (navigate|dialog|store), enableDynamicGrid, enableViews, enableSearch, enablePagination, enableColumns, enableFilter, defaultView, onRowClick
-- **props**: views[{name, displayName, columns[{name,label,showAs,isHidden}], filter, childViews, enableSelect}], dotsMenu{items[{label,icon,onClick}]}, toolbar, refreshHandler, enableStore, isHidden
-
-### tabs / tab
-Tabbed interface container.
-- **tabs props**: toolbar, defaultTab
-- **tab**: child of tabs, each tab has name and children
-
-### field
-Form field within a form component.
-- **Required**: component="field", name
-- **props.type**: text, number, email, password, tel, url, date, datetime, rangedatetime, time, select, select-async, autocomplete-googleplaces, checkbox, radio, textarea, attachment
-- **props**: label, placeholder, required, disabled, items[{label,value}] (for select), options{variant, allowMultiple, allowClear, allowSearch, searchQuery{name,path,params}, valueQuery, valueFieldName, itemLabelTemplate, itemValueTemplate}, queries, transformValue{onLoad,onChange,onBlur}
-- **events**: onChange, onBlur, onFocus, onSelectValue, onEditClick, onOptionTagClick
-
-### button
-Clickable action trigger.
-- **props**: label (string|localized), icon, size, options{type(submit|reset|button), variant(primary|secondary|outline-primary|outline-secondary|danger|success|warning|info), disabled}, onClick (action list), isHidden
-
-### card
-Content container with optional toolbar and context menu.
-- **props**: title, icon, permission, className, toolbar, contextMenu{icon, position, items[{label,icon,divider,onClick,permission,isHidden,disabled}]}, onClick
-- **children**: nested components
-
-### collection
-Iterates over items to render repeated components.
-- **Required**: component="collection", props.items, props.itemName
-- **props**: items (template expression), itemName, cols, orientation, containerTag, className, childClassName
-- **children**: template for each item
-
-### calendar
-FullCalendar integration.
-- **Required**: props.calendarId
-- **props**: calendarId, initialView (dayGridMonth|timeGridWeek|timeGridDay|listWeek|listMonth|multiMonthYear|resourceTimeGridDay|resourceTimeGridWeek), height, aspectRatio, toolbar, contextMenu, options{headerToolbar, selectable, editable, weekends, locale, timeZone, nowIndicator, slotMinTime, slotMaxTime, slotDuration, eventSources[{query{command,variables,path,mapping},color}], resources[{id,title,eventColor}]}
-- **events**: onDateClick, onEventClick, onSelect, onEventDrop, onEventResize, onEventChange, onDatesSet
-
-### Other components
-- **appComponent**: name (Module/Component pattern), layout, displayName, permissions, props.targetSlot
-- **datasource**: data provider component
-- **dropdown**: dropdown menu
-- **navbar / navbarItem / navbarLink / navDropdown**: navigation bar components
-- **barcodeScanner**: barcode scanning input
-- **row**: flex/grid row container with cols, className, onClick
-- **timeline / timelineGrid**: timeline visualization components
-- **field-collection**: repeatable field group
 
 ## Action Types
 
