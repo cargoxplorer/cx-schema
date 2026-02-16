@@ -280,7 +280,7 @@ Implicit variable: `iteration` (zero-based).
 When TMS MCP returns gzip file URLs for workflow execution logs, decompress with:
 
 ```bash
-node -e "const https=require('https'),zlib=require('zlib');https.get(process.argv[1],r=>r.pipe(zlib.createGunzip()).pipe(process.stdout))" "<url>"
+node -e "const https=require('https'),zlib=require('zlib'),fs=require('fs');https.get(process.argv[1],r=>r.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(process.argv[2])))" "<url>" "<output-file>"
 ```
 
 ---
