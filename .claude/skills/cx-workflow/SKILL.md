@@ -171,7 +171,9 @@ conditions:
 
 **Value directives**: `expression`, `coalesce`, `foreach`, `switch`, `extends`, `$raw`
 
-**Key functions**: `isNullOrEmpty()`, `any()`, `all()`, `count()`, `sum()`, `first()`, `last()`, `format()`, `now()`, `addDays()`, `if()`, `Round()`, `contains()`, `join()`, `split()`
+**38 custom functions** + NCalc built-ins. Key ones: `isNullOrEmpty()`, `any([items], [each.x])`, `all()`, `count()`, `sum()`, `first()`, `last()`, `contains()`, `join()`, `split()`, `format()`, `now()`, `addDays()`, `formatDate()`, `if()`, `Round()`, `bool()`, `length()`, `replace()`, `groupBy()`, `concat()`, `distinct()`
+
+**Iterator variables**: `[each.*]` in any/all/sum/join, `[item.*]` in first/last/groupBy
 
 ---
 
