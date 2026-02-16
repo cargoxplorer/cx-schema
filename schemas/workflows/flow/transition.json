@@ -74,7 +74,17 @@
     "steps": {
       "type": "array",
       "items": {
-        "$ref": "../tasks/all.json"
+        "type": "object",
+        "properties": {
+          "task": { "type": "string" },
+          "name": { "type": "string" },
+          "inputs": { "type": "object", "additionalProperties": true },
+          "outputs": { "type": "array" },
+          "conditions": { "oneOf": [{ "type": "string" }, { "type": "array" }] },
+          "continueOnError": { "type": "boolean" }
+        },
+        "required": ["task"],
+        "additionalProperties": true
       },
       "description": "Steps to execute during the transition. Executed after onExit and before onEnter steps."
     }

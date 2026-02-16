@@ -35,14 +35,34 @@
     "onEnter": {
       "type": "array",
       "items": {
-        "$ref": "../tasks/all.json"
+        "type": "object",
+        "properties": {
+          "task": { "type": "string" },
+          "name": { "type": "string" },
+          "inputs": { "type": "object", "additionalProperties": true },
+          "outputs": { "type": "array" },
+          "conditions": { "oneOf": [{ "type": "string" }, { "type": "array" }] },
+          "continueOnError": { "type": "boolean" }
+        },
+        "required": ["task"],
+        "additionalProperties": true
       },
       "description": "Steps to execute when entering this state. Executed after the transition steps."
     },
     "onExit": {
       "type": "array",
       "items": {
-        "$ref": "../tasks/all.json"
+        "type": "object",
+        "properties": {
+          "task": { "type": "string" },
+          "name": { "type": "string" },
+          "inputs": { "type": "object", "additionalProperties": true },
+          "outputs": { "type": "array" },
+          "conditions": { "oneOf": [{ "type": "string" }, { "type": "array" }] },
+          "continueOnError": { "type": "boolean" }
+        },
+        "required": ["task"],
+        "additionalProperties": true
       },
       "description": "Steps to execute when exiting this state. Executed before the transition steps."
     },
