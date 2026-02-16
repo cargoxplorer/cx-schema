@@ -574,6 +574,37 @@ interface CreateFieldOption {
   default?: any;
 }
 
+interface CreateOptionsObject {
+  entityName?: string;
+  fields: CreateFieldOption[];
+}
+
+function parseCreateOptions(optionsArg: string): CreateOptionsObject {
+  const jsonStr = resolveOptionsJson(optionsArg);
+  let parsed: any;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch (e: any) {
+    throw new Error(`Invalid --options JSON: ${e.message}`);
+  }
+
+  let result: CreateOptionsObject;
+  if (Array.isArray(parsed)) {
+    result = { fields: parsed };
+  } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.fields)) {
+    result = { entityName: parsed.entityName, fields: parsed.fields };
+  } else {
+    throw new Error('--options must be a JSON array of fields or an object with { entityName?, fields[] }');
+  }
+
+  for (const field of result.fields) {
+    if (!field.name) throw new Error('Each field in --options must have a "name" property');
+    if (!field.type) throw new Error(`Field "${field.name}" in --options must have a "type" property`);
+  }
+
+  return result;
+}
+
 function resolveOptionsJson(optionsArg: string): string {
   const trimmed = optionsArg.trim();
   if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
@@ -682,23 +713,90 @@ function applyFieldsToForm(form: any, fields: CreateFieldOption[]): void {
   }
 }
 
-function applyCreateOptions(content: string, optionsArg: string): string {
-  const jsonStr = resolveOptionsJson(optionsArg);
-  let fields: CreateFieldOption[];
-  try {
-    fields = JSON.parse(jsonStr);
-    if (!Array.isArray(fields)) {
-      throw new Error('must be a JSON array of field definitions');
+function findDataGridComponents(obj: any): any[] {
+  const grids: any[] = [];
+  if (!obj || typeof obj !== 'object') return grids;
+  if (obj.component === 'dataGrid') {
+    grids.push(obj);
+  }
+  if (obj.layout) {
+    grids.push(...findDataGridComponents(obj.layout));
+  }
+  if (obj.children && Array.isArray(obj.children)) {
+    for (const child of obj.children) {
+      grids.push(...findDataGridComponents(child));
     }
-  } catch (e: any) {
-    throw new Error(`Invalid --options JSON: ${e.message}`);
   }
+  return grids;
+}
 
-  // Validate fields
-  for (const field of fields) {
-    if (!field.name) throw new Error('Each field in --options must have a "name" property');
-    if (!field.type) throw new Error(`Field "${field.name}" in --options must have a "type" property`);
+function fieldTypeToShowAs(fieldType: string): any | null {
+  switch (fieldType) {
+    case 'date':
+      return { component: 'text', props: { value: `{{ format ${fieldType} L }}` } };
+    case 'number':
+      return { component: 'text', props: { value: `{{ ${fieldType} }}` } };
+    case 'checkbox':
+      return { component: 'Badges/StatusesBadge' };
+    default:
+      return null;
   }
+}
+
+function buildColumnFromField(field: CreateFieldOption): any {
+  const col: any = {
+    name: field.name,
+    label: { 'en-US': field.label || fieldNameToLabel(field.name) }
+  };
+  const showAs = fieldTypeToShowAs(field.type);
+  if (showAs) col.showAs = showAs;
+  return col;
+}
+
+function applyFieldsToGrid(grid: any, fields: CreateFieldOption[]): void {
+  if (!grid.props?.views || !Array.isArray(grid.props.views)) return;
+
+  const customColumns = fields.map(f => buildColumnFromField(f));
+
+  for (const view of grid.props.views) {
+    if (!view.columns || !Array.isArray(view.columns)) continue;
+
+    // Keep id (hidden) and system columns (created, lastModified), replace the rest
+    const idCols = view.columns.filter((c: any) => c.name === 'id');
+    const systemCols = view.columns.filter((c: any) =>
+      c.name === 'created' || c.name === 'lastModified'
+    );
+
+    view.columns = [...idCols, ...customColumns, ...systemCols];
+  }
+}
+
+function applyFieldsToEntities(doc: any, fields: CreateFieldOption[], entityName?: string): void {
+  if (!doc.entities || !Array.isArray(doc.entities)) return;
+
+  for (const entity of doc.entities) {
+    if (entityName) {
+      entity.name = entityName;
+      entity.displayName = { 'en-US': fieldNameToLabel(entityName) };
+    }
+
+    entity.fields = fields.map(f => ({
+      name: f.name,
+      displayName: { 'en-US': f.label || fieldNameToLabel(f.name) },
+      fieldType: f.type
+    }));
+  }
+}
+
+function applyEntityNameToGrid(grid: any, entityName: string): void {
+  if (grid.props?.options) {
+    grid.props.options.rootEntityName = entityName;
+  }
+}
+
+function applyCreateOptions(content: string, optionsArg: string): string {
+  const opts = parseCreateOptions(optionsArg);
+  const fields = opts.fields;
 
   // Extract comment header (lines before YAML content)
   const lines = content.split('\n');
@@ -715,20 +813,37 @@ function applyCreateOptions(content: string, optionsArg: string): string {
   const doc = yaml.load(content) as any;
   if (!doc) throw new Error('Failed to parse template YAML for --options processing');
 
-  // Find and update form components
-  let formsFound = 0;
+  let applied = false;
+
   if (doc.components && Array.isArray(doc.components)) {
     for (const comp of doc.components) {
+      // Apply to form components (configuration template)
       const forms = findFormComponents(comp);
       for (const form of forms) {
         applyFieldsToForm(form, fields);
-        formsFound++;
+        applied = true;
+      }
+
+      // Apply to dataGrid components (grid template)
+      const grids = findDataGridComponents(comp);
+      for (const grid of grids) {
+        applyFieldsToGrid(grid, fields);
+        if (opts.entityName) {
+          applyEntityNameToGrid(grid, opts.entityName);
+        }
+        applied = true;
       }
     }
   }
 
-  if (formsFound === 0) {
-    console.warn(chalk.yellow('Warning: --options provided but no form component found in template'));
+  // Apply to entities
+  if (doc.entities && Array.isArray(doc.entities)) {
+    applyFieldsToEntities(doc, fields, opts.entityName);
+    applied = true;
+  }
+
+  if (!applied) {
+    console.warn(chalk.yellow('Warning: --options provided but no form or dataGrid component found in template'));
     return content;
   }
 
