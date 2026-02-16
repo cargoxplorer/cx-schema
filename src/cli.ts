@@ -38,6 +38,7 @@ interface CLIOptions {
   createName?: string;
   template?: string;
   feature?: string;
+  createOptions?: string;
 }
 
 interface FileValidationResult {
@@ -111,6 +112,7 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--report-format <fmt>')}   Report format: ${chalk.cyan('html')}, ${chalk.cyan('markdown')}, or ${chalk.cyan('json')} ${chalk.gray('(default: auto from extension)')}
   ${chalk.green('--template <name>')}       Template variant for create command (e.g., ${chalk.cyan('basic')})
   ${chalk.green('--feature <name>')}        Place file under features/<name>/ instead of root
+  ${chalk.green('--options <json>')}        JSON field definitions for create (inline or file path)
 
 ${chalk.bold.yellow('VALIDATION EXAMPLES:')}
   ${chalk.gray('# Validate a module YAML file')}
@@ -146,6 +148,9 @@ ${chalk.bold.yellow('PROJECT COMMANDS:')}
 
   ${chalk.gray('# Create inside a feature folder')}
   ${chalk.cyan(`${PROGRAM_NAME} create workflow my-workflow --feature billing`)}
+
+  ${chalk.gray('# Create module with custom fields')}
+  ${chalk.cyan(`${PROGRAM_NAME} create module my-config --template configuration --options '[{"name":"host","type":"text"},{"name":"port","type":"number"}]'`)}
 
 ${chalk.bold.yellow('SCHEMA COMMANDS:')}
   ${chalk.gray('# Show schema for a component')}
@@ -524,7 +529,7 @@ function processTemplate(template: string, variables: Record<string, string>): s
   return result;
 }
 
-function generateTemplateContent(type: 'module' | 'workflow', name: string, fileName: string, variant?: string): string {
+function generateTemplateContent(type: 'module' | 'workflow', name: string, fileName: string, variant?: string, createOptions?: string): string {
   const template = loadTemplate(type, variant);
 
   const displayName = name
@@ -540,7 +545,13 @@ function generateTemplateContent(type: 'module' | 'workflow', name: string, file
     fileName: fileName.replace(/\\/g, '/')
   };
 
-  return processTemplate(template, variables);
+  let result = processTemplate(template, variables);
+
+  if (createOptions) {
+    result = applyCreateOptions(result, createOptions);
+  }
+
+  return result;
 }
 
 function generateUUID(): string {
@@ -549,6 +560,188 @@ function generateUUID(): string {
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
+}
+
+// ============================================================================
+// Create Options (--options) Support
+// ============================================================================
+
+interface CreateFieldOption {
+  name: string;
+  type: string;
+  label?: string;
+  required?: boolean;
+  default?: any;
+}
+
+function resolveOptionsJson(optionsArg: string): string {
+  const trimmed = optionsArg.trim();
+  if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+    return trimmed;
+  }
+  // Treat as file path
+  if (fs.existsSync(trimmed)) {
+    return fs.readFileSync(trimmed, 'utf-8');
+  }
+  throw new Error(`Invalid --options: not valid JSON and file not found: ${trimmed}`);
+}
+
+function fieldNameToLabel(name: string): string {
+  return name
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+    .trim();
+}
+
+function fieldTypeToSchemaType(fieldType: string): string {
+  switch (fieldType) {
+    case 'number': return 'number';
+    case 'checkbox': return 'boolean';
+    default: return 'string';
+  }
+}
+
+function findFormComponents(obj: any): any[] {
+  const forms: any[] = [];
+  if (!obj || typeof obj !== 'object') return forms;
+  if (obj.component === 'form') {
+    forms.push(obj);
+  }
+  if (obj.layout) {
+    forms.push(...findFormComponents(obj.layout));
+  }
+  if (obj.children && Array.isArray(obj.children)) {
+    for (const child of obj.children) {
+      forms.push(...findFormComponents(child));
+    }
+  }
+  return forms;
+}
+
+function updateQueryFields(queryStr: string, fieldNames: string[]): string {
+  // Replace the innermost { fieldList } in a GraphQL query with new field names
+  return queryStr.replace(
+    /\{([^{}]+)\}/g,
+    (match, inner: string) => {
+      const lines = inner.trim().split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+      const allIdentifiers = lines.every((l: string) => /^[a-zA-Z_]\w*$/.test(l));
+      if (allIdentifiers && lines.length > 0) {
+        const newFields = fieldNames.map(f => `    ${f}`).join('\n');
+        return `{\n${newFields}\n  }`;
+      }
+      return match;
+    }
+  );
+}
+
+function applyFieldsToForm(form: any, fields: CreateFieldOption[]): void {
+  // Generate children (field components)
+  form.children = fields.map(f => {
+    const props: any = {
+      label: { 'en-US': f.label || fieldNameToLabel(f.name) },
+      type: f.type
+    };
+    if (f.required) props.required = true;
+    return { component: 'field', name: f.name, props };
+  });
+
+  if (!form.props) return;
+
+  // Generate initialValues.append from defaults
+  const append: Record<string, any> = {};
+  for (const f of fields) {
+    if (f.default !== undefined) {
+      append[f.name] = f.default;
+    }
+  }
+  if (Object.keys(append).length > 0) {
+    if (!form.props.initialValues) form.props.initialValues = {};
+    form.props.initialValues.append = append;
+  } else if (form.props.initialValues?.append) {
+    delete form.props.initialValues.append;
+  }
+
+  // Generate validationSchema
+  const schema: Record<string, any> = {};
+  for (const f of fields) {
+    const entry: any = { type: fieldTypeToSchemaType(f.type) };
+    if (f.required) entry.required = true;
+    schema[f.name] = entry;
+  }
+  form.props.validationSchema = schema;
+
+  // Update query field lists
+  const fieldNames = fields.map(f => f.name);
+  if (form.props.queries && Array.isArray(form.props.queries)) {
+    for (const q of form.props.queries) {
+      if (q.query?.command && typeof q.query.command === 'string') {
+        q.query.command = updateQueryFields(q.query.command, fieldNames);
+      }
+    }
+  }
+}
+
+function applyCreateOptions(content: string, optionsArg: string): string {
+  const jsonStr = resolveOptionsJson(optionsArg);
+  let fields: CreateFieldOption[];
+  try {
+    fields = JSON.parse(jsonStr);
+    if (!Array.isArray(fields)) {
+      throw new Error('must be a JSON array of field definitions');
+    }
+  } catch (e: any) {
+    throw new Error(`Invalid --options JSON: ${e.message}`);
+  }
+
+  // Validate fields
+  for (const field of fields) {
+    if (!field.name) throw new Error('Each field in --options must have a "name" property');
+    if (!field.type) throw new Error(`Field "${field.name}" in --options must have a "type" property`);
+  }
+
+  // Extract comment header (lines before YAML content)
+  const lines = content.split('\n');
+  const headerLines: string[] = [];
+  for (const line of lines) {
+    if (line.startsWith('#') || line.trim() === '') {
+      headerLines.push(line);
+    } else {
+      break;
+    }
+  }
+
+  // Parse YAML
+  const doc = yaml.load(content) as any;
+  if (!doc) throw new Error('Failed to parse template YAML for --options processing');
+
+  // Find and update form components
+  let formsFound = 0;
+  if (doc.components && Array.isArray(doc.components)) {
+    for (const comp of doc.components) {
+      const forms = findFormComponents(comp);
+      for (const form of forms) {
+        applyFieldsToForm(form, fields);
+        formsFound++;
+      }
+    }
+  }
+
+  if (formsFound === 0) {
+    console.warn(chalk.yellow('Warning: --options provided but no form component found in template'));
+    return content;
+  }
+
+  // Dump back to YAML
+  const yamlContent = yaml.dump(doc, {
+    indent: 2,
+    lineWidth: -1,
+    noRefs: true,
+    quotingType: '"',
+    forceQuotes: false
+  });
+
+  return headerLines.join('\n') + yamlContent;
 }
 
 // ============================================================================
@@ -623,7 +816,7 @@ function runInit(): void {
   console.log('');
 }
 
-function runCreate(type: string | undefined, name: string | undefined, template?: string, feature?: string): void {
+function runCreate(type: string | undefined, name: string | undefined, template?: string, feature?: string, createOptions?: string): void {
   if (!type || !['module', 'workflow'].includes(type)) {
     console.error(chalk.red('Error: Invalid or missing type. Use: module or workflow'));
     console.error(chalk.gray(`Example: ${PROGRAM_NAME} create module my-module`));
@@ -664,7 +857,7 @@ function runCreate(type: string | undefined, name: string | undefined, template?
   const relativeFileName = path.join(dir, fileName);
   let content: string;
   try {
-    content = generateTemplateContent(type as 'module' | 'workflow', safeName, relativeFileName, template);
+    content = generateTemplateContent(type as 'module' | 'workflow', safeName, relativeFileName, template, createOptions);
   } catch (error: any) {
     console.error(chalk.red(`Error loading template: ${error.message}`));
     process.exit(2);
@@ -754,6 +947,8 @@ function parseArgs(args: string[]): ParsedArgs {
       options.template = args[++i];
     } else if (arg === '--feature') {
       options.feature = args[++i];
+    } else if (arg === '--options') {
+      options.createOptions = args[++i];
     } else if (!arg.startsWith('-')) {
       files.push(arg);
     } else {
@@ -1650,7 +1845,7 @@ async function main() {
 
   // Handle create command
   if (command === 'create') {
-    runCreate(files[0], files[1], options.template, options.feature);
+    runCreate(files[0], files[1], options.template, options.feature, options.createOptions);
     process.exit(0);
   }
 
