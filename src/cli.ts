@@ -39,6 +39,7 @@ interface CLIOptions {
   template?: string;
   feature?: string;
   createOptions?: string;
+  extractTo?: string;
 }
 
 interface FileValidationResult {
@@ -95,6 +96,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('report')}          Generate validation report for multiple files
   ${chalk.green('init')}            Initialize a new CX project with app.yaml, README.md, AGENTS.md
   ${chalk.green('create')}          Create a new module or workflow from template
+  ${chalk.green('extract')}         Extract a component (and its routes) to another module
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
   ${chalk.green('list')}            List available schemas (modules, workflows, tasks)
@@ -113,6 +115,7 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--template <name>')}       Template variant for create command (e.g., ${chalk.cyan('basic')})
   ${chalk.green('--feature <name>')}        Place file under features/<name>/ instead of root
   ${chalk.green('--options <json>')}        JSON field definitions for create (inline or file path)
+  ${chalk.green('--to <file>')}            Target file for extract command
 
 ${chalk.bold.yellow('VALIDATION EXAMPLES:')}
   ${chalk.gray('# Validate a module YAML file')}
@@ -151,6 +154,9 @@ ${chalk.bold.yellow('PROJECT COMMANDS:')}
 
   ${chalk.gray('# Create module with custom fields')}
   ${chalk.cyan(`${PROGRAM_NAME} create module my-config --template configuration --options '[{"name":"host","type":"text"},{"name":"port","type":"number"}]'`)}
+
+  ${chalk.gray('# Extract a component to a new module')}
+  ${chalk.cyan(`${PROGRAM_NAME} extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml`)}
 
 ${chalk.bold.yellow('SCHEMA COMMANDS:')}
   ${chalk.gray('# Show schema for a component')}
@@ -268,6 +274,24 @@ ${chalk.bold.yellow('TYPES:')}
 ${chalk.bold.yellow('EXAMPLES:')}
   ${chalk.cyan(`${PROGRAM_NAME} create module orders`)}
   ${chalk.cyan(`${PROGRAM_NAME} create workflow invoice-generator`)}
+`;
+
+const EXTRACT_HELP = `
+${chalk.bold.yellow('EXTRACT COMMAND')}
+
+Extract a component (and its routes) from one module into another.
+
+${chalk.bold.yellow('USAGE:')}
+  ${chalk.cyan(`${PROGRAM_NAME} extract <source-file> <component-name> --to <target-file>`)}
+
+${chalk.bold.yellow('WHAT GETS MOVED:')}
+  ${chalk.green('Component')}   - The component matching the exact name
+  ${chalk.green('Routes')}      - Any routes whose component field matches the name
+  ${chalk.gray('Permissions and entities are NOT moved')}
+
+${chalk.bold.yellow('EXAMPLES:')}
+  ${chalk.cyan(`${PROGRAM_NAME} extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml`)}
+  ${chalk.cyan(`${PROGRAM_NAME} extract modules/main.yaml Dashboard --to modules/dashboard.yaml`)}
 `;
 
 // ============================================================================
@@ -1039,6 +1063,128 @@ function runCreate(type: string | undefined, name: string | undefined, template?
 }
 
 // ============================================================================
+// Extract Command
+// ============================================================================
+
+function runExtract(sourceFile: string | undefined, componentName: string | undefined, targetFile: string | undefined): void {
+  // Validate args
+  if (!sourceFile || !componentName || !targetFile) {
+    console.error(chalk.red('Error: Missing required arguments'));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} extract <source-file> <component-name> --to <target-file>`));
+    process.exit(2);
+  }
+
+  // Check source exists
+  if (!fs.existsSync(sourceFile)) {
+    console.error(chalk.red(`Error: Source file not found: ${sourceFile}`));
+    process.exit(2);
+  }
+
+  // Read and parse source
+  const sourceContent = fs.readFileSync(sourceFile, 'utf-8');
+  const sourceDoc = yaml.load(sourceContent) as any;
+  if (!sourceDoc || !Array.isArray(sourceDoc.components)) {
+    console.error(chalk.red(`Error: Source file is not a valid module (missing components array): ${sourceFile}`));
+    process.exit(2);
+  }
+
+  // Find component by exact name match
+  const compIndex = sourceDoc.components.findIndex((c: any) => c.name === componentName);
+  if (compIndex === -1) {
+    const available = sourceDoc.components.map((c: any) => c.name).filter(Boolean);
+    console.error(chalk.red(`Error: Component not found: ${componentName}`));
+    if (available.length > 0) {
+      console.error(chalk.gray('Available components:'));
+      for (const name of available) {
+        console.error(chalk.gray(`  - ${name}`));
+      }
+    }
+    process.exit(2);
+  }
+
+  const component = sourceDoc.components[compIndex];
+
+  // Find matching routes
+  const matchedRoutes: any[] = [];
+  const remainingRoutes: any[] = [];
+  if (Array.isArray(sourceDoc.routes)) {
+    for (const route of sourceDoc.routes) {
+      if (route.component === componentName) {
+        matchedRoutes.push(route);
+      } else {
+        remainingRoutes.push(route);
+      }
+    }
+  }
+
+  // Load or create target
+  let targetDoc: any;
+  let targetCreated = false;
+  if (fs.existsSync(targetFile)) {
+    const targetContent = fs.readFileSync(targetFile, 'utf-8');
+    targetDoc = yaml.load(targetContent) as any;
+    if (!targetDoc || !Array.isArray(targetDoc.components)) {
+      console.error(chalk.red(`Error: Target file is not a valid module (missing components array): ${targetFile}`));
+      process.exit(2);
+    }
+    // Check for duplicate component name
+    const duplicate = targetDoc.components.find((c: any) => c.name === componentName);
+    if (duplicate) {
+      console.error(chalk.red(`Error: Target already contains a component named "${componentName}"`));
+      process.exit(2);
+    }
+  } else {
+    // Create new module scaffold
+    const baseName = path.basename(targetFile, path.extname(targetFile));
+    const moduleName = baseName
+      .split('-')
+      .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join('');
+    targetDoc = {
+      module: moduleName,
+      appModuleId: generateUUID(),
+      application: sourceDoc.application || 'cx',
+      entities: [],
+      permissions: [],
+      components: [],
+      routes: []
+    };
+    targetCreated = true;
+  }
+
+  // Move component to target
+  targetDoc.components.push(component);
+  sourceDoc.components.splice(compIndex, 1);
+
+  // Move routes to target
+  if (matchedRoutes.length > 0) {
+    if (!Array.isArray(targetDoc.routes)) {
+      targetDoc.routes = [];
+    }
+    targetDoc.routes.push(...matchedRoutes);
+    sourceDoc.routes = remainingRoutes;
+  }
+
+  // Ensure target directory exists
+  const targetDir = path.dirname(targetFile);
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
+  }
+
+  // Write both files
+  const dumpOptions = { indent: 2, lineWidth: -1, noRefs: true, quotingType: '"' as const, forceQuotes: false };
+  fs.writeFileSync(sourceFile, yaml.dump(sourceDoc, dumpOptions), 'utf-8');
+  fs.writeFileSync(targetFile, yaml.dump(targetDoc, dumpOptions), 'utf-8');
+
+  // Print summary
+  console.log(chalk.green(`\n✓ Extracted component: ${chalk.bold(componentName)}`));
+  console.log(chalk.gray(`  Routes moved: ${matchedRoutes.length}`));
+  console.log(chalk.gray(`  Source: ${sourceFile} (updated)`));
+  console.log(chalk.gray(`  Target: ${targetFile} (${targetCreated ? 'created' : 'updated'})`));
+  console.log('');
+}
+
+// ============================================================================
 // Argument Parsing
 // ============================================================================
 
@@ -1060,7 +1206,7 @@ function parseArgs(args: string[]): ParsedArgs {
   };
 
   // Check for commands
-  const commands = ['validate', 'schema', 'example', 'list', 'help', 'report', 'init', 'create'];
+  const commands = ['validate', 'schema', 'example', 'list', 'help', 'report', 'init', 'create', 'extract'];
   if (args.length > 0 && commands.includes(args[0])) {
     command = args[0];
     args = args.slice(1);
@@ -1113,6 +1259,8 @@ function parseArgs(args: string[]): ParsedArgs {
       options.feature = args[++i];
     } else if (arg === '--options') {
       options.createOptions = args[++i];
+    } else if (arg === '--to') {
+      options.extractTo = args[++i];
     } else if (!arg.startsWith('-')) {
       files.push(arg);
     } else {
@@ -1963,6 +2111,8 @@ async function main() {
       console.log(INIT_HELP);
     } else if (command === 'create') {
       console.log(CREATE_HELP);
+    } else if (command === 'extract') {
+      console.log(EXTRACT_HELP);
     } else {
       console.log(HELP_TEXT);
     }
@@ -2010,6 +2160,12 @@ async function main() {
   // Handle create command
   if (command === 'create') {
     runCreate(files[0], files[1], options.template, options.feature, options.createOptions);
+    process.exit(0);
+  }
+
+  // Handle extract command
+  if (command === 'extract') {
+    runExtract(files[0], files[1], options.extractTo);
     process.exit(0);
   }
 
