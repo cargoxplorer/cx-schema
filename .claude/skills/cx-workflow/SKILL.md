@@ -14,19 +14,29 @@ When the user asks you to build a workflow, follow these steps:
 
 Always start by running the CLI to generate a schema-valid YAML file. This handles UUID generation, filePath, and boilerplate.
 
+Pick the template that best matches the use case:
+
+| Template | Use Case | Key Structure |
+|----------|----------|---------------|
+| `basic` | Minimal starting point | orderId input, single Log step, Manual trigger |
+| `entity-trigger` | React to entity changes | Entity trigger (Before/After), GraphQL fetch, conditions on `changes` |
+| `document` | Generate PDF/Excel | `workflowType: Document`, Sync, Document/Render, file/fileName outputs |
+| `scheduled` | Cron batch jobs | `schedules` with cron, while-loop pagination, foreach processing |
+| `utility` | Reusable helper | No triggers, inputs/outputs only, called via Workflow/Execute |
+
 ```bash
-# Standard workflow — scaffold with basic template
+# Pick the right template for the use case
 npx cx-cli create workflow <name> --template basic
+npx cx-cli create workflow <name> --template entity-trigger
+npx cx-cli create workflow <name> --template document
+npx cx-cli create workflow <name> --template scheduled
+npx cx-cli create workflow <name> --template utility
 
-# Standard workflow — inside a feature folder
-npx cx-cli create workflow <name> --template basic --feature <feature-name>
-
-# Full scaffold (includes GraphQL, switch, variables, outputs)
-npx cx-cli create workflow <name>
-npx cx-cli create workflow <name> --feature <feature-name>
+# Place inside a feature folder
+npx cx-cli create workflow <name> --template <template> --feature <feature-name>
 ```
 
-Choose the name based on the user's description (kebab-case). Use `--feature` when the workflow belongs to a specific feature. Use `--template basic` (recommended) to get a minimal starting point.
+Choose the name based on the user's description (kebab-case). Use `--feature` when the workflow belongs to a specific feature.
 
 ### Step 2: Read the generated file
 
