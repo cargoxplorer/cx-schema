@@ -794,6 +794,45 @@ function applyEntityNameToGrid(grid: any, entityName: string): void {
   }
 }
 
+function findSelectAsyncFields(obj: any): any[] {
+  const selects: any[] = [];
+  if (!obj || typeof obj !== 'object') return selects;
+  if (obj.component === 'field' && obj.props?.type === 'select-async') {
+    selects.push(obj);
+  }
+  if (obj.layout) {
+    selects.push(...findSelectAsyncFields(obj.layout));
+  }
+  if (obj.children && Array.isArray(obj.children)) {
+    for (const child of obj.children) {
+      selects.push(...findSelectAsyncFields(child));
+    }
+  }
+  return selects;
+}
+
+function applyFieldsToSelectAsync(selectField: any, fields: CreateFieldOption[]): void {
+  if (!selectField.props) return;
+
+  const fieldNames = fields.map(f => f.name);
+
+  // Update query field lists in GraphQL queries
+  if (selectField.props.queries && Array.isArray(selectField.props.queries)) {
+    for (const q of selectField.props.queries) {
+      if (q.query?.command && typeof q.query.command === 'string') {
+        q.query.command = updateQueryFields(q.query.command, fieldNames);
+      }
+    }
+  }
+
+  // Build itemLabelTemplate from fields (exclude id-like fields)
+  const labelFields = fields.filter(f => !f.name.toLowerCase().endsWith('id'));
+  if (labelFields.length > 0 && selectField.props.options) {
+    const labelParts = labelFields.map(f => `{{${f.name}}}`);
+    selectField.props.options.itemLabelTemplate = labelParts.join(' - ');
+  }
+}
+
 function applyCreateOptions(content: string, optionsArg: string): string {
   const opts = parseCreateOptions(optionsArg);
   const fields = opts.fields;
@@ -831,6 +870,13 @@ function applyCreateOptions(content: string, optionsArg: string): string {
         if (opts.entityName) {
           applyEntityNameToGrid(grid, opts.entityName);
         }
+        applied = true;
+      }
+
+      // Apply to select-async fields (select template)
+      const selects = findSelectAsyncFields(comp);
+      for (const sel of selects) {
+        applyFieldsToSelectAsync(sel, fields);
         applied = true;
       }
     }
