@@ -6,7 +6,61 @@ argument-hint: <description of what to build>
 
 You are a CargoXplorer workflow YAML builder. You generate schema-valid YAML for CX workflows — both standard process workflows (activities, steps, triggers) and Flow state machine workflows (entity lifecycle, states, transitions). All output must conform to the JSON schemas in `.cx-schema/`.
 
-When the user asks you to build a workflow, determine whether it is a **standard** workflow (sequential automation with activities and steps) or a **Flow** workflow (declarative state machine for entity lifecycle management), then generate the YAML accordingly.
+## Generation Workflow
+
+When the user asks you to build a workflow, follow these steps:
+
+### Step 1: Scaffold via CLI
+
+Always start by running the CLI to generate a schema-valid YAML file. This handles UUID generation, filePath, and boilerplate.
+
+```bash
+# Standard workflow — scaffold with basic template
+npx cx-cli create workflow <name> --template basic
+
+# Standard workflow — inside a feature folder
+npx cx-cli create workflow <name> --template basic --feature <feature-name>
+
+# Full scaffold (includes GraphQL, switch, variables, outputs)
+npx cx-cli create workflow <name>
+npx cx-cli create workflow <name> --feature <feature-name>
+```
+
+Choose the name based on the user's description (kebab-case). Use `--feature` when the workflow belongs to a specific feature. Use `--template basic` (recommended) to get a minimal starting point.
+
+### Step 2: Read the generated file
+
+Read the generated YAML file so you have the scaffold with the correct workflowId, filePath, and structure.
+
+### Step 3: Customize for the use case
+
+Determine whether this is a **standard** workflow (sequential automation with activities and steps) or a **Flow** workflow (declarative state machine for entity lifecycle management).
+
+Edit the generated file to add/modify:
+- **workflow metadata**: update `name`, `description`, `executionMode`, `workflowType`, `tags`, etc.
+- **inputs**: add/change input parameters for the use case
+- **variables**: add workflow-scoped variables as needed
+- **activities & steps**: replace the placeholder Log step with the actual task steps
+- **outputs**: add output mappings if the workflow returns data
+- **triggers**: update triggers (Manual, Entity, Schedule) as needed
+- For **Flow workflows**: remove `activities`, add `entity`, `states`, `transitions`, `aggregations`
+
+### Step 4: Validate
+
+Run validation on the final file:
+```bash
+npx cx-cli <generated-file.yaml>
+```
+
+If validation fails, fix errors and re-validate until it passes.
+
+### File Placement
+
+Workflow files can live in two locations:
+- **Root**: `workflows/<name>.yaml` — for shared/global workflows
+- **Feature**: `features/<feature-name>/workflows/<name>.yaml` — for feature-scoped workflows
+
+The `--feature <name>` flag places the file under a feature folder. The `filePath` property in the generated YAML automatically reflects the correct relative path.
 
 ## Dynamic Schema Access
 
@@ -48,12 +102,6 @@ When you need full property details for any schema, read the JSON file directly:
 !cat .cx-schema/workflows/flow/state.json
 !cat .cx-schema/workflows/flow/transition.json
 !cat .cx-schema/workflows/flow/aggregation.json
-
-## Template
-
-Use this template as a starting pattern, then customize based on the user's request:
-
-!cat templates/workflow.yaml
 
 ---
 
@@ -523,22 +571,22 @@ aggregations:
 
 # Generation Rules
 
-1. **Always generate a new UUID v4** for `workflowId`
+1. **Always scaffold via CLI first** — never write a workflow YAML from scratch. The CLI generates `workflowId` (UUID), `filePath`, and boilerplate correctly.
 2. **Follow naming conventions**:
    - Workflow step names: PascalCase (e.g., `GetEntity`, `ProcessItems`)
    - Variable names: camelCase (e.g., `entityData`, `processResult`)
    - State names: PascalCase (e.g., `Draft`, `InTransit`, `AwaitingPickup`)
    - Transition names: camelCase (e.g., `submit`, `autoApprove`, `forceCancel`)
 3. **Template expressions** use `{{ expression }}` syntax (double curly braces)
-4. **Include filePath** property pointing to the YAML file location
+4. **Do not change `workflowId` or `filePath`** — these are set correctly by the CLI scaffold
 5. **Standard workflows** require `activities` with at least one step per activity
 6. **Flow workflows** require `entity`, `states`, and `transitions` (no `activities`)
 7. **Entity triggers** require `entityName` and `eventType`
 8. **Flow entity type** is required for Order, AccountingTransaction, and Contact entities
 
-## After Generation
+## After Customization
 
-After generating YAML, remind the user to validate:
+Always validate the final YAML and fix any errors:
 ```bash
-npx cx-validate <generated-file.yaml>
+npx cx-cli <generated-file.yaml>
 ```

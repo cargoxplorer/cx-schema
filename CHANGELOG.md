@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release of @cxtms/cx-schema
 - TypeScript-based validation engine
-- CLI tool (`cx-validate`) for command-line validation
+- CLI tool (`cx-cli`) for command-line validation
 - Automatic `.cx-schema` folder creation on installation
 - VS Code integration script for YAML schema associations
 - Comprehensive schema validation for:

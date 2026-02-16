@@ -29,19 +29,19 @@ npm install @cxtms/cx-schema
 
 ```bash
 # Initialize a new project
-npx cx-validate init
+npx cx-cli init
 
 # Create a new module
-npx cx-validate create module orders
+npx cx-cli create module orders
 
 # Create a new workflow
-npx cx-validate create workflow invoice-processor
+npx cx-cli create workflow invoice-processor
 
 # Validate files
-npx cx-validate modules/*.yaml workflows/*.yaml
+npx cx-cli modules/*.yaml workflows/*.yaml
 
 # Generate validation report
-npx cx-validate report modules/*.yaml --report report.html
+npx cx-cli report modules/*.yaml --report report.html
 ```
 
 ## CLI Commands
@@ -51,14 +51,14 @@ npx cx-validate report modules/*.yaml --report report.html
 Validate YAML file(s) against JSON Schema definitions.
 
 ```bash
-cx-validate [files...]
-cx-validate validate [files...]
+cx-cli [files...]
+cx-cli validate [files...]
 
 # Examples
-cx-validate modules/orders-module.yaml
-cx-validate modules/*.yaml workflows/*.yaml
-cx-validate --verbose modules/orders-module.yaml
-cx-validate --format json modules/orders-module.yaml
+cx-cli modules/orders-module.yaml
+cx-cli modules/*.yaml workflows/*.yaml
+cx-cli --verbose modules/orders-module.yaml
+cx-cli --format json modules/orders-module.yaml
 ```
 
 ### init
@@ -66,7 +66,7 @@ cx-validate --format json modules/orders-module.yaml
 Initialize a new CX project with configuration files.
 
 ```bash
-cx-validate init
+cx-cli init
 ```
 
 Creates:
@@ -81,11 +81,11 @@ Creates:
 Create a new module or workflow from template.
 
 ```bash
-cx-validate create <type> <name>
+cx-cli create <type> <name>
 
 # Examples
-cx-validate create module orders
-cx-validate create workflow invoice-generator
+cx-cli create module orders
+cx-cli create workflow invoice-generator
 ```
 
 Generated files include:
@@ -98,12 +98,12 @@ Generated files include:
 Generate validation report for multiple files.
 
 ```bash
-cx-validate report [files...] --report <output-file>
+cx-cli report [files...] --report <output-file>
 
 # Examples
-cx-validate report modules/*.yaml --report report.html
-cx-validate report workflows/*.yaml --report report.md
-cx-validate report modules/*.yaml workflows/*.yaml --report results.json
+cx-cli report modules/*.yaml --report report.html
+cx-cli report workflows/*.yaml --report report.md
+cx-cli report modules/*.yaml workflows/*.yaml --report results.json
 ```
 
 Report formats (auto-detected from extension):
@@ -116,13 +116,13 @@ Report formats (auto-detected from extension):
 Display the JSON Schema definition for a component or task.
 
 ```bash
-cx-validate schema <name>
+cx-cli schema <name>
 
 # Examples
-cx-validate schema form
-cx-validate schema dataGrid
-cx-validate schema workflow
-cx-validate schema foreach
+cx-cli schema form
+cx-cli schema dataGrid
+cx-cli schema workflow
+cx-cli schema foreach
 ```
 
 ### example
@@ -130,11 +130,11 @@ cx-validate schema foreach
 Show example YAML for a component or task.
 
 ```bash
-cx-validate example <name>
+cx-cli example <name>
 
 # Examples
-cx-validate example form
-cx-validate example workflow
+cx-cli example form
+cx-cli example workflow
 ```
 
 ### list
@@ -142,9 +142,9 @@ cx-validate example workflow
 List all available schemas for validation.
 
 ```bash
-cx-validate list
-cx-validate list --type module
-cx-validate list --type workflow
+cx-cli list
+cx-cli list --type module
+cx-cli list --type workflow
 ```
 
 ## CLI Options
@@ -298,11 +298,11 @@ Generated workflows include:
 ```yaml
 - name: Validate YAML files
   run: |
-    npx cx-validate --format compact modules/*.yaml workflows/*.yaml
+    npx cx-cli --format compact modules/*.yaml workflows/*.yaml
 
 - name: Generate validation report
   run: |
-    npx cx-validate report modules/*.yaml workflows/*.yaml --report validation-report.html
+    npx cx-cli report modules/*.yaml workflows/*.yaml --report validation-report.html
 
 - name: Upload report
   uses: actions/upload-artifact@v3
@@ -316,7 +316,7 @@ Generated workflows include:
 ```yaml
 validate:
   script:
-    - npx cx-validate --format json modules/*.yaml > validation-results.json
+    - npx cx-cli --format json modules/*.yaml > validation-results.json
   artifacts:
     paths:
       - validation-results.json
@@ -331,7 +331,7 @@ validate:
 staged_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(yaml|yml)$')
 
 if [ -n "$staged_files" ]; then
-  npx cx-validate --format compact $staged_files
+  npx cx-cli --format compact $staged_files
   if [ $? -ne 0 ]; then
     echo "Validation failed. Please fix errors before committing."
     exit 1

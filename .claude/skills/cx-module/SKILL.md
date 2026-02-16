@@ -254,5 +254,5 @@ permissions:                                # Array
 
 After generating YAML, remind the user to validate:
 ```bash
-npx cx-validate <generated-file.yaml>
+npx cx-cli <generated-file.yaml>
 ```

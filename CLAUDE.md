@@ -23,13 +23,13 @@ npm run prepare
 
 ```bash
 # Validate a YAML module file
-npx cx-validate modules/your-module.yaml
+npx cx-cli modules/your-module.yaml
 
 # Validate with custom schemas path
-npx cx-validate --schemas ./custom-schemas modules/test-module.yaml
+npx cx-cli --schemas ./custom-schemas modules/test-module.yaml
 
 # Output JSON format (useful for CI/CD)
-npx cx-validate --json modules/test-module.yaml
+npx cx-cli --json modules/test-module.yaml
 ```
 
 ## Project Structure
