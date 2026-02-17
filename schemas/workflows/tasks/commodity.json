@@ -9,9 +9,12 @@
       "enum": [
         "Commodity/Create@1",
         "Commodity/Update@1",
+        "Commodity/Update@2",
         "Commodity/Delete@1",
         "Commodity/Get@1",
+        "Commodity/Split@1",
         "Commodity/Repack@1",
+        "Commodity/Unpack@1",
         "OrderCommodity/Create@1",
         "OrderCommodity/Update@1",
         "OrderCommodity/Delete@1",

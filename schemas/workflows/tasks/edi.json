@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EDI Tasks",
+  "description": "EDI and structured file parsing operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "EDI/Parse@1",
+        "StructuredFile/Parse"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": { "type": "string" }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "EDI/parsing operation inputs",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "File content to parse"
+        },
+        "format": {
+          "type": "string",
+          "description": "EDI format (e.g., X12, EDIFACT)"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

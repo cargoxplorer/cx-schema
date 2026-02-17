@@ -4,31 +4,131 @@
   "description": "Aggregator schema for all workflow task types. Uses anyOf to allow matching any known task type or falling back to generic task structure.",
   "type": "object",
   "anyOf": [
-    { "$ref": "foreach.json" },
-    { "$ref": "switch.json" },
-    { "$ref": "while.json" },
-    { "$ref": "validation.json" },
-    { "$ref": "map.json" },
-    { "$ref": "setVariable.json" },
-    { "$ref": "httpRequest.json" },
-    { "$ref": "log.json" },
-    { "$ref": "error.json" },
-    { "$ref": "csv.json" },
-    { "$ref": "export.json" },
-    { "$ref": "template.json" },
-    { "$ref": "graphql.json" },
-    { "$ref": "order.json" },
-    { "$ref": "contact.json" },
-    { "$ref": "commodity.json" },
-    { "$ref": "job.json" },
-    { "$ref": "attachment.json" },
-    { "$ref": "email-send.json" },
-    { "$ref": "document-render.json" },
-    { "$ref": "document-send.json" },
-    { "$ref": "charge.json" },
-    { "$ref": "accounting-transaction.json" },
-    { "$ref": "payment.json" },
-    { "$ref": "workflow-execute.json" },
-    { "$ref": "generic.json" }
+    {
+      "$ref": "accounting-transaction.json"
+    },
+    {
+      "$ref": "action-event.json"
+    },
+    {
+      "$ref": "appmodule.json"
+    },
+    {
+      "$ref": "attachment.json"
+    },
+    {
+      "$ref": "authentication.json"
+    },
+    {
+      "$ref": "caching.json"
+    },
+    {
+      "$ref": "charge.json"
+    },
+    {
+      "$ref": "commodity.json"
+    },
+    {
+      "$ref": "contact-address.json"
+    },
+    {
+      "$ref": "contact-payment-method.json"
+    },
+    {
+      "$ref": "contact.json"
+    },
+    {
+      "$ref": "csv.json"
+    },
+    {
+      "$ref": "document-render.json"
+    },
+    {
+      "$ref": "document-send.json"
+    },
+    {
+      "$ref": "edi.json"
+    },
+    {
+      "$ref": "email-send.json"
+    },
+    {
+      "$ref": "error.json"
+    },
+    {
+      "$ref": "export.json"
+    },
+    {
+      "$ref": "filetransfer.json"
+    },
+    {
+      "$ref": "flow-transition.json"
+    },
+    {
+      "$ref": "foreach.json"
+    },
+    {
+      "$ref": "graphql.json"
+    },
+    {
+      "$ref": "httpRequest.json"
+    },
+    {
+      "$ref": "import.json"
+    },
+    {
+      "$ref": "inventory.json"
+    },
+    {
+      "$ref": "job.json"
+    },
+    {
+      "$ref": "log.json"
+    },
+    {
+      "$ref": "map.json"
+    },
+    {
+      "$ref": "movement.json"
+    },
+    {
+      "$ref": "note.json"
+    },
+    {
+      "$ref": "number.json"
+    },
+    {
+      "$ref": "order.json"
+    },
+    {
+      "$ref": "payment.json"
+    },
+    {
+      "$ref": "pdf-document.json"
+    },
+    {
+      "$ref": "setVariable.json"
+    },
+    {
+      "$ref": "switch.json"
+    },
+    {
+      "$ref": "template.json"
+    },
+    {
+      "$ref": "user.json"
+    },
+    {
+      "$ref": "validation.json"
+    },
+    {
+      "$ref": "while.json"
+    },
+    {
+      "$ref": "workflow-execute.json"
+    },
+    {
+      "$ref": "generic.json"
+    }
   ]
 }

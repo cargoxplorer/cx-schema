@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Number Generation Tasks",
+  "description": "Sequential number generation operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "Number/Generate@1",
+        "SequenceNumber/Get@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": { "type": "string" }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Number generation inputs",
+      "properties": {
+        "format": {
+          "type": "string",
+          "description": "Number format string (e.g., INV-{0:D6})"
+        },
+        "sequenceName": {
+          "type": "string",
+          "description": "Sequence name identifier"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

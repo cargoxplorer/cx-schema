@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Note Tasks",
+  "description": "Note and note thread operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "Note/Create",
+        "Note/Update",
+        "Note/Delete",
+        "NoteThread/Rename",
+        "Notes/Import",
+        "Notes/Export"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": { "type": "string" }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Note operation inputs",
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

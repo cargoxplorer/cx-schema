@@ -1,18 +1,18 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Charge Tasks",
-  "description": "Charge/billing operations",
+  "title": "User Tasks",
+  "description": "User account management operations",
   "type": "object",
   "properties": {
     "task": {
       "type": "string",
       "enum": [
-        "Charge/Create@1",
-        "Charge/Update",
-        "Charge/Delete@1",
-        "Charge/Calculate",
-        "Charge/DynamicUpdate",
-        "Discount/Update"
+        "User/Create",
+        "User/Update",
+        "User/Delete",
+        "User/GetVerificationCode",
+        "User/GetEmailVerificationCode",
+        "User/GetResetPasswordToken"
       ],
       "description": "Task type identifier"
     },
@@ -29,9 +29,7 @@
       "items": {
         "type": "object",
         "properties": {
-          "expression": {
-            "type": "string"
-          }
+          "expression": { "type": "string" }
         },
         "required": ["expression"]
       }
@@ -41,31 +39,15 @@
     },
     "inputs": {
       "type": "object",
-      "description": "Charge operation inputs",
+      "description": "User operation inputs",
       "properties": {
-        "chargeId": {
+        "userId": {
           "type": "string",
-          "description": "Charge ID"
-        },
-        "orderId": {
-          "type": "string",
-          "description": "Associated order ID"
-        },
-        "jobId": {
-          "type": "string",
-          "description": "Associated job ID"
-        },
-        "chargeType": {
-          "type": "string",
-          "description": "Type of charge"
-        },
-        "amount": {
-          "type": "number",
-          "description": "Charge amount"
+          "description": "User ID"
         },
         "entity": {
           "type": "object",
-          "description": "Charge entity data",
+          "description": "User entity data",
           "additionalProperties": true
         }
       },
@@ -76,12 +58,8 @@
       "items": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
-          },
-          "mapping": {
-            "type": "string"
-          }
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
         },
         "required": ["name", "mapping"]
       }

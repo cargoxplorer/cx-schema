@@ -82,6 +82,29 @@
           },
           "description": "Retry configuration"
         },
+        "responseContentType": {
+          "type": "string",
+          "description": "Expected response content type (e.g., application/pdf, application/json)"
+        },
+        "actionEvents": {
+          "type": "object",
+          "description": "Enable action events when the request operates on a specific entity",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable action event tracking"
+            },
+            "eventName": {
+              "type": "string",
+              "description": "Event name identifier (e.g., carrier.sendParcelInfo)"
+            },
+            "eventDataExt": {
+              "type": "object",
+              "description": "Extended event data linking to entity (e.g., orderId)",
+              "additionalProperties": true
+            }
+          }
+        },
         "cache": {
           "type": "object",
           "properties": {

@@ -91,6 +91,27 @@ Performs HTTP requests to external APIs.
 
 Response available at `ActivityName?.CallApi?.result?`.
 
+**Action events**: When an HTTP request operates on a specific entity (e.g., sending parcel info for an order), enable `actionEvents` in the inputs so the system can track and notify about the request. Include `eventDataExt` with the entity ID to link the event to the entity.
+
+```yaml
+- task: "Utilities/HttpRequest@1"
+  name: CallCarrierApi
+  inputs:
+    actionEvents:
+      enabled: true
+      eventName: "carrier.sendParcelInfo"
+      eventDataExt:
+        orderId: "{{ inputs.orderId }}"
+    url: "{{ carrierConfig?.baseUrl? }}/api/shipments"
+    method: POST
+    contentType: "application/json"
+    body:
+      trackingNumber: "{{ Data?.GetOrder?.order?.trackingNumber? }}"
+  outputs:
+    - name: result
+      mapping: "response?.body?"
+```
+
 ## Map@1
 
 Extracts/reshapes data from variables into new variables.

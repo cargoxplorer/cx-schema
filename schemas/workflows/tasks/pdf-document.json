@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PDF Document Tasks",
+  "description": "PDF document operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "PdfDocument/Merge@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": { "type": "string" }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "PDF document operation inputs",
+      "properties": {
+        "documents": {
+          "type": "array",
+          "description": "Array of PDF documents to merge"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}
