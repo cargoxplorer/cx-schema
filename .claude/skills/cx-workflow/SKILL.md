@@ -34,6 +34,7 @@ Always start by running the CLI to generate a schema-valid YAML file.
 | `ftp-edi` | Import orders from FTP via EDI | Scheduled SFTP Connect/List/Download, `Workflow/Execute` EDI parser, `Order/Import@1`, MoveFile to processed |
 | `api-tracking` | Fetch tracking from carrier API | Scheduled, query orders needing updates, `HttpRequest` to carrier API, parse response, `Order/Import@1` with `matchByEventDefinition` |
 | `mcp-tool` | Expose workflow as MCP tool | `executionMode: Sync`, `tags: [mcp-tool]`, `agentInstruction`, typed inputs, structured output |
+| `webhook` | HTTP endpoint for external callers | `workflowType: Webhook`, Sync, anonymous endpoint, `payload`/`request` inputs, `response`/`statusCode` outputs |
 
 ```bash
 npx cx-cli create workflow <name> --template <template>
@@ -61,6 +62,8 @@ npx cx-cli create workflow <name> --template <template> --feature <feature-name>
 **`api-tracking`** — update `apiConfig` configName with carrier API credentials (`baseUrl`, `apiKey`, `carrierId`). Update the GraphQL filter to select orders needing tracking. Map the carrier's API response structure in ParseTrackingResponse (foreach path, field names for `eventDate`, `location`, `statusCode`). Configure `trackingEventMatchByFields` and `matchByEventDefinition` custom value keys.
 
 **`mcp-tool`** — write a clear `agentInstruction` describing when to use the tool, expected inputs, and return values. Keep `executionMode: Sync` so the agent gets results immediately. Define typed `inputs` with descriptive `props` (the AI reads these). Return structured data via `outputs`. The `mcp-tool` tag is required — it's what makes the workflow discoverable via `list_custom_tools` in the MCP server. Validate inputs with `Utilities/Error@1` conditions.
+
+**`webhook`** — endpoint: `POST /api/v2/orgs/{organizationId}/webhooks/{workflowId}`. The endpoint is anonymous (`[AllowAnonymous]`) and rate-limited (10/sec, 100/min per IP). Two inputs are auto-injected by the controller: `payload` (parsed JSON body or raw string) and `request` (object with `headers`, `body`, `remoteIpAddress`). Control the HTTP response via `response` and `statusCode` outputs. Update `webhookSecret` configName to your app config path. Customize the `ValidateWebhook` step for your auth method (header secret, HMAC signature, etc.). Use `executionMode: Sync` when the caller needs a response; use `Async` for fire-and-forget (returns immediately). Keep `runAs: "system"` since the endpoint is anonymous. Add `additionalProperties.cors.allowedOrigins` to restrict CORS if needed.
 
 **All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowExecuted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed.
 
@@ -92,7 +95,7 @@ workflow:
   isActive: true
   enableAudit: true
   filePath: "workflows/<name>.yaml"
-  workflowType: Process | Document | Quote | EmailTemplate
+  workflowType: Document | Quote | Flow | Webhook | PublicApi  # omit for standard process workflows
   runAs: "system"                           # Optional elevated permissions
   tags: ["tag1", "tag2"]
   concurrency:                              # Optional

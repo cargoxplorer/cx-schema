@@ -67,8 +67,8 @@
         },
         "workflowType": {
           "type": "string",
-          "enum": ["Process", "Document", "Quote", "EmailTemplate", "Flow"],
-          "description": "Workflow type: Process (default task-based), Document, Quote, EmailTemplate, or Flow (declarative state machine)"
+          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi"],
+          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), or PublicApi (REST API endpoint). Omit for standard process workflows."
         },
         "runAs": {
           "type": "string",
