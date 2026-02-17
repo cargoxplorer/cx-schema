@@ -6,41 +6,34 @@ argument-hint: <description of what to build>
 
 You are a CargoXplorer module YAML builder. You generate schema-valid YAML for CX app modules — UI screens, forms, data grids, routes, and components. All output must conform to the JSON schemas in `.cx-schema/`.
 
-**IMPORTANT**: Always load the `cx-core` skill (`/skill cx-core`) alongside this skill. It provides entity field names, types, enums, and customValues patterns needed for entity definitions, GraphQL queries, form fields, and dataGrid columns.
-
-**IMPORTANT**: Always use `cx-cli` for creating and validating modules. Never write YAML from scratch — scaffold via `npx cx-cli create module <name> --template <template>`, then customize. Use all available cx-cli features:
-- `cx-cli create module` — scaffold with templates (`default`, `form`, `configuration`, `grid`, `select`)
-- `cx-cli create module --options '<json>'` — customize fields at scaffold time
-- `cx-cli create module --feature <name>` — place in feature folder
-- `cx-cli extract <source> <component> --to <target>` — move components between modules
-- `cx-cli <file.yaml>` — validate after every change
-- `cx-cli schema <component>` — look up component schema (e.g., `cx-cli schema form`, `cx-cli schema dataGrid`)
-- `cx-cli example <component>` — show example YAML for a component
-- `cx-cli list` — list all available module schemas/components
-- `cx-cli --help` — show all available commands and options
+**IMPORTANT — use `cx-cli` for all module operations:**
+- **Scaffold**: `npx cx-cli create module <name> --template <template>` — generates a schema-valid YAML file. ALWAYS run this first, then read the generated file, then customize. Do NOT write YAML from scratch or copy templates manually.
+- **Scaffold with fields**: `npx cx-cli create module <name> --template <template> --options '<json>'`
+- **Validate**: `npx cx-cli <file.yaml>` — run after every change
+- **Schema lookup**: `npx cx-cli schema <component>` — e.g., `cx-cli schema form`, `cx-cli schema dataGrid`
+- **Examples**: `npx cx-cli example <component>` — show example YAML
+- **List schemas**: `npx cx-cli list`
+- **Extract**: `npx cx-cli extract <source> <component> --to <target>` — move components between modules
+- **Feature folder**: `npx cx-cli create module <name> --template <template> --feature <feature-name>`
 
 ## Generation Workflow
 
-### Step 1: Scaffold via CLI
+### Step 1: Scaffold via CLI — MANDATORY
 
-Always start by running the CLI to generate a schema-valid YAML file.
-
-| Template | Use Case | Key Structure |
-|----------|----------|---------------|
-| `default` | Generic module with form | Single form component, basic CRUD, validation |
-| `form` | Entity create/edit form | Form with query, initialValues, validationSchema, save mutation, toolbar (Save/Cancel), dirtyGuard |
-| `configuration` | Settings/config screen | Form with 3 fields, initialValues (fromQuery + append defaults), save mutation |
-| `grid` | List/table view | dataGrid with 3 views (All/Active/Archived), dotsMenu, entity fields |
-| `select` | Reusable async select | select-async field with searchQuery/valueQuery, dropDownToolbar, onEditClick |
+**You MUST run `cx-cli create module` to generate the initial file.** Do not skip this step. Do not write YAML from scratch. Do not read template files and copy them manually. The CLI generates correct UUIDs, file paths, and structure.
 
 ```bash
-# Basic scaffold
 npx cx-cli create module <name> --template <template>
-
-# With field customization (JSON array or object)
 npx cx-cli create module <name> --template <template> --options '<json>'
-npx cx-cli create module <name> --template <template> --options fields.json
 ```
+
+| Template | Use Case |
+|----------|----------|
+| `default` | Generic module with form |
+| `form` | Entity create/edit form |
+| `configuration` | Settings/config screen |
+| `grid` | List/table view |
+| `select` | Reusable async select |
 
 ### Step 2: Read the generated file
 
@@ -153,11 +146,9 @@ When the target file doesn't exist, a new module is created with:
 
 **Read these files only when needed for the current task.** Do not load all references upfront.
 
-### Entity Fields
+### Entity Field Reference (cx-core)
 
-Provided by the `cx-core` skill — always loaded alongside this skill. See cx-core for entity field names, types, enums, navigation properties, and customValues patterns.
-
-**CustomValues in modules** — Use `customValues.fieldName` for GraphQL sort/filter paths. Entity field definitions use `isCustomField: true` with `name: "customValues.fieldName"`.
+!cat .claude/skills/cx-core/SKILL.md
 
 ### Component Directory
 
@@ -395,7 +386,7 @@ Reusable select components (e.g., `Countries/Select`, `Ports/Select`) follow thi
 
 # Generation Rules
 
-1. **Always scaffold via CLI first** — never write a module YAML from scratch
+1. **Always scaffold via `cx-cli create module` first** — never write YAML from scratch, never copy templates manually
 2. **Use localized strings** `{ en-US: "..." }` for all user-visible text
 3. **Follow naming conventions**:
    - Module names: PascalCase (e.g., `WarehouseLocations`)
