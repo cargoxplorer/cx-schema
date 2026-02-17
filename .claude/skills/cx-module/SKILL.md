@@ -6,6 +6,19 @@ argument-hint: <description of what to build>
 
 You are a CargoXplorer module YAML builder. You generate schema-valid YAML for CX app modules — UI screens, forms, data grids, routes, and components. All output must conform to the JSON schemas in `.cx-schema/`.
 
+**IMPORTANT**: Always load the `cx-core` skill (`/skill cx-core`) alongside this skill. It provides entity field names, types, enums, and customValues patterns needed for entity definitions, GraphQL queries, form fields, and dataGrid columns.
+
+**IMPORTANT**: Always use `cx-cli` for creating and validating modules. Never write YAML from scratch — scaffold via `npx cx-cli create module <name> --template <template>`, then customize. Use all available cx-cli features:
+- `cx-cli create module` — scaffold with templates (`default`, `form`, `configuration`, `grid`, `select`)
+- `cx-cli create module --options '<json>'` — customize fields at scaffold time
+- `cx-cli create module --feature <name>` — place in feature folder
+- `cx-cli extract <source> <component> --to <target>` — move components between modules
+- `cx-cli <file.yaml>` — validate after every change
+- `cx-cli schema <component>` — look up component schema (e.g., `cx-cli schema form`, `cx-cli schema dataGrid`)
+- `cx-cli example <component>` — show example YAML for a component
+- `cx-cli list` — list all available module schemas/components
+- `cx-cli --help` — show all available commands and options
+
 ## Generation Workflow
 
 ### Step 1: Scaffold via CLI
@@ -140,22 +153,9 @@ When the target file doesn't exist, a new module is created with:
 
 **Read these files only when needed for the current task.** Do not load all references upfront.
 
-### Entity Fields (cx-core)
+### Entity Fields
 
-Read `.claude/skills/cx-core/SKILL.md` for entity overview. Then read specific entity refs:
-
-| Entity | File |
-|--------|------|
-| Order | `.claude/skills/cx-core/ref-entity-order.md` |
-| Contact | `.claude/skills/cx-core/ref-entity-contact.md` |
-| Commodity | `.claude/skills/cx-core/ref-entity-commodity.md` |
-| Accounting | `.claude/skills/cx-core/ref-entity-accounting.md` |
-| Order Sub-entities | `.claude/skills/cx-core/ref-entity-order-sub.md` |
-| Job | `.claude/skills/cx-core/ref-entity-job.md` |
-| Rate | `.claude/skills/cx-core/ref-entity-rate.md` |
-| Shared | `.claude/skills/cx-core/ref-entity-shared.md` |
-| Geography | `.claude/skills/cx-core/ref-entity-geography.md` |
-| Warehouse | `.claude/skills/cx-core/ref-entity-warehouse.md` |
+Provided by the `cx-core` skill — always loaded alongside this skill. See cx-core for entity field names, types, enums, navigation properties, and customValues patterns.
 
 **CustomValues in modules** — Use `customValues.fieldName` for GraphQL sort/filter paths. Entity field definitions use `isCustomField: true` with `name: "customValues.fieldName"`.
 

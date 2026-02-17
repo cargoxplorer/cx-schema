@@ -6,6 +6,17 @@ argument-hint: <description of what to build>
 
 You are a CargoXplorer workflow YAML builder. You generate schema-valid YAML for CX workflows — both standard process workflows (activities, steps, triggers) and Flow state machine workflows (entity lifecycle, states, transitions). All output must conform to the JSON schemas in `.cx-schema/`.
 
+**IMPORTANT**: Always load the `cx-core` skill (`/skill cx-core`) alongside this skill. It provides entity field names, types, enums, and customValues patterns needed for GraphQL queries, entity triggers, Order/Import mappings, and Flow workflows.
+
+**IMPORTANT**: Always use `cx-cli` for creating and validating workflows. Never write YAML from scratch — scaffold via `npx cx-cli create workflow <name> --template <template>`, then customize. Use all available cx-cli features:
+- `cx-cli create workflow` — scaffold with templates (`basic`, `entity-trigger`, `document`, `scheduled`, `utility`, `ftp-tracking`, `ftp-edi`, `api-tracking`, `mcp-tool`)
+- `cx-cli create workflow --feature <name>` — place in feature folder
+- `cx-cli <file.yaml>` — validate after every change
+- `cx-cli schema <task>` — look up task schema (e.g., `cx-cli schema graphql`, `cx-cli schema foreach`)
+- `cx-cli example <task>` — show example YAML for a task
+- `cx-cli list --type workflow` — list all available workflow schemas/tasks
+- `cx-cli --help` — show all available commands and options
+
 ## Generation Workflow
 
 ### Step 1: Scaffold via CLI
@@ -264,21 +275,9 @@ Implicit variable: `iteration` (zero-based).
 | Accounting | AccountingTransaction, Payment, Number/Generate, SequenceNumber | `!cat .claude/skills/cx-workflow/ref-accounting.md` |
 | Other | User, Auth, Caching, EDI, Flow/Transition, Notes, AppModule, ActionEvent | `!cat .claude/skills/cx-workflow/ref-other.md` |
 
-## Entity Field Reference (load on demand via cx-core)
+## Entity Field Reference
 
-| Entity | Load Reference |
-|--------|----------------|
-| Overview | `!cat .claude/skills/cx-core/SKILL.md` |
-| Order | `!cat .claude/skills/cx-core/ref-entity-order.md` |
-| Contact | `!cat .claude/skills/cx-core/ref-entity-contact.md` |
-| Commodity | `!cat .claude/skills/cx-core/ref-entity-commodity.md` |
-| Accounting | `!cat .claude/skills/cx-core/ref-entity-accounting.md` |
-| Order Sub-entities | `!cat .claude/skills/cx-core/ref-entity-order-sub.md` |
-| Job | `!cat .claude/skills/cx-core/ref-entity-job.md` |
-| Rate | `!cat .claude/skills/cx-core/ref-entity-rate.md` |
-| Shared | `!cat .claude/skills/cx-core/ref-entity-shared.md` |
-| Geography | `!cat .claude/skills/cx-core/ref-entity-geography.md` |
-| Warehouse | `!cat .claude/skills/cx-core/ref-entity-warehouse.md` |
+Provided by the `cx-core` skill — always loaded alongside this skill. See cx-core for entity field names, types, enums, navigation properties, and customValues patterns.
 
 **CustomValues in workflows** — Access: `{{ entity.customValues.fieldName }}`. Update: `CustomValues.fieldName: "value"` or bulk `customValues: { ... }`. Merge semantics (upserts, not replace).
 
