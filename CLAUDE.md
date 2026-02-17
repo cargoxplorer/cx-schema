@@ -40,6 +40,8 @@ Each skill has a `SKILL.md` entry point and `ref-*.md` reference files loaded on
 
 **Skill contract**: skills instruct Claude Code to always scaffold via `cx-cli create` (never write YAML from scratch), then customize the output, then validate with `cx-cli`. The CLI, schemas, and templates exist to support this workflow.
 
+**Keep skills and CLI in sync**: when adding or changing CLI commands, templates, or schemas, always update the corresponding skill SKILL.md/ref-*.md files so Claude Code knows about the new capabilities. The skills are how the CLI gets used — an undocumented CLI feature is an invisible one.
+
 ### CLI (`src/cli.ts`) — tooling for skills
 
 Single-file CLI (~2200 lines) handling all commands: `validate`, `create`, `extract`, `init`, `schema`, `example`, `list`, `report`. Auto-detects file type by checking for `workflow:` vs `module:` keys in YAML.
