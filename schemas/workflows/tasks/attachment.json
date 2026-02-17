@@ -10,7 +10,10 @@
         "Attachment/Create@1",
         "Attachment/Update@1",
         "Attachment/Delete@1",
-        "Attachment/Get@1"
+        "Attachment/Get@1",
+        "Attachment/Thumbnail",
+        "Attachment/PdfThumbnail",
+        "Attachment/RegenerateThumbnails"
       ],
       "description": "Task type identifier"
     },

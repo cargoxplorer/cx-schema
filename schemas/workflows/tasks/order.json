@@ -11,7 +11,14 @@
         "Order/Update@1",
         "Order/Update@2",
         "Order/Delete@1",
-        "Order/Get@1"
+        "Order/Get@1",
+        "Order/Copy@1",
+        "Order/Split@1",
+        "Order/Import@1",
+        "Order/RecalculateCharges@1",
+        "Order/GenerateTrackingNumber@1",
+        "Order/Purge@1",
+        "Order/GetCargoMovementByPalletQuery"
       ],
       "description": "Task type identifier"
     },

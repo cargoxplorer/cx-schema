@@ -39,6 +39,7 @@ interface CLIOptions {
   template?: string;
   feature?: string;
   createOptions?: string;
+  createTasks?: string;
   extractTo?: string;
 }
 
@@ -95,8 +96,9 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('validate')}        Validate YAML file(s) ${chalk.gray('(default command)')}
   ${chalk.green('report')}          Generate validation report for multiple files
   ${chalk.green('init')}            Initialize a new CX project with app.yaml, README.md, AGENTS.md
-  ${chalk.green('create')}          Create a new module or workflow from template
+  ${chalk.green('create')}          Create a new module, workflow, or task-schema from template
   ${chalk.green('extract')}         Extract a component (and its routes) to another module
+  ${chalk.green('sync-schemas')}    Regenerate all.json from task schema directory
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
   ${chalk.green('list')}            List available schemas (modules, workflows, tasks)
@@ -115,6 +117,7 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--template <name>')}       Template variant for create command (e.g., ${chalk.cyan('basic')})
   ${chalk.green('--feature <name>')}        Place file under features/<name>/ instead of root
   ${chalk.green('--options <json>')}        JSON field definitions for create (inline or file path)
+  ${chalk.green('--tasks <list>')}         Comma-separated task enums for create task-schema
   ${chalk.green('--to <file>')}            Target file for extract command
 
 ${chalk.bold.yellow('VALIDATION EXAMPLES:')}
@@ -154,6 +157,12 @@ ${chalk.bold.yellow('PROJECT COMMANDS:')}
 
   ${chalk.gray('# Create module with custom fields')}
   ${chalk.cyan(`${PROGRAM_NAME} create module my-config --template configuration --options '[{"name":"host","type":"text"},{"name":"port","type":"number"}]'`)}
+
+  ${chalk.gray('# Create a task schema with pre-populated task enums')}
+  ${chalk.cyan(`${PROGRAM_NAME} create task-schema filetransfer --tasks "FileTransfer/Connect@1,FileTransfer/Disconnect@1"`)}
+
+  ${chalk.gray('# Sync all.json after manually adding/removing task schemas')}
+  ${chalk.cyan(`${PROGRAM_NAME} sync-schemas`)}
 
   ${chalk.gray('# Extract a component to a new module')}
   ${chalk.cyan(`${PROGRAM_NAME} extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml`)}
@@ -218,9 +227,13 @@ ${chalk.bold.yellow('AVAILABLE SCHEMAS:')}
 
   ${chalk.bold('Workflow Tasks:')}
     foreach, switch, while, validation, graphql, httpRequest,
-    setVariable, map, log, error, csv, export, template,
-    order, contact, commodity, job, attachment,
-    email-send, document-render, charge, workflow-execute
+    setVariable, map, log, error, csv, export, template, import,
+    order, contact, contact-address, contact-payment-method,
+    commodity, job, attachment, charge, payment,
+    email-send, document-render, document-send, pdf-document,
+    accounting-transaction, number, workflow-execute,
+    filetransfer, caching, flow-transition, user, authentication,
+    edi, note, appmodule, action-event, inventory, movement
 
 ${chalk.bold.yellow('EXAMPLES:')}
   ${chalk.cyan(`${PROGRAM_NAME} schema form`)}
@@ -1020,8 +1033,14 @@ function runInit(): void {
 }
 
 function runCreate(type: string | undefined, name: string | undefined, template?: string, feature?: string, createOptions?: string): void {
+  // Handle task-schema creation separately
+  if (type === 'task-schema') {
+    runCreateTaskSchema(name, createOptions);
+    return;
+  }
+
   if (!type || !['module', 'workflow'].includes(type)) {
-    console.error(chalk.red('Error: Invalid or missing type. Use: module or workflow'));
+    console.error(chalk.red('Error: Invalid or missing type. Use: module, workflow, or task-schema'));
     console.error(chalk.gray(`Example: ${PROGRAM_NAME} create module my-module`));
     process.exit(2);
   }
@@ -1032,14 +1051,14 @@ function runCreate(type: string | undefined, name: string | undefined, template?
     process.exit(2);
   }
 
-  // Sanitize name
-  const safeName = name.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  // Sanitize name: replace invalid chars with hyphen, collapse runs, trim edges
+  const safeName = name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '');
 
   // Determine output directory and file
   // workflows/ or features/<feature>/workflows/ (same for modules)
   const baseDir = type === 'module' ? 'modules' : 'workflows';
   const dir = feature
-    ? path.join('features', feature.toLowerCase().replace(/[^a-z0-9-]/g, '-'), baseDir)
+    ? path.join('features', feature.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, ''), baseDir)
     : baseDir;
   const fileName = `${safeName}.yaml`;
   const filePath = path.join(process.cwd(), dir, fileName);
@@ -1074,6 +1093,187 @@ function runCreate(type: string | undefined, name: string | undefined, template?
   console.log(chalk.gray(`    1. Edit ${chalk.white(filePath)} to customize`));
   console.log(chalk.gray(`    2. Validate: ${chalk.white(`${PROGRAM_NAME} ${filePath}`)}`));
   console.log(chalk.gray(`    3. View schema: ${chalk.white(`${PROGRAM_NAME} schema ${type}`)}`));
+  console.log('');
+}
+
+// ============================================================================
+// Create Task Schema Command
+// ============================================================================
+
+function runCreateTaskSchema(name: string | undefined, tasks?: string): void {
+  if (!name) {
+    console.error(chalk.red('Error: Missing name for task-schema'));
+    console.error(chalk.gray(`Example: ${PROGRAM_NAME} create task-schema filetransfer --tasks "FileTransfer/Connect@1,FileTransfer/Disconnect@1"`));
+    process.exit(2);
+  }
+
+  const safeName = name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '');
+
+  // Find schemas directory — prefer source schemas/ in dev, fall back to standard resolution
+  let schemasDir = path.join(process.cwd(), 'schemas');
+  if (!fs.existsSync(schemasDir)) {
+    const resolved = findSchemasPath();
+    if (!resolved) {
+      console.error(chalk.red('Error: Cannot find schemas directory'));
+      process.exit(2);
+    }
+    schemasDir = resolved;
+  }
+
+  const tasksDir = path.join(schemasDir, 'workflows', 'tasks');
+  if (!fs.existsSync(tasksDir)) {
+    fs.mkdirSync(tasksDir, { recursive: true });
+  }
+
+  const filePath = path.join(tasksDir, `${safeName}.json`);
+  if (fs.existsSync(filePath)) {
+    console.error(chalk.red(`Error: Schema file already exists: ${filePath}`));
+    process.exit(2);
+  }
+
+  // Parse --tasks flag (passed via --options)
+  const taskEnums: string[] = [];
+  if (tasks) {
+    for (const t of tasks.split(',')) {
+      const trimmed = t.trim();
+      if (trimmed) taskEnums.push(trimmed);
+    }
+  }
+
+  // Derive a title from the name
+  const title = safeName
+    .split('-')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ') + ' Tasks';
+
+  // Build the schema JSON
+  const schema: Record<string, any> = {
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title,
+    description: `${title} operations`,
+    type: 'object',
+    properties: {
+      task: {
+        type: 'string',
+        ...(taskEnums.length > 0 ? { enum: taskEnums } : {}),
+        description: 'Task type identifier'
+      },
+      name: {
+        type: 'string',
+        description: 'Step name identifier'
+      },
+      description: {
+        type: 'string',
+        description: 'Step description'
+      },
+      conditions: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            expression: { type: 'string' }
+          },
+          required: ['expression']
+        }
+      },
+      continueOnError: {
+        type: 'boolean'
+      },
+      inputs: {
+        type: 'object',
+        description: `${title} inputs`,
+        additionalProperties: true
+      },
+      outputs: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            mapping: { type: 'string' }
+          },
+          required: ['name', 'mapping']
+        }
+      }
+    },
+    required: ['task'],
+    additionalProperties: true
+  };
+
+  fs.writeFileSync(filePath, JSON.stringify(schema, null, 2) + '\n', 'utf-8');
+
+  // Sync all.json
+  syncAllJson(tasksDir);
+
+  // Invalidate cache so new schema is immediately discoverable
+  _workflowTaskNamesCache = null;
+
+  console.log(chalk.green(`\n✓ Created task schema: ${path.relative(process.cwd(), filePath)}`));
+  console.log(chalk.gray(`\n  Next steps:`));
+  console.log(chalk.gray(`    1. Edit ${chalk.white(filePath)} to add typed input properties`));
+  console.log(chalk.gray(`    2. Verify: ${chalk.white(`${PROGRAM_NAME} schema ${safeName}`)}`));
+  console.log(chalk.gray(`    3. all.json has been auto-updated with the new reference`));
+  console.log('');
+}
+
+// ============================================================================
+// Sync all.json (auto-regenerate $ref entries from task schema directory)
+// ============================================================================
+
+function syncAllJson(tasksDir: string): void {
+  const files = fs.readdirSync(tasksDir)
+    .filter(f => f.endsWith('.json') && f !== 'all.json' && f !== 'generic.json')
+    .sort();
+
+  const anyOfRefs = files.map(f => ({ $ref: f }));
+  // generic.json always last as fallback
+  if (fs.existsSync(path.join(tasksDir, 'generic.json'))) {
+    anyOfRefs.push({ $ref: 'generic.json' });
+  }
+
+  const allJson = {
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'All Workflow Tasks',
+    description: 'Aggregator schema for all workflow task types. Uses anyOf to allow matching any known task type or falling back to generic task structure.',
+    type: 'object',
+    anyOf: anyOfRefs
+  };
+
+  fs.writeFileSync(
+    path.join(tasksDir, 'all.json'),
+    JSON.stringify(allJson, null, 2) + '\n',
+    'utf-8'
+  );
+}
+
+function runSyncSchemas(): void {
+  // Find schemas directory
+  let schemasDir = path.join(process.cwd(), 'schemas');
+  if (!fs.existsSync(schemasDir)) {
+    const resolved = findSchemasPath();
+    if (!resolved) {
+      console.error(chalk.red('Error: Cannot find schemas directory'));
+      process.exit(2);
+    }
+    schemasDir = resolved;
+  }
+
+  const tasksDir = path.join(schemasDir, 'workflows', 'tasks');
+  if (!fs.existsSync(tasksDir)) {
+    console.error(chalk.red('Error: Tasks directory not found'));
+    process.exit(2);
+  }
+
+  syncAllJson(tasksDir);
+
+  // Invalidate cache
+  _workflowTaskNamesCache = null;
+
+  const taskCount = fs.readdirSync(tasksDir)
+    .filter(f => f.endsWith('.json') && f !== 'all.json' && f !== 'generic.json')
+    .length;
+
+  console.log(chalk.green(`\n✓ Synced all.json with ${taskCount} task schemas (+ generic fallback)`));
   console.log('');
 }
 
@@ -1221,7 +1421,7 @@ function parseArgs(args: string[]): ParsedArgs {
   };
 
   // Check for commands
-  const commands = ['validate', 'schema', 'example', 'list', 'help', 'report', 'init', 'create', 'extract'];
+  const commands = ['validate', 'schema', 'example', 'list', 'help', 'report', 'init', 'create', 'extract', 'sync-schemas'];
   if (args.length > 0 && commands.includes(args[0])) {
     command = args[0];
     args = args.slice(1);
@@ -1274,6 +1474,8 @@ function parseArgs(args: string[]): ParsedArgs {
       options.feature = args[++i];
     } else if (arg === '--options') {
       options.createOptions = args[++i];
+    } else if (arg === '--tasks') {
+      options.createTasks = args[++i];
     } else if (arg === '--to') {
       options.extractTo = args[++i];
     } else if (!arg.startsWith('-')) {
@@ -1381,48 +1583,84 @@ function detectFileType(filePath: string): ValidationType {
 // Schema Display
 // ============================================================================
 
+// Cache for dynamically discovered workflow task schema names
+let _workflowTaskNamesCache: Set<string> | null = null;
+
+function getWorkflowTaskNames(schemasPath: string): Set<string> {
+  if (_workflowTaskNamesCache) return _workflowTaskNamesCache;
+  const tasksDir = path.join(schemasPath, 'workflows', 'tasks');
+  _workflowTaskNamesCache = new Set<string>();
+  if (fs.existsSync(tasksDir)) {
+    for (const file of fs.readdirSync(tasksDir)) {
+      if (file.endsWith('.json') && file !== 'all.json') {
+        _workflowTaskNamesCache.add(file.replace('.json', '').toLowerCase().replace(/[^a-z0-9-]/g, ''));
+      }
+    }
+  }
+  // Also include common definitions
+  const commonDir = path.join(schemasPath, 'workflows', 'common');
+  if (fs.existsSync(commonDir)) {
+    for (const file of fs.readdirSync(commonDir)) {
+      if (file.endsWith('.json')) {
+        _workflowTaskNamesCache.add(file.replace('.json', '').toLowerCase().replace(/[^a-z0-9-]/g, ''));
+      }
+    }
+  }
+  return _workflowTaskNamesCache;
+}
+
 function findSchemaFile(schemasPath: string, name: string, preferWorkflow: boolean = false): string | null {
-  // Normalize name
+  // Normalize name: lowercase, strip non-alphanumeric except hyphens
   const normalizedName = name.toLowerCase().replace(/[^a-z0-9-]/g, '');
 
-  // Workflow schema names - these should match workflow schemas first
+  // Dynamically detect workflow schema names from directory contents
   const workflowCoreNames = ['workflow', 'activity', 'input', 'output', 'variable', 'trigger', 'schedule'];
-  const workflowTaskNames = [
-    'foreach', 'switch', 'while', 'validation', 'map', 'setvariable', 'httprequest',
-    'log', 'error', 'csv', 'export', 'template', 'graphql', 'order', 'contact',
-    'commodity', 'job', 'attachment', 'email-send', 'document-render', 'document-send',
-    'charge', 'accounting-transaction', 'payment', 'workflow-execute', 'condition',
-    'expression', 'mapping'
-  ];
+  const workflowTaskNames = getWorkflowTaskNames(schemasPath);
   const isWorkflowSchema = workflowCoreNames.includes(normalizedName) ||
-                           workflowTaskNames.includes(normalizedName);
+                           workflowTaskNames.has(normalizedName);
 
-  // Search patterns in order of priority
+  // Build search paths using normalized name for consistency
   const searchPaths = preferWorkflow || isWorkflowSchema
     ? [
         // Workflow schemas first for workflow-related names
-        path.join(schemasPath, 'workflows', `${name}.json`),
-        path.join(schemasPath, 'workflows', 'tasks', `${name}.json`),
-        path.join(schemasPath, 'workflows', 'common', `${name}.json`),
+        path.join(schemasPath, 'workflows', `${normalizedName}.json`),
+        path.join(schemasPath, 'workflows', 'tasks', `${normalizedName}.json`),
+        path.join(schemasPath, 'workflows', 'common', `${normalizedName}.json`),
         // Then module schemas
-        path.join(schemasPath, 'components', `${name}.json`),
-        path.join(schemasPath, 'fields', `${name}.json`),
-        path.join(schemasPath, 'actions', `${name}.json`)
+        path.join(schemasPath, 'components', `${normalizedName}.json`),
+        path.join(schemasPath, 'fields', `${normalizedName}.json`),
+        path.join(schemasPath, 'actions', `${normalizedName}.json`)
       ]
     : [
         // Module schemas first
-        path.join(schemasPath, 'components', `${name}.json`),
-        path.join(schemasPath, 'fields', `${name}.json`),
-        path.join(schemasPath, 'actions', `${name}.json`),
+        path.join(schemasPath, 'components', `${normalizedName}.json`),
+        path.join(schemasPath, 'fields', `${normalizedName}.json`),
+        path.join(schemasPath, 'actions', `${normalizedName}.json`),
         // Then workflow schemas
-        path.join(schemasPath, 'workflows', `${name}.json`),
-        path.join(schemasPath, 'workflows', 'tasks', `${name}.json`),
-        path.join(schemasPath, 'workflows', 'common', `${name}.json`)
+        path.join(schemasPath, 'workflows', `${normalizedName}.json`),
+        path.join(schemasPath, 'workflows', 'tasks', `${normalizedName}.json`),
+        path.join(schemasPath, 'workflows', 'common', `${normalizedName}.json`)
       ];
 
   for (const schemaPath of searchPaths) {
     if (fs.existsSync(schemaPath)) {
       return schemaPath;
+    }
+  }
+
+  // Also try with the original name (preserving case) for backwards compatibility
+  if (normalizedName !== name) {
+    const caseSensitivePaths = [
+      path.join(schemasPath, 'workflows', 'tasks', `${name}.json`),
+      path.join(schemasPath, 'workflows', `${name}.json`),
+      path.join(schemasPath, 'components', `${name}.json`),
+      path.join(schemasPath, 'fields', `${name}.json`),
+      path.join(schemasPath, 'actions', `${name}.json`)
+    ];
+    for (const schemaPath of caseSensitivePaths) {
+      if (fs.existsSync(schemaPath)) {
+        return schemaPath;
+      }
     }
   }
 
@@ -2174,7 +2412,18 @@ async function main() {
 
   // Handle create command
   if (command === 'create') {
-    runCreate(files[0], files[1], options.template, options.feature, options.createOptions);
+    // For task-schema, pass --tasks (from options.createTasks) as the tasks argument
+    if (files[0] === 'task-schema') {
+      runCreate(files[0], files[1], options.template, options.feature, options.createTasks);
+    } else {
+      runCreate(files[0], files[1], options.template, options.feature, options.createOptions);
+    }
+    process.exit(0);
+  }
+
+  // Handle sync-schemas command
+  if (command === 'sync-schemas') {
+    runSyncSchemas();
     process.exit(0);
   }
 

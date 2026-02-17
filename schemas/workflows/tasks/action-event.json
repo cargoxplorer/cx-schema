@@ -1,18 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Charge Tasks",
-  "description": "Charge/billing operations",
+  "title": "Action Event Tasks",
+  "description": "Action event operations (triggers UI notifications or webhooks)",
   "type": "object",
   "properties": {
     "task": {
       "type": "string",
       "enum": [
-        "Charge/Create@1",
-        "Charge/Update",
-        "Charge/Delete@1",
-        "Charge/Calculate",
-        "Charge/DynamicUpdate",
-        "Discount/Update"
+        "ActionEvent/Create"
       ],
       "description": "Task type identifier"
     },
@@ -29,9 +24,7 @@
       "items": {
         "type": "object",
         "properties": {
-          "expression": {
-            "type": "string"
-          }
+          "expression": { "type": "string" }
         },
         "required": ["expression"]
       }
@@ -41,31 +34,15 @@
     },
     "inputs": {
       "type": "object",
-      "description": "Charge operation inputs",
+      "description": "Action event inputs",
       "properties": {
-        "chargeId": {
+        "eventName": {
           "type": "string",
-          "description": "Charge ID"
+          "description": "Event name identifier"
         },
-        "orderId": {
-          "type": "string",
-          "description": "Associated order ID"
-        },
-        "jobId": {
-          "type": "string",
-          "description": "Associated job ID"
-        },
-        "chargeType": {
-          "type": "string",
-          "description": "Type of charge"
-        },
-        "amount": {
-          "type": "number",
-          "description": "Charge amount"
-        },
-        "entity": {
+        "data": {
           "type": "object",
-          "description": "Charge entity data",
+          "description": "Event data payload",
           "additionalProperties": true
         }
       },
@@ -76,12 +53,8 @@
       "items": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
-          },
-          "mapping": {
-            "type": "string"
-          }
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
         },
         "required": ["name", "mapping"]
       }

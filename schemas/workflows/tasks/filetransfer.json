@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "File Transfer Tasks",
+  "description": "SFTP/FTP file transfer operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "FileTransfer/Connect@1",
+        "FileTransfer/Disconnect@1",
+        "FileTransfer/ListFiles@1",
+        "FileTransfer/DownloadFile@1",
+        "FileTransfer/UploadFile@1",
+        "FileTransfer/MoveFile@1",
+        "FileTransfer/DeleteFile@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": { "type": "string" }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "File transfer operation inputs",
+      "properties": {
+        "connection": {
+          "type": "string",
+          "description": "Connection reference from Connect step"
+        },
+        "host": {
+          "type": "string",
+          "description": "Remote host (for Connect)"
+        },
+        "port": {
+          "type": ["string", "integer"],
+          "description": "Remote port (for Connect)"
+        },
+        "username": {
+          "type": "string",
+          "description": "Username (for Connect)"
+        },
+        "password": {
+          "type": "string",
+          "description": "Password (for Connect)"
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Protocol: sftp, ftp, ftps"
+        },
+        "path": {
+          "type": "string",
+          "description": "Remote file/directory path"
+        },
+        "sourcePath": {
+          "type": "string",
+          "description": "Source path (for MoveFile)"
+        },
+        "destinationPath": {
+          "type": "string",
+          "description": "Destination path (for MoveFile)"
+        },
+        "content": {
+          "type": "string",
+          "description": "File content (for UploadFile)"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}
