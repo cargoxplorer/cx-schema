@@ -32,7 +32,7 @@ Sets variables directly into both activity and global scope. No outputs — the 
           orderId: "{{ inputs.orderId }}"
       - name: hasMore
         value:
-          expression: "[offset] < [Data.FetchPage.result.totalCount]"
+          expression: "[offset] < [Data?.FetchPage?.result?.totalCount?]"
 ```
 
 Each variable entry has `name` (string) and `value` (any type, supports expression directives).
@@ -45,7 +45,7 @@ Logs all task variables (everything in the step's scoped variables) to the workf
 - task: "Utilities/Log@1"
   name: LogInfo
   inputs:
-    message: "Processing order: {{ Data.GetOrder.order.orderNumber }}"
+    message: "Processing order: {{ Data?.GetOrder?.order?.orderNumber? }}"
     level: Information
 ```
 
@@ -59,7 +59,7 @@ Throws a workflow error that halts execution (unless `continueOnError: true` on 
 - task: "Utilities/Error@1"
   name: ThrowValidationError
   conditions:
-    - expression: "isNullOrEmpty([Data.GetOrder.order?]) = true"
+    - expression: "isNullOrEmpty([Data?.GetOrder?.order?]) = true"
   inputs:
     message: "Order not found: {{ inputs.orderId }}"
 ```
@@ -81,11 +81,15 @@ Performs HTTP requests to external APIs.
     body:
       orderId: "{{ inputs.orderId }}"
   outputs:
-    - name: response
-      mapping: "body"
+    - name: result
+      mapping: "response?.body?"
 ```
 
-Response available at `ActivityName.CallApi.response`.
+**Response structure**: The task returns a `Dictionary<string, object>` (case-insensitive) with key `response`. The response contains `StatusCode`, `Headers`, and `Body` (PascalCase in C#, but access is case-insensitive). Use `response?.body?` to get the parsed body. You can drill deeper: `response?.body?.output?`, `response?.body?.items?[0]?`.
+
+**Case sensitivity**: Variable paths go through `Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)` — so `body` and `Body` both work. Convention: use lowercase `body`.
+
+Response available at `ActivityName?.CallApi?.result?`.
 
 ## Map@1
 
@@ -97,9 +101,9 @@ Extracts/reshapes data from variables into new variables.
   inputs:
     variables:
       - name: orderNumber
-        value: "{{ Data.GetOrder.order.orderNumber }}"
+        value: "{{ Data?.GetOrder?.order?.orderNumber? }}"
       - name: customerName
-        value: "{{ Data.GetOrder.order.customer.name }}"
+        value: "{{ Data?.GetOrder?.order?.customer?.name? }}"
 ```
 
 ## Template@1
@@ -112,12 +116,12 @@ Renders a Handlebars template string with data.
   inputs:
     template: "Hello {{name}}, your order {{orderNumber}} is {{status}}."
     data:
-      name: "{{ Data.GetOrder.order.customer.name }}"
-      orderNumber: "{{ Data.GetOrder.order.orderNumber }}"
-      status: "{{ Data.GetOrder.order.status }}"
+      name: "{{ Data?.GetOrder?.order?.customer?.name? }}"
+      orderNumber: "{{ Data?.GetOrder?.order?.orderNumber? }}"
+      status: "{{ Data?.GetOrder?.order?.status? }}"
   outputs:
     - name: message
-      mapping: "result"
+      mapping: "result?"
 ```
 
 ## CsvParse@1
@@ -128,12 +132,12 @@ Parses CSV content into structured data.
 - task: "Utilities/CsvParse@1"
   name: ParseCsv
   inputs:
-    content: "{{ Data.DownloadFile.fileContent }}"
+    content: "{{ Data?.DownloadFile?.fileContent? }}"
     delimiter: ","
     hasHeader: true
   outputs:
     - name: rows
-      mapping: "rows"
+      mapping: "rows?"
 ```
 
 ## Export@1
@@ -144,11 +148,11 @@ Exports data to file format.
 - task: "Utilities/Export@1"
   name: ExportData
   inputs:
-    data: "{{ Data.GetOrders.result.items }}"
+    data: "{{ Data?.GetOrders?.result?.items? }}"
     format: "csv"
   outputs:
     - name: file
-      mapping: "file"
+      mapping: "file?"
 ```
 
 ## Import@1
@@ -163,5 +167,5 @@ Imports data from file content.
     format: "csv"
   outputs:
     - name: data
-      mapping: "data"
+      mapping: "data?"
 ```

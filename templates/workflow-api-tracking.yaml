@@ -110,7 +110,7 @@ activities:
                 continueOnError: true
                 outputs:
                   - name: response
-                    mapping: "body?"
+                    mapping: "response?.body?"
 
               # Import tracking events — mapping inline
               - task: "Order/Import@1"
