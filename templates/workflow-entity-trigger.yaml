@@ -61,12 +61,12 @@ activities:
             orderId: "\{{entity.orderId}}"
         outputs:
           - name: order
-            mapping: "order"
+            mapping: "order?"
 
       - task: "Utilities/Log@1"
         name: LogChange
         inputs:
-          message: "{{displayName}}: Order \{{Data.GetOrder.order.orderNumber}} status changed"
+          message: "{{displayName}}: Order \{{Data?.GetOrder?.order?.orderNumber?}} status changed"
           level: Information
 
 events:

@@ -74,11 +74,11 @@ activities:
                 offset: "\{{offset}}"
             outputs:
               - name: result
-                mapping: "orders"
+                mapping: "orders?"
 
           - task: "foreach"
             name: ProcessItems
-            collection: "BatchProcess.PageLoop.GetPage.result.items"
+            collection: "BatchProcess?.PageLoop?.GetPage?.result?.items?"
             item: "currentOrder"
             steps:
               - task: "Utilities/Log@1"
@@ -96,7 +96,7 @@ activities:
                     expression: "[offset] + [pageSize]"
                 - name: hasMorePages
                   value:
-                    expression: "[offset] < [BatchProcess.PageLoop.GetPage.result.totalCount]"
+                    expression: "[offset] < [BatchProcess?.PageLoop?.GetPage?.result?.totalCount?]"
 
       - task: "Utilities/Log@1"
         name: LogComplete

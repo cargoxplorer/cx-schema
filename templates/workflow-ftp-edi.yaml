@@ -55,8 +55,8 @@ activities:
         name: SftpConnect
         inputs:
           host: "{{ ftpConfig?.host? }}"
-          protocol: "{{ ftpConfig?.protocol }}"
-          username: "{{ ftpConfig?.username }}"
+          protocol: "{{ ftpConfig?.protocol? }}"
+          username: "{{ ftpConfig?.username? }}"
           authentication:
             type: "password"
             password: "{{ ftpConfig?.password? }}"

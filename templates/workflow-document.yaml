@@ -81,7 +81,7 @@ activities:
             orderId: "\{{inputs.orderId}}"
         outputs:
           - name: order
-            mapping: "order"
+            mapping: "order?"
 
   - name: GenerateDocument
     events:
@@ -128,11 +128,11 @@ activities:
               </body>
               </html>
           data:
-            orderNumber: "\{{FetchData.GetOrder.order.orderNumber}}"
-            status: "\{{FetchData.GetOrder.order.status}}"
+            orderNumber: "\{{FetchData?.GetOrder?.order?.orderNumber?}}"
+            status: "\{{FetchData?.GetOrder?.order?.status?}}"
         outputs:
           - name: document
-            mapping: "document"
+            mapping: "document?"
 
 events:
   onWorkflowStarted:

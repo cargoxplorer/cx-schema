@@ -64,7 +64,7 @@ activities:
             orderId: "\{{inputs.orderId}}"
         outputs:
           - name: order
-            mapping: "order"
+            mapping: "order?"
 
       - task: "Utilities/SetVariable@1"
         name: Process

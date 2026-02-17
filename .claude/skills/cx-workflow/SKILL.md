@@ -176,6 +176,39 @@ For full reference: `!cat .claude/skills/cx-workflow/ref-expressions.md`
 **Value directives**: `expression`, `coalesce`, `foreach`, `switch`, `extends`, `$raw`
 **38 custom functions** + NCalc built-ins. Key ones: `isNullOrEmpty()`, `any()`, `all()`, `count()`, `sum()`, `first()`, `last()`, `contains()`, `join()`, `split()`, `format()`, `now()`, `addDays()`, `formatDate()`, `if()`, `groupBy()`, `concat()`, `distinct()`
 
+### Null-Safe Operator `?` — USE BY DEFAULT
+
+**Always use the `?` suffix on every segment of a variable path** unless the variable is a guaranteed system variable. Without `?`, a null reference at any segment throws a runtime exception and fails the workflow.
+
+**When to use `?`** (default — always):
+```yaml
+# Template expressions — every segment gets ?
+message: "{{ Activity?.Step?.output?.field? }}"
+# NCalc conditions — every segment gets ?
+expression: "[Activity?.Step?.output?.field?] = 'value'"
+# Output mappings
+mapping: "responseField?"
+# Collection paths
+collection: "Activity?.Step?.output?.items?"
+# fromConfig variables
+url: "{{ config?.baseUrl? }}"
+```
+
+**When `?` is NOT needed** (guaranteed system variables):
+`organizationId`, `currentUserId`, `executionId`, `workflowId`, `triggerType`, `eventType`, `position`, `entityName`, `entityId`, `entity`, `entity.*`, `data`, `changes`, `inputs.*`, `exception.message`, `item` (foreach current), `item.*`, `index`, `iteration`
+
+**Examples**:
+```yaml
+# CORRECT — system var (no ?), step output (?)
+organizationId: "{{ int organizationId }}"
+orderId: "{{ Main?.GetOrder?.order?.orderId? }}"
+expression: "[offset] < [BatchProcess?.PageLoop?.GetPage?.result?.totalCount?]"
+
+# WRONG — missing ? on step outputs, will throw null ref
+orderId: "{{ Main.GetOrder.order.orderId }}"
+expression: "[offset] < [BatchProcess.PageLoop.GetPage.result.totalCount]"
+```
+
 ---
 
 ## System Tasks (Control Flow)
@@ -184,7 +217,7 @@ For full reference: `!cat .claude/skills/cx-workflow/ref-expressions.md`
 ```yaml
 - task: foreach
   name: ProcessItems
-  collection: "Data.GetOrders.result.items"
+  collection: "Data?.GetOrders?.result?.items?"
   item: "currentOrder"                       # default: "item"
   continueOnError: true
   steps: [...]
@@ -294,4 +327,5 @@ node -e "const https=require('https'),zlib=require('zlib'),fs=require('fs');http
 5. **Standard workflows** require `activities` with at least one step per activity
 6. **Flow workflows** require `entity`, `states`, `transitions` (no `activities`)
 7. **Entity triggers** require `entityName` and `eventType`
-8. **Always validate** the final YAML: `npx cx-cli <file.yaml>`
+8. **Always use null-safe `?`** on variable paths — `Activity?.Step?.output?` — unless referencing guaranteed system variables (see Variable References section)
+9. **Always validate** the final YAML: `npx cx-cli <file.yaml>`

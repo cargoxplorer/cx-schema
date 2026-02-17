@@ -75,7 +75,7 @@ activities:
       - task: "switch"
         name: CheckStatus
         inputs:
-          expression: "Main.GetEntity.entity.status"
+          expression: "Main?.GetEntity?.entity?.status?"
         cases:
           - when: "active"
             steps:
@@ -97,7 +97,7 @@ activities:
           - task: "Utilities/Log@1"
             name: LogUnknown
             inputs:
-              message: "Unknown status: \{{Main.GetEntity.entity.status}}"
+              message: "Unknown status: \{{Main?.GetEntity?.entity?.status?}}"
               level: Warning
 
       - task: "Utilities/SetVariable@1"

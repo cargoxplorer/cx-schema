@@ -70,7 +70,7 @@ activities:
             orderId: "\{{inputs.orderId}}"
         outputs:
           - name: order
-            mapping: "order"
+            mapping: "order?"
 
       - task: "Utilities/Error@1"
         name: ValidateOrder
@@ -89,7 +89,7 @@ activities:
               value:
                 success: true
                 orderId: "\{{inputs.orderId}}"
-                orderNumber: "\{{Main.GetOrder.order.orderNumber}}"
+                orderNumber: "\{{Main?.GetOrder?.order?.orderNumber?}}"
 
 events:
   onWorkflowStarted:
