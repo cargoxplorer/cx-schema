@@ -4,83 +4,104 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TypeScript-based schema validation package for CargoXplorer YAML modules. Validates module configurations including components, routes, entities, and permissions using JSON Schema and Ajv validator.
+This repo is the home of the **cx-\* Claude Code skills** (`cx-core`, `cx-module`, `cx-workflow`) — the knowledge base and generation rules that teach Claude Code how to build CargoXplorer modules and workflows. It also contains `cx-cli`, a TypeScript CLI tool the skills use to scaffold, validate, and inspect YAML files.
 
-## Build Commands
+The three pillars:
+1. **Skills** (`.claude/skills/`) — SKILL.md + ref-*.md files that Claude Code loads when generating YAML
+2. **Schemas** (`schemas/`) — JSON Schema definitions that enforce correctness
+3. **CLI** (`src/cli.ts` → `cx-cli`) — scaffolding from templates, validation, schema introspection
 
-```bash
-# Build TypeScript to JavaScript
-npm run build
+Published as `@cxtms/cx-schema` npm package, consumed by CX application repos.
 
-# Build without restore (as per user config)
-dotnet build --no-restore
-
-# Prepare for publishing (runs build automatically)
-npm run prepare
-```
-
-## Testing & Validation
+## Build & CLI
 
 ```bash
-# Validate a YAML module file
-npx cx-cli modules/your-module.yaml
-
-# Validate with custom schemas path
-npx cx-cli --schemas ./custom-schemas modules/test-module.yaml
-
-# Output JSON format (useful for CI/CD)
-npx cx-cli --json modules/test-module.yaml
+npm run build                              # TypeScript → dist/
+npx cx-cli create workflow <n> --template <t>  # Scaffold from template (skills always start here)
+npx cx-cli create module <n> --template <t>    # Scaffold from template
+npx cx-cli <file.yaml>                     # Validate any YAML (skills always validate after changes)
+npx cx-cli <file.yaml> --verbose           # Detailed errors with schema paths
+npx cx-cli schema <name>                   # Show JSON schema (skills use this to look up task/component schemas)
+npx cx-cli example <name>                  # Show example YAML
+npx cx-cli list                            # List all available schemas
 ```
 
-## Project Structure
+No test suite (`npm test` is a no-op). Verify changes by scaffolding from templates and running `cx-cli` validation.
 
-- `src/validator.ts` - Core `ModuleValidator` class that orchestrates validation
-  - Uses Ajv with JSON Schema Draft 7
-  - Validates module structure, components, routes, entities
-  - Recursively validates nested components and their children
-  - Provides detailed error reporting with paths and schema violations
+## Architecture
 
-- `src/utils/schemaLoader.ts` - Schema loading system
-  - Recursively loads schemas from `schemas/` directory
-  - Manages three schema subdirectories: components/, fields/, actions/
-  - Caches schemas in a Map with file URIs for Ajv registration
+### Skills (`.claude/skills/`) — the primary deliverable
 
-- `src/types.ts` - TypeScript type definitions for validation results and module structure
+Each skill has a `SKILL.md` entry point and `ref-*.md` reference files loaded on demand.
 
-- `schemas/` - JSON Schema definitions organized by type
-  - `schemas.json` - Main schema definitions
-  - `components/*.json` - Component-specific schemas (layout, dataGrid, form, field, etc.)
-  - `fields/*.json` - Field type schemas (text, number, select, date, etc.)
-  - `actions/*.json` - Action type schemas (navigate, mutation, query, etc.)
+- **`cx-core`** — Shared entity field reference (Order, Contact, Commodity, Job, etc.), enums, customValues patterns. Loaded by both cx-module and cx-workflow as a dependency.
+- **`cx-module`** — Teaches Claude Code to generate UI module YAML. References: layout, form, data grid, field types, actions, routes. Uses cx-cli to scaffold (`create module`) and validate.
+- **`cx-workflow`** — Teaches Claude Code to generate workflow YAML. References: task types (utilities, query, entity CRUD, communication, file transfer, accounting), expression syntax, Flow state machines. Uses cx-cli to scaffold (`create workflow --template <t>`) and validate.
 
-- `scripts/` - Installation and setup scripts
-  - `postinstall.js` - Automatically creates `.cx-schema` folder in consuming projects
-  - `setup-vscode.js` - Configures VS Code YAML schema validation
+**Skill contract**: skills instruct Claude Code to always scaffold via `cx-cli create` (never write YAML from scratch), then customize the output, then validate with `cx-cli`. The CLI, schemas, and templates exist to support this workflow.
 
-## Architecture Notes
+### CLI (`src/cli.ts`) — tooling for skills
 
-**Validation Flow:**
-1. `ModuleValidator` constructor loads all schemas from `schemas/` directory
-2. Schemas are registered with Ajv using file-based keys (e.g., "components/layout.json")
-3. `validateModule()` parses YAML, validates top-level structure, then delegates to specialized validators
-4. Component validation is recursive - validates component schemas and walks children arrays
-5. Errors accumulate in arrays and are returned with detailed paths and type categorization
+Single-file CLI (~2200 lines) handling all commands: `validate`, `create`, `extract`, `init`, `schema`, `example`, `list`, `report`. Auto-detects file type by checking for `workflow:` vs `module:` keys in YAML.
 
-**Schema Registration:**
-- Each schema file is mapped to a key based on its path relative to `schemas/`
-- The `getSchemaId()` method (src/validator.ts:75) converts file paths to Ajv schema IDs
-- Component-specific schemas are looked up by component type (e.g., "components/layout.json")
+**Template system**: `templates/*.yaml` files use `{{variable}}` placeholders processed at create time. Runtime CX expressions are escaped as `\{{...}}` in templates so they survive processing and become `{{...}}` in output. Variables: `name`, `displayName`, `displayNameNoSpaces`, `uuid`, `fileName`.
 
-**Error Types:**
-- `yaml_syntax_error` - Invalid YAML
-- `missing_property` - Required property missing
-- `schema_violation` - Ajv schema validation failed
-- `invalid_component` - Component structure invalid
-- `deprecated_property` - Using deprecated property (warning)
+**`--options` support** (modules only): Parses JSON field definitions and injects them into form children, dataGrid columns, entity fields, validationSchema, and GraphQL queries.
 
-## TypeScript Configuration
+### Validators
 
-- Target: ES2020
-- Module: CommonJS
-- Output: `dist/` directory with declarations and source maps
-- Strict mode enabled
+- **`ModuleValidator`** (`src/validator.ts`) — validates UI module YAML (components, routes, entities, permissions). Recursively walks `children` arrays. Schemas in `schemas/components/`, `schemas/fields/`, `schemas/actions/`.
+- **`WorkflowValidator`** (`src/workflowValidator.ts`) — validates workflow YAML (activities, steps, triggers, schedules). Validates each task type against its schema. Schemas in `schemas/workflows/` with subdirectories `tasks/`, `flow/`, `common/`.
+
+Both use Ajv (Draft 7) and are exported from `src/index.ts` as the library API.
+
+### Schema Directory Layout
+
+```
+schemas/
+├── schemas.json                    # Main module schema
+├── components/*.json               # UI components (form, dataGrid, layout, tabs, etc.)
+├── fields/*.json                   # Field types (text, number, select, date, etc.)
+├── actions/*.json                  # Action types (navigate, mutation, query, etc.)
+└── workflows/
+    ├── workflow.json               # Top-level workflow schema (conditional validation for Flow/PublicApi)
+    ├── activity.json, input.json, output.json, variable.json, trigger.json, schedule.json
+    ├── tasks/*.json                # Task-type schemas (foreach, switch, graphql, order, etc.)
+    ├── flow/*.json                 # Flow state machine schemas (entity, state, transition, aggregation)
+    └── common/*.json               # Shared definitions (condition, expression, mapping)
+```
+
+**Dual copies**: `schemas/` is the source of truth. `.cx-schema/` is a gitignored local copy created by `postinstall.js` for consuming projects. When editing schemas, update `schemas/` — the `.cx-schema/` copy must be synced manually during development (or just `cp schemas/... .cx-schema/...`).
+
+### Workflow Templates
+
+12 templates in `templates/`: `workflow.yaml` (default), `workflow-basic.yaml`, `workflow-entity-trigger.yaml`, `workflow-document.yaml`, `workflow-scheduled.yaml`, `workflow-utility.yaml`, `workflow-webhook.yaml`, `workflow-public-api.yaml`, `workflow-mcp-tool.yaml`, `workflow-ftp-tracking.yaml`, `workflow-ftp-edi.yaml`, `workflow-api-tracking.yaml`.
+
+5 module templates: `module.yaml` (default), `module-grid.yaml`, `module-form.yaml`, `module-select.yaml`, `module-configuration.yaml`.
+
+### Workflow Types
+
+`workflowType` in YAML controls behavior. Omit for standard process workflows.
+
+| Type | Key Requirement |
+|------|----------------|
+| `Document` | Must be Sync, requires `file` output |
+| `Flow` | Requires `entity`, `states`, `transitions` (no `activities`) |
+| `Webhook` | Anonymous HTTP endpoint, `payload`/`request` auto-injected inputs |
+| `PublicApi` | Requires `api` section (path, method, auth), must be Sync |
+| `Quote` | Quote generation workflows |
+
+### Conditional Schema Validation
+
+`workflow.json` uses JSON Schema `allOf`/`if`/`then` for type-specific rules:
+- `workflowType: "Flow"` → requires `entity`, disallows `activities`
+- `workflowType: "PublicApi"` → requires `api` section
+- All others → requires `activities`
+
+### Key Design Patterns
+
+- Input `props` has `additionalProperties: true` — new fields like `in` (for PublicApi) and `format` are additive
+- Output schema supports both `additionalProperties` (legacy) and `props` (new, for OpenAPI metadata)
+- All workflow templates include event handlers (onActivityStarted/Completed/Failed, onWorkflowStarted/Executed/Failed)
+- Template expressions: `{{ path }}` in step inputs (raw object or string interpolation), `[variable]` in NCalc conditions
+- Null-safe `?` operator is used by default on all variable paths except guaranteed system variables
