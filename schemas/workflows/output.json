@@ -12,6 +12,26 @@
       "type": "string",
       "description": "Path to variable value (e.g., 'activityName.stepName.outputVar')"
     },
+    "props": {
+      "type": "object",
+      "description": "Output metadata for PublicApi workflows (OpenAPI response schema)",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Response type (e.g., 'object', 'array', 'string', 'integer')"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the output for OpenAPI documentation"
+        },
+        "schema": {
+          "type": "object",
+          "description": "JSON Schema describing the response structure",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
     "additionalProperties": {
       "type": "object",
       "description": "Additional output configuration",

@@ -204,6 +204,63 @@
         }
       ]
     },
+    "api": {
+      "type": "object",
+      "description": "Public API endpoint configuration (required for PublicApi workflows)",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "API route path with parameter placeholders (e.g., '/orders/{orderId}')"
+        },
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+          "description": "HTTP method"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Short summary for Swagger/OpenAPI documentation"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description for Swagger/OpenAPI documentation"
+        },
+        "operationId": {
+          "type": "string",
+          "description": "Unique operation ID for OpenAPI (auto-generated if omitted)"
+        },
+        "document": {
+          "type": "string",
+          "description": "Swagger document name (default: 'public')"
+        },
+        "category": {
+          "type": "string",
+          "description": "Swagger tag/group for organizing endpoints"
+        },
+        "authentication": {
+          "type": "string",
+          "enum": ["none", "bearer", "apiKey"],
+          "description": "Authentication method: none (anonymous), bearer (JWT token), or apiKey"
+        },
+        "rateLimit": {
+          "type": "object",
+          "description": "Rate limiting configuration",
+          "properties": {
+            "perSecond": {
+              "type": "integer",
+              "description": "Maximum requests per second"
+            },
+            "perMinute": {
+              "type": "integer",
+              "description": "Maximum requests per minute"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["path", "method"],
+      "additionalProperties": true
+    },
     "entity": {
       "$ref": "flow/entity.json",
       "description": "Entity configuration for Flow workflows"
@@ -251,6 +308,21 @@
       },
       "else": {
         "required": ["workflow", "activities"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "workflow": {
+            "properties": {
+              "workflowType": { "const": "PublicApi" }
+            },
+            "required": ["workflowType"]
+          }
+        }
+      },
+      "then": {
+        "required": ["workflow", "activities", "api"]
       }
     }
   ],

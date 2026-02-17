@@ -25,6 +25,15 @@
           "type": "string",
           "description": "Description of the input parameter"
         },
+        "in": {
+          "type": "string",
+          "enum": ["path", "query", "header", "body"],
+          "description": "Parameter location for PublicApi workflows: path, query, header, or body"
+        },
+        "format": {
+          "type": "string",
+          "description": "Parameter format hint for OpenAPI documentation (e.g., 'uuid', 'date-time', 'email', 'int32', 'int64')"
+        },
         "required": {
           "type": "boolean",
           "description": "Whether input is required"

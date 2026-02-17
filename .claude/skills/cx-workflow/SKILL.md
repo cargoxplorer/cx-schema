@@ -35,6 +35,7 @@ Always start by running the CLI to generate a schema-valid YAML file.
 | `api-tracking` | Fetch tracking from carrier API | Scheduled, query orders needing updates, `HttpRequest` to carrier API, parse response, `Order/Import@1` with `matchByEventDefinition` |
 | `mcp-tool` | Expose workflow as MCP tool | `executionMode: Sync`, `tags: [mcp-tool]`, `agentInstruction`, typed inputs, structured output |
 | `webhook` | HTTP endpoint for external callers | `workflowType: Webhook`, Sync, anonymous endpoint, `payload`/`request` inputs, `response`/`statusCode` outputs |
+| `public-api` | REST API endpoint with OpenAPI docs | `workflowType: PublicApi`, Sync, `api` section (path, method, auth), inputs with `props.in`, outputs with `props.schema` |
 
 ```bash
 npx cx-cli create workflow <name> --template <template>
@@ -64,6 +65,8 @@ npx cx-cli create workflow <name> --template <template> --feature <feature-name>
 **`mcp-tool`** — write a clear `agentInstruction` describing when to use the tool, expected inputs, and return values. Keep `executionMode: Sync` so the agent gets results immediately. Define typed `inputs` with descriptive `props` (the AI reads these). Return structured data via `outputs`. The `mcp-tool` tag is required — it's what makes the workflow discoverable via `list_custom_tools` in the MCP server. Validate inputs with `Utilities/Error@1` conditions.
 
 **`webhook`** — endpoint: `POST /api/v2/orgs/{organizationId}/webhooks/{workflowId}`. The endpoint is anonymous (`[AllowAnonymous]`) and rate-limited (10/sec, 100/min per IP). Two inputs are auto-injected by the controller: `payload` (parsed JSON body or raw string) and `request` (object with `headers`, `body`, `remoteIpAddress`). Control the HTTP response via `response` and `statusCode` outputs. Update `webhookSecret` configName to your app config path. Customize the `ValidateWebhook` step for your auth method (header secret, HMAC signature, etc.). Use `executionMode: Sync` when the caller needs a response; use `Async` for fire-and-forget (returns immediately). Keep `runAs: "system"` since the endpoint is anonymous. Add `additionalProperties.cors.allowedOrigins` to restrict CORS if needed.
+
+**`public-api`** — requires a top-level `api` section defining the REST endpoint. Set `api.path` with route params (e.g., `/orders/{orderId}`), `api.method` (GET/POST/PUT/PATCH/DELETE), `api.authentication` (`none`, `bearer`, `apiKey`), `api.document` (swagger doc name, default `"public"`), and `api.category` (swagger tag). Configure `api.rateLimit` with `perSecond`/`perMinute`. Each input uses `props.in` (`path`, `query`, `header`, `body`) to specify where the parameter comes from, and `props.format` for OpenAPI type hints (e.g., `uuid`, `date-time`). Outputs use `props.type`, `props.description`, and `props.schema` to describe the response for OpenAPI docs. Must use `executionMode: Sync`. Control HTTP response via `response` and `statusCode` outputs.
 
 **All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowExecuted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed.
 
