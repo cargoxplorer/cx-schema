@@ -6,6 +6,23 @@ argument-hint: <entity name or question about fields>
 
 Shared domain reference for CargoXplorer entities. Used by `cx-workflow` and `cx-module` skills for entity field names, types, navigation properties, enums, and customValues extension patterns.
 
+## Feature File Layout
+
+All modules and workflows are organized under feature directories:
+
+```
+features/
+  <feature_name>/
+    modules/          # UI module YAML files
+    workflows/        # Workflow YAML files
+```
+
+When creating new modules or workflows, always place them under the correct feature directory:
+- `features/<feature_name>/modules/<name>-module.yaml`
+- `features/<feature_name>/workflows/<name>.yaml`
+
+Use `--feature <feature_name>` with `cx-cli create` to automatically place files in the correct location.
+
 ## Entity Field Reference
 
 ### Primary Entities
