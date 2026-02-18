@@ -6,7 +6,19 @@ All entity tasks follow the `Namespace/Operation@Version` pattern. Outputs are s
 
 | Task | Description |
 |------|-------------|
-| `Entity/Change` | Generic entity change (works for any entity type) |
+| `Entity/Change` | Generic entity change — modify custom values on the tracked entity. Designed for **Before** triggers where the entity hasn't been persisted yet. |
+
+```yaml
+- task: "Entity/Change@1"
+  name: SetDefaults
+  inputs:
+    changes:
+      customValues:
+        region: "{{ parseAddress(Order.ShipToAddress).state }}"
+        lastModifiedBy: "{{ currentUser.name }}"
+```
+
+> **Note**: Async "Before" triggers are forbidden. Before triggers must use `executionMode: Sync`.
 
 ## Order
 
@@ -160,3 +172,20 @@ All entity tasks follow the `Namespace/Operation@Version` pattern. Outputs are s
 | `Cities/Import` | Import cities |
 | `Rate/Update` | Update rate |
 | `TrackingEvent/Import` | Import tracking events |
+
+## Note
+
+| Task | Description |
+|------|-------------|
+| `Note/Create` | Create note in a thread |
+| `Note/Update` | Update note content |
+| `Note/Delete` | Delete a note |
+| `Note/Import` | Bulk import notes |
+| `Note/Export` | Export notes for an entity |
+| `Note/RenameThread` | Rename a note thread |
+
+## Accounting Transaction (Additional)
+
+| Task | Description |
+|------|-------------|
+| `AccountingTransaction/ApplyCredit` | Apply credit memo to invoices |
