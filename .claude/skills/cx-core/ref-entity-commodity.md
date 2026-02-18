@@ -203,3 +203,25 @@ inputs:
 - `OrderCommodity.customValues` — per-order-per-commodity fields
 - `CommodityType.customValues` — type-level fields
 - `CommodityTag.customValues` — tag-level fields
+
+---
+
+## CommodityEvent (Bridge Entity)
+
+Links tracking events to individual commodities for granular item-level tracking.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `commodityEventId` | `int` | PK |
+| `commodityId` | `int` | FK to Commodity |
+| `trackingEventId` | `int` | FK to TrackingEvent |
+
+**Navigation:** `commodity`, `trackingEvent` (with `eventDefinition`)
+
+Used in Flow workflow aggregations:
+```yaml
+aggregations:
+  - name: "hasCommodityEvent"
+    parameter: "eventCode"
+    expression: "any([Commodity.CommodityEvents], [each.TrackingEvent.EventDefinition.EventCode] = [eventCode])"
+```
