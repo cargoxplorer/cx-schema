@@ -17,7 +17,7 @@ function findProjectRoot() {
       // Check if this is not the cx-schema-validator package itself
       try {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-        if (packageJson.name !== 'cx-schema-validator') {
+        if (packageJson.name !== '@cxtms/cx-schema') {
           return currentDir;
         }
       } catch (error) {
@@ -185,6 +185,6 @@ function main() {
 }
 
 // Only run if this is not being installed as a dependency of cx-schema-validator itself
-if (!process.env.npm_package_name || process.env.npm_package_name !== 'cx-schema-validator') {
+if (!process.env.npm_package_name || process.env.npm_package_name !== '@cxtms/cx-schema') {
   main();
 }
