@@ -11,6 +11,7 @@ import * as yaml from 'js-yaml';
 import { ModuleValidator } from './validator';
 import { WorkflowValidator } from './workflowValidator';
 import { ValidationResult, ValidationError } from './types';
+import { computeExtractPriority } from './extractUtils';
 
 // ============================================================================
 // Types
@@ -41,6 +42,7 @@ interface CLIOptions {
   createOptions?: string;
   createTasks?: string;
   extractTo?: string;
+  extractCopy?: boolean;
 }
 
 interface FileValidationResult {
@@ -119,6 +121,7 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--options <json>')}        JSON field definitions for create (inline or file path)
   ${chalk.green('--tasks <list>')}         Comma-separated task enums for create task-schema
   ${chalk.green('--to <file>')}            Target file for extract command
+  ${chalk.green('--copy')}                 Copy component instead of moving (source unchanged, target gets higher priority)
 
 ${chalk.bold.yellow('VALIDATION EXAMPLES:')}
   ${chalk.gray('# Validate a module YAML file')}
@@ -310,16 +313,25 @@ ${chalk.bold.yellow('EXTRACT COMMAND')}
 Extract a component (and its routes) from one module into another.
 
 ${chalk.bold.yellow('USAGE:')}
-  ${chalk.cyan(`${PROGRAM_NAME} extract <source-file> <component-name> --to <target-file>`)}
+  ${chalk.cyan(`${PROGRAM_NAME} extract <source-file> <component-name> --to <target-file> [--copy]`)}
+
+${chalk.bold.yellow('OPTIONS:')}
+  ${chalk.green('--copy')}   Copy instead of move. Source stays unchanged, target gets higher priority.
 
 ${chalk.bold.yellow('WHAT GETS MOVED:')}
   ${chalk.green('Component')}   - The component matching the exact name
   ${chalk.green('Routes')}      - Any routes whose component field matches the name
   ${chalk.gray('Permissions and entities are NOT moved')}
 
+${chalk.bold.yellow('PRIORITY (--copy mode):')}
+  When using --copy, the target module gets a priority higher than the source:
+  ${chalk.gray('Source priority 1  → Target priority 2')}
+  ${chalk.gray('Source no priority → Target priority 1')}
+
 ${chalk.bold.yellow('EXAMPLES:')}
   ${chalk.cyan(`${PROGRAM_NAME} extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml`)}
   ${chalk.cyan(`${PROGRAM_NAME} extract modules/main.yaml Dashboard --to modules/dashboard.yaml`)}
+  ${chalk.cyan(`${PROGRAM_NAME} extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml --copy`)}
 `;
 
 // ============================================================================
@@ -1281,11 +1293,11 @@ function runSyncSchemas(): void {
 // Extract Command
 // ============================================================================
 
-function runExtract(sourceFile: string | undefined, componentName: string | undefined, targetFile: string | undefined): void {
+function runExtract(sourceFile: string | undefined, componentName: string | undefined, targetFile: string | undefined, copy?: boolean): void {
   // Validate args
   if (!sourceFile || !componentName || !targetFile) {
     console.error(chalk.red('Error: Missing required arguments'));
-    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} extract <source-file> <component-name> --to <target-file>`));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} extract <source-file> <component-name> --to <target-file> [--copy]`));
     process.exit(2);
   }
 
@@ -1355,10 +1367,23 @@ function runExtract(sourceFile: string | undefined, componentName: string | unde
       .split('-')
       .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
       .join('');
-    targetDoc = {
-      module: moduleName,
+
+    const sourceModule = typeof sourceDoc.module === 'object' ? sourceDoc.module : null;
+    const moduleObj: any = {
+      name: moduleName,
       appModuleId: generateUUID(),
-      application: sourceDoc.application || 'cx',
+      displayName: moduleName,
+      application: sourceModule?.application || sourceDoc.application || 'cx',
+    };
+
+    // In copy mode, set priority higher than source
+    if (copy) {
+      const sourcePriority = sourceModule?.priority;
+      moduleObj.priority = computeExtractPriority(sourcePriority);
+    }
+
+    targetDoc = {
+      module: moduleObj,
       entities: [],
       permissions: [],
       components: [],
@@ -1367,17 +1392,25 @@ function runExtract(sourceFile: string | undefined, componentName: string | unde
     targetCreated = true;
   }
 
-  // Move component to target
+  // Add component to target
   targetDoc.components.push(component);
-  sourceDoc.components.splice(compIndex, 1);
 
-  // Move routes to target
+  // In copy mode, don't modify source
+  if (!copy) {
+    sourceDoc.components.splice(compIndex, 1);
+  }
+
+  // Add routes to target
   if (matchedRoutes.length > 0) {
     if (!Array.isArray(targetDoc.routes)) {
       targetDoc.routes = [];
     }
     targetDoc.routes.push(...matchedRoutes);
-    sourceDoc.routes = remainingRoutes;
+
+    // In copy mode, don't modify source routes
+    if (!copy) {
+      sourceDoc.routes = remainingRoutes;
+    }
   }
 
   // Ensure target directory exists
@@ -1386,15 +1419,22 @@ function runExtract(sourceFile: string | undefined, componentName: string | unde
     fs.mkdirSync(targetDir, { recursive: true });
   }
 
-  // Write both files
+  // Write files
   const dumpOptions = { indent: 2, lineWidth: -1, noRefs: true, quotingType: '"' as const, forceQuotes: false };
-  fs.writeFileSync(sourceFile, yaml.dump(sourceDoc, dumpOptions), 'utf-8');
+  if (!copy) {
+    fs.writeFileSync(sourceFile, yaml.dump(sourceDoc, dumpOptions), 'utf-8');
+  }
   fs.writeFileSync(targetFile, yaml.dump(targetDoc, dumpOptions), 'utf-8');
 
   // Print summary
-  console.log(chalk.green(`\n✓ Extracted component: ${chalk.bold(componentName)}`));
-  console.log(chalk.gray(`  Routes moved: ${matchedRoutes.length}`));
-  console.log(chalk.gray(`  Source: ${sourceFile} (updated)`));
+  const action = copy ? 'Copied' : 'Extracted';
+  console.log(chalk.green(`\n✓ ${action} component: ${chalk.bold(componentName)}`));
+  console.log(chalk.gray(`  Routes ${copy ? 'copied' : 'moved'}: ${matchedRoutes.length}`));
+  if (!copy) {
+    console.log(chalk.gray(`  Source: ${sourceFile} (updated)`));
+  } else {
+    console.log(chalk.gray(`  Source: ${sourceFile} (unchanged)`));
+  }
   console.log(chalk.gray(`  Target: ${targetFile} (${targetCreated ? 'created' : 'updated'})`));
   console.log('');
 }
@@ -1478,6 +1518,8 @@ function parseArgs(args: string[]): ParsedArgs {
       options.createTasks = args[++i];
     } else if (arg === '--to') {
       options.extractTo = args[++i];
+    } else if (arg === '--copy') {
+      options.extractCopy = true;
     } else if (!arg.startsWith('-')) {
       files.push(arg);
     } else {
@@ -2429,7 +2471,7 @@ async function main() {
 
   // Handle extract command
   if (command === 'extract') {
-    runExtract(files[0], files[1], options.extractTo);
+    runExtract(files[0], files[1], options.extractTo, options.extractCopy);
     process.exit(0);
   }
 
