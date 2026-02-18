@@ -7,7 +7,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
-import * as yaml from 'js-yaml';
+import YAML, { isSeq, isMap, YAMLSeq, Document as YAMLDocument } from 'yaml';
 import { ModuleValidator } from './validator';
 import { WorkflowValidator } from './workflowValidator';
 import { ValidationResult, ValidationError } from './types';
@@ -916,7 +916,7 @@ function applyCreateOptions(content: string, optionsArg: string): string {
   }
 
   // Parse YAML
-  const doc = yaml.load(content) as any;
+  const doc = YAML.parse(content) as any;
   if (!doc) throw new Error('Failed to parse template YAML for --options processing');
 
   let applied = false;
@@ -961,12 +961,10 @@ function applyCreateOptions(content: string, optionsArg: string): string {
   }
 
   // Dump back to YAML
-  const yamlContent = yaml.dump(doc, {
+  const yamlContent = YAML.stringify(doc, {
     indent: 2,
-    lineWidth: -1,
-    noRefs: true,
-    quotingType: '"',
-    forceQuotes: false
+    lineWidth: 0,
+    singleQuote: false,
   });
 
   return headerLines.join('\n') + yamlContent;
@@ -1307,18 +1305,28 @@ function runExtract(sourceFile: string | undefined, componentName: string | unde
     process.exit(2);
   }
 
-  // Read and parse source
+  // Read and parse source (Document API preserves comments)
   const sourceContent = fs.readFileSync(sourceFile, 'utf-8');
-  const sourceDoc = yaml.load(sourceContent) as any;
-  if (!sourceDoc || !Array.isArray(sourceDoc.components)) {
+  const srcDoc = YAML.parseDocument(sourceContent);
+  const sourceJS = srcDoc.toJS() as any;
+  if (!sourceJS || !Array.isArray(sourceJS.components)) {
     console.error(chalk.red(`Error: Source file is not a valid module (missing components array): ${sourceFile}`));
     process.exit(2);
   }
 
+  // Get the AST components sequence
+  const srcComponents = srcDoc.get('components', true) as YAMLSeq;
+  if (!isSeq(srcComponents)) {
+    console.error(chalk.red(`Error: Source components is not a sequence: ${sourceFile}`));
+    process.exit(2);
+  }
+
   // Find component by exact name match
-  const compIndex = sourceDoc.components.findIndex((c: any) => c.name === componentName);
+  const compIndex = srcComponents.items.findIndex((item) => {
+    return isMap(item) && item.get('name') === componentName;
+  });
   if (compIndex === -1) {
-    const available = sourceDoc.components.map((c: any) => c.name).filter(Boolean);
+    const available = sourceJS.components.map((c: any) => c.name).filter(Boolean);
     console.error(chalk.red(`Error: Component not found: ${componentName}`));
     if (available.length > 0) {
       console.error(chalk.gray('Available components:'));
@@ -1329,33 +1337,55 @@ function runExtract(sourceFile: string | undefined, componentName: string | unde
     process.exit(2);
   }
 
-  const component = sourceDoc.components[compIndex];
+  // Get the component AST node (clone for copy, take for move)
+  const componentNode = copy
+    ? srcDoc.createNode(sourceJS.components[compIndex])
+    : srcComponents.items[compIndex];
 
-  // Find matching routes
-  const matchedRoutes: any[] = [];
-  const remainingRoutes: any[] = [];
-  if (Array.isArray(sourceDoc.routes)) {
-    for (const route of sourceDoc.routes) {
-      if (route.component === componentName) {
-        matchedRoutes.push(route);
-      } else {
-        remainingRoutes.push(route);
-      }
+  // Capture comment: if this is the first item, the comment lives on the parent seq
+  let componentComment: string | undefined;
+  if (compIndex === 0 && srcComponents.commentBefore) {
+    componentComment = srcComponents.commentBefore;
+    if (!copy) {
+      // Transfer the comment away from the source seq (it belongs to the extracted component)
+      srcComponents.commentBefore = undefined;
     }
+  } else {
+    componentComment = (componentNode as any).commentBefore;
   }
 
-  // Load or create target
-  let targetDoc: any;
+  // Find matching routes (by index in AST)
+  const srcRoutes = srcDoc.get('routes', true) as YAMLSeq | undefined;
+  const matchedRouteIndices: number[] = [];
+  if (isSeq(srcRoutes)) {
+    srcRoutes.items.forEach((item, idx) => {
+      if (isMap(item) && item.get('component') === componentName) {
+        matchedRouteIndices.push(idx);
+      }
+    });
+  }
+
+  // Collect route AST nodes (clone for copy, reference for move)
+  const routeNodes = matchedRouteIndices.map(idx => {
+    if (copy) {
+      return srcDoc.createNode(sourceJS.routes[idx]);
+    }
+    return srcRoutes!.items[idx];
+  });
+
+  // Load or create target document
+  let tgtDoc: YAMLDocument;
   let targetCreated = false;
   if (fs.existsSync(targetFile)) {
     const targetContent = fs.readFileSync(targetFile, 'utf-8');
-    targetDoc = yaml.load(targetContent) as any;
-    if (!targetDoc || !Array.isArray(targetDoc.components)) {
+    tgtDoc = YAML.parseDocument(targetContent);
+    const targetJS = tgtDoc.toJS() as any;
+    if (!targetJS || !Array.isArray(targetJS.components)) {
       console.error(chalk.red(`Error: Target file is not a valid module (missing components array): ${targetFile}`));
       process.exit(2);
     }
     // Check for duplicate component name
-    const duplicate = targetDoc.components.find((c: any) => c.name === componentName);
+    const duplicate = targetJS.components.find((c: any) => c.name === componentName);
     if (duplicate) {
       console.error(chalk.red(`Error: Target already contains a component named "${componentName}"`));
       process.exit(2);
@@ -1368,12 +1398,14 @@ function runExtract(sourceFile: string | undefined, componentName: string | unde
       .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
       .join('');
 
-    const sourceModule = typeof sourceDoc.module === 'object' ? sourceDoc.module : null;
+    const sourceModule = typeof sourceJS.module === 'object' ? sourceJS.module : null;
+    const displayName = moduleName.replace(/([a-z])([A-Z])/g, '$1 $2');
     const moduleObj: any = {
       name: moduleName,
       appModuleId: generateUUID(),
-      displayName: moduleName,
-      application: sourceModule?.application || sourceDoc.application || 'cx',
+      displayName: { 'en-US': displayName },
+      description: { 'en-US': `${displayName} module` },
+      application: sourceModule?.application || sourceJS.application || 'cx',
     };
 
     // In copy mode, set priority higher than source
@@ -1382,34 +1414,57 @@ function runExtract(sourceFile: string | undefined, componentName: string | unde
       moduleObj.priority = computeExtractPriority(sourcePriority);
     }
 
-    targetDoc = {
+    // Parse from string so the document has proper AST context for comment preservation
+    const scaffoldStr = YAML.stringify({
       module: moduleObj,
       entities: [],
       permissions: [],
       components: [],
       routes: []
-    };
+    }, { indent: 2, lineWidth: 0, singleQuote: false });
+    tgtDoc = YAML.parseDocument(scaffoldStr);
     targetCreated = true;
   }
 
-  // Add component to target
-  targetDoc.components.push(component);
+  // Add component to target (ensure block style so comments are preserved)
+  const tgtComponents = tgtDoc.get('components', true) as YAMLSeq;
+  if (isSeq(tgtComponents)) {
+    tgtComponents.flow = false;
+    // Apply the captured comment: if it's the first item in target, set on seq; otherwise on node
+    if (componentComment) {
+      if (tgtComponents.items.length === 0) {
+        tgtComponents.commentBefore = componentComment;
+      } else {
+        (componentNode as any).commentBefore = componentComment;
+      }
+    }
+    tgtComponents.items.push(componentNode);
+  } else {
+    tgtDoc.addIn(['components'], componentNode);
+  }
 
-  // In copy mode, don't modify source
+  // In move mode, remove component from source
   if (!copy) {
-    sourceDoc.components.splice(compIndex, 1);
+    srcComponents.items.splice(compIndex, 1);
   }
 
   // Add routes to target
-  if (matchedRoutes.length > 0) {
-    if (!Array.isArray(targetDoc.routes)) {
-      targetDoc.routes = [];
+  if (routeNodes.length > 0) {
+    let tgtRoutes = tgtDoc.get('routes', true) as YAMLSeq | undefined;
+    if (!isSeq(tgtRoutes)) {
+      tgtDoc.set('routes', tgtDoc.createNode([]));
+      tgtRoutes = tgtDoc.get('routes', true) as YAMLSeq;
     }
-    targetDoc.routes.push(...matchedRoutes);
+    tgtRoutes!.flow = false;
+    for (const routeNode of routeNodes) {
+      tgtRoutes!.items.push(routeNode);
+    }
 
-    // In copy mode, don't modify source routes
-    if (!copy) {
-      sourceDoc.routes = remainingRoutes;
+    // In move mode, remove routes from source (reverse order to preserve indices)
+    if (!copy && isSeq(srcRoutes)) {
+      for (let i = matchedRouteIndices.length - 1; i >= 0; i--) {
+        srcRoutes.items.splice(matchedRouteIndices[i], 1);
+      }
     }
   }
 
@@ -1419,17 +1474,17 @@ function runExtract(sourceFile: string | undefined, componentName: string | unde
     fs.mkdirSync(targetDir, { recursive: true });
   }
 
-  // Write files
-  const dumpOptions = { indent: 2, lineWidth: -1, noRefs: true, quotingType: '"' as const, forceQuotes: false };
+  // Write files (toString preserves comments)
+  const toStringOpts = { indent: 2, lineWidth: 0, singleQuote: false };
   if (!copy) {
-    fs.writeFileSync(sourceFile, yaml.dump(sourceDoc, dumpOptions), 'utf-8');
+    fs.writeFileSync(sourceFile, srcDoc.toString(toStringOpts), 'utf-8');
   }
-  fs.writeFileSync(targetFile, yaml.dump(targetDoc, dumpOptions), 'utf-8');
+  fs.writeFileSync(targetFile, tgtDoc.toString(toStringOpts), 'utf-8');
 
   // Print summary
   const action = copy ? 'Copied' : 'Extracted';
   console.log(chalk.green(`\n✓ ${action} component: ${chalk.bold(componentName)}`));
-  console.log(chalk.gray(`  Routes ${copy ? 'copied' : 'moved'}: ${matchedRoutes.length}`));
+  console.log(chalk.gray(`  Routes ${copy ? 'copied' : 'moved'}: ${matchedRouteIndices.length}`));
   if (!copy) {
     console.log(chalk.gray(`  Source: ${sourceFile} (updated)`));
   } else {
@@ -1595,7 +1650,7 @@ function findSchemasPath(): string | undefined {
 function detectFileType(filePath: string): ValidationType {
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const data = yaml.load(content) as any;
+    const data = YAML.parse(content) as any;
 
     if (data && typeof data === 'object') {
       if ('workflow' in data) {
@@ -1774,7 +1829,7 @@ function showExample(schemasPath: string, name: string): void {
 
   // Generate example from schema
   const example = generateExampleFromSchema(schema, name);
-  console.log(yaml.dump(example, { indent: 2, lineWidth: 100 }));
+  console.log(YAML.stringify(example, { indent: 2, lineWidth: 100 }));
   console.log(chalk.gray('─'.repeat(70)));
 }
 
