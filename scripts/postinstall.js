@@ -150,7 +150,7 @@ function main() {
   createValidationScript(projectRoot);
 
   // Copy Claude Code skills
-  const skillNames = ['cx-module', 'cx-workflow'];
+  const skillNames = ['cx-core', 'cx-module', 'cx-workflow'];
   for (const skillName of skillNames) {
     const skillSource = path.join(__dirname, '..', '.claude', 'skills', skillName);
     if (fs.existsSync(skillSource)) {
