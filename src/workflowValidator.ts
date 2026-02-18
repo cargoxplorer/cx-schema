@@ -6,7 +6,7 @@ import Ajv, { ErrorObject, ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as yaml from 'js-yaml';
+import YAML from 'yaml';
 import {
   ValidationResult,
   ValidationError,
@@ -168,7 +168,7 @@ export class WorkflowValidator {
       let workflowData: YAMLWorkflow;
 
       try {
-        workflowData = yaml.load(content) as YAMLWorkflow;
+        workflowData = YAML.parse(content) as YAMLWorkflow;
       } catch (yamlError: any) {
         errors.push({
           type: 'yaml_syntax_error',

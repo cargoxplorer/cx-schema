@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as yaml from 'js-yaml';
+import YAML from 'yaml';
 import { computeExtractPriority } from './extractUtils';
 
 // ============================================================================
@@ -66,12 +66,12 @@ describe('extract --copy integration', () => {
         { name: 'RouteB', path: '/b', component: 'CompB' },
       ],
     };
-    fs.writeFileSync(sourceFile, yaml.dump(doc, { indent: 2, lineWidth: -1, noRefs: true }), 'utf-8');
+    fs.writeFileSync(sourceFile, YAML.stringify(doc, { indent: 2, lineWidth: 0 }), 'utf-8');
     return doc;
   }
 
   function readYaml(file: string): any {
-    return yaml.load(fs.readFileSync(file, 'utf-8'));
+    return YAML.parse(fs.readFileSync(file, 'utf-8'));
   }
 
   it('source file is NOT modified when using --copy', async () => {
@@ -150,5 +150,88 @@ describe('extract --copy integration', () => {
     const source = readYaml(sourceFile);
     expect(source.components).toHaveLength(1);
     expect(source.components[0].name).toBe('CompB');
+  });
+});
+
+// ============================================================================
+// Comment preservation tests
+// ============================================================================
+
+describe('extract preserves YAML comments', () => {
+  const tmpDir = path.join(__dirname, '..', '.test-tmp');
+  const sourceFile = path.join(tmpDir, 'commented-source.yaml');
+  const targetFile = path.join(tmpDir, 'commented-target.yaml');
+  const cliPath = path.join(__dirname, '..', 'dist', 'cli.js');
+
+  beforeEach(() => {
+    fs.mkdirSync(tmpDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  const commentedSource = `# Main module header comment
+module:
+  name: TestModule
+  appModuleId: "11111111-1111-1111-1111-111111111111"
+  displayName: Test Module
+  application: cx
+
+components:
+  # First component - should be extracted
+  - name: CompA
+    type: form
+    children: []
+  # Second component - stays in source
+  - name: CompB
+    type: dataGrid
+    children: []
+
+routes:
+  - name: RouteA
+    path: /a
+    component: CompA
+  - name: RouteB
+    path: /b
+    component: CompB
+`;
+
+  it('preserves comments in source after move extract', async () => {
+    fs.writeFileSync(sourceFile, commentedSource, 'utf-8');
+
+    const { execFileSync } = await import('child_process');
+    execFileSync('node', [cliPath, 'extract', sourceFile, 'CompA', '--to', targetFile], {
+      encoding: 'utf-8',
+    });
+
+    const sourceAfter = fs.readFileSync(sourceFile, 'utf-8');
+    expect(sourceAfter).toContain('# Main module header comment');
+    expect(sourceAfter).toContain('# Second component - stays in source');
+  });
+
+  it('carries component comments to target on move extract', async () => {
+    fs.writeFileSync(sourceFile, commentedSource, 'utf-8');
+
+    const { execFileSync } = await import('child_process');
+    execFileSync('node', [cliPath, 'extract', sourceFile, 'CompA', '--to', targetFile], {
+      encoding: 'utf-8',
+    });
+
+    const targetContent = fs.readFileSync(targetFile, 'utf-8');
+    expect(targetContent).toContain('# First component - should be extracted');
+  });
+
+  it('preserves all source comments in --copy mode', async () => {
+    fs.writeFileSync(sourceFile, commentedSource, 'utf-8');
+
+    const { execFileSync } = await import('child_process');
+    execFileSync('node', [cliPath, 'extract', sourceFile, 'CompA', '--to', targetFile, '--copy'], {
+      encoding: 'utf-8',
+    });
+
+    const sourceAfter = fs.readFileSync(sourceFile, 'utf-8');
+    // Source should be completely unchanged in copy mode
+    expect(sourceAfter).toBe(commentedSource);
   });
 });

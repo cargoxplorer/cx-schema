@@ -6,7 +6,7 @@ import Ajv, { ErrorObject, ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as yaml from 'js-yaml';
+import YAML from 'yaml';
 import {
   ValidationResult,
   ValidationError,
@@ -102,7 +102,7 @@ export class ModuleValidator {
       let moduleData: YAMLModule;
 
       try {
-        moduleData = yaml.load(content) as YAMLModule;
+        moduleData = YAML.parse(content) as YAMLModule;
       } catch (yamlError: any) {
         errors.push({
           type: 'yaml_syntax_error',
