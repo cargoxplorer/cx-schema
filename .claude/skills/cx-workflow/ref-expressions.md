@@ -174,6 +174,7 @@ Functions use two iterator variable names:
 | `join([items], [each.name], ',')` | Join collection with `[each.*]` accessor and separator (3-arg) |
 | `join([items], ',')` | Join collection directly with separator (2-arg) |
 | `split([str], ' ')` | Split string by first character of separator. Returns `List<string>` |
+| `elementAt([items], 0)` | Get element at index (zero-based) from list |
 
 ### String Functions
 
@@ -183,6 +184,7 @@ Functions use two iterator variable names:
 | `length([var])` | String length or collection count. `0` for null strings and non-collections |
 | `lower([name])` / `upper([code])` | Case conversion. Handles string, JToken, any `.ToString()` |
 | `left([code], 3)` / `right([code], 3)` | Left/right N characters. Returns full string if shorter than N |
+| `substring([str], 0, 5)` | Extract substring starting at position for given length |
 | `replace([str], 'old', 'new')` | String replacement. Returns null if any arg is null |
 | `trim([value])` | Trim whitespace. Returns `""` for null |
 | `format('{0}-{1}', [prefix], [id])` | String.Format style. Variadic args. Returns null if format is null |
@@ -196,6 +198,7 @@ Functions use two iterator variable names:
 
 | Function | Description |
 |----------|-------------|
+| `parseDate([str])` | Parse date string to DateTime. Supports common formats (ISO, US, etc.) |
 | `now()` | Current UTC `DateTime` |
 | `now('yyyy-MM-dd', 'en-US')` | Formatted current time as string |
 | `addDays([date], 30)` | Add days (decimal, can be negative). Accepts DateTime, DateTimeOffset, string |
