@@ -59,7 +59,7 @@ function createValidationScript(projectRoot) {
  * This script uses the schemas in .cx-schema to validate modules
  */
 
-const { ModuleValidator } = require('cx-schema-validator');
+const { ModuleValidator } = require('@cxtms/cx-schema');
 const path = require('path');
 
 async function main() {
