@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderTrackingEvent Tasks",
+  "description": "Create a single tracking event on an order",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "OrderTrackingEvent/Create@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "OrderTrackingEvent/Create inputs",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "description": "Target order ID (required)"
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Organization ID (required)"
+        },
+        "eventDefinitionName": {
+          "type": "string",
+          "description": "Name of the event definition to look up or create (required)"
+        },
+        "eventDate": {
+          "type": "string",
+          "description": "Event date (converted to UTC)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Event description (overrides EventDefinition default)"
+        },
+        "location": {
+          "type": "string",
+          "description": "Event location (overrides EventDefinition default)"
+        },
+        "includeInTracking": {
+          "type": ["boolean", "string"],
+          "description": "Include in tracking display (overrides EventDefinition default)"
+        },
+        "sendEmail": {
+          "type": ["boolean", "string"],
+          "description": "Send email notification (overrides EventDefinition default)"
+        },
+        "skipIfExists": {
+          "type": ["boolean", "string"],
+          "description": "Skip if same EventDefinitionId already on order"
+        },
+        "eventDefinitionValues?": {
+          "type": "object",
+          "description": "Values for creating a new EventDefinition if not found by name",
+          "additionalProperties": true
+        },
+        "customValues?": {
+          "type": "object",
+          "description": "Free-form custom values stored on the tracking event",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "description": "No outputs (returns null)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}
