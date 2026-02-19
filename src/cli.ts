@@ -101,6 +101,8 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('create')}          Create a new module, workflow, or task-schema from template
   ${chalk.green('extract')}         Extract a component (and its routes) to another module
   ${chalk.green('sync-schemas')}    Regenerate all.json from task schema directory
+  ${chalk.green('install-skills')}  Install Claude Code skills into project .claude/skills/
+  ${chalk.green('update')}          Update @cxtms/cx-schema to the latest version
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
   ${chalk.green('list')}            List available schemas (modules, workflows, tasks)
@@ -1288,6 +1290,111 @@ function runSyncSchemas(): void {
 }
 
 // ============================================================================
+// Install Skills Command
+// ============================================================================
+
+function findPackageSkillsDir(): string | null {
+  // Skills live in the package's .claude/skills/ directory
+  // When running from dist/cli.js, the package root is one level up
+  const packageRoot = path.resolve(__dirname, '..');
+  const skillsDir = path.join(packageRoot, '.claude', 'skills');
+  if (fs.existsSync(skillsDir)) {
+    return skillsDir;
+  }
+  return null;
+}
+
+function copyDirectorySync(src: string, dest: string): void {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirectorySync(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+function runInstallSkills(): void {
+  console.log(chalk.bold.cyan('\n╔═══════════════════════════════════════════════════════════════════╗'));
+  console.log(chalk.bold.cyan('║                  INSTALL CLAUDE CODE SKILLS                       ║'));
+  console.log(chalk.bold.cyan('╚═══════════════════════════════════════════════════════════════════╝\n'));
+
+  const packageSkillsDir = findPackageSkillsDir();
+  if (!packageSkillsDir) {
+    console.error(chalk.red('Error: Could not find skills in the cx-schema package.'));
+    process.exit(2);
+  }
+
+  const projectRoot = process.cwd();
+  const skillNames = ['cx-core', 'cx-module', 'cx-workflow'];
+  let installed = 0;
+
+  for (const skillName of skillNames) {
+    const skillSource = path.join(packageSkillsDir, skillName);
+    if (!fs.existsSync(skillSource)) {
+      console.log(chalk.yellow(`  Skipping ${skillName} (not found in package)`));
+      continue;
+    }
+
+    const skillDest = path.join(projectRoot, '.claude', 'skills', skillName);
+    console.log(`  Installing ${chalk.cyan(skillName)}...`);
+
+    // Remove existing skill directory to clean up stale files
+    if (fs.existsSync(skillDest)) {
+      fs.rmSync(skillDest, { recursive: true });
+    }
+
+    copyDirectorySync(skillSource, skillDest);
+    installed++;
+  }
+
+  // Remove deprecated cx-build skill if it exists
+  const oldSkillDest = path.join(projectRoot, '.claude', 'skills', 'cx-build');
+  if (fs.existsSync(oldSkillDest)) {
+    fs.rmSync(oldSkillDest, { recursive: true });
+    console.log(chalk.gray('  Removed deprecated cx-build skill.'));
+  }
+
+  console.log('');
+  console.log(chalk.green(`✓ Installed ${installed} skill(s) to .claude/skills/`));
+  console.log('');
+}
+
+// ============================================================================
+// Update Command
+// ============================================================================
+
+function runUpdate(): void {
+  console.log(chalk.bold.cyan('\n╔═══════════════════════════════════════════════════════════════════╗'));
+  console.log(chalk.bold.cyan('║                  UPDATE @cxtms/cx-schema                          ║'));
+  console.log(chalk.bold.cyan('╚═══════════════════════════════════════════════════════════════════╝\n'));
+
+  const { execSync } = require('child_process');
+
+  console.log('  Updating to latest version...\n');
+
+  try {
+    const output = execSync('npm install @cxtms/cx-schema@latest', {
+      stdio: 'inherit',
+      cwd: process.cwd()
+    });
+    console.log('');
+    console.log(chalk.green('✓ @cxtms/cx-schema updated successfully!'));
+    console.log('');
+  } catch (error: any) {
+    console.error(chalk.red('\nError: Failed to update @cxtms/cx-schema'));
+    console.error(chalk.gray(error.message));
+    process.exit(1);
+  }
+}
+
+// ============================================================================
 // Extract Command
 // ============================================================================
 
@@ -1516,7 +1623,7 @@ function parseArgs(args: string[]): ParsedArgs {
   };
 
   // Check for commands
-  const commands = ['validate', 'schema', 'example', 'list', 'help', 'report', 'init', 'create', 'extract', 'sync-schemas'];
+  const commands = ['validate', 'schema', 'example', 'list', 'help', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update'];
   if (args.length > 0 && commands.includes(args[0])) {
     command = args[0];
     args = args.slice(1);
@@ -2521,6 +2628,18 @@ async function main() {
   // Handle sync-schemas command
   if (command === 'sync-schemas') {
     runSyncSchemas();
+    process.exit(0);
+  }
+
+  // Handle install-skills command
+  if (command === 'install-skills') {
+    runInstallSkills();
+    process.exit(0);
+  }
+
+  // Handle update command
+  if (command === 'update') {
+    runUpdate();
     process.exit(0);
   }
 
