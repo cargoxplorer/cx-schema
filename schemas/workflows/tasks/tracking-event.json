@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TrackingEvent Tasks",
+  "description": "Tracking event import operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "TrackingEvent/Import@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "TrackingEvent/Import inputs",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "description": "Target order ID (required)"
+        },
+        "events": {
+          "type": ["array", "string"],
+          "description": "Array of tracking event objects to import. Each event: eventDefinitionName, eventDate, description, location, includeInTracking, sendEmail, isInactive, customValues",
+          "items": {
+            "type": "object",
+            "properties": {
+              "eventDefinitionName": {
+                "type": "string",
+                "description": "Name of the event definition to match or create"
+              },
+              "eventDate": {
+                "type": "string",
+                "description": "Event date (converted to UTC)"
+              },
+              "description": {
+                "type": "string",
+                "description": "Event description (overrides EventDefinition default)"
+              },
+              "location": {
+                "type": "string",
+                "description": "Event location (overrides EventDefinition default)"
+              },
+              "includeInTracking": {
+                "type": ["boolean", "string"],
+                "description": "Include in tracking display"
+              },
+              "sendEmail": {
+                "type": ["boolean", "string"],
+                "description": "Send email notification"
+              },
+              "isInactive": {
+                "type": ["boolean", "string"],
+                "description": "Mark event as inactive"
+              },
+              "customValues": {
+                "type": "object",
+                "description": "Free-form custom values (carrierId, carrierEventCode, etc.)",
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "matchByFields": {
+          "type": "array",
+          "description": "Fields used to detect duplicate events. Supports dot notation for customValues (e.g., customValues.eventType). Default: [eventDefinitionName, eventDate]",
+          "items": {
+            "type": "string"
+          }
+        },
+        "skipIfExists": {
+          "type": ["boolean", "string"],
+          "description": "Skip event if duplicate found via matchByFields. Default: true"
+        },
+        "createEventDefinitions": {
+          "type": ["boolean", "string"],
+          "description": "Auto-create EventDefinition if name not found. Default: true"
+        },
+        "eventDefinitionDefaults": {
+          "type": "object",
+          "description": "Default values when creating new EventDefinitions (includeInTracking, sendEmail, eventName, etc.)",
+          "additionalProperties": true
+        },
+        "matchByEventDefinition": {
+          "type": "array",
+          "description": "Match EventDefinition by customValues fields instead of name (e.g., [customValues.carrierId, customValues.carrierEventCode])",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "description": "Output mapping. Result contains: added, updated, skipped, failed, total, errors",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

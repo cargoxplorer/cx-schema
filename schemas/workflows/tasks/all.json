@@ -98,6 +98,9 @@
       "$ref": "number.json"
     },
     {
+      "$ref": "order-tracking-event.json"
+    },
+    {
       "$ref": "order.json"
     },
     {
@@ -114,6 +117,9 @@
     },
     {
       "$ref": "template.json"
+    },
+    {
+      "$ref": "tracking-event.json"
     },
     {
       "$ref": "user.json"

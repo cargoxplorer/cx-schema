@@ -152,8 +152,27 @@ All entity tasks follow the `Namespace/Operation@Version` pattern. Outputs are s
 | `OrderCharge/Create` | Create order charge |
 | `OrderDocument/Create` | Create order document |
 | `OrderDocument/Send` | Send order document |
-| `OrderTrackingEvent/Create` | Create tracking event |
+| `OrderTrackingEvent/Create` | Create a single tracking event on an order |
 | `OrderEntity/ChangeCustomValue` | Change custom field value |
+
+```yaml
+# Create a single tracking event
+- task: "OrderTrackingEvent/Create@1"
+  name: AddPickupEvent
+  inputs:
+    orderId: "{{ inputs.orderId }}"
+    organizationId: "{{ inputs.organizationId }}"
+    eventDefinitionName: "Picked Up"
+    eventDate: "{{ utcNow() }}"
+    description: "Package picked up from shipper"
+    location: "{{ order.shipFromAddress?.city }}"
+    includeInTracking: true
+    sendEmail: false
+    skipIfExists: true
+    customValues?:
+      carrierId: "{{ carrier.contactId }}"
+      carrierEventCode: "PU"
+```
 
 ## Inventory
 
@@ -171,7 +190,34 @@ All entity tasks follow the `Namespace/Operation@Version` pattern. Outputs are s
 | `Country/Create`, `Country/Update`, `Country/Delete` | Country CRUD |
 | `Cities/Import` | Import cities |
 | `Rate/Update` | Update rate |
-| `TrackingEvent/Import` | Import tracking events |
+| `TrackingEvent/Import` | Batch import tracking events into an order |
+
+```yaml
+# Batch import tracking events
+- task: "TrackingEvent/Import@1"
+  name: ImportEvents
+  inputs:
+    orderId: "{{ order.orderId }}"
+    events: "{{ trackingEvents }}"
+    matchByFields:
+      - "eventDate"
+      - "customValues.eventType"
+      - "customValues.locationId"
+    skipIfExists: true
+    createEventDefinitions: true
+    matchByEventDefinition:
+      - "customValues.carrierId"
+      - "customValues.carrierEventCode"
+    eventDefinitionDefaults:
+      includeInTracking: true
+  outputs:
+    - name: result
+      mapping: "result?"
+```
+
+Each event in the `events` array: `eventDefinitionName` (required), `eventDate`, `description`, `location`, `includeInTracking`, `sendEmail`, `isInactive`, `customValues` (object).
+
+Output `result`: `{ added, updated, skipped, failed, total, errors[] }`.
 
 ## Note
 
