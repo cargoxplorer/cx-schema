@@ -334,3 +334,46 @@ props:
   options:
     style: { margin: "1rem 0" }
 ```
+
+---
+
+## slot
+
+Extension point that renders UI elements injected by other modules (via `appComponent` with `targetSlot`). Slots render extensions from the database — they have no YAML `children`.
+
+**Props:**
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `name` | `string` | Yes | Slot name to match against. Extension components target this name via `targetSlot`. Supports template expressions. |
+| `itemTag` | `string` | No | HTML element type to wrap each extension (e.g., `li`, `div`) |
+
+**Children:** No — slots render extension components registered in the database, not YAML children.
+
+**Naming convention:** Use `Module/Entity/Location` pattern for slot names to avoid collisions (e.g., `Orders/Detail/Sidebar`, `Contacts/Form/Actions`).
+
+```yaml
+# Basic slot — extension point in a layout
+component: slot
+name: sidebarSlot
+props:
+  name: "Orders/Detail/Sidebar"
+```
+
+```yaml
+# Dynamic slot name using template expression
+component: slot
+name: entitySlot
+props:
+  name: "{{ eval `Orders/${entityType}/Actions` }}"
+```
+
+```yaml
+# Slot with itemTag for list-style extensions
+component: slot
+name: menuSlot
+props:
+  name: "Navigation/MainMenu/Items"
+  itemTag: li
+```
+
+**How extensions target slots:** Other modules register extension components using `appComponent` with `targetSlot` and optional `order` to control rendering position within the slot. See `appComponent.json` schema for details.

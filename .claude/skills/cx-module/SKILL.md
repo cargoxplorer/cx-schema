@@ -156,7 +156,7 @@ Read the relevant category ref file when building specific component types:
 
 | Category | Components | File |
 |----------|-----------|------|
-| **Layout & Structure** | `layout`, `row`, `col`, `header`, `tabs`, `toolbar`, `card`, `line` | `.claude/skills/cx-module/ref-components-layout.md` |
+| **Layout & Structure** | `layout`, `row`, `col`, `header`, `tabs`, `toolbar`, `card`, `line`, `slot` | `.claude/skills/cx-module/ref-components-layout.md` |
 | **Forms & Input** | `form`, `field`, `field-collection`, `barcodeScanner` | `.claude/skills/cx-module/ref-components-forms.md` |
 | **Data Display** | `dataGrid`, `text`, `markup`, `badge`, `icon`, `image`, `photo`, `summary`, `diff`, `viewer`, `embed` | `.claude/skills/cx-module/ref-components-display.md` |
 | **Interactive & Nav** | `button`, `dropdown`, `menuButton`, `link`, `redirect`, `navbar`, `navbarItem`, `navbarLink`, `navDropdown` | `.claude/skills/cx-module/ref-components-interactive.md` |
@@ -179,7 +179,7 @@ Read the relevant template after scaffolding to understand the generated structu
 
 Read schema files from `.cx-schema/` only when debugging validation errors:
 - `schemas.json` — main schema definitions
-- `components/<type>.json` — component schemas (layout, form, dataGrid, field, button, tabs, card, calendar, collection, appComponent, module)
+- `components/<type>.json` — component schemas (layout, form, dataGrid, field, button, tabs, card, calendar, collection, appComponent, slot, module)
 - `fields/<type>.json` — field schemas (text, select, select-async)
 - `actions/<type>.json` — action schemas (navigate, mutation, dialog, all)
 

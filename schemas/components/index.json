@@ -63,6 +63,9 @@
     },
     "module": {
       "$ref": "module.json"
+    },
+    "slot": {
+      "$ref": "slot.json"
     }
   }
 }
