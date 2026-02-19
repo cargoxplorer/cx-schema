@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Slot Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "slot"
+    },
+    "name": {
+      "type": "string",
+      "description": "Component instance name"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Slot name to match against (supports template expressions)"
+        },
+        "itemTag": {
+          "type": "string",
+          "description": "HTML element type to wrap each extension (e.g., li, div)"
+        }
+      },
+      "required": ["name"]
+    }
+  },
+  "required": ["component", "props"]
+}
