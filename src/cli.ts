@@ -359,7 +359,8 @@ function generateAppYaml(name: string): string {
   const dirName = path.basename(process.cwd());
   const appName = name || dirName;
   const scopedName = appName.startsWith('@') ? appName : `@cargox/${appName}`;
-  return `name: "${scopedName}"
+  return `id: "${generateUUID()}"
+name: "${scopedName}"
 description: ""
 author: "CargoX"
 version: "1.0.0"
