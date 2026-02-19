@@ -1388,18 +1388,21 @@ function runUpdate(): void {
   console.log('  Updating to latest version...\n');
 
   try {
-    const output = execSync('npm install @cxtms/cx-schema@latest', {
+    execSync('npm install @cxtms/cx-schema@latest', {
       stdio: 'inherit',
       cwd: process.cwd()
     });
     console.log('');
     console.log(chalk.green('✓ @cxtms/cx-schema updated successfully!'));
-    console.log('');
   } catch (error: any) {
     console.error(chalk.red('\nError: Failed to update @cxtms/cx-schema'));
     console.error(chalk.gray(error.message));
     process.exit(1);
   }
+
+  // Reinstall skills and update CLAUDE.md (postinstall handles schemas)
+  runInstallSkills();
+  runSetupClaude();
 }
 
 // ============================================================================
