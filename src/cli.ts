@@ -1630,7 +1630,7 @@ function runExtract(sourceFile: string | undefined, componentName: string | unde
       appModuleId: generateUUID(),
       displayName: { 'en-US': displayName },
       description: { 'en-US': `${displayName} module` },
-      application: sourceModule?.application || sourceJS.application || 'cx',
+      application: 'System',
     };
 
     // In copy mode, set priority higher than source
