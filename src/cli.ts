@@ -102,6 +102,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('extract')}         Extract a component (and its routes) to another module
   ${chalk.green('sync-schemas')}    Regenerate all.json from task schema directory
   ${chalk.green('install-skills')}  Install Claude Code skills into project .claude/skills/
+  ${chalk.green('setup-claude')}    Add CX project instructions to CLAUDE.md
   ${chalk.green('update')}          Update @cxtms/cx-schema to the latest version
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
@@ -1039,6 +1040,9 @@ function runInit(name?: string): void {
     console.log('');
   }
 
+  // Setup CLAUDE.md with CX instructions
+  runSetupClaude();
+
   console.log(chalk.gray('  Next steps:'));
   console.log(chalk.gray(`    1. Edit ${chalk.white('app.yaml')} to configure your project`));
   console.log(chalk.gray(`    2. Create modules: ${chalk.white(`${PROGRAM_NAME} create module <name>`)}`));
@@ -1398,6 +1402,104 @@ function runUpdate(): void {
 }
 
 // ============================================================================
+// Setup Claude Command
+// ============================================================================
+
+const CX_CLAUDE_MARKER = '<!-- cx-schema-instructions -->';
+
+function generateClaudeMdContent(): string {
+  return `${CX_CLAUDE_MARKER}
+## CargoXplorer Project
+
+This is a CargoXplorer (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by \`@cxtms/cx-schema\`.
+
+### Project Structure
+
+\`\`\`
+app.yaml              # Application manifest (name, version, description)
+modules/              # UI module YAML files
+workflows/            # Workflow YAML files
+features/             # Feature-scoped modules and workflows
+  <feature>/
+    modules/
+    workflows/
+\`\`\`
+
+### CLI — \`cx-cli\`
+
+**Always scaffold via CLI, never write YAML from scratch.**
+
+| Command | Description |
+|---------|-------------|
+| \`npx cx-cli create module <name>\` | Scaffold a UI module |
+| \`npx cx-cli create workflow <name>\` | Scaffold a workflow |
+| \`npx cx-cli create module <name> --template <t>\` | Use a specific template |
+| \`npx cx-cli create workflow <name> --template <t>\` | Use a specific template |
+| \`npx cx-cli create module <name> --feature <f>\` | Place under features/<f>/modules/ |
+| \`npx cx-cli <file.yaml>\` | Validate a YAML file |
+| \`npx cx-cli <file.yaml> --verbose\` | Validate with detailed errors |
+| \`npx cx-cli schema <name>\` | Show JSON schema for a component or task |
+| \`npx cx-cli example <name>\` | Show example YAML |
+| \`npx cx-cli list\` | List all available schemas |
+| \`npx cx-cli extract <src> <comp> --to <tgt>\` | Move component between modules |
+
+**Module templates:** \`default\`, \`form\`, \`grid\`, \`select\`, \`configuration\`
+**Workflow templates:** \`basic\`, \`entity-trigger\`, \`document\`, \`scheduled\`, \`utility\`, \`webhook\`, \`public-api\`, \`mcp-tool\`, \`ftp-tracking\`, \`ftp-edi\`, \`api-tracking\`
+
+### Skills (slash commands)
+
+| Skill | Purpose |
+|-------|---------|
+| \`/cx-module <description>\` | Generate a UI module (forms, grids, screens) |
+| \`/cx-workflow <description>\` | Generate a workflow (automation, triggers, integrations) |
+| \`/cx-core <entity or question>\` | Look up entity fields, enums, and domain reference |
+
+### Workflow: Scaffold → Customize → Validate
+
+1. **Scaffold** — \`npx cx-cli create module|workflow <name> --template <t>\`
+2. **Read** the generated file
+3. **Customize** for the use case
+4. **Validate** — \`npx cx-cli <file.yaml>\` — run after every change, fix all errors
+${CX_CLAUDE_MARKER}`;
+}
+
+function runSetupClaude(): void {
+  console.log(chalk.bold.cyan('\n╔═══════════════════════════════════════════════════════════════════╗'));
+  console.log(chalk.bold.cyan('║                  SETUP CLAUDE.md                                  ║'));
+  console.log(chalk.bold.cyan('╚═══════════════════════════════════════════════════════════════════╝\n'));
+
+  const claudeMdPath = path.join(process.cwd(), 'CLAUDE.md');
+  const cxContent = generateClaudeMdContent();
+
+  if (fs.existsSync(claudeMdPath)) {
+    const existing = fs.readFileSync(claudeMdPath, 'utf-8');
+
+    if (existing.includes(CX_CLAUDE_MARKER)) {
+      // Replace existing CX section
+      const markerRegex = new RegExp(
+        CX_CLAUDE_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+        '[\\s\\S]*?' +
+        CX_CLAUDE_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      );
+      const updated = existing.replace(markerRegex, cxContent);
+      fs.writeFileSync(claudeMdPath, updated, 'utf-8');
+      console.log(chalk.green('  ✓ Updated CX instructions in existing CLAUDE.md'));
+    } else {
+      // Append to existing file
+      const separator = existing.endsWith('\n') ? '\n' : '\n\n';
+      fs.writeFileSync(claudeMdPath, existing + separator + cxContent + '\n', 'utf-8');
+      console.log(chalk.green('  ✓ Appended CX instructions to existing CLAUDE.md'));
+    }
+  } else {
+    // Create new file
+    fs.writeFileSync(claudeMdPath, `# Project Instructions\n\n${cxContent}\n`, 'utf-8');
+    console.log(chalk.green('  ✓ Created CLAUDE.md with CX instructions'));
+  }
+
+  console.log('');
+}
+
+// ============================================================================
 // Extract Command
 // ============================================================================
 
@@ -1626,7 +1728,7 @@ function parseArgs(args: string[]): ParsedArgs {
   };
 
   // Check for commands
-  const commands = ['validate', 'schema', 'example', 'list', 'help', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update'];
+  const commands = ['validate', 'schema', 'example', 'list', 'help', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude'];
   if (args.length > 0 && commands.includes(args[0])) {
     command = args[0];
     args = args.slice(1);
@@ -2643,6 +2745,12 @@ async function main() {
   // Handle update command
   if (command === 'update') {
     runUpdate();
+    process.exit(0);
+  }
+
+  // Handle setup-claude command
+  if (command === 'setup-claude') {
+    runSetupClaude();
     process.exit(0);
   }
 
