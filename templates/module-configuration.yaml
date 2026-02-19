@@ -8,103 +8,48 @@ module:
     en-US: "{{displayName}}"
   description:
     en-US: "{{displayName}} configuration module"
-  application: CargoXplorer
-  fileName: "{{fileName}}"
+  application: System
 
 components:
-  - name: {{displayNameNoSpaces}}/Configuration
+  - name: Configurations/{{displayNameNoSpaces}}
+    displayName:
+      en-US: "{{displayName}} Config"
+    platforms:
+      - web
+    props:
+    layout:
+      component: layout
+      name: {{displayNameNoSpaces}}ConfigLayout
+      inputs:
+      props:
+        cols: 1
+        title:
+          en-US: "{{displayName}} Configuration"
+        icon: Create
+        permission: System/OrganizationConfigs/Update
+      children:
+        - component: form
+          name: organizationConfigForm
+          inputs:
+          props:
+            cols: 1
+            title:
+              en-US: "{{displayName}} Settings"
+            initialValues:
+          children:
+            - component: field
+              name: customValues.enabled
+              props:
+                type: checkbox
+                label:
+                  en-US: "Enable {{displayName}}"
+
+configurations:
+  - configName: "apps.{{name}}"
     displayName:
       en-US: "{{displayName}}"
-    layout:
-      component: form
-      name: {{name}}Form
-      props:
-        title:
-          en-US: "{{displayName}}"
-        queries:
-          - name: getConfiguration
-            query:
-              command: |
-                query GetConfiguration($organizationId: Int!) {
-                  configuration(organizationId: $organizationId) {
-                    settingName
-                    maxRetries
-                    enableNotifications
-                  }
-                }
-              variables:
-                organizationId: "\{{organizationId}}"
-        initialValues:
-          fromQuery:
-            name: getConfiguration
-            path: configuration
-          append:
-            settingName: "Default Setting"
-            maxRetries: 3
-            enableNotifications: true
-        validationSchema:
-          settingName:
-            type: string
-            required: true
-          maxRetries:
-            type: number
-            required: true
-          enableNotifications:
-            type: boolean
-        onSubmit:
-          - type: mutation
-            props:
-              command: |
-                mutation SaveConfiguration($organizationId: Int!, $input: ConfigurationInput!) {
-                  saveConfiguration(organizationId: $organizationId, input: $input) {
-                    success
-                  }
-                }
-              variables:
-                organizationId: "\{{organizationId}}"
-                input: "\{{formValues}}"
-          - type: notification
-            props:
-              message:
-                en-US: "{{displayName}} saved successfully"
-              severity: success
-      children:
-        - component: field
-          name: settingName
-          props:
-            label:
-              en-US: "Setting Name"
-            type: text
-            required: true
-        - component: field
-          name: maxRetries
-          props:
-            label:
-              en-US: "Max Retries"
-            type: number
-        - component: field
-          name: enableNotifications
-          props:
-            label:
-              en-US: "Enable Notifications"
-            type: checkbox
-
-routes:
-  - name: configuration
-    path: /{{name}}
-    component: {{displayNameNoSpaces}}/Configuration
-    props:
-      title:
-        en-US: "{{displayName}}"
-
-permissions:
-  - name: "{{displayNameNoSpaces}}/View"
-    displayName:
-      en-US: "View {{displayName}}"
-    roles:
-      - Admin
-  - name: "{{displayNameNoSpaces}}/Edit"
-    displayName:
-      en-US: "Edit {{displayName}}"
-    roles:
-      - Admin
+    description:
+      en-US: "{{displayName}} configuration"
+    component: "Configurations/{{displayNameNoSpaces}}"
+    defaultValue:
+      enabled: false
