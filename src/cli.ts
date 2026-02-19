@@ -1392,8 +1392,16 @@ function runUpdate(): void {
       stdio: 'inherit',
       cwd: process.cwd()
     });
+
+    // Read installed version from the updated package
+    const installedPkgPath = path.join(process.cwd(), 'node_modules', '@cxtms', 'cx-schema', 'package.json');
+    let installedVersion = 'unknown';
+    if (fs.existsSync(installedPkgPath)) {
+      installedVersion = JSON.parse(fs.readFileSync(installedPkgPath, 'utf-8')).version;
+    }
+
     console.log('');
-    console.log(chalk.green('✓ @cxtms/cx-schema updated successfully!'));
+    console.log(chalk.green(`✓ @cxtms/cx-schema updated to v${installedVersion}`));
   } catch (error: any) {
     console.error(chalk.red('\nError: Failed to update @cxtms/cx-schema'));
     console.error(chalk.gray(error.message));
