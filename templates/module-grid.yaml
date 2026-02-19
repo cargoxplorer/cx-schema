@@ -8,7 +8,7 @@ module:
     en-US: "{{displayName}}"
   description:
     en-US: "{{displayName}} module"
-  application: CargoXplorer
+  application: System
   fileName: "{{fileName}}"
 
 components:

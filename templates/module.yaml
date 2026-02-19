@@ -8,6 +8,7 @@ module:
   description: "{{displayName}} module"
   icon: "folder"
   version: "1.0"
+  application: System
   fileName: "{{fileName}}"
 
 entities:

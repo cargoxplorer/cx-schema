@@ -8,7 +8,7 @@ module:
     en-US: "{{displayName}}"
   description:
     en-US: "{{displayName}} async select component"
-  application: CargoXplorer
+  application: System
   fileName: "{{fileName}}"
 
 components:
