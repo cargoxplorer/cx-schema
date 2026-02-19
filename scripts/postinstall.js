@@ -149,7 +149,7 @@ function main() {
   console.log('Creating validation script...');
   createValidationScript(projectRoot);
 
-  // Copy Claude Code skills
+  // Copy Claude Code skills (clean existing first to remove stale files)
   const skillNames = ['cx-core', 'cx-module', 'cx-workflow'];
   for (const skillName of skillNames) {
     const skillSource = path.join(__dirname, '..', '.claude', 'skills', skillName);
@@ -157,6 +157,10 @@ function main() {
       const skillDest = path.join(projectRoot, '.claude', 'skills', skillName);
       console.log(`Installing ${skillName} skill...`);
       try {
+        // Remove existing skill directory to clean up stale files
+        if (fs.existsSync(skillDest)) {
+          fs.rmSync(skillDest, { recursive: true });
+        }
         copyDirectory(skillSource, skillDest);
         console.log(`${skillName} skill installed successfully!`);
       } catch (error) {
