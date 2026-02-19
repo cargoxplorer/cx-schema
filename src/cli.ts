@@ -82,7 +82,7 @@ const PROGRAM_NAME = 'cx-cli';
 
 const HELP_TEXT = `
 ${chalk.bold.cyan('╔═══════════════════════════════════════════════════════════════════════════╗')}
-${chalk.bold.cyan('║')}                     ${chalk.bold.white('CX SCHEMA VALIDATOR')}                              ${chalk.bold.cyan('║')}
+${chalk.bold.cyan('║')}                     ${chalk.bold.white('CX SCHEMA VALIDATOR')} ${chalk.gray(`v${VERSION}`)}                         ${chalk.bold.cyan('║')}
 ${chalk.bold.cyan('║')}          ${chalk.gray('Unified validation for CargoXplorer YAML files')}               ${chalk.bold.cyan('║')}
 ${chalk.bold.cyan('╚═══════════════════════════════════════════════════════════════════════════╝')}
 
@@ -107,6 +107,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
   ${chalk.green('list')}            List available schemas (modules, workflows, tasks)
+  ${chalk.green('version')}         Show version number
   ${chalk.green('help')}            Show this help message
 
 ${chalk.bold.yellow('OPTIONS:')}
@@ -1728,7 +1729,7 @@ function parseArgs(args: string[]): ParsedArgs {
   };
 
   // Check for commands
-  const commands = ['validate', 'schema', 'example', 'list', 'help', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude'];
+  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude'];
   if (args.length > 0 && commands.includes(args[0])) {
     command = args[0];
     args = args.slice(1);
@@ -1814,6 +1815,11 @@ function parseArgs(args: string[]): ParsedArgs {
   // Handle help command
   if (command === 'help') {
     options.help = true;
+  }
+
+  // Handle version command
+  if (command === 'version') {
+    options.version = true;
   }
 
   return { command, files, options };
