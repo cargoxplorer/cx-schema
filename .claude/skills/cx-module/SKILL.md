@@ -110,13 +110,18 @@ npx cx-cli create module "Country" --template select --options '{
 
 ## Extract Command
 
-Move a component (and its routes) from one module into another. Useful for splitting large modules into smaller, focused ones.
+Move or copy a component (and its routes) from one module into another. Useful for splitting large modules or sharing components.
 
 ```bash
 cx-cli extract <source-file> <component-name> --to <target-file>
+cx-cli extract <source-file> <component-name> --to <target-file> --copy
 ```
 
-### What Gets Moved
+### Flags
+- `--to <file>` — target module file (required)
+- `--copy` — copy instead of move (source keeps the component, target gets a higher-priority copy)
+
+### What Gets Moved/Copied
 - The component matching the exact `name` field
 - Any routes whose `component` field matches the component name
 - Permissions and entities are **NOT** moved
@@ -124,8 +129,11 @@ cx-cli extract <source-file> <component-name> --to <target-file>
 ### Examples
 
 ```bash
-# Extract to a new file (creates module scaffold automatically)
+# Move a component to a new file (creates module scaffold automatically)
 npx cx-cli extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml
+
+# Copy a component (source unchanged, target gets higher priority)
+npx cx-cli extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml --copy
 
 # Extract to an existing module
 npx cx-cli extract modules/main.yaml Dashboard --to modules/dashboard.yaml
