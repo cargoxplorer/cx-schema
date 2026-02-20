@@ -1659,7 +1659,8 @@ const AUTH_CALLBACK_PORT = 9000;
 const AUTH_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
 
 function getSessionDir(): string {
-  return path.join(process.cwd(), '.cxtms');
+  const projectName = path.basename(process.cwd());
+  return path.join(os.homedir(), '.cxtms', projectName);
 }
 
 function getSessionFilePath(): string {

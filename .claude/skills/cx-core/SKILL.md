@@ -20,7 +20,7 @@ npx cx-cli login https://tms-v3-dev.usatrt.com
 npx cx-cli logout
 ```
 
-The session is stored locally in `.cxtms/.session.json` in the project directory. This keeps auth scoped to the project — each project can have its own server session. The CLI auto-refreshes expired tokens. Add `.cxtms/` to `.gitignore`.
+The session is stored at `~/.cxtms/<project-dir>/.session.json`, scoped by project directory name. Each project gets its own server session. The CLI auto-refreshes expired tokens.
 
 ### PAT Tokens (alternative to OAuth)
 
@@ -70,7 +70,7 @@ The active org is cached in the session file and used by all server commands. Ov
 
 Server commands resolve the target session in this order:
 1. `CXTMS_AUTH` env var → PAT token auth (with `CXTMS_SERVER` or `app.yaml` server field)
-2. `.cxtms/.session.json` in project directory → local OAuth session
+2. `~/.cxtms/<project-dir>/.session.json` → project-scoped OAuth session
 3. Not logged in → error
 
 ### Publish
