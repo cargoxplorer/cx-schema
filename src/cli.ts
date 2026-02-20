@@ -76,6 +76,10 @@ interface CLIOptions {
   extractCopy?: boolean;
   orgId?: number;
   vars?: string;
+  from?: string;
+  to?: string;
+  output?: string;
+  console?: boolean;
 }
 
 interface FileValidationResult {
@@ -152,7 +156,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('pat')}             Manage personal access tokens (create, list, revoke)
   ${chalk.green('orgs')}            List, select, or set active organization
   ${chalk.green('appmodule')}       Manage app modules on a CX server (push, delete)
-  ${chalk.green('workflow')}        Manage workflows on a CX server (push, delete, execute, logs)
+  ${chalk.green('workflow')}        Manage workflows on a CX server (push, delete, execute, logs, log)
   ${chalk.green('publish')}         Publish all modules and workflows to a CX server
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
@@ -178,6 +182,11 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--copy')}                 Copy component instead of moving (source unchanged, target gets higher priority)
   ${chalk.green('--org <id>')}             Organization ID for server commands
   ${chalk.green('--vars <json>')}          JSON variables for workflow execute
+  ${chalk.green('--from <date>')}          Filter logs from date (YYYY-MM-DD)
+  ${chalk.green('--to <date>')}            Filter logs to date (YYYY-MM-DD)
+  ${chalk.green('--output <file>')}        Save workflow log to file (or -o)
+  ${chalk.green('--console')}              Print workflow log to stdout
+  ${chalk.green('--json')}                 Download JSON log instead of text
 
 ${chalk.bold.yellow('VALIDATION EXAMPLES:')}
   ${chalk.gray('# Validate a module YAML file')}
@@ -300,11 +309,16 @@ ${chalk.bold.yellow('WORKFLOW COMMANDS:')}
   ${chalk.cyan(`${PROGRAM_NAME} workflow execute <workflowId|file.yaml>`)}
   ${chalk.cyan(`${PROGRAM_NAME} workflow execute <workflowId> --vars '{"city":"London"}'`)}
 
-  ${chalk.gray('# List recent executions for a workflow')}
-  ${chalk.cyan(`${PROGRAM_NAME} workflow executions <workflowId|file.yaml>`)}
+  ${chalk.gray('# List execution logs for a workflow (sorted desc)')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow logs <workflowId|file.yaml>`)}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow logs <workflowId> --from 2026-01-01 --to 2026-01-31`)}
 
-  ${chalk.gray('# Show execution details and download logs')}
-  ${chalk.cyan(`${PROGRAM_NAME} workflow logs <executionId>`)}
+  ${chalk.gray('# Download a specific execution log')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow log <executionId>`)}                  ${chalk.gray('# save txt log to temp dir')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow log <executionId> --output log.txt`)}  ${chalk.gray('# save to file')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow log <executionId> --console`)}         ${chalk.gray('# print to stdout')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow log <executionId> --json`)}            ${chalk.gray('# download JSON log (more detail)')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow log <executionId> --json --console`)}  ${chalk.gray('# JSON log to stdout')}
 
 ${chalk.bold.yellow('PUBLISH COMMANDS:')}
   ${chalk.gray('# Publish all modules and workflows from current project')}
@@ -2579,65 +2593,95 @@ async function runWorkflowExecute(workflowIdOrFile: string | undefined, orgOverr
   console.log('');
 }
 
-async function runWorkflowExecutions(workflowIdOrFile: string | undefined, orgOverride?: number): Promise<void> {
-  if (!workflowIdOrFile) {
-    console.error(chalk.red('Error: Workflow ID or YAML file required'));
-    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow executions <workflowId|file.yaml> [--org <id>]`));
-    process.exit(2);
-  }
-
-  const session = resolveSession();
-  const domain = session.domain;
-  const token = session.access_token;
-  const orgId = await resolveOrgId(domain, token, orgOverride);
-
-  // Resolve workflowId — accept UUID directly or extract from YAML file
-  let workflowId = workflowIdOrFile;
+function resolveWorkflowId(workflowIdOrFile: string): string {
   if (workflowIdOrFile.endsWith('.yaml') || workflowIdOrFile.endsWith('.yml')) {
     if (!fs.existsSync(workflowIdOrFile)) {
       console.error(chalk.red(`Error: File not found: ${workflowIdOrFile}`));
       process.exit(2);
     }
     const parsed = YAML.parse(fs.readFileSync(workflowIdOrFile, 'utf-8')) as any;
-    workflowId = parsed?.workflow?.workflowId;
-    if (!workflowId) {
+    const id = parsed?.workflow?.workflowId;
+    if (!id) {
       console.error(chalk.red('Error: Workflow YAML is missing workflow.workflowId'));
       process.exit(2);
     }
+    return id;
+  }
+  return workflowIdOrFile;
+}
+
+async function runWorkflowLogs(workflowIdOrFile: string | undefined, orgOverride?: number, fromDate?: string, toDate?: string): Promise<void> {
+  if (!workflowIdOrFile) {
+    console.error(chalk.red('Error: Workflow ID or YAML file required'));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow logs <workflowId|file.yaml> [--from <date>] [--to <date>]`));
+    process.exit(2);
+  }
+
+  const session = resolveSession();
+  const { domain, access_token: token } = session;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+  const workflowId = resolveWorkflowId(workflowIdOrFile);
+
+  // Parse date filters
+  const fromTs = fromDate ? new Date(fromDate).getTime() : 0;
+  const toTs = toDate ? new Date(toDate + 'T23:59:59').getTime() : Infinity;
+  if (fromDate && isNaN(fromTs)) {
+    console.error(chalk.red(`Invalid --from date: ${fromDate}. Use YYYY-MM-DD format.`));
+    process.exit(2);
+  }
+  if (toDate && isNaN(toTs)) {
+    console.error(chalk.red(`Invalid --to date: ${toDate}. Use YYYY-MM-DD format.`));
+    process.exit(2);
   }
 
   const data = await graphqlRequest(domain, token, `
     query ($organizationId: Int!, $workflowId: UUID!) {
-      workflowExecutions(organizationId: $organizationId, workflowId: $workflowId, take: 25) {
+      workflowExecutions(organizationId: $organizationId, workflowId: $workflowId, take: 100) {
         totalCount
-        items { executionId executionStatus executedAt durationMs userId }
+        items { executionId executionStatus executedAt durationMs txtLogUrl user { fullName email } }
       }
     }
   `, { organizationId: orgId, workflowId });
 
-  const items = data?.workflowExecutions?.items || [];
+  let items = data?.workflowExecutions?.items || [];
   const total = data?.workflowExecutions?.totalCount || 0;
 
-  console.log(chalk.bold.cyan('\n  Workflow Executions\n'));
+  // Filter by date range
+  if (fromDate || toDate) {
+    items = items.filter((ex: any) => {
+      const t = new Date(ex.executedAt).getTime();
+      return t >= fromTs && t <= toTs;
+    });
+  }
+
+  // Sort descending
+  items.sort((a: any, b: any) => new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime());
+
+  console.log(chalk.bold.cyan('\n  Workflow Logs\n'));
   console.log(chalk.gray(`  Server:    ${new URL(domain).hostname}`));
   console.log(chalk.gray(`  Workflow:  ${workflowId}`));
-  console.log(chalk.gray(`  Total:     ${total}\n`));
+  console.log(chalk.gray(`  Total:     ${total}`));
+  if (fromDate || toDate) {
+    console.log(chalk.gray(`  Filter:    ${fromDate || '...'} → ${toDate || '...'}`));
+  }
+  console.log(chalk.gray(`  Showing:   ${items.length}\n`));
 
   if (items.length === 0) {
     console.log(chalk.gray('  No executions found.\n'));
     return;
   }
 
-  // Sort descending by executedAt (API may not support ordering)
-  items.sort((a: any, b: any) => new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime());
-
   for (const ex of items) {
     const date = new Date(ex.executedAt).toLocaleString();
     const duration = ex.durationMs != null ? `${(ex.durationMs / 1000).toFixed(1)}s` : '?';
     const statusColor = ex.executionStatus === 'Success' ? chalk.green : ex.executionStatus === 'Failed' ? chalk.red : chalk.yellow;
-    console.log(chalk.white(`    ${ex.executionId}  ${statusColor(ex.executionStatus.padEnd(10))}  ${date}  ${chalk.gray(duration)}`));
+    const logIcon = ex.txtLogUrl ? chalk.green('●') : chalk.gray('○');
+    const user = ex.user?.fullName || ex.user?.email || '';
+    console.log(`  ${logIcon} ${chalk.white(ex.executionId)}  ${statusColor(ex.executionStatus.padEnd(10))}  ${date}  ${chalk.gray(duration)}${user ? '  ' + chalk.gray(user) : ''}`);
   }
-  console.log('');
+  console.log();
+  console.log(chalk.gray(`  ${chalk.green('●')} log available  ${chalk.gray('○')} no log`));
+  console.log(chalk.gray(`  Download: ${PROGRAM_NAME} workflow log <executionId> [--output <file>] [--console]\n`));
 }
 
 function fetchGzipText(url: string): Promise<string> {
@@ -2656,7 +2700,7 @@ function fetchGzipText(url: string): Promise<string> {
         const raw = Buffer.concat(rawChunks);
         if (raw.length === 0) { resolve('(empty log)'); return; }
         zlib.gunzip(raw, (err: any, result: Buffer) => {
-          if (err) { resolve(raw.toString('utf-8')); return; } // fallback: maybe not gzipped
+          if (err) { resolve(raw.toString('utf-8')); return; }
           resolve(result.toString('utf-8'));
         });
       });
@@ -2664,10 +2708,10 @@ function fetchGzipText(url: string): Promise<string> {
   });
 }
 
-async function runWorkflowLogs(executionId: string | undefined, orgOverride?: number): Promise<void> {
+async function runWorkflowLog(executionId: string | undefined, orgOverride?: number, outputFile?: string, toConsole?: boolean, useJson?: boolean): Promise<void> {
   if (!executionId) {
     console.error(chalk.red('Error: Execution ID required'));
-    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow logs <executionId> [--org <id>]`));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow log <executionId> [--output <file>] [--console] [--json]`));
     process.exit(2);
   }
 
@@ -2675,7 +2719,6 @@ async function runWorkflowLogs(executionId: string | undefined, orgOverride?: nu
   const { domain, access_token: token } = session;
   const orgId = await resolveOrgId(domain, token, orgOverride);
 
-  // Fetch execution details with log URLs
   const data = await graphqlRequest(domain, token, `
     query ($organizationId: Int!, $executionId: UUID!) {
       workflowExecution(organizationId: $organizationId, executionId: $executionId) {
@@ -2692,32 +2735,63 @@ async function runWorkflowLogs(executionId: string | undefined, orgOverride?: nu
     process.exit(2);
   }
 
+  const logUrl = useJson ? ex.jsonLogUrl : ex.txtLogUrl;
+  const logType = useJson ? 'json' : 'txt';
+  const ext = useJson ? '.json' : '.log';
+
+  if (!logUrl) {
+    console.error(chalk.yellow(`No ${logType} log available for this execution.`));
+    process.exit(0);
+  }
+
   const date = new Date(ex.executedAt).toLocaleString();
   const duration = ex.durationMs != null ? `${(ex.durationMs / 1000).toFixed(1)}s` : '?';
   const statusColor = ex.executionStatus === 'Success' ? chalk.green : ex.executionStatus === 'Failed' ? chalk.red : chalk.yellow;
   const userName = ex.user?.fullName || ex.user?.email || '';
 
-  console.log(chalk.bold.cyan('\n  Workflow Execution\n'));
-  console.log(chalk.white(`  ID:        ${ex.executionId}`));
-  console.log(chalk.white(`  Workflow:  ${ex.workflowId}`));
-  console.log(chalk.white(`  Status:    ${statusColor(ex.executionStatus)}`));
-  console.log(chalk.white(`  Executed:  ${date}`));
-  console.log(chalk.white(`  Duration:  ${duration}`));
-  if (userName) console.log(chalk.white(`  User:      ${userName}`));
-
-  // Download and display the text log
-  if (ex.txtLogUrl) {
-    try {
-      const logText = await fetchGzipText(ex.txtLogUrl);
-      console.log(chalk.gray('\n  --- Log ---\n'));
-      console.log(logText);
-    } catch (e: any) {
-      console.log(chalk.yellow(`\n  Failed to download log: ${e.message}`));
-      console.log(chalk.gray(`  txtLogUrl: ${ex.txtLogUrl}\n`));
-    }
-  } else {
-    console.log(chalk.gray('\n  No log available for this execution.\n'));
+  // Download log
+  let logText: string;
+  try {
+    logText = await fetchGzipText(logUrl);
+  } catch (e: any) {
+    console.error(chalk.red(`Failed to download log: ${e.message}`));
+    process.exit(2);
   }
+
+  // Pretty-print JSON if it's valid JSON
+  if (useJson) {
+    try {
+      const parsed = JSON.parse(logText);
+      logText = JSON.stringify(parsed, null, 2);
+    } catch { /* keep as-is */ }
+  }
+
+  if (toConsole) {
+    console.log(chalk.bold.cyan('\n  Workflow Execution\n'));
+    console.log(chalk.white(`  ID:        ${ex.executionId}`));
+    console.log(chalk.white(`  Workflow:  ${ex.workflowId}`));
+    console.log(chalk.white(`  Status:    ${statusColor(ex.executionStatus)}`));
+    console.log(chalk.white(`  Executed:  ${date}`));
+    console.log(chalk.white(`  Duration:  ${duration}`));
+    if (userName) console.log(chalk.white(`  User:      ${userName}`));
+    console.log(chalk.gray(`\n  --- ${logType.toUpperCase()} Log ---\n`));
+    console.log(logText);
+    return;
+  }
+
+  // Save to file
+  let filePath: string;
+  if (outputFile) {
+    filePath = path.resolve(outputFile);
+  } else {
+    const tmpDir = os.tmpdir();
+    const dateStr = new Date(ex.executedAt).toISOString().slice(0, 10);
+    filePath = path.join(tmpDir, `workflow-${ex.workflowId}-${dateStr}-${executionId}${ext}`);
+  }
+
+  fs.writeFileSync(filePath, logText, 'utf-8');
+  console.log(chalk.green(`  ✓ ${logType.toUpperCase()} log saved: ${filePath}`));
+  console.log(chalk.gray(`    Execution: ${executionId}  ${statusColor(ex.executionStatus)}  ${date}  ${duration}`));
 }
 
 // ============================================================================
@@ -3357,6 +3431,14 @@ function parseArgs(args: string[]): ParsedArgs {
       options.orgId = parsed;
     } else if (arg === '--vars') {
       options.vars = args[++i];
+    } else if (arg === '--from') {
+      options.from = args[++i];
+    } else if (arg === '--to') {
+      options.to = args[++i];
+    } else if (arg === '--output' || arg === '-o') {
+      options.output = args[++i];
+    } else if (arg === '--console') {
+      options.console = true;
     } else if (!arg.startsWith('-')) {
       files.push(arg);
     } else {
@@ -4349,13 +4431,13 @@ async function main() {
       await runWorkflowDelete(files[1], options.orgId);
     } else if (sub === 'execute') {
       await runWorkflowExecute(files[1], options.orgId, options.vars);
-    } else if (sub === 'executions') {
-      await runWorkflowExecutions(files[1], options.orgId);
     } else if (sub === 'logs') {
-      await runWorkflowLogs(files[1], options.orgId);
+      await runWorkflowLogs(files[1], options.orgId, options.from, options.to);
+    } else if (sub === 'log') {
+      await runWorkflowLog(files[1], options.orgId, options.output, options.console, options.format === 'json');
     } else {
       console.error(chalk.red(`Unknown workflow subcommand: ${sub || '(none)'}`));
-      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow <push|delete|execute|executions|logs> ...`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow <push|delete|execute|logs|log> ...`));
       process.exit(2);
     }
     process.exit(0);

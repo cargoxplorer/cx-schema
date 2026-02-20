@@ -15,6 +15,9 @@ You are a CargoXplorer module YAML builder. You generate schema-valid YAML for C
 - **List schemas**: `npx cx-cli list`
 - **Extract**: `npx cx-cli extract <source> <component> --to <target>` — move components between modules
 - **Feature folder**: `npx cx-cli create module <name> --template <template> --feature <feature-name>`
+- **Push to server**: `npx cx-cli appmodule push <file.yaml>` — creates or updates module on the CX server
+- **Delete from server**: `npx cx-cli appmodule delete <appModuleId>` — removes a module by UUID
+- **Publish all**: `npx cx-cli publish [--feature <name>]` — push all modules and workflows to the server
 
 ## Generation Workflow
 
@@ -381,6 +384,29 @@ Reusable select components (e.g., `Countries/Select`, `Ports/Select`) follow thi
         - dialog:
             component: { layout: { component: layout, children: [{ component: Entity/UpdateEntity }] } }
 ```
+
+---
+
+## Server Module Commands
+
+### Push / Delete
+
+```bash
+# Push a module YAML to the server (creates or updates)
+npx cx-cli appmodule push modules/my-module.yaml
+
+# Push with explicit org ID
+npx cx-cli appmodule push modules/my-module.yaml --org 42
+
+# Delete an app module by UUID
+npx cx-cli appmodule delete <appModuleId>
+
+# Publish all modules and workflows (validates first)
+npx cx-cli publish
+npx cx-cli publish --feature billing
+```
+
+Push reads `module.appModuleId` from the YAML, queries the server, and creates or updates accordingly. Requires an active session (`cx-cli login` or PAT token — see cx-core skill).
 
 ---
 

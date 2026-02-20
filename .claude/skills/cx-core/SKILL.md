@@ -6,6 +6,95 @@ argument-hint: <entity name or question about fields>
 
 Shared domain reference for CargoXplorer entities. Used by `cx-workflow` and `cx-module` skills for entity field names, types, navigation properties, enums, and customValues extension patterns.
 
+## CX Server Authentication & Management
+
+The CLI can authenticate against CX environments and manage server resources. Auth is required for push, delete, execute, logs, publish, and org commands.
+
+### Authentication
+
+```bash
+# Login to a CX environment (OAuth2 + PKCE — opens browser)
+npx cx-cli login https://tms-v3-dev.usatrt.com
+
+# Logout from a CX environment
+npx cx-cli logout https://tms-v3-dev.usatrt.com
+
+# List stored sessions
+npx cx-cli logout
+```
+
+Sessions are stored in `~/.cxtms/` as JSON token files. The CLI auto-refreshes expired tokens.
+
+### PAT Tokens (alternative to OAuth)
+
+For CI/CD or headless environments, use Personal Access Tokens instead of interactive OAuth:
+
+```bash
+# Check PAT status and setup instructions
+npx cx-cli pat setup
+
+# Create a new PAT token (requires OAuth login first)
+npx cx-cli pat create "my-ci-token"
+
+# List active PAT tokens
+npx cx-cli pat list
+
+# Revoke a PAT token
+npx cx-cli pat revoke <tokenId>
+```
+
+After creating a PAT, add to `.env` in your project root:
+```
+CXTMS_AUTH=pat_xxxxx...
+CXTMS_SERVER=https://tms-v3-dev.usatrt.com
+```
+
+When `CXTMS_AUTH` is set, the CLI skips OAuth and uses the PAT token directly. `CXTMS_SERVER` provides the server URL (or set `server` in `app.yaml`).
+
+### Organization Management
+
+```bash
+# List organizations on the server
+npx cx-cli orgs list
+
+# Select an organization interactively
+npx cx-cli orgs select
+
+# Set active organization by ID
+npx cx-cli orgs use <orgId>
+
+# Show current context (server, org, app)
+npx cx-cli orgs use
+```
+
+The active org is cached in the token file and used by all server commands. Override with `--org <id>`.
+
+### Session Resolution
+
+Server commands resolve the target session in this order:
+1. `CXTMS_AUTH` env var → PAT token auth (with `CXTMS_SERVER` or `app.yaml` server field)
+2. `app.yaml` `server` field in CWD → matches stored OAuth session
+3. Single stored session in `~/.cxtms/` → uses it automatically
+4. Multiple sessions → error, asks to add `server` to `app.yaml`
+
+### Publish
+
+```bash
+# Publish all modules and workflows from current project
+npx cx-cli publish
+
+# Publish only a specific feature directory
+npx cx-cli publish --feature billing
+npx cx-cli publish billing
+
+# Publish with explicit org ID
+npx cx-cli publish --org 42
+```
+
+Validates all YAML files first, then pushes modules and workflows to the server. Skips files with validation errors and reports results.
+
+---
+
 ## Feature File Layout
 
 All modules and workflows are organized under feature directories:

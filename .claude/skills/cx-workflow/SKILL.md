@@ -13,6 +13,12 @@ You are a CargoXplorer workflow YAML builder. You generate schema-valid YAML for
 - **Examples**: `npx cx-cli example <task>` — show example YAML for a task
 - **List schemas**: `npx cx-cli list --type workflow` — shows all available task schemas in the Tasks section
 - **Feature folder**: `npx cx-cli create workflow <name> --template <template> --feature <feature-name>`
+- **Push to server**: `npx cx-cli workflow push <file.yaml>` — creates or updates workflow on the CX server
+- **Delete from server**: `npx cx-cli workflow delete <workflowId>` — removes a workflow by UUID
+- **Execute**: `npx cx-cli workflow execute <workflowId|file.yaml> [--vars '<json>']` — trigger a workflow execution
+- **List logs**: `npx cx-cli workflow logs <workflowId|file.yaml> [--from YYYY-MM-DD] [--to YYYY-MM-DD]` — list executions with log availability
+- **Download log**: `npx cx-cli workflow log <executionId> [--json] [--console] [--output <file>]` — download execution log
+- **Publish all**: `npx cx-cli publish [--feature <name>]` — push all modules and workflows to the server
 
 ## Generation Workflow
 
@@ -307,13 +313,70 @@ Implicit variable: `iteration` (zero-based).
 
 ---
 
-## Debugging Workflow Executions
+## Server Workflow Commands
 
-When TMS MCP returns gzip file URLs for workflow execution logs, decompress with:
+### Push / Delete
 
 ```bash
-node -e "const https=require('https'),zlib=require('zlib'),fs=require('fs');https.get(process.argv[1],r=>r.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(process.argv[2])))" "<url>" "<output-file>"
+# Push a workflow YAML to the server (creates or updates)
+npx cx-cli workflow push workflows/my-workflow.yaml
+
+# Delete a workflow by UUID
+npx cx-cli workflow delete <workflowId>
+
+# Publish all modules and workflows (validates first)
+npx cx-cli publish
+npx cx-cli publish --feature billing
 ```
+
+Push reads `workflow.workflowId` from the YAML, queries the server, and creates or updates accordingly. Requires an active session (`cx-cli login` or PAT token — see cx-core skill).
+
+### Execute
+
+```bash
+# Execute a workflow by UUID or YAML file
+npx cx-cli workflow execute <workflowId>
+npx cx-cli workflow execute workflows/my-workflow.yaml
+
+# Pass input variables as JSON
+npx cx-cli workflow execute <workflowId> --vars '{"city": "London", "count": 5}'
+```
+
+Returns execution result including `executionId`, `isAsync`, `outputs` (for Sync workflows).
+
+### Execution Logs
+
+```bash
+# List executions with log availability (sorted desc by date)
+npx cx-cli workflow logs <workflowId|file.yaml>
+
+# Filter by date range
+npx cx-cli workflow logs <workflowId> --from 2026-01-01 --to 2026-01-31
+
+# Download a specific execution log (saves to temp dir by default)
+npx cx-cli workflow log <executionId>
+
+# Save to specific file
+npx cx-cli workflow log <executionId> --output mylog.txt
+
+# Print to stdout
+npx cx-cli workflow log <executionId> --console
+
+# Download JSON log (richer data: inputs, outputs, timing, metadata)
+npx cx-cli workflow log <executionId> --json
+
+# JSON log to stdout
+npx cx-cli workflow log <executionId> --json --console
+```
+
+`workflow logs` shows a table with execution status, date, duration, user, and log availability indicators (filled/empty circle). `workflow log` downloads the actual log content from the server (gzip-compressed S3 URLs).
+
+### Debugging Tips
+
+- Use `--json` for detailed structured data (ExecutionId, Inputs, Outputs, Exception, timing)
+- Text logs show step-by-step execution trace with timestamps
+- Sync workflow executions may not appear in `workflow logs` — they return results inline
+- Use `workflow execute --vars` to test workflows with specific inputs
 
 ---
 
