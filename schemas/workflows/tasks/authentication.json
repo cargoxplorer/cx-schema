@@ -34,25 +34,39 @@
     },
     "inputs": {
       "type": "object",
-      "description": "Authentication operation inputs",
+      "description": "OAuth2 authentication inputs",
       "properties": {
-        "provider": {
-          "type": "string",
-          "description": "OAuth2 provider name"
-        },
-        "clientId": {
-          "type": "string",
-          "description": "OAuth2 client ID"
-        },
-        "clientSecret": {
-          "type": "string",
-          "description": "OAuth2 client secret"
+        "credentials": {
+          "type": "object",
+          "description": "OAuth2 credentials object (e.g., grant_type, client_id, client_secret)",
+          "additionalProperties": true
         },
         "tokenUrl": {
           "type": "string",
           "description": "Token endpoint URL"
+        },
+        "headers": {
+          "type": "array",
+          "description": "Optional HTTP headers for the token request",
+          "items": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "retryOptions": {
+          "type": "object",
+          "description": "Optional retry configuration for the HTTP request",
+          "additionalProperties": true
+        },
+        "cache": {
+          "type": "boolean",
+          "description": "Enable token caching (default: true). Set to false to always fetch a new token.",
+          "default": true
         }
       },
+      "required": ["credentials", "tokenUrl"],
       "additionalProperties": true
     },
     "outputs": {

@@ -6,12 +6,43 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as http from 'http';
+import * as https from 'https';
+import * as crypto from 'crypto';
+import * as os from 'os';
 import chalk from 'chalk';
 import YAML, { isSeq, isMap, YAMLSeq, Document as YAMLDocument } from 'yaml';
 import { ModuleValidator } from './validator';
 import { WorkflowValidator } from './workflowValidator';
 import { ValidationResult, ValidationError } from './types';
 import { computeExtractPriority } from './extractUtils';
+
+// ============================================================================
+// .env loader — load KEY=VALUE pairs from .env in CWD into process.env
+// ============================================================================
+
+function loadEnvFile(): void {
+  const envPath = path.join(process.cwd(), '.env');
+  if (!fs.existsSync(envPath)) return;
+  const lines = fs.readFileSync(envPath, 'utf-8').split('\n');
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx < 1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    let value = trimmed.slice(eqIdx + 1).trim();
+    // Strip surrounding quotes
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFile();
 
 // ============================================================================
 // Types
@@ -43,6 +74,7 @@ interface CLIOptions {
   createTasks?: string;
   extractTo?: string;
   extractCopy?: boolean;
+  orgId?: number;
 }
 
 interface FileValidationResult {
@@ -67,6 +99,16 @@ interface ParsedArgs {
   command: string | null;
   files: string[];
   options: CLIOptions;
+}
+
+interface TokenFile {
+  domain: string;
+  client_id: string;
+  access_token: string;
+  refresh_token: string;
+  expires_at: number;
+  organization_id?: number;
+  app_manifest_id?: string;
 }
 
 // ============================================================================
@@ -104,6 +146,13 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('install-skills')}  Install Claude Code skills into project .claude/skills/
   ${chalk.green('setup-claude')}    Add CX project instructions to CLAUDE.md
   ${chalk.green('update')}          Update @cxtms/cx-schema to the latest version
+  ${chalk.green('login')}           Login to a CX environment (OAuth2 + PKCE)
+  ${chalk.green('logout')}          Logout from a CX environment
+  ${chalk.green('pat')}             Manage personal access tokens (create, list, revoke)
+  ${chalk.green('orgs')}            List, select, or set active organization
+  ${chalk.green('appmodule')}       Manage app modules on a CX server (push, delete)
+  ${chalk.green('workflow')}        Manage workflows on a CX server (push, delete, executions, logs)
+  ${chalk.green('publish')}         Publish all modules and workflows to a CX server
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
   ${chalk.green('list')}            List available schemas (modules, workflows, tasks)
@@ -126,6 +175,7 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--tasks <list>')}         Comma-separated task enums for create task-schema
   ${chalk.green('--to <file>')}            Target file for extract command
   ${chalk.green('--copy')}                 Copy component instead of moving (source unchanged, target gets higher priority)
+  ${chalk.green('--org <id>')}             Organization ID for appmodule commands
 
 ${chalk.bold.yellow('VALIDATION EXAMPLES:')}
   ${chalk.gray('# Validate a module YAML file')}
@@ -191,6 +241,77 @@ ${chalk.bold.yellow('SCHEMA COMMANDS:')}
   ${chalk.cyan(`${PROGRAM_NAME} list`)}
   ${chalk.cyan(`${PROGRAM_NAME} list --type workflow`)}
 
+${chalk.bold.yellow('AUTH COMMANDS:')}
+  ${chalk.gray('# Login to a CX environment')}
+  ${chalk.cyan(`${PROGRAM_NAME} login https://qa.storevista.acuitive.net`)}
+
+  ${chalk.gray('# Logout from a CX environment')}
+  ${chalk.cyan(`${PROGRAM_NAME} logout https://qa.storevista.acuitive.net`)}
+
+  ${chalk.gray('# List stored sessions')}
+  ${chalk.cyan(`${PROGRAM_NAME} logout`)}
+
+${chalk.bold.yellow('PAT COMMANDS:')}
+  ${chalk.gray('# Check PAT token status and setup instructions')}
+  ${chalk.cyan(`${PROGRAM_NAME} pat setup`)}
+
+  ${chalk.gray('# Create a new PAT token')}
+  ${chalk.cyan(`${PROGRAM_NAME} pat create "my-token-name"`)}
+
+  ${chalk.gray('# List active PAT tokens')}
+  ${chalk.cyan(`${PROGRAM_NAME} pat list`)}
+
+  ${chalk.gray('# Revoke a PAT token by ID')}
+  ${chalk.cyan(`${PROGRAM_NAME} pat revoke <tokenId>`)}
+
+${chalk.bold.yellow('ORG COMMANDS:')}
+  ${chalk.gray('# List organizations on the server')}
+  ${chalk.cyan(`${PROGRAM_NAME} orgs list`)}
+
+  ${chalk.gray('# Interactively select an organization')}
+  ${chalk.cyan(`${PROGRAM_NAME} orgs select`)}
+
+  ${chalk.gray('# Set active organization by ID')}
+  ${chalk.cyan(`${PROGRAM_NAME} orgs use <orgId>`)}
+
+  ${chalk.gray('# Show current context (server, org, app)')}
+  ${chalk.cyan(`${PROGRAM_NAME} orgs use`)}
+
+${chalk.bold.yellow('APPMODULE COMMANDS:')}
+  ${chalk.gray('# Push a module YAML to the server (creates or updates)')}
+  ${chalk.cyan(`${PROGRAM_NAME} appmodule push modules/my-module.yaml`)}
+
+  ${chalk.gray('# Push with explicit org ID')}
+  ${chalk.cyan(`${PROGRAM_NAME} appmodule push modules/my-module.yaml --org 42`)}
+
+  ${chalk.gray('# Delete an app module by UUID')}
+  ${chalk.cyan(`${PROGRAM_NAME} appmodule delete <appModuleId>`)}
+
+${chalk.bold.yellow('WORKFLOW COMMANDS:')}
+  ${chalk.gray('# Push a workflow YAML to the server (creates or updates)')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow push workflows/my-workflow.yaml`)}
+
+  ${chalk.gray('# Delete a workflow by UUID')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow delete <workflowId>`)}
+
+  ${chalk.gray('# List recent executions for a workflow')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow executions <workflowId>`)}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow executions workflows/my-workflow.yaml`)}
+
+  ${chalk.gray('# Show execution details and logs')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow logs <executionId>`)}
+
+${chalk.bold.yellow('PUBLISH COMMANDS:')}
+  ${chalk.gray('# Publish all modules and workflows from current project')}
+  ${chalk.cyan(`${PROGRAM_NAME} publish`)}
+
+  ${chalk.gray('# Publish only a specific feature directory')}
+  ${chalk.cyan(`${PROGRAM_NAME} publish --feature billing`)}
+  ${chalk.cyan(`${PROGRAM_NAME} publish billing`)}
+
+  ${chalk.gray('# Publish with explicit org ID')}
+  ${chalk.cyan(`${PROGRAM_NAME} publish --org 42`)}
+
 ${chalk.bold.yellow('VALIDATION TYPES:')}
   ${chalk.bold('module')}     - CargoXplorer UI module definitions (components, routes, entities)
   ${chalk.bold('workflow')}   - CargoXplorer workflow definitions (activities, tasks, triggers)
@@ -207,6 +328,8 @@ ${chalk.bold.yellow('EXIT CODES:')}
   ${chalk.red('2')}  - CLI error (invalid arguments, file not found, etc.)
 
 ${chalk.bold.yellow('ENVIRONMENT VARIABLES:')}
+  ${chalk.green('CXTMS_AUTH')}         - PAT token for authentication (skips OAuth login)
+  ${chalk.green('CXTMS_SERVER')}       - Server URL when using PAT auth (or set \`server\` in app.yaml)
   ${chalk.green('CX_SCHEMA_PATH')}     - Default path to schemas directory
   ${chalk.green('NO_COLOR')}           - Disable colored output
 
@@ -1513,6 +1636,1342 @@ function runSetupClaude(): void {
 }
 
 // ============================================================================
+// Auth (Login / Logout)
+// ============================================================================
+
+const AUTH_CALLBACK_PORT = 9000;
+const AUTH_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
+
+function getTokenDir(): string {
+  return path.join(os.homedir(), '.cxtms');
+}
+
+function getTokenFilePath(domain: string): string {
+  const hostname = new URL(domain).hostname;
+  return path.join(getTokenDir(), `${hostname}.json`);
+}
+
+function readTokenFile(domain: string): TokenFile | null {
+  const filePath = getTokenFilePath(domain);
+  if (!fs.existsSync(filePath)) return null;
+  return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+}
+
+function writeTokenFile(data: TokenFile): void {
+  const dir = getTokenDir();
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  fs.writeFileSync(getTokenFilePath(data.domain), JSON.stringify(data, null, 2), 'utf-8');
+}
+
+function deleteTokenFile(domain: string): void {
+  const filePath = getTokenFilePath(domain);
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+}
+
+function generateCodeVerifier(): string {
+  return crypto.randomBytes(32).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+function generateCodeChallenge(verifier: string): string {
+  return crypto.createHash('sha256').update(verifier).digest('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+function httpsPost(url: string, body: string, contentType: string): Promise<{ statusCode: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const isHttps = parsed.protocol === 'https:';
+    const lib = isHttps ? https : http;
+    const req = lib.request({
+      hostname: parsed.hostname,
+      port: parsed.port || (isHttps ? 443 : 80),
+      path: parsed.pathname + parsed.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': contentType,
+        'Content-Length': Buffer.byteLength(body),
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk: Buffer) => data += chunk);
+      res.on('end', () => resolve({ statusCode: res.statusCode || 0, body: data }));
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+function openBrowser(url: string): void {
+  const { exec } = require('child_process');
+  const cmd = process.platform === 'win32' ? `start "" "${url}"`
+    : process.platform === 'darwin' ? `open "${url}"`
+    : `xdg-open "${url}"`;
+  exec(cmd);
+}
+
+function startCallbackServer(): Promise<{ code: string; close: () => void }> {
+  return new Promise((resolve, reject) => {
+    const server = http.createServer((req, res) => {
+      const reqUrl = new URL(req.url || '/', `http://127.0.0.1:${AUTH_CALLBACK_PORT}`);
+      if (reqUrl.pathname === '/callback') {
+        const code = reqUrl.searchParams.get('code');
+        const error = reqUrl.searchParams.get('error');
+        if (error) {
+          res.writeHead(200, { 'Content-Type': 'text/html' });
+          res.end('<html><body><h2>Login failed</h2><p>You can close this tab.</p></body></html>');
+          reject(new Error(`OAuth error: ${error} - ${reqUrl.searchParams.get('error_description') || ''}`));
+          server.close();
+          return;
+        }
+        if (code) {
+          res.writeHead(200, { 'Content-Type': 'text/html' });
+          res.end('<html><body><h2>Login successful!</h2><p>You can close this tab and return to the terminal.</p></body></html>');
+          resolve({ code, close: () => server.close() });
+          return;
+        }
+      }
+      res.writeHead(404);
+      res.end();
+    });
+
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        reject(new Error(`Port ${AUTH_CALLBACK_PORT} is already in use. Close the process using it and try again.`));
+      } else {
+        reject(err);
+      }
+    });
+
+    server.listen(AUTH_CALLBACK_PORT, '127.0.0.1');
+  });
+}
+
+async function registerOAuthClient(domain: string): Promise<string> {
+  const res = await httpsPost(
+    `${domain}/connect/register`,
+    JSON.stringify({
+      client_name: `cx-cli-${crypto.randomBytes(4).toString('hex')}`,
+      redirect_uris: [`http://localhost:${AUTH_CALLBACK_PORT}/callback`],
+      grant_types: ['authorization_code', 'refresh_token'],
+      response_types: ['code'],
+      token_endpoint_auth_method: 'none',
+    }),
+    'application/json'
+  );
+  if (res.statusCode !== 200 && res.statusCode !== 201) {
+    throw new Error(`Client registration failed (${res.statusCode}): ${res.body}`);
+  }
+  const data = JSON.parse(res.body);
+  if (!data.client_id) {
+    throw new Error('Client registration response missing client_id');
+  }
+  return data.client_id;
+}
+
+async function exchangeCodeForTokens(domain: string, clientId: string, code: string, codeVerifier: string): Promise<TokenFile> {
+  const body = new URLSearchParams({
+    grant_type: 'authorization_code',
+    client_id: clientId,
+    code,
+    redirect_uri: `http://localhost:${AUTH_CALLBACK_PORT}/callback`,
+    code_verifier: codeVerifier,
+  }).toString();
+
+  const res = await httpsPost(`${domain}/connect/token`, body, 'application/x-www-form-urlencoded');
+  if (res.statusCode !== 200) {
+    throw new Error(`Token exchange failed (${res.statusCode}): ${res.body}`);
+  }
+  const data = JSON.parse(res.body);
+  return {
+    domain,
+    client_id: clientId,
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Math.floor(Date.now() / 1000) + (data.expires_in || 3600),
+  };
+}
+
+async function revokeToken(domain: string, clientId: string, token: string): Promise<void> {
+  try {
+    await httpsPost(
+      `${domain}/connect/revoke`,
+      new URLSearchParams({ client_id: clientId, token }).toString(),
+      'application/x-www-form-urlencoded'
+    );
+  } catch {
+    // Revocation failures are non-fatal
+  }
+}
+
+async function refreshTokens(stored: TokenFile): Promise<TokenFile> {
+  const body = new URLSearchParams({
+    grant_type: 'refresh_token',
+    client_id: stored.client_id,
+    refresh_token: stored.refresh_token,
+  }).toString();
+
+  const res = await httpsPost(`${stored.domain}/connect/token`, body, 'application/x-www-form-urlencoded');
+  if (res.statusCode !== 200) {
+    throw new Error(`Token refresh failed (${res.statusCode}): ${res.body}`);
+  }
+  const data = JSON.parse(res.body);
+  const updated: TokenFile = {
+    ...stored,
+    access_token: data.access_token,
+    refresh_token: data.refresh_token || stored.refresh_token,
+    expires_at: Math.floor(Date.now() / 1000) + (data.expires_in || 3600),
+  };
+  writeTokenFile(updated);
+  return updated;
+}
+
+async function runLogin(domain: string): Promise<void> {
+  // Normalize URL
+  if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
+    domain = `https://${domain}`;
+  }
+  domain = domain.replace(/\/+$/, '');
+
+  try {
+    new URL(domain);
+  } catch {
+    console.error(chalk.red('Error: Invalid URL'));
+    process.exit(2);
+  }
+
+  console.log(chalk.bold.cyan('\n  CX CLI Login\n'));
+
+  // Step 1: Register client
+  console.log(chalk.gray('  Registering OAuth client...'));
+  const clientId = await registerOAuthClient(domain);
+  console.log(chalk.green('  ✓ Client registered'));
+
+  // Step 2: PKCE
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = generateCodeChallenge(codeVerifier);
+
+  // Step 3: Start callback server
+  const callbackPromise = startCallbackServer();
+
+  // Step 4: Open browser
+  const authUrl = `${domain}/connect/authorize?` + new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: `http://localhost:${AUTH_CALLBACK_PORT}/callback`,
+    response_type: 'code',
+    scope: 'openid offline_access TMS.ApiAPI',
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
+  }).toString();
+
+  console.log(chalk.gray('  Opening browser for login...'));
+  openBrowser(authUrl);
+  console.log(chalk.gray(`  Waiting for login (timeout: 2 min)...`));
+
+  // Step 5: Wait for callback with timeout
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Login timed out after 2 minutes. Please try again.')), AUTH_TIMEOUT_MS)
+  );
+
+  const { code, close } = await Promise.race([callbackPromise, timeoutPromise]);
+
+  // Step 6: Exchange code for tokens
+  console.log(chalk.gray('  Exchanging authorization code...'));
+  const tokens = await exchangeCodeForTokens(domain, clientId, code, codeVerifier);
+
+  // Step 7: Store tokens
+  writeTokenFile(tokens);
+  close();
+
+  console.log(chalk.green(`  ✓ Logged in to ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Token stored at: ${getTokenFilePath(domain)}\n`));
+}
+
+async function runLogout(domain: string | undefined): Promise<void> {
+  if (!domain) {
+    // List stored sessions
+    const dir = getTokenDir();
+    if (!fs.existsSync(dir)) {
+      console.log(chalk.gray('\n  No stored sessions.\n'));
+      return;
+    }
+    const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
+    if (files.length === 0) {
+      console.log(chalk.gray('\n  No stored sessions.\n'));
+      return;
+    }
+    console.log(chalk.bold.cyan('\n  Stored sessions:\n'));
+    for (const f of files) {
+      const hostname = f.replace('.json', '');
+      console.log(chalk.white(`    ${hostname}`));
+    }
+    console.log(chalk.gray(`\n  Usage: ${PROGRAM_NAME} logout <url>\n`));
+    return;
+  }
+
+  // Normalize URL
+  if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
+    domain = `https://${domain}`;
+  }
+  domain = domain.replace(/\/+$/, '');
+
+  const stored = readTokenFile(domain);
+  if (!stored) {
+    console.log(chalk.gray(`\n  No session found for ${new URL(domain).hostname}\n`));
+    return;
+  }
+
+  console.log(chalk.bold.cyan('\n  CX CLI Logout\n'));
+
+  // Revoke tokens (non-fatal)
+  console.log(chalk.gray('  Revoking tokens...'));
+  await revokeToken(domain, stored.client_id, stored.access_token);
+  await revokeToken(domain, stored.client_id, stored.refresh_token);
+
+  // Delete local file
+  deleteTokenFile(domain);
+
+  console.log(chalk.green(`  ✓ Logged out from ${new URL(domain).hostname}\n`));
+}
+
+// ============================================================================
+// AppModule Commands
+// ============================================================================
+
+async function graphqlRequest(domain: string, token: string, query: string, variables: Record<string, any>): Promise<any> {
+  const body = JSON.stringify({ query, variables });
+
+  let res = await graphqlPostWithAuth(domain, token, body);
+
+  if (res.statusCode === 401) {
+    // PAT tokens have no refresh — fail immediately
+    if (process.env.CXTMS_AUTH) throw new Error('PAT token unauthorized (401). Check your CXTMS_AUTH token.');
+    // Try refresh for OAuth sessions
+    const stored = readTokenFile(domain);
+    if (!stored) throw new Error('Session expired. Run `cx-cli login <url>` again.');
+    try {
+      const refreshed = await refreshTokens(stored);
+      res = await graphqlPostWithAuth(domain, refreshed.access_token, body);
+    } catch {
+      throw new Error('Session expired. Run `cx-cli login <url>` again.');
+    }
+  }
+
+  // Try to parse GraphQL errors from 400 responses too
+  let json: any;
+  try {
+    json = JSON.parse(res.body);
+  } catch {
+    if (res.statusCode !== 200) {
+      throw new Error(`GraphQL request failed (${res.statusCode}): ${res.body}`);
+    }
+    throw new Error('Invalid JSON response from GraphQL endpoint');
+  }
+
+  if (json.errors && json.errors.length > 0) {
+    const messages = json.errors.map((e: any) => {
+      const ext = e.extensions?.message;
+      return ext && ext !== e.message ? `${e.message} — ${ext}` : e.message;
+    });
+    throw new Error(`GraphQL error: ${messages.join('; ')}`);
+  }
+
+  if (res.statusCode !== 200) {
+    throw new Error(`GraphQL request failed (${res.statusCode}): ${res.body}`);
+  }
+
+  return json.data;
+}
+
+function graphqlPostWithAuth(domain: string, token: string, body: string): Promise<{ statusCode: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    const url = `${domain}/api/graphql`;
+    const parsed = new URL(url);
+    const isHttps = parsed.protocol === 'https:';
+    const lib = isHttps ? https : http;
+    const req = lib.request({
+      hostname: parsed.hostname,
+      port: parsed.port || (isHttps ? 443 : 80),
+      path: parsed.pathname + parsed.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        'Authorization': `Bearer ${token}`,
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk: Buffer) => data += chunk);
+      res.on('end', () => resolve({ statusCode: res.statusCode || 0, body: data }));
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+function resolveDomainFromAppYaml(): string | null {
+  const appYamlPath = path.join(process.cwd(), 'app.yaml');
+  if (!fs.existsSync(appYamlPath)) return null;
+  const appYaml = YAML.parse(fs.readFileSync(appYamlPath, 'utf-8')) as any;
+  const serverDomain = appYaml?.server || appYaml?.domain;
+  if (!serverDomain) return null;
+  let domain = serverDomain;
+  if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
+    domain = `https://${domain}`;
+  }
+  return domain.replace(/\/+$/, '');
+}
+
+function resolveSession(): TokenFile {
+  // 0. Check for PAT token in env (CXTMS_AUTH) — skips OAuth entirely
+  const patToken = process.env.CXTMS_AUTH;
+  if (patToken) {
+    const domain = process.env.CXTMS_SERVER ? process.env.CXTMS_SERVER.replace(/\/+$/, '') : resolveDomainFromAppYaml();
+    if (!domain) {
+      console.error(chalk.red('CXTMS_AUTH is set but no server domain found.'));
+      console.error(chalk.gray('Add `server` to app.yaml or set CXTMS_SERVER in .env'));
+      process.exit(2);
+    }
+    return {
+      domain,
+      client_id: '',
+      access_token: patToken,
+      refresh_token: '',
+      expires_at: 0,
+    };
+  }
+
+  // 1. Check app.yaml in CWD for server field
+  const appDomain = resolveDomainFromAppYaml();
+  if (appDomain) {
+    const stored = readTokenFile(appDomain);
+    if (stored) return stored;
+    console.error(chalk.red(`Not logged in to ${appDomain}. Run \`cx-cli login ${appDomain}\` first.`));
+    process.exit(2);
+  }
+
+  // 2. Check for single session
+  const dir = getTokenDir();
+  if (!fs.existsSync(dir)) {
+    console.error(chalk.red('Not logged in. Run `cx-cli login <url>` first.'));
+    process.exit(2);
+  }
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
+  if (files.length === 0) {
+    console.error(chalk.red('Not logged in. Run `cx-cli login <url>` first.'));
+    process.exit(2);
+  }
+  if (files.length === 1) {
+    return JSON.parse(fs.readFileSync(path.join(dir, files[0]), 'utf-8'));
+  }
+
+  // 3. Multiple sessions — error
+  console.error(chalk.red('Multiple sessions found:'));
+  for (const f of files) {
+    console.error(chalk.white(`  ${f.replace('.json', '')}`));
+  }
+  console.error(chalk.gray('Add `server` field to app.yaml or use a single login session.'));
+  process.exit(2);
+}
+
+async function resolveOrgId(domain: string, token: string, override?: number): Promise<number> {
+  // 1. Explicit override
+  if (override !== undefined) return override;
+
+  // 2. Cached in token file
+  const stored = readTokenFile(domain);
+  if (stored?.organization_id) return stored.organization_id;
+
+  // 3. Query server
+  const data = await graphqlRequest(domain, token, `
+    query { organizations(take: 100) { items { organizationId companyName } } }
+  `, {});
+
+  const orgs = data?.organizations?.items;
+  if (!orgs || orgs.length === 0) {
+    throw new Error('No organizations found for this account.');
+  }
+
+  if (orgs.length === 1) {
+    const orgId = orgs[0].organizationId;
+    // Cache it
+    if (stored) {
+      stored.organization_id = orgId;
+      writeTokenFile(stored);
+    }
+    return orgId;
+  }
+
+  // Multiple orgs — list and exit
+  console.error(chalk.yellow('\n  Multiple organizations found:\n'));
+  for (const org of orgs) {
+    console.error(chalk.white(`    ${org.organizationId}  ${org.companyName}`));
+  }
+  console.error(chalk.gray(`\n  Run \`cx-cli orgs select\` to choose, or pass --org <id>.\n`));
+  process.exit(2);
+}
+
+async function runAppModulePush(file: string | undefined, orgOverride?: number): Promise<void> {
+  if (!file) {
+    console.error(chalk.red('Error: File path required'));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} appmodule push <file.yaml> [--org <id>]`));
+    process.exit(2);
+  }
+
+  if (!fs.existsSync(file)) {
+    console.error(chalk.red(`Error: File not found: ${file}`));
+    process.exit(2);
+  }
+
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  // Read and parse YAML
+  const yamlContent = fs.readFileSync(file, 'utf-8');
+  const parsed = YAML.parse(yamlContent) as any;
+  const appModuleId = parsed?.module?.appModuleId;
+  if (!appModuleId) {
+    console.error(chalk.red('Error: Module YAML is missing module.appModuleId'));
+    process.exit(2);
+  }
+
+  // Read app.yaml for appManifestId, fall back to cached session
+  let appManifestId: string | undefined;
+  const appYamlPath = path.join(process.cwd(), 'app.yaml');
+  if (fs.existsSync(appYamlPath)) {
+    const appYaml = YAML.parse(fs.readFileSync(appYamlPath, 'utf-8')) as any;
+    appManifestId = appYaml?.id;
+  }
+  if (!appManifestId && session.app_manifest_id) {
+    appManifestId = session.app_manifest_id;
+  }
+
+  console.log(chalk.bold.cyan('\n  AppModule Push\n'));
+  console.log(chalk.gray(`  Server:  ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Org:     ${orgId}`));
+  console.log(chalk.gray(`  Module:  ${appModuleId}`));
+  console.log('');
+
+  // Check if module exists
+  const checkData = await graphqlRequest(domain, token, `
+    query ($organizationId: Int!, $appModuleId: UUID!) {
+      appModule(organizationId: $organizationId, appModuleId: $appModuleId) {
+        appModuleId
+      }
+    }
+  `, { organizationId: orgId, appModuleId });
+
+  if (checkData?.appModule) {
+    // Update
+    console.log(chalk.gray('  Updating existing module...'));
+    const result = await graphqlRequest(domain, token, `
+      mutation ($input: UpdateAppModuleInput!) {
+        updateAppModule(input: $input) {
+          appModule { appModuleId name }
+        }
+      }
+    `, {
+      input: {
+        organizationId: orgId,
+        appModuleId,
+        values: { appModuleYamlDocument: yamlContent },
+      },
+    });
+    const mod = result?.updateAppModule?.appModule;
+    console.log(chalk.green(`  ✓ Updated: ${mod?.name || appModuleId}\n`));
+  } else {
+    // Create
+    console.log(chalk.gray('  Creating new module...'));
+    const values: Record<string, any> = { appModuleYamlDocument: yamlContent };
+    if (appManifestId) values.appManifestId = appManifestId;
+    const result = await graphqlRequest(domain, token, `
+      mutation ($input: CreateAppModuleInput!) {
+        createAppModule(input: $input) {
+          appModule { appModuleId name }
+        }
+      }
+    `, {
+      input: {
+        organizationId: orgId,
+        values,
+      },
+    });
+    const mod = result?.createAppModule?.appModule;
+    console.log(chalk.green(`  ✓ Created: ${mod?.name || appModuleId}\n`));
+  }
+}
+
+async function runAppModuleDelete(uuid: string | undefined, orgOverride?: number): Promise<void> {
+  if (!uuid) {
+    console.error(chalk.red('Error: AppModule ID required'));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} appmodule delete <appModuleId> [--org <id>]`));
+    process.exit(2);
+  }
+
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  console.log(chalk.bold.cyan('\n  AppModule Delete\n'));
+  console.log(chalk.gray(`  Server:  ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Org:     ${orgId}`));
+  console.log(chalk.gray(`  Module:  ${uuid}`));
+  console.log('');
+
+  await graphqlRequest(domain, token, `
+    mutation ($input: DeleteAppModuleInput!) {
+      deleteAppModule(input: $input) {
+        deleteResult { __typename }
+      }
+    }
+  `, {
+    input: {
+      organizationId: orgId,
+      appModuleId: uuid,
+    },
+  });
+
+  console.log(chalk.green(`  ✓ Deleted: ${uuid}\n`));
+}
+
+async function runOrgsList(): Promise<void> {
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+
+  const data = await graphqlRequest(domain, token, `
+    query { organizations(take: 100) { items { organizationId companyName } } }
+  `, {});
+
+  const orgs = data?.organizations?.items;
+  if (!orgs || orgs.length === 0) {
+    console.log(chalk.gray('\n  No organizations found.\n'));
+    return;
+  }
+
+  console.log(chalk.bold.cyan('\n  Organizations\n'));
+  console.log(chalk.gray(`  Server: ${new URL(domain).hostname}\n`));
+
+  for (const org of orgs) {
+    const current = session.organization_id === org.organizationId;
+    const marker = current ? chalk.green(' ← current') : '';
+    console.log(chalk.white(`    ${org.organizationId}  ${org.companyName}${marker}`));
+  }
+  console.log('');
+}
+
+async function runOrgsUse(orgIdStr: string | undefined): Promise<void> {
+  if (!orgIdStr) {
+    // Show current context
+    const session = resolveSession();
+    const domain = session.domain;
+    console.log(chalk.bold.cyan('\n  Current Context\n'));
+    console.log(chalk.white(`  Server:  ${new URL(domain).hostname}`));
+    if (session.organization_id) {
+      console.log(chalk.white(`  Org:     ${session.organization_id}`));
+    } else {
+      console.log(chalk.gray(`  Org:     (not set)`));
+    }
+    if (session.app_manifest_id) {
+      console.log(chalk.white(`  App:     ${session.app_manifest_id}`));
+    } else {
+      // Try reading from app.yaml
+      const appYamlPath = path.join(process.cwd(), 'app.yaml');
+      if (fs.existsSync(appYamlPath)) {
+        const appYaml = YAML.parse(fs.readFileSync(appYamlPath, 'utf-8')) as any;
+        if (appYaml?.id) {
+          console.log(chalk.white(`  App:     ${appYaml.id} ${chalk.gray('(from app.yaml)')}`));
+        } else {
+          console.log(chalk.gray(`  App:     (not set)`));
+        }
+      } else {
+        console.log(chalk.gray(`  App:     (not set)`));
+      }
+    }
+    console.log('');
+    return;
+  }
+
+  const orgId = parseInt(orgIdStr, 10);
+  if (isNaN(orgId)) {
+    console.error(chalk.red(`Invalid organization ID: ${orgIdStr}. Must be a number.`));
+    process.exit(2);
+  }
+
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+
+  // Validate the org exists
+  const data = await graphqlRequest(domain, token, `
+    query { organizations(take: 100) { items { organizationId companyName } } }
+  `, {});
+
+  const orgs = data?.organizations?.items;
+  const match = orgs?.find((o: any) => o.organizationId === orgId);
+  if (!match) {
+    console.error(chalk.red(`Organization ${orgId} not found.`));
+    if (orgs?.length) {
+      console.error(chalk.gray('\n  Available organizations:'));
+      for (const org of orgs) {
+        console.error(chalk.white(`    ${org.organizationId}  ${org.companyName}`));
+      }
+    }
+    console.error('');
+    process.exit(2);
+  }
+
+  // Save to token file
+  session.organization_id = orgId;
+  writeTokenFile(session);
+
+  console.log(chalk.green(`\n  ✓ Context set to: ${match.companyName} (${orgId})\n`));
+}
+
+async function runOrgsSelect(): Promise<void> {
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+
+  const data = await graphqlRequest(domain, token, `
+    query { organizations(take: 100) { items { organizationId companyName } } }
+  `, {});
+
+  const orgs = data?.organizations?.items;
+  if (!orgs || orgs.length === 0) {
+    console.log(chalk.gray('\n  No organizations found.\n'));
+    return;
+  }
+
+  console.log(chalk.bold.cyan('\n  Select Organization\n'));
+  console.log(chalk.gray(`  Server: ${new URL(domain).hostname}\n`));
+
+  for (let i = 0; i < orgs.length; i++) {
+    const org = orgs[i];
+    const current = session.organization_id === org.organizationId;
+    const marker = current ? chalk.green(' ← current') : '';
+    console.log(chalk.white(`    ${i + 1}) ${org.organizationId}  ${org.companyName}${marker}`));
+  }
+  console.log('');
+
+  const readline = require('readline');
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+  const answer = await new Promise<string>((resolve) => {
+    rl.question(chalk.yellow('  Enter number: '), (ans: string) => {
+      rl.close();
+      resolve(ans.trim());
+    });
+  });
+
+  const idx = parseInt(answer, 10) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= orgs.length) {
+    console.error(chalk.red('\n  Invalid selection.\n'));
+    process.exit(2);
+  }
+
+  const selected = orgs[idx];
+  session.organization_id = selected.organizationId;
+  writeTokenFile(session);
+
+  console.log(chalk.green(`\n  ✓ Context set to: ${selected.companyName} (${selected.organizationId})\n`));
+}
+
+// ============================================================================
+// Workflow Commands
+// ============================================================================
+
+async function runWorkflowPush(file: string | undefined, orgOverride?: number): Promise<void> {
+  if (!file) {
+    console.error(chalk.red('Error: File path required'));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow push <file.yaml> [--org <id>]`));
+    process.exit(2);
+  }
+
+  if (!fs.existsSync(file)) {
+    console.error(chalk.red(`Error: File not found: ${file}`));
+    process.exit(2);
+  }
+
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  const yamlContent = fs.readFileSync(file, 'utf-8');
+  const parsed = YAML.parse(yamlContent) as any;
+  const workflowId = parsed?.workflow?.workflowId;
+  if (!workflowId) {
+    console.error(chalk.red('Error: Workflow YAML is missing workflow.workflowId'));
+    process.exit(2);
+  }
+
+  const workflowName = parsed?.workflow?.name || workflowId;
+
+  console.log(chalk.bold.cyan('\n  Workflow Push\n'));
+  console.log(chalk.gray(`  Server:    ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Org:       ${orgId}`));
+  console.log(chalk.gray(`  Workflow:  ${workflowName}`));
+  console.log('');
+
+  // Check if workflow exists
+  const checkData = await graphqlRequest(domain, token, `
+    query ($organizationId: Int!, $workflowId: UUID!) {
+      workflow(organizationId: $organizationId, workflowId: $workflowId) {
+        workflowId
+      }
+    }
+  `, { organizationId: orgId, workflowId });
+
+  if (checkData?.workflow) {
+    console.log(chalk.gray('  Updating existing workflow...'));
+    const result = await graphqlRequest(domain, token, `
+      mutation ($input: UpdateWorkflowInput!) {
+        updateWorkflow(input: $input) {
+          workflow { workflowId }
+        }
+      }
+    `, {
+      input: {
+        organizationId: orgId,
+        workflowId,
+        workflowYamlDocument: yamlContent,
+      },
+    });
+    console.log(chalk.green(`  ✓ Updated: ${workflowName}\n`));
+  } else {
+    console.log(chalk.gray('  Creating new workflow...'));
+    const result = await graphqlRequest(domain, token, `
+      mutation ($input: CreateWorkflowInput!) {
+        createWorkflow(input: $input) {
+          workflow { workflowId }
+        }
+      }
+    `, {
+      input: {
+        organizationId: orgId,
+        workflowYamlDocument: yamlContent,
+      },
+    });
+    console.log(chalk.green(`  ✓ Created: ${workflowName}\n`));
+  }
+}
+
+async function runWorkflowDelete(uuid: string | undefined, orgOverride?: number): Promise<void> {
+  if (!uuid) {
+    console.error(chalk.red('Error: Workflow ID required'));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow delete <workflowId> [--org <id>]`));
+    process.exit(2);
+  }
+
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  console.log(chalk.bold.cyan('\n  Workflow Delete\n'));
+  console.log(chalk.gray(`  Server:    ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Org:       ${orgId}`));
+  console.log(chalk.gray(`  Workflow:  ${uuid}`));
+  console.log('');
+
+  await graphqlRequest(domain, token, `
+    mutation ($input: DeleteWorkflowInput!) {
+      deleteWorkflow(input: $input) {
+        deleteResult { __typename }
+      }
+    }
+  `, {
+    input: {
+      organizationId: orgId,
+      workflowId: uuid,
+    },
+  });
+
+  console.log(chalk.green(`  ✓ Deleted: ${uuid}\n`));
+}
+
+async function runWorkflowExecutions(workflowIdOrFile: string | undefined, orgOverride?: number): Promise<void> {
+  if (!workflowIdOrFile) {
+    console.error(chalk.red('Error: Workflow ID or YAML file required'));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow executions <workflowId|file.yaml> [--org <id>]`));
+    process.exit(2);
+  }
+
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  // Resolve workflowId — accept UUID directly or extract from YAML file
+  let workflowId = workflowIdOrFile;
+  if (workflowIdOrFile.endsWith('.yaml') || workflowIdOrFile.endsWith('.yml')) {
+    if (!fs.existsSync(workflowIdOrFile)) {
+      console.error(chalk.red(`Error: File not found: ${workflowIdOrFile}`));
+      process.exit(2);
+    }
+    const parsed = YAML.parse(fs.readFileSync(workflowIdOrFile, 'utf-8')) as any;
+    workflowId = parsed?.workflow?.workflowId;
+    if (!workflowId) {
+      console.error(chalk.red('Error: Workflow YAML is missing workflow.workflowId'));
+      process.exit(2);
+    }
+  }
+
+  const data = await graphqlRequest(domain, token, `
+    query ($organizationId: Int!, $workflowId: UUID!) {
+      workflowExecutions(organizationId: $organizationId, workflowId: $workflowId, take: 25) {
+        totalCount
+        items { executionId executionStatus executedAt durationMs userId }
+      }
+    }
+  `, { organizationId: orgId, workflowId });
+
+  const items = data?.workflowExecutions?.items || [];
+  const total = data?.workflowExecutions?.totalCount || 0;
+
+  console.log(chalk.bold.cyan('\n  Workflow Executions\n'));
+  console.log(chalk.gray(`  Server:    ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Workflow:  ${workflowId}`));
+  console.log(chalk.gray(`  Total:     ${total}\n`));
+
+  if (items.length === 0) {
+    console.log(chalk.gray('  No executions found.\n'));
+    return;
+  }
+
+  // Sort descending by executedAt (API may not support ordering)
+  items.sort((a: any, b: any) => new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime());
+
+  for (const ex of items) {
+    const date = new Date(ex.executedAt).toLocaleString();
+    const duration = ex.durationMs != null ? `${(ex.durationMs / 1000).toFixed(1)}s` : '?';
+    const statusColor = ex.executionStatus === 'Success' ? chalk.green : ex.executionStatus === 'Failed' ? chalk.red : chalk.yellow;
+    console.log(chalk.white(`    ${ex.executionId}  ${statusColor(ex.executionStatus.padEnd(10))}  ${date}  ${chalk.gray(duration)}`));
+  }
+  console.log('');
+}
+
+async function runWorkflowLogs(executionId: string | undefined, orgOverride?: number): Promise<void> {
+  if (!executionId) {
+    console.error(chalk.red('Error: Execution ID required'));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow logs <executionId> [--org <id>]`));
+    process.exit(2);
+  }
+
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  // Fetch execution details
+  const data = await graphqlRequest(domain, token, `
+    query ($organizationId: Int!, $executionId: UUID!) {
+      workflowExecution(organizationId: $organizationId, executionId: $executionId) {
+        executionId workflowId executionStatus executedAt durationMs
+      }
+    }
+  `, { organizationId: orgId, executionId });
+
+  const ex = data?.workflowExecution;
+  if (!ex) {
+    console.error(chalk.red(`Execution not found: ${executionId}`));
+    process.exit(2);
+  }
+
+  const date = new Date(ex.executedAt).toLocaleString();
+  const duration = ex.durationMs != null ? `${(ex.durationMs / 1000).toFixed(1)}s` : '?';
+  const statusColor = ex.executionStatus === 'Success' ? chalk.green : ex.executionStatus === 'Failed' ? chalk.red : chalk.yellow;
+
+  console.log(chalk.bold.cyan('\n  Workflow Execution\n'));
+  console.log(chalk.white(`  ID:        ${ex.executionId}`));
+  console.log(chalk.white(`  Workflow:  ${ex.workflowId}`));
+  console.log(chalk.white(`  Status:    ${statusColor(ex.executionStatus)}`));
+  console.log(chalk.white(`  Executed:  ${date}`));
+  console.log(chalk.white(`  Duration:  ${duration}`));
+
+  // Try to fetch log via REST endpoint
+  const logUrl = `${domain}/api/workflow-executions/${executionId}/log?organizationId=${orgId}`;
+  try {
+    const logRes = await new Promise<{ statusCode: number; body: string }>((resolve, reject) => {
+      const parsed = new URL(logUrl);
+      const isHttps = parsed.protocol === 'https:';
+      const lib = isHttps ? https : http;
+      const req = lib.request({
+        hostname: parsed.hostname,
+        port: parsed.port || (isHttps ? 443 : 80),
+        path: parsed.pathname + parsed.search,
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` },
+      }, (res) => {
+        let d = '';
+        res.on('data', (chunk: Buffer) => d += chunk);
+        res.on('end', () => resolve({ statusCode: res.statusCode || 0, body: d }));
+      });
+      req.on('error', reject);
+      req.end();
+    });
+
+    if (logRes.statusCode === 200 && logRes.body) {
+      console.log(chalk.gray('\n  --- Log ---\n'));
+      console.log(logRes.body);
+    } else {
+      console.log(chalk.gray('\n  Logs not available via REST API.'));
+      console.log(chalk.gray(`  Use TMS MCP to download execution logs.\n`));
+    }
+  } catch {
+    console.log(chalk.gray('\n  Logs not available via REST API.'));
+    console.log(chalk.gray(`  Use TMS MCP to download execution logs.\n`));
+  }
+}
+
+// ============================================================================
+// Publish Command
+// ============================================================================
+
+async function pushWorkflowQuiet(domain: string, token: string, orgId: number, file: string): Promise<{ ok: boolean; name: string; error?: string }> {
+  let name = path.basename(file);
+  try {
+    const yamlContent = fs.readFileSync(file, 'utf-8');
+    const parsed = YAML.parse(yamlContent) as any;
+    const workflowId = parsed?.workflow?.workflowId;
+    name = parsed?.workflow?.name || name;
+    if (!workflowId) return { ok: false, name, error: 'Missing workflow.workflowId' };
+    const checkData = await graphqlRequest(domain, token, `
+      query ($organizationId: Int!, $workflowId: UUID!) {
+        workflow(organizationId: $organizationId, workflowId: $workflowId) { workflowId }
+      }
+    `, { organizationId: orgId, workflowId });
+
+    if (checkData?.workflow) {
+      await graphqlRequest(domain, token, `
+        mutation ($input: UpdateWorkflowInput!) {
+          updateWorkflow(input: $input) { workflow { workflowId } }
+        }
+      `, { input: { organizationId: orgId, workflowId, workflowYamlDocument: yamlContent } });
+    } else {
+      await graphqlRequest(domain, token, `
+        mutation ($input: CreateWorkflowInput!) {
+          createWorkflow(input: $input) { workflow { workflowId } }
+        }
+      `, { input: { organizationId: orgId, workflowYamlDocument: yamlContent } });
+    }
+    return { ok: true, name };
+  } catch (e: any) {
+    return { ok: false, name, error: e.message };
+  }
+}
+
+async function pushModuleQuiet(domain: string, token: string, orgId: number, file: string, appManifestId?: string): Promise<{ ok: boolean; name: string; error?: string }> {
+  let name = path.basename(file);
+  try {
+    const yamlContent = fs.readFileSync(file, 'utf-8');
+    const parsed = YAML.parse(yamlContent) as any;
+    const appModuleId = parsed?.module?.appModuleId;
+    name = parsed?.module?.name || name;
+    if (!appModuleId) return { ok: false, name, error: 'Missing module.appModuleId' };
+
+    const checkData = await graphqlRequest(domain, token, `
+      query ($organizationId: Int!, $appModuleId: UUID!) {
+        appModule(organizationId: $organizationId, appModuleId: $appModuleId) { appModuleId }
+      }
+    `, { organizationId: orgId, appModuleId });
+
+    if (checkData?.appModule) {
+      await graphqlRequest(domain, token, `
+        mutation ($input: UpdateAppModuleInput!) {
+          updateAppModule(input: $input) { appModule { appModuleId name } }
+        }
+      `, { input: { organizationId: orgId, appModuleId, values: { appModuleYamlDocument: yamlContent } } });
+    } else {
+      const values: Record<string, any> = { appModuleYamlDocument: yamlContent };
+      if (appManifestId) values.appManifestId = appManifestId;
+      await graphqlRequest(domain, token, `
+        mutation ($input: CreateAppModuleInput!) {
+          createAppModule(input: $input) { appModule { appModuleId name } }
+        }
+      `, { input: { organizationId: orgId, values } });
+    }
+    return { ok: true, name };
+  } catch (e: any) {
+    return { ok: false, name, error: e.message };
+  }
+}
+
+// ============================================================================
+// PAT Token Commands
+// ============================================================================
+
+async function runPatCreate(name: string): Promise<void> {
+  const session = resolveSession();
+  const { domain, access_token: token } = session;
+
+  const data = await graphqlRequest(domain, token, `
+    mutation ($input: CreatePersonalAccessTokenInput!) {
+      createPersonalAccessToken(input: $input) {
+        createPatPayload {
+          token
+          personalAccessToken { id name scopes }
+        }
+      }
+    }
+  `, { input: { input: { name, scopes: ['TMS.ApiAPI'] } } });
+
+  const payload = data?.createPersonalAccessToken?.createPatPayload;
+  const patToken = payload?.token;
+  const pat = payload?.personalAccessToken;
+
+  if (!patToken) {
+    console.error(chalk.red('Failed to create PAT token — no token returned.'));
+    process.exit(2);
+  }
+
+  console.log(chalk.green('PAT token created successfully!'));
+  console.log();
+  console.log(chalk.bold('  Token:'), chalk.cyan(patToken));
+  console.log(chalk.bold('  ID:   '), chalk.gray(pat?.id || 'unknown'));
+  console.log(chalk.bold('  Name: '), pat?.name || name);
+  console.log();
+  console.log(chalk.yellow('⚠  Copy the token now — it will not be shown again.'));
+  console.log();
+  console.log(chalk.bold('To use PAT authentication, add to your project .env file:'));
+  console.log();
+  console.log(chalk.cyan(`  CXTMS_AUTH=${patToken}`));
+  console.log(chalk.cyan(`  CXTMS_SERVER=${domain}`));
+  console.log();
+  console.log(chalk.gray('When CXTMS_AUTH is set, cx-cli will skip OAuth login and use the PAT token directly.'));
+  console.log(chalk.gray('You can also export these as environment variables instead of using .env.'));
+}
+
+async function runPatList(): Promise<void> {
+  const session = resolveSession();
+  const { domain, access_token: token } = session;
+
+  const data = await graphqlRequest(domain, token, `
+    {
+      personalAccessTokens(skip: 0, take: 50) {
+        items { id name createdAt expiresAt lastUsedAt scopes }
+        totalCount
+      }
+    }
+  `, {});
+
+  const items = data?.personalAccessTokens?.items || [];
+  const total = data?.personalAccessTokens?.totalCount ?? items.length;
+
+  if (items.length === 0) {
+    console.log(chalk.gray('No active PAT tokens found.'));
+    return;
+  }
+
+  console.log(chalk.bold(`PAT tokens (${total}):\n`));
+  for (const t of items) {
+    const expires = t.expiresAt ? new Date(t.expiresAt).toLocaleDateString() : 'never';
+    const lastUsed = t.lastUsedAt ? new Date(t.lastUsedAt).toLocaleDateString() : 'never';
+    console.log(`  ${chalk.cyan(t.name || '(unnamed)')}`);
+    console.log(`    ID:        ${chalk.gray(t.id)}`);
+    console.log(`    Created:   ${new Date(t.createdAt).toLocaleDateString()}`);
+    console.log(`    Expires:   ${expires}`);
+    console.log(`    Last used: ${lastUsed}`);
+    console.log(`    Scopes:    ${(t.scopes || []).join(', ') || 'none'}`);
+    console.log();
+  }
+}
+
+async function runPatRevoke(id: string): Promise<void> {
+  const session = resolveSession();
+  const { domain, access_token: token } = session;
+
+  const data = await graphqlRequest(domain, token, `
+    mutation ($input: RevokePersonalAccessTokenInput!) {
+      revokePersonalAccessToken(input: $input) {
+        personalAccessToken { id name revokedAt }
+      }
+    }
+  `, { input: { id } });
+
+  const revoked = data?.revokePersonalAccessToken?.personalAccessToken;
+  if (revoked) {
+    console.log(chalk.green(`PAT token revoked: ${revoked.name || revoked.id}`));
+  } else {
+    console.log(chalk.green('PAT token revoked.'));
+  }
+}
+
+async function runPatSetup(): Promise<void> {
+  const patToken = process.env.CXTMS_AUTH;
+  const server = process.env.CXTMS_SERVER || resolveDomainFromAppYaml();
+
+  console.log(chalk.bold('PAT Token Status:\n'));
+
+  if (patToken) {
+    const masked = patToken.slice(0, 8) + '...' + patToken.slice(-4);
+    console.log(chalk.green(`  CXTMS_AUTH is set: ${masked}`));
+  } else {
+    console.log(chalk.yellow('  CXTMS_AUTH is not set'));
+  }
+
+  if (server) {
+    console.log(chalk.green(`  Server:           ${server}`));
+  } else {
+    console.log(chalk.yellow('  Server:           not configured (add `server` to app.yaml or set CXTMS_SERVER)'));
+  }
+
+  console.log();
+
+  if (patToken && server) {
+    console.log(chalk.green('PAT authentication is active. OAuth login will be skipped.'));
+  } else {
+    console.log(chalk.bold('To set up PAT authentication:'));
+    console.log();
+    console.log(chalk.white('  1. Create a token:'));
+    console.log(chalk.cyan('     cx-cli pat create "my-token-name"'));
+    console.log();
+    console.log(chalk.white('  2. Add to your project .env file:'));
+    console.log(chalk.cyan('     CXTMS_AUTH=pat_xxxxx'));
+    console.log(chalk.cyan('     CXTMS_SERVER=https://your-server.com'));
+    console.log();
+    console.log(chalk.gray('  Or set `server` in app.yaml instead of CXTMS_SERVER.'));
+  }
+}
+
+async function runPublish(featureDir: string | undefined, orgOverride?: number): Promise<void> {
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  // Read app.yaml
+  const appYamlPath = path.join(process.cwd(), 'app.yaml');
+  if (!fs.existsSync(appYamlPath)) {
+    console.error(chalk.red('Error: app.yaml not found in current directory'));
+    process.exit(2);
+  }
+  const appYaml = YAML.parse(fs.readFileSync(appYamlPath, 'utf-8')) as any;
+  const appManifestId = appYaml?.id;
+  const appName = appYaml?.name || 'unknown';
+
+  console.log(chalk.bold.cyan('\n  Publish\n'));
+  console.log(chalk.gray(`  Server:  ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Org:     ${orgId}`));
+  console.log(chalk.gray(`  App:     ${appName}`));
+  if (featureDir) {
+    console.log(chalk.gray(`  Feature: ${featureDir}`));
+  }
+  console.log('');
+
+  // Step 1: Create or update app manifest
+  if (appManifestId) {
+    console.log(chalk.gray('  Publishing app manifest...'));
+    try {
+      const checkData = await graphqlRequest(domain, token, `
+        query ($organizationId: Int!, $appManifestId: UUID!) {
+          appManifest(organizationId: $organizationId, appManifestId: $appManifestId) { appManifestId }
+        }
+      `, { organizationId: orgId, appManifestId });
+
+      if (checkData?.appManifest) {
+        await graphqlRequest(domain, token, `
+          mutation ($input: UpdateAppManifestInput!) {
+            updateAppManifest(input: $input) { appManifest { appManifestId name } }
+          }
+        `, { input: { organizationId: orgId, appManifestId, values: { name: appName, description: appYaml?.description || '' } } });
+        console.log(chalk.green('  ✓ App manifest updated'));
+      } else {
+        await graphqlRequest(domain, token, `
+          mutation ($input: CreateAppManifestInput!) {
+            createAppManifest(input: $input) { appManifest { appManifestId name } }
+          }
+        `, { input: { organizationId: orgId, values: { appManifestId, name: appName, description: appYaml?.description || '' } } });
+        console.log(chalk.green('  ✓ App manifest created'));
+      }
+    } catch (e: any) {
+      console.log(chalk.red(`  ✗ App manifest failed: ${e.message}`));
+    }
+  }
+
+  // Step 2: Discover files
+  const baseDir = featureDir ? path.join(process.cwd(), 'features', featureDir) : process.cwd();
+  if (featureDir && !fs.existsSync(baseDir)) {
+    console.error(chalk.red(`Error: Feature directory not found: features/${featureDir}`));
+    process.exit(2);
+  }
+
+  const workflowDirs = [path.join(baseDir, 'workflows')];
+  const moduleDirs = [path.join(baseDir, 'modules')];
+
+  // Collect YAML files
+  const workflowFiles: string[] = [];
+  const moduleFiles: string[] = [];
+
+  for (const dir of workflowDirs) {
+    if (fs.existsSync(dir)) {
+      for (const f of fs.readdirSync(dir)) {
+        if (f.endsWith('.yaml') || f.endsWith('.yml')) {
+          workflowFiles.push(path.join(dir, f));
+        }
+      }
+    }
+  }
+
+  for (const dir of moduleDirs) {
+    if (fs.existsSync(dir)) {
+      for (const f of fs.readdirSync(dir)) {
+        if (f.endsWith('.yaml') || f.endsWith('.yml')) {
+          moduleFiles.push(path.join(dir, f));
+        }
+      }
+    }
+  }
+
+  console.log(chalk.gray(`\n  Found ${workflowFiles.length} workflow(s), ${moduleFiles.length} module(s)\n`));
+
+  let succeeded = 0;
+  let failed = 0;
+
+  // Step 3: Push workflows
+  for (const file of workflowFiles) {
+    const relPath = path.relative(process.cwd(), file);
+    const result = await pushWorkflowQuiet(domain, token, orgId, file);
+    if (result.ok) {
+      console.log(chalk.green(`  ✓ ${relPath}`));
+      succeeded++;
+    } else {
+      console.log(chalk.red(`  ✗ ${relPath}: ${result.error}`));
+      failed++;
+    }
+  }
+
+  // Step 4: Push modules
+  for (const file of moduleFiles) {
+    const relPath = path.relative(process.cwd(), file);
+    const result = await pushModuleQuiet(domain, token, orgId, file, appManifestId);
+    if (result.ok) {
+      console.log(chalk.green(`  ✓ ${relPath}`));
+      succeeded++;
+    } else {
+      console.log(chalk.red(`  ✗ ${relPath}: ${result.error}`));
+      failed++;
+    }
+  }
+
+  // Summary
+  console.log('');
+  if (failed === 0) {
+    console.log(chalk.green(`  ✓ Published ${succeeded} file(s) successfully\n`));
+  } else {
+    console.log(chalk.yellow(`  Published ${succeeded} file(s), ${failed} failed\n`));
+  }
+}
+
+// ============================================================================
 // Extract Command
 // ============================================================================
 
@@ -1741,7 +3200,7 @@ function parseArgs(args: string[]): ParsedArgs {
   };
 
   // Check for commands
-  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude'];
+  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude', 'login', 'logout', 'pat', 'appmodule', 'orgs', 'workflow', 'publish'];
   if (args.length > 0 && commands.includes(args[0])) {
     command = args[0];
     args = args.slice(1);
@@ -1800,6 +3259,14 @@ function parseArgs(args: string[]): ParsedArgs {
       options.extractTo = args[++i];
     } else if (arg === '--copy') {
       options.extractCopy = true;
+    } else if (arg === '--org') {
+      const orgArg = args[++i];
+      const parsed = parseInt(orgArg, 10);
+      if (isNaN(parsed)) {
+        console.error(chalk.red(`Invalid --org value: ${orgArg}. Must be a number.`));
+        process.exit(2);
+      }
+      options.orgId = parsed;
     } else if (!arg.startsWith('-')) {
       files.push(arg);
     } else {
@@ -2702,6 +4169,109 @@ async function main() {
   // Handle version
   if (options.version) {
     console.log(`cx-cli v${VERSION}`);
+    process.exit(0);
+  }
+
+  // Handle login command (no schemas needed)
+  if (command === 'login') {
+    if (!files[0]) {
+      console.error(chalk.red('Error: URL required'));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} login <url>`));
+      process.exit(2);
+    }
+    await runLogin(files[0]);
+    process.exit(0);
+  }
+
+  // Handle logout command (no schemas needed)
+  if (command === 'logout') {
+    await runLogout(files[0]);
+    process.exit(0);
+  }
+
+  // Handle pat command (no schemas needed)
+  if (command === 'pat') {
+    const sub = files[0];
+    if (sub === 'create') {
+      if (!files[1]) {
+        console.error(chalk.red('Error: Token name required'));
+        console.error(chalk.gray(`Usage: ${PROGRAM_NAME} pat create <name>`));
+        process.exit(2);
+      }
+      await runPatCreate(files[1]);
+    } else if (sub === 'list' || !sub) {
+      await runPatList();
+    } else if (sub === 'revoke') {
+      if (!files[1]) {
+        console.error(chalk.red('Error: Token ID required'));
+        console.error(chalk.gray(`Usage: ${PROGRAM_NAME} pat revoke <tokenId>`));
+        process.exit(2);
+      }
+      await runPatRevoke(files[1]);
+    } else if (sub === 'setup') {
+      await runPatSetup();
+    } else {
+      console.error(chalk.red(`Unknown pat subcommand: ${sub}`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} pat <create|list|revoke|setup>`));
+      process.exit(2);
+    }
+    process.exit(0);
+  }
+
+  // Handle orgs command (no schemas needed)
+  if (command === 'orgs') {
+    const sub = files[0];
+    if (sub === 'list' || !sub) {
+      await runOrgsList();
+    } else if (sub === 'use') {
+      await runOrgsUse(files[1]);
+    } else if (sub === 'select') {
+      await runOrgsSelect();
+    } else {
+      console.error(chalk.red(`Unknown orgs subcommand: ${sub}`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} orgs <list|use|select>`));
+      process.exit(2);
+    }
+    process.exit(0);
+  }
+
+  // Handle appmodule command (no schemas needed)
+  if (command === 'appmodule') {
+    const sub = files[0];
+    if (sub === 'push') {
+      await runAppModulePush(files[1], options.orgId);
+    } else if (sub === 'delete') {
+      await runAppModuleDelete(files[1], options.orgId);
+    } else {
+      console.error(chalk.red(`Unknown appmodule subcommand: ${sub || '(none)'}`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} appmodule <push|delete> ...`));
+      process.exit(2);
+    }
+    process.exit(0);
+  }
+
+  // Handle workflow command (no schemas needed)
+  if (command === 'workflow') {
+    const sub = files[0];
+    if (sub === 'push') {
+      await runWorkflowPush(files[1], options.orgId);
+    } else if (sub === 'delete') {
+      await runWorkflowDelete(files[1], options.orgId);
+    } else if (sub === 'executions') {
+      await runWorkflowExecutions(files[1], options.orgId);
+    } else if (sub === 'logs') {
+      await runWorkflowLogs(files[1], options.orgId);
+    } else {
+      console.error(chalk.red(`Unknown workflow subcommand: ${sub || '(none)'}`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow <push|delete|executions|logs> ...`));
+      process.exit(2);
+    }
+    process.exit(0);
+  }
+
+  // Handle publish command (no schemas needed)
+  if (command === 'publish') {
+    await runPublish(files[0] || options.feature, options.orgId);
     process.exit(0);
   }
 
