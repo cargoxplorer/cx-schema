@@ -155,8 +155,8 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('logout')}          Logout from a CX environment
   ${chalk.green('pat')}             Manage personal access tokens (create, list, revoke)
   ${chalk.green('orgs')}            List, select, or set active organization
-  ${chalk.green('appmodule')}       Manage app modules on a CX server (push, delete)
-  ${chalk.green('workflow')}        Manage workflows on a CX server (push, delete, execute, logs, log)
+  ${chalk.green('appmodule')}       Manage app modules on a CX server (deploy, undeploy)
+  ${chalk.green('workflow')}        Manage workflows on a CX server (deploy, undeploy, execute, logs, log)
   ${chalk.green('publish')}         Publish all modules and workflows to a CX server
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
@@ -286,21 +286,21 @@ ${chalk.bold.yellow('ORG COMMANDS:')}
   ${chalk.cyan(`${PROGRAM_NAME} orgs use`)}
 
 ${chalk.bold.yellow('APPMODULE COMMANDS:')}
-  ${chalk.gray('# Push a module YAML to the server (creates or updates)')}
-  ${chalk.cyan(`${PROGRAM_NAME} appmodule push modules/my-module.yaml`)}
+  ${chalk.gray('# Deploy a module YAML to the server (creates or updates)')}
+  ${chalk.cyan(`${PROGRAM_NAME} appmodule deploy modules/my-module.yaml`)}
 
-  ${chalk.gray('# Push with explicit org ID')}
-  ${chalk.cyan(`${PROGRAM_NAME} appmodule push modules/my-module.yaml --org 42`)}
+  ${chalk.gray('# Deploy with explicit org ID')}
+  ${chalk.cyan(`${PROGRAM_NAME} appmodule deploy modules/my-module.yaml --org 42`)}
 
-  ${chalk.gray('# Delete an app module by UUID')}
-  ${chalk.cyan(`${PROGRAM_NAME} appmodule delete <appModuleId>`)}
+  ${chalk.gray('# Undeploy an app module by UUID')}
+  ${chalk.cyan(`${PROGRAM_NAME} appmodule undeploy <appModuleId>`)}
 
 ${chalk.bold.yellow('WORKFLOW COMMANDS:')}
-  ${chalk.gray('# Push a workflow YAML to the server (creates or updates)')}
-  ${chalk.cyan(`${PROGRAM_NAME} workflow push workflows/my-workflow.yaml`)}
+  ${chalk.gray('# Deploy a workflow YAML to the server (creates or updates)')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow deploy workflows/my-workflow.yaml`)}
 
-  ${chalk.gray('# Delete a workflow by UUID')}
-  ${chalk.cyan(`${PROGRAM_NAME} workflow delete <workflowId>`)}
+  ${chalk.gray('# Undeploy a workflow by UUID')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow undeploy <workflowId>`)}
 
   ${chalk.gray('# Execute a workflow')}
   ${chalk.cyan(`${PROGRAM_NAME} workflow execute <workflowId|file.yaml>`)}
@@ -2089,10 +2089,10 @@ async function resolveOrgId(domain: string, token: string, override?: number): P
   process.exit(2);
 }
 
-async function runAppModulePush(file: string | undefined, orgOverride?: number): Promise<void> {
+async function runAppModuleDeploy(file: string | undefined, orgOverride?: number): Promise<void> {
   if (!file) {
     console.error(chalk.red('Error: File path required'));
-    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} appmodule push <file.yaml> [--org <id>]`));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} appmodule deploy <file.yaml> [--org <id>]`));
     process.exit(2);
   }
 
@@ -2126,7 +2126,7 @@ async function runAppModulePush(file: string | undefined, orgOverride?: number):
     appManifestId = session.app_manifest_id;
   }
 
-  console.log(chalk.bold.cyan('\n  AppModule Push\n'));
+  console.log(chalk.bold.cyan('\n  AppModule Deploy\n'));
   console.log(chalk.gray(`  Server:  ${new URL(domain).hostname}`));
   console.log(chalk.gray(`  Org:     ${orgId}`));
   console.log(chalk.gray(`  Module:  ${appModuleId}`));
@@ -2181,10 +2181,10 @@ async function runAppModulePush(file: string | undefined, orgOverride?: number):
   }
 }
 
-async function runAppModuleDelete(uuid: string | undefined, orgOverride?: number): Promise<void> {
+async function runAppModuleUndeploy(uuid: string | undefined, orgOverride?: number): Promise<void> {
   if (!uuid) {
     console.error(chalk.red('Error: AppModule ID required'));
-    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} appmodule delete <appModuleId> [--org <id>]`));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} appmodule undeploy <appModuleId> [--org <id>]`));
     process.exit(2);
   }
 
@@ -2193,7 +2193,7 @@ async function runAppModuleDelete(uuid: string | undefined, orgOverride?: number
   const token = session.access_token;
   const orgId = await resolveOrgId(domain, token, orgOverride);
 
-  console.log(chalk.bold.cyan('\n  AppModule Delete\n'));
+  console.log(chalk.bold.cyan('\n  AppModule Undeploy\n'));
   console.log(chalk.gray(`  Server:  ${new URL(domain).hostname}`));
   console.log(chalk.gray(`  Org:     ${orgId}`));
   console.log(chalk.gray(`  Module:  ${uuid}`));
@@ -2362,10 +2362,10 @@ async function runOrgsSelect(): Promise<void> {
 // Workflow Commands
 // ============================================================================
 
-async function runWorkflowPush(file: string | undefined, orgOverride?: number): Promise<void> {
+async function runWorkflowDeploy(file: string | undefined, orgOverride?: number): Promise<void> {
   if (!file) {
     console.error(chalk.red('Error: File path required'));
-    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow push <file.yaml> [--org <id>]`));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow deploy <file.yaml> [--org <id>]`));
     process.exit(2);
   }
 
@@ -2389,7 +2389,7 @@ async function runWorkflowPush(file: string | undefined, orgOverride?: number): 
 
   const workflowName = parsed?.workflow?.name || workflowId;
 
-  console.log(chalk.bold.cyan('\n  Workflow Push\n'));
+  console.log(chalk.bold.cyan('\n  Workflow Deploy\n'));
   console.log(chalk.gray(`  Server:    ${new URL(domain).hostname}`));
   console.log(chalk.gray(`  Org:       ${orgId}`));
   console.log(chalk.gray(`  Workflow:  ${workflowName}`));
@@ -2438,10 +2438,10 @@ async function runWorkflowPush(file: string | undefined, orgOverride?: number): 
   }
 }
 
-async function runWorkflowDelete(uuid: string | undefined, orgOverride?: number): Promise<void> {
+async function runWorkflowUndeploy(uuid: string | undefined, orgOverride?: number): Promise<void> {
   if (!uuid) {
     console.error(chalk.red('Error: Workflow ID required'));
-    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow delete <workflowId> [--org <id>]`));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow undeploy <workflowId> [--org <id>]`));
     process.exit(2);
   }
 
@@ -2450,7 +2450,7 @@ async function runWorkflowDelete(uuid: string | undefined, orgOverride?: number)
   const token = session.access_token;
   const orgId = await resolveOrgId(domain, token, orgOverride);
 
-  console.log(chalk.bold.cyan('\n  Workflow Delete\n'));
+  console.log(chalk.bold.cyan('\n  Workflow Undeploy\n'));
   console.log(chalk.gray(`  Server:    ${new URL(domain).hostname}`));
   console.log(chalk.gray(`  Org:       ${orgId}`));
   console.log(chalk.gray(`  Workflow:  ${uuid}`));
@@ -3053,7 +3053,7 @@ async function runPublish(featureDir: string | undefined, orgOverride?: number):
   let succeeded = 0;
   let failed = 0;
 
-  // Step 3: Push workflows
+  // Step 3: Deploy workflows
   for (const file of workflowFiles) {
     const relPath = path.relative(process.cwd(), file);
     const result = await pushWorkflowQuiet(domain, token, orgId, file);
@@ -3066,7 +3066,7 @@ async function runPublish(featureDir: string | undefined, orgOverride?: number):
     }
   }
 
-  // Step 4: Push modules
+  // Step 4: Deploy modules
   for (const file of moduleFiles) {
     const relPath = path.relative(process.cwd(), file);
     const result = await pushModuleQuiet(domain, token, orgId, file, appManifestId);
@@ -4365,13 +4365,13 @@ async function main() {
   // Handle appmodule command (no schemas needed)
   if (command === 'appmodule') {
     const sub = files[0];
-    if (sub === 'push') {
-      await runAppModulePush(files[1], options.orgId);
-    } else if (sub === 'delete') {
-      await runAppModuleDelete(files[1], options.orgId);
+    if (sub === 'deploy') {
+      await runAppModuleDeploy(files[1], options.orgId);
+    } else if (sub === 'undeploy') {
+      await runAppModuleUndeploy(files[1], options.orgId);
     } else {
       console.error(chalk.red(`Unknown appmodule subcommand: ${sub || '(none)'}`));
-      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} appmodule <push|delete> ...`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} appmodule <deploy|undeploy> ...`));
       process.exit(2);
     }
     process.exit(0);
@@ -4380,10 +4380,10 @@ async function main() {
   // Handle workflow command (no schemas needed)
   if (command === 'workflow') {
     const sub = files[0];
-    if (sub === 'push') {
-      await runWorkflowPush(files[1], options.orgId);
-    } else if (sub === 'delete') {
-      await runWorkflowDelete(files[1], options.orgId);
+    if (sub === 'deploy') {
+      await runWorkflowDeploy(files[1], options.orgId);
+    } else if (sub === 'undeploy') {
+      await runWorkflowUndeploy(files[1], options.orgId);
     } else if (sub === 'execute') {
       await runWorkflowExecute(files[1], options.orgId, options.vars);
     } else if (sub === 'logs') {
@@ -4392,7 +4392,7 @@ async function main() {
       await runWorkflowLog(files[1], options.orgId, options.output, options.console, options.format === 'json');
     } else {
       console.error(chalk.red(`Unknown workflow subcommand: ${sub || '(none)'}`));
-      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow <push|delete|execute|logs|log> ...`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow <deploy|undeploy|execute|logs|log> ...`));
       process.exit(2);
     }
     process.exit(0);

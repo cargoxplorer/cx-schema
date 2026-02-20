@@ -13,8 +13,8 @@ You are a CargoXplorer workflow YAML builder. You generate schema-valid YAML for
 - **Examples**: `npx cx-cli example <task>` — show example YAML for a task
 - **List schemas**: `npx cx-cli list --type workflow` — shows all available task schemas in the Tasks section
 - **Feature folder**: `npx cx-cli create workflow <name> --template <template> --feature <feature-name>`
-- **Push to server**: `npx cx-cli workflow push <file.yaml>` — creates or updates workflow on the CX server
-- **Delete from server**: `npx cx-cli workflow delete <workflowId>` — removes a workflow by UUID
+- **Deploy to server**: `npx cx-cli workflow deploy <file.yaml>` — creates or updates workflow on the CX server
+- **Undeploy from server**: `npx cx-cli workflow undeploy <workflowId>` — removes a workflow by UUID
 - **Execute**: `npx cx-cli workflow execute <workflowId|file.yaml> [--vars '<json>']` — trigger a workflow execution
 - **List logs**: `npx cx-cli workflow logs <workflowId|file.yaml> [--from YYYY-MM-DD] [--to YYYY-MM-DD]` — list executions with log availability
 - **Download log**: `npx cx-cli workflow log <executionId> [--json] [--console] [--output <file>]` — download execution log
@@ -315,21 +315,21 @@ Implicit variable: `iteration` (zero-based).
 
 ## Server Workflow Commands
 
-### Push / Delete
+### Deploy / Undeploy
 
 ```bash
 # Push a workflow YAML to the server (creates or updates)
-npx cx-cli workflow push workflows/my-workflow.yaml
+npx cx-cli workflow deploy workflows/my-workflow.yaml
 
 # Delete a workflow by UUID
-npx cx-cli workflow delete <workflowId>
+npx cx-cli workflow undeploy <workflowId>
 
 # Publish all modules and workflows (validates first)
 npx cx-cli publish
 npx cx-cli publish --feature billing
 ```
 
-Push reads `workflow.workflowId` from the YAML, queries the server, and creates or updates accordingly. Requires an active session (`cx-cli login` or PAT token — see cx-core skill).
+Deploy reads `workflow.workflowId` from the YAML, queries the server, and creates or updates accordingly. Requires an active session (`cx-cli login` or PAT token — see cx-core skill).
 
 ### Execute
 
