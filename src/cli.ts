@@ -75,6 +75,7 @@ interface CLIOptions {
   extractTo?: string;
   extractCopy?: boolean;
   orgId?: number;
+  vars?: string;
 }
 
 interface FileValidationResult {
@@ -151,7 +152,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('pat')}             Manage personal access tokens (create, list, revoke)
   ${chalk.green('orgs')}            List, select, or set active organization
   ${chalk.green('appmodule')}       Manage app modules on a CX server (push, delete)
-  ${chalk.green('workflow')}        Manage workflows on a CX server (push, delete, executions, logs)
+  ${chalk.green('workflow')}        Manage workflows on a CX server (push, delete, execute, logs)
   ${chalk.green('publish')}         Publish all modules and workflows to a CX server
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
@@ -175,7 +176,8 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--tasks <list>')}         Comma-separated task enums for create task-schema
   ${chalk.green('--to <file>')}            Target file for extract command
   ${chalk.green('--copy')}                 Copy component instead of moving (source unchanged, target gets higher priority)
-  ${chalk.green('--org <id>')}             Organization ID for appmodule commands
+  ${chalk.green('--org <id>')}             Organization ID for server commands
+  ${chalk.green('--vars <json>')}          JSON variables for workflow execute
 
 ${chalk.bold.yellow('VALIDATION EXAMPLES:')}
   ${chalk.gray('# Validate a module YAML file')}
@@ -294,11 +296,14 @@ ${chalk.bold.yellow('WORKFLOW COMMANDS:')}
   ${chalk.gray('# Delete a workflow by UUID')}
   ${chalk.cyan(`${PROGRAM_NAME} workflow delete <workflowId>`)}
 
-  ${chalk.gray('# List recent executions for a workflow')}
-  ${chalk.cyan(`${PROGRAM_NAME} workflow executions <workflowId>`)}
-  ${chalk.cyan(`${PROGRAM_NAME} workflow executions workflows/my-workflow.yaml`)}
+  ${chalk.gray('# Execute a workflow')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow execute <workflowId|file.yaml>`)}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow execute <workflowId> --vars '{"city":"London"}'`)}
 
-  ${chalk.gray('# Show execution details and logs')}
+  ${chalk.gray('# List recent executions for a workflow')}
+  ${chalk.cyan(`${PROGRAM_NAME} workflow executions <workflowId|file.yaml>`)}
+
+  ${chalk.gray('# Show execution details and download logs')}
   ${chalk.cyan(`${PROGRAM_NAME} workflow logs <executionId>`)}
 
 ${chalk.bold.yellow('PUBLISH COMMANDS:')}
@@ -2498,6 +2503,82 @@ async function runWorkflowDelete(uuid: string | undefined, orgOverride?: number)
   console.log(chalk.green(`  ✓ Deleted: ${uuid}\n`));
 }
 
+async function runWorkflowExecute(workflowIdOrFile: string | undefined, orgOverride?: number, variables?: string): Promise<void> {
+  if (!workflowIdOrFile) {
+    console.error(chalk.red('Error: Workflow ID or YAML file required'));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow execute <workflowId|file.yaml> [--org <id>] [--vars '{"key":"value"}']`));
+    process.exit(2);
+  }
+
+  const session = resolveSession();
+  const { domain, access_token: token } = session;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  // Resolve workflowId
+  let workflowId = workflowIdOrFile;
+  let workflowName = workflowIdOrFile;
+  if (workflowIdOrFile.endsWith('.yaml') || workflowIdOrFile.endsWith('.yml')) {
+    if (!fs.existsSync(workflowIdOrFile)) {
+      console.error(chalk.red(`Error: File not found: ${workflowIdOrFile}`));
+      process.exit(2);
+    }
+    const parsed = YAML.parse(fs.readFileSync(workflowIdOrFile, 'utf-8')) as any;
+    workflowId = parsed?.workflow?.workflowId;
+    workflowName = parsed?.workflow?.name || path.basename(workflowIdOrFile);
+    if (!workflowId) {
+      console.error(chalk.red('Error: Workflow YAML is missing workflow.workflowId'));
+      process.exit(2);
+    }
+  }
+
+  // Parse variables if provided
+  let vars: Record<string, any> | undefined;
+  if (variables) {
+    try {
+      vars = JSON.parse(variables);
+    } catch {
+      console.error(chalk.red('Error: --vars must be valid JSON'));
+      process.exit(2);
+    }
+  }
+
+  console.log(chalk.bold.cyan('\n  Workflow Execute\n'));
+  console.log(chalk.gray(`  Server:    ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Org:       ${orgId}`));
+  console.log(chalk.gray(`  Workflow:  ${workflowName}`));
+  if (vars) console.log(chalk.gray(`  Variables: ${JSON.stringify(vars)}`));
+  console.log('');
+
+  const input: Record<string, any> = { organizationId: orgId, workflowId };
+  if (vars) input.variables = vars;
+
+  const data = await graphqlRequest(domain, token, `
+    mutation ($input: ExecuteWorkflowInput!) {
+      executeWorkflow(input: $input) {
+        workflowExecutionResult {
+          executionId workflowId isAsync workflowType outputs
+        }
+      }
+    }
+  `, { input });
+
+  const result = data?.executeWorkflow?.workflowExecutionResult;
+  if (!result) {
+    console.error(chalk.red('  No execution result returned.\n'));
+    process.exit(2);
+  }
+
+  console.log(chalk.green(`  ✓ Executed: ${workflowName}`));
+  console.log(chalk.white(`  Execution ID: ${result.executionId}`));
+  console.log(chalk.white(`  Async:        ${result.isAsync}`));
+  console.log(chalk.white(`  Type:         ${result.workflowType || 'standard'}`));
+  if (result.outputs && Object.keys(result.outputs).length > 0) {
+    console.log(chalk.white(`  Outputs:`));
+    console.log(chalk.gray(`    ${JSON.stringify(result.outputs, null, 2).split('\n').join('\n    ')}`));
+  }
+  console.log('');
+}
+
 async function runWorkflowExecutions(workflowIdOrFile: string | undefined, orgOverride?: number): Promise<void> {
   if (!workflowIdOrFile) {
     console.error(chalk.red('Error: Workflow ID or YAML file required'));
@@ -2559,6 +2640,30 @@ async function runWorkflowExecutions(workflowIdOrFile: string | undefined, orgOv
   console.log('');
 }
 
+function fetchGzipText(url: string): Promise<string> {
+  const zlib = require('zlib');
+  return new Promise((resolve, reject) => {
+    const lib = url.startsWith('https') ? https : http;
+    lib.get(url, (res: any) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`HTTP ${res.statusCode}`));
+        res.resume();
+        return;
+      }
+      const rawChunks: Buffer[] = [];
+      res.on('data', (chunk: Buffer) => rawChunks.push(chunk));
+      res.on('end', () => {
+        const raw = Buffer.concat(rawChunks);
+        if (raw.length === 0) { resolve('(empty log)'); return; }
+        zlib.gunzip(raw, (err: any, result: Buffer) => {
+          if (err) { resolve(raw.toString('utf-8')); return; } // fallback: maybe not gzipped
+          resolve(result.toString('utf-8'));
+        });
+      });
+    }).on('error', reject);
+  });
+}
+
 async function runWorkflowLogs(executionId: string | undefined, orgOverride?: number): Promise<void> {
   if (!executionId) {
     console.error(chalk.red('Error: Execution ID required'));
@@ -2567,15 +2672,16 @@ async function runWorkflowLogs(executionId: string | undefined, orgOverride?: nu
   }
 
   const session = resolveSession();
-  const domain = session.domain;
-  const token = session.access_token;
+  const { domain, access_token: token } = session;
   const orgId = await resolveOrgId(domain, token, orgOverride);
 
-  // Fetch execution details
+  // Fetch execution details with log URLs
   const data = await graphqlRequest(domain, token, `
     query ($organizationId: Int!, $executionId: UUID!) {
       workflowExecution(organizationId: $organizationId, executionId: $executionId) {
         executionId workflowId executionStatus executedAt durationMs
+        txtLogUrl jsonLogUrl
+        user { fullName email }
       }
     }
   `, { organizationId: orgId, executionId });
@@ -2589,6 +2695,7 @@ async function runWorkflowLogs(executionId: string | undefined, orgOverride?: nu
   const date = new Date(ex.executedAt).toLocaleString();
   const duration = ex.durationMs != null ? `${(ex.durationMs / 1000).toFixed(1)}s` : '?';
   const statusColor = ex.executionStatus === 'Success' ? chalk.green : ex.executionStatus === 'Failed' ? chalk.red : chalk.yellow;
+  const userName = ex.user?.fullName || ex.user?.email || '';
 
   console.log(chalk.bold.cyan('\n  Workflow Execution\n'));
   console.log(chalk.white(`  ID:        ${ex.executionId}`));
@@ -2596,39 +2703,20 @@ async function runWorkflowLogs(executionId: string | undefined, orgOverride?: nu
   console.log(chalk.white(`  Status:    ${statusColor(ex.executionStatus)}`));
   console.log(chalk.white(`  Executed:  ${date}`));
   console.log(chalk.white(`  Duration:  ${duration}`));
+  if (userName) console.log(chalk.white(`  User:      ${userName}`));
 
-  // Try to fetch log via REST endpoint
-  const logUrl = `${domain}/api/workflow-executions/${executionId}/log?organizationId=${orgId}`;
-  try {
-    const logRes = await new Promise<{ statusCode: number; body: string }>((resolve, reject) => {
-      const parsed = new URL(logUrl);
-      const isHttps = parsed.protocol === 'https:';
-      const lib = isHttps ? https : http;
-      const req = lib.request({
-        hostname: parsed.hostname,
-        port: parsed.port || (isHttps ? 443 : 80),
-        path: parsed.pathname + parsed.search,
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` },
-      }, (res) => {
-        let d = '';
-        res.on('data', (chunk: Buffer) => d += chunk);
-        res.on('end', () => resolve({ statusCode: res.statusCode || 0, body: d }));
-      });
-      req.on('error', reject);
-      req.end();
-    });
-
-    if (logRes.statusCode === 200 && logRes.body) {
+  // Download and display the text log
+  if (ex.txtLogUrl) {
+    try {
+      const logText = await fetchGzipText(ex.txtLogUrl);
       console.log(chalk.gray('\n  --- Log ---\n'));
-      console.log(logRes.body);
-    } else {
-      console.log(chalk.gray('\n  Logs not available via REST API.'));
-      console.log(chalk.gray(`  Use TMS MCP to download execution logs.\n`));
+      console.log(logText);
+    } catch (e: any) {
+      console.log(chalk.yellow(`\n  Failed to download log: ${e.message}`));
+      console.log(chalk.gray(`  txtLogUrl: ${ex.txtLogUrl}\n`));
     }
-  } catch {
-    console.log(chalk.gray('\n  Logs not available via REST API.'));
-    console.log(chalk.gray(`  Use TMS MCP to download execution logs.\n`));
+  } else {
+    console.log(chalk.gray('\n  No log available for this execution.\n'));
   }
 }
 
@@ -3267,6 +3355,8 @@ function parseArgs(args: string[]): ParsedArgs {
         process.exit(2);
       }
       options.orgId = parsed;
+    } else if (arg === '--vars') {
+      options.vars = args[++i];
     } else if (!arg.startsWith('-')) {
       files.push(arg);
     } else {
@@ -4257,13 +4347,15 @@ async function main() {
       await runWorkflowPush(files[1], options.orgId);
     } else if (sub === 'delete') {
       await runWorkflowDelete(files[1], options.orgId);
+    } else if (sub === 'execute') {
+      await runWorkflowExecute(files[1], options.orgId, options.vars);
     } else if (sub === 'executions') {
       await runWorkflowExecutions(files[1], options.orgId);
     } else if (sub === 'logs') {
       await runWorkflowLogs(files[1], options.orgId);
     } else {
       console.error(chalk.red(`Unknown workflow subcommand: ${sub || '(none)'}`));
-      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow <push|delete|executions|logs> ...`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow <push|delete|execute|executions|logs> ...`));
       process.exit(2);
     }
     process.exit(0);
