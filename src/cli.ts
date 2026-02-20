@@ -256,10 +256,7 @@ ${chalk.bold.yellow('AUTH COMMANDS:')}
   ${chalk.gray('# Login to a CX environment')}
   ${chalk.cyan(`${PROGRAM_NAME} login https://qa.storevista.acuitive.net`)}
 
-  ${chalk.gray('# Logout from a CX environment')}
-  ${chalk.cyan(`${PROGRAM_NAME} logout https://qa.storevista.acuitive.net`)}
-
-  ${chalk.gray('# List stored sessions')}
+  ${chalk.gray('# Logout from current session')}
   ${chalk.cyan(`${PROGRAM_NAME} logout`)}
 
 ${chalk.bold.yellow('PAT COMMANDS:')}
@@ -1661,35 +1658,39 @@ function runSetupClaude(): void {
 const AUTH_CALLBACK_PORT = 9000;
 const AUTH_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
 
-function getTokenDir(): string {
-  return path.join(os.homedir(), '.cxtms');
+function getSessionDir(): string {
+  return path.join(process.cwd(), '.cxtms');
 }
 
-function getTokenFilePath(domain: string): string {
-  const hostname = new URL(domain).hostname;
-  return path.join(getTokenDir(), `${hostname}.json`);
+function getSessionFilePath(): string {
+  return path.join(getSessionDir(), '.session.json');
 }
 
-function readTokenFile(domain: string): TokenFile | null {
-  const filePath = getTokenFilePath(domain);
+function readSessionFile(): TokenFile | null {
+  const filePath = getSessionFilePath();
   if (!fs.existsSync(filePath)) return null;
-  return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  } catch {
+    return null;
+  }
 }
 
-function writeTokenFile(data: TokenFile): void {
-  const dir = getTokenDir();
+function writeSessionFile(data: TokenFile): void {
+  const dir = getSessionDir();
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  fs.writeFileSync(getTokenFilePath(data.domain), JSON.stringify(data, null, 2), 'utf-8');
+  fs.writeFileSync(getSessionFilePath(), JSON.stringify(data, null, 2), 'utf-8');
 }
 
-function deleteTokenFile(domain: string): void {
-  const filePath = getTokenFilePath(domain);
+function deleteSessionFile(): void {
+  const filePath = getSessionFilePath();
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
   }
 }
+
 
 function generateCodeVerifier(): string {
   return crypto.randomBytes(32).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
@@ -1844,7 +1845,7 @@ async function refreshTokens(stored: TokenFile): Promise<TokenFile> {
     refresh_token: data.refresh_token || stored.refresh_token,
     expires_at: Math.floor(Date.now() / 1000) + (data.expires_in || 3600),
   };
-  writeTokenFile(updated);
+  writeSessionFile(updated);
   return updated;
 }
 
@@ -1901,59 +1902,36 @@ async function runLogin(domain: string): Promise<void> {
   console.log(chalk.gray('  Exchanging authorization code...'));
   const tokens = await exchangeCodeForTokens(domain, clientId, code, codeVerifier);
 
-  // Step 7: Store tokens
-  writeTokenFile(tokens);
+  // Step 7: Store session locally
+  writeSessionFile(tokens);
   close();
 
   console.log(chalk.green(`  ✓ Logged in to ${new URL(domain).hostname}`));
-  console.log(chalk.gray(`  Token stored at: ${getTokenFilePath(domain)}\n`));
+  console.log(chalk.gray(`  Session stored at: ${getSessionFilePath()}\n`));
 }
 
-async function runLogout(domain: string | undefined): Promise<void> {
-  if (!domain) {
-    // List stored sessions
-    const dir = getTokenDir();
-    if (!fs.existsSync(dir)) {
-      console.log(chalk.gray('\n  No stored sessions.\n'));
-      return;
-    }
-    const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
-    if (files.length === 0) {
-      console.log(chalk.gray('\n  No stored sessions.\n'));
-      return;
-    }
-    console.log(chalk.bold.cyan('\n  Stored sessions:\n'));
-    for (const f of files) {
-      const hostname = f.replace('.json', '');
-      console.log(chalk.white(`    ${hostname}`));
-    }
-    console.log(chalk.gray(`\n  Usage: ${PROGRAM_NAME} logout <url>\n`));
-    return;
-  }
-
-  // Normalize URL
-  if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
-    domain = `https://${domain}`;
-  }
-  domain = domain.replace(/\/+$/, '');
-
-  const stored = readTokenFile(domain);
-  if (!stored) {
-    console.log(chalk.gray(`\n  No session found for ${new URL(domain).hostname}\n`));
+async function runLogout(_domain: string | undefined): Promise<void> {
+  const session = readSessionFile();
+  if (!session) {
+    console.log(chalk.gray('\n  No active session in this project.\n'));
+    console.log(chalk.gray(`  Login first: ${PROGRAM_NAME} login <url>\n`));
     return;
   }
 
   console.log(chalk.bold.cyan('\n  CX CLI Logout\n'));
+  console.log(chalk.gray(`  Server: ${new URL(session.domain).hostname}`));
 
   // Revoke tokens (non-fatal)
-  console.log(chalk.gray('  Revoking tokens...'));
-  await revokeToken(domain, stored.client_id, stored.access_token);
-  await revokeToken(domain, stored.client_id, stored.refresh_token);
+  if (session.client_id && session.refresh_token) {
+    console.log(chalk.gray('  Revoking tokens...'));
+    await revokeToken(session.domain, session.client_id, session.access_token);
+    await revokeToken(session.domain, session.client_id, session.refresh_token);
+  }
 
-  // Delete local file
-  deleteTokenFile(domain);
+  // Delete local session file
+  deleteSessionFile();
 
-  console.log(chalk.green(`  ✓ Logged out from ${new URL(domain).hostname}\n`));
+  console.log(chalk.green(`  ✓ Logged out from ${new URL(session.domain).hostname}\n`));
 }
 
 // ============================================================================
@@ -1969,7 +1947,7 @@ async function graphqlRequest(domain: string, token: string, query: string, vari
     // PAT tokens have no refresh — fail immediately
     if (process.env.CXTMS_AUTH) throw new Error('PAT token unauthorized (401). Check your CXTMS_AUTH token.');
     // Try refresh for OAuth sessions
-    const stored = readTokenFile(domain);
+    const stored = readSessionFile();
     if (!stored) throw new Error('Session expired. Run `cx-cli login <url>` again.');
     try {
       const refreshed = await refreshTokens(stored);
@@ -2064,36 +2042,12 @@ function resolveSession(): TokenFile {
     };
   }
 
-  // 1. Check app.yaml in CWD for server field
-  const appDomain = resolveDomainFromAppYaml();
-  if (appDomain) {
-    const stored = readTokenFile(appDomain);
-    if (stored) return stored;
-    console.error(chalk.red(`Not logged in to ${appDomain}. Run \`cx-cli login ${appDomain}\` first.`));
-    process.exit(2);
-  }
+  // 1. Check local .cxtms/.session.json
+  const session = readSessionFile();
+  if (session) return session;
 
-  // 2. Check for single session
-  const dir = getTokenDir();
-  if (!fs.existsSync(dir)) {
-    console.error(chalk.red('Not logged in. Run `cx-cli login <url>` first.'));
-    process.exit(2);
-  }
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
-  if (files.length === 0) {
-    console.error(chalk.red('Not logged in. Run `cx-cli login <url>` first.'));
-    process.exit(2);
-  }
-  if (files.length === 1) {
-    return JSON.parse(fs.readFileSync(path.join(dir, files[0]), 'utf-8'));
-  }
-
-  // 3. Multiple sessions — error
-  console.error(chalk.red('Multiple sessions found:'));
-  for (const f of files) {
-    console.error(chalk.white(`  ${f.replace('.json', '')}`));
-  }
-  console.error(chalk.gray('Add `server` field to app.yaml or use a single login session.'));
+  // 2. Not logged in
+  console.error(chalk.red('Not logged in. Run `cx-cli login <url>` first.'));
   process.exit(2);
 }
 
@@ -2101,8 +2055,8 @@ async function resolveOrgId(domain: string, token: string, override?: number): P
   // 1. Explicit override
   if (override !== undefined) return override;
 
-  // 2. Cached in token file
-  const stored = readTokenFile(domain);
+  // 2. Cached in session file
+  const stored = readSessionFile();
   if (stored?.organization_id) return stored.organization_id;
 
   // 3. Query server
@@ -2120,7 +2074,7 @@ async function resolveOrgId(domain: string, token: string, override?: number): P
     // Cache it
     if (stored) {
       stored.organization_id = orgId;
-      writeTokenFile(stored);
+      writeSessionFile(stored);
     }
     return orgId;
   }
@@ -2347,9 +2301,9 @@ async function runOrgsUse(orgIdStr: string | undefined): Promise<void> {
     process.exit(2);
   }
 
-  // Save to token file
+  // Save to session file
   session.organization_id = orgId;
-  writeTokenFile(session);
+  writeSessionFile(session);
 
   console.log(chalk.green(`\n  ✓ Context set to: ${match.companyName} (${orgId})\n`));
 }
@@ -2398,7 +2352,7 @@ async function runOrgsSelect(): Promise<void> {
 
   const selected = orgs[idx];
   session.organization_id = selected.organizationId;
-  writeTokenFile(session);
+  writeSessionFile(session);
 
   console.log(chalk.green(`\n  ✓ Context set to: ${selected.companyName} (${selected.organizationId})\n`));
 }

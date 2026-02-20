@@ -16,14 +16,11 @@ The CLI can authenticate against CX environments and manage server resources. Au
 # Login to a CX environment (OAuth2 + PKCE — opens browser)
 npx cx-cli login https://tms-v3-dev.usatrt.com
 
-# Logout from a CX environment
-npx cx-cli logout https://tms-v3-dev.usatrt.com
-
-# List stored sessions
+# Logout from current session
 npx cx-cli logout
 ```
 
-Sessions are stored in `~/.cxtms/` as JSON token files. The CLI auto-refreshes expired tokens.
+The session is stored locally in `.cxtms/.session.json` in the project directory. This keeps auth scoped to the project — each project can have its own server session. The CLI auto-refreshes expired tokens. Add `.cxtms/` to `.gitignore`.
 
 ### PAT Tokens (alternative to OAuth)
 
@@ -67,15 +64,14 @@ npx cx-cli orgs use <orgId>
 npx cx-cli orgs use
 ```
 
-The active org is cached in the token file and used by all server commands. Override with `--org <id>`.
+The active org is cached in the session file and used by all server commands. Override with `--org <id>`.
 
 ### Session Resolution
 
 Server commands resolve the target session in this order:
 1. `CXTMS_AUTH` env var → PAT token auth (with `CXTMS_SERVER` or `app.yaml` server field)
-2. `app.yaml` `server` field in CWD → matches stored OAuth session
-3. Single stored session in `~/.cxtms/` → uses it automatically
-4. Multiple sessions → error, asks to add `server` to `app.yaml`
+2. `.cxtms/.session.json` in project directory → local OAuth session
+3. Not logged in → error
 
 ### Publish
 
