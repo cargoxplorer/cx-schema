@@ -209,7 +209,7 @@ module:
   description:
     en-US: "Module description"
   application: "CargoXplorer"             # Required
-  fileName: "modules/<name>-module.yaml"  # File path in repo
+  filePath: "modules/<name>-module.yaml"  # File path in repo
 
 entities:
   - name: <EntityName>
@@ -428,9 +428,9 @@ Deploy reads `module.appModuleId` from the YAML, queries the server, and creates
    - Route paths: kebab-case (e.g., `/warehouse-locations`)
    - Permission names: PascalCase with slashes (e.g., `WarehouseLocations/Read`, `System/Contacts/Update`)
 4. **Template expressions** use `{{ expression }}` syntax (double curly braces)
-5. **Include fileName** property pointing to the YAML file location
+5. **Include filePath** property pointing to the YAML file location
 6. **Set proper entityKind** when defining entities (Order, Contact, OrderEntity, AccountingTransaction, Calendar, CalendarEvent, Other)
 7. **DataGrid options** requires ALL properties: query, rootEntityName, entityKeys, navigationType, enableDynamicGrid, enableViews, enableSearch, enablePagination, enableColumns, enableFilter, defaultView, onRowClick
 8. **Form component** requires `validationSchema` in props
-9. **Do not change `appModuleId` or `fileName`** — set correctly by CLI scaffold
+9. **Do not change `appModuleId` or `filePath`** — set correctly by CLI scaffold
 10. **Always validate** the final YAML: `npx cx-cli <file.yaml>`

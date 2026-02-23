@@ -179,7 +179,7 @@ export class WorkflowValidator {
       }
 
       // Validate workflow structure
-      this.validateWorkflowStructure(workflowData, errors, warnings);
+      this.validateWorkflowStructure(workflowData, errors, warnings, filePath);
 
       // Validate inputs and variables
       this.validateInputs(workflowData, errors);
@@ -215,12 +215,20 @@ export class WorkflowValidator {
   }
 
   /**
+   * Normalize file path: forward slashes, strip leading ./
+   */
+  private normalizeFilePath(p: string): string {
+    return p.replace(/\\/g, '/').replace(/^\.\//, '');
+  }
+
+  /**
    * Validate top-level workflow structure
    */
   private validateWorkflowStructure(
     workflowData: YAMLWorkflow,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    filePath?: string
   ): void {
     // Check required top-level properties
     if (!workflowData.workflow) {
@@ -272,6 +280,28 @@ export class WorkflowValidator {
 
     // Check for deprecated properties
     this.checkDeprecatedProperties(workflow, 'workflow', warnings);
+
+    // filePath / fileName deprecation and validation
+    if (workflow.fileName && !workflow.filePath) {
+      warnings.push({
+        type: 'deprecated_property',
+        path: 'workflow.fileName',
+        message: 'Use "filePath" instead of "fileName" in workflow section'
+      });
+    }
+
+    const declaredPath = workflow.filePath ?? workflow.fileName;
+    if (declaredPath && filePath) {
+      const normalizedActual = this.normalizeFilePath(filePath);
+      const normalizedDeclared = this.normalizeFilePath(declaredPath);
+      if (!normalizedActual.endsWith(normalizedDeclared)) {
+        warnings.push({
+          type: 'file_path_mismatch',
+          path: 'workflow.filePath',
+          message: `Declared filePath "${normalizedDeclared}" does not match actual file path "${normalizedActual}"`
+        });
+      }
+    }
   }
 
   /**

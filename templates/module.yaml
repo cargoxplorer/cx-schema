@@ -9,7 +9,7 @@ module:
   icon: "folder"
   version: "1.0"
   application: System
-  fileName: "{{fileName}}"
+  filePath: "{{fileName}}"
 
 entities:
   - name: {{name}}

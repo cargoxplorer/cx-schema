@@ -70,6 +70,8 @@ export interface YAMLModule {
     appModuleId?: string;
     displayName?: Record<string, string>;
     application?: string;
+    filePath?: string;
+    fileName?: string;
   };
   components?: any[];
   routes?: any[];

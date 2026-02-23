@@ -102,10 +102,6 @@
           "type": "string",
           "description": "AI agent instruction describing how to use this workflow, expected inputs, and returned outputs"
         },
-        "fileName": {
-          "type": "string",
-          "description": "Path to the workflow YAML file (deprecated, use filePath)"
-        },
         "actionEvent": {
           "type": "object",
           "description": "Workflow action event configuration",

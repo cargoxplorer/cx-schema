@@ -113,7 +113,7 @@ export class ModuleValidator {
       }
 
       // Validate module structure
-      this.validateModuleStructure(moduleData, errors, warnings);
+      this.validateModuleStructure(moduleData, errors, warnings, filePath);
 
       // Validate components
       if (moduleData.components && Array.isArray(moduleData.components)) {
@@ -142,12 +142,20 @@ export class ModuleValidator {
   }
 
   /**
+   * Normalize file path: forward slashes, strip leading ./
+   */
+  private normalizeFilePath(p: string): string {
+    return p.replace(/\\/g, '/').replace(/^\.\//, '');
+  }
+
+  /**
    * Validate top-level module structure
    */
   private validateModuleStructure(
     moduleData: YAMLModule,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    filePath?: string
   ): void {
     // Check required top-level properties
     if (!moduleData.module) {
@@ -191,6 +199,28 @@ export class ModuleValidator {
         path: 'module.displayName',
         message: 'Missing required property: module.displayName'
       });
+    }
+
+    // filePath / fileName deprecation and validation
+    if (module.fileName && !module.filePath) {
+      warnings.push({
+        type: 'deprecated_property',
+        path: 'module.fileName',
+        message: 'Use "filePath" instead of "fileName" in module section'
+      });
+    }
+
+    const declaredPath = module.filePath ?? module.fileName;
+    if (declaredPath && filePath) {
+      const normalizedActual = this.normalizeFilePath(filePath);
+      const normalizedDeclared = this.normalizeFilePath(declaredPath);
+      if (!normalizedActual.endsWith(normalizedDeclared)) {
+        warnings.push({
+          type: 'file_path_mismatch',
+          path: 'module.filePath',
+          message: `Declared filePath "${normalizedDeclared}" does not match actual file path "${normalizedActual}"`
+        });
+      }
     }
   }
 

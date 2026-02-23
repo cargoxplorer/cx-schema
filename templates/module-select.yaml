@@ -9,7 +9,7 @@ module:
   description:
     en-US: "{{displayName}} async select component"
   application: System
-  fileName: "{{fileName}}"
+  filePath: "{{fileName}}"
 
 components:
   - name: {{displayNameNoSpaces}}/Select

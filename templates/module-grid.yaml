@@ -9,7 +9,7 @@ module:
   description:
     en-US: "{{displayName}} module"
   application: System
-  fileName: "{{fileName}}"
+  filePath: "{{fileName}}"
 
 components:
   - name: {{displayNameNoSpaces}}/List
