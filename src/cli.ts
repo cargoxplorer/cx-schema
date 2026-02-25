@@ -113,7 +113,6 @@ interface TokenFile {
   refresh_token: string;
   expires_at: number;
   organization_id?: number;
-  app_manifest_id?: string;
 }
 
 // ============================================================================
@@ -2115,15 +2114,12 @@ async function runAppModuleDeploy(file: string | undefined, orgOverride?: number
     process.exit(2);
   }
 
-  // Read app.yaml for appManifestId, fall back to cached session
+  // Read app.yaml for appManifestId
   let appManifestId: string | undefined;
   const appYamlPath = path.join(process.cwd(), 'app.yaml');
   if (fs.existsSync(appYamlPath)) {
     const appYaml = YAML.parse(fs.readFileSync(appYamlPath, 'utf-8')) as any;
     appManifestId = appYaml?.id;
-  }
-  if (!appManifestId && session.app_manifest_id) {
-    appManifestId = session.app_manifest_id;
   }
 
   console.log(chalk.bold.cyan('\n  AppModule Deploy\n'));
@@ -2253,21 +2249,16 @@ async function runOrgsUse(orgIdStr: string | undefined): Promise<void> {
     } else {
       console.log(chalk.gray(`  Org:     (not set)`));
     }
-    if (session.app_manifest_id) {
-      console.log(chalk.white(`  App:     ${session.app_manifest_id}`));
-    } else {
-      // Try reading from app.yaml
-      const appYamlPath = path.join(process.cwd(), 'app.yaml');
-      if (fs.existsSync(appYamlPath)) {
-        const appYaml = YAML.parse(fs.readFileSync(appYamlPath, 'utf-8')) as any;
-        if (appYaml?.id) {
-          console.log(chalk.white(`  App:     ${appYaml.id} ${chalk.gray('(from app.yaml)')}`));
-        } else {
-          console.log(chalk.gray(`  App:     (not set)`));
-        }
+    const appYamlPath = path.join(process.cwd(), 'app.yaml');
+    if (fs.existsSync(appYamlPath)) {
+      const appYaml = YAML.parse(fs.readFileSync(appYamlPath, 'utf-8')) as any;
+      if (appYaml?.id) {
+        console.log(chalk.white(`  App:     ${appYaml.id} ${chalk.gray('(from app.yaml)')}`));
       } else {
         console.log(chalk.gray(`  App:     (not set)`));
       }
+    } else {
+      console.log(chalk.gray(`  App:     (not set)`));
     }
     console.log('');
     return;
