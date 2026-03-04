@@ -1,6 +1,8 @@
 ---
 name: cx-core
-description: Shared CargoXplorer entity field reference — domain entities, field names, enums, and customValues patterns
+description: >
+  Shared CargoXplorer entity field reference — domain entities, field names, enums, and customValues patterns.
+  TRIGGER when: user asks about CX entity fields, enums, customValues, entity relationships, or needs domain reference for Orders, Contacts, Commodities, Jobs, etc.
 argument-hint: <entity name or question about fields>
 ---
 

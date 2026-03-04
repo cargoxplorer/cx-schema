@@ -1,6 +1,9 @@
 ---
 name: cx-workflow
-description: Generate schema-valid CargoXplorer workflow YAML files (standard process and Flow state machine workflows)
+description: >
+  Generate schema-valid CargoXplorer workflow YAML files (standard process and Flow state machine workflows).
+  TRIGGER when: user asks to create, modify, or fix a workflow YAML file, or references workflow/*.yaml files, or asks about workflow tasks/triggers/activities in a CX project.
+  DO NOT TRIGGER when: working with module YAML files, general TypeScript/code changes, or non-YAML tasks.
 argument-hint: <description of what to build>
 ---
 

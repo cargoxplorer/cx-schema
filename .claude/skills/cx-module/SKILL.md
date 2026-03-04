@@ -1,6 +1,9 @@
 ---
 name: cx-module
-description: Generate schema-valid CargoXplorer app module YAML files (UI screens, forms, grids, routes)
+description: >
+  Generate schema-valid CargoXplorer app module YAML files (UI screens, forms, grids, routes).
+  TRIGGER when: user asks to create, modify, or fix a module YAML file, or references *-module.yaml files, or asks about UI components/forms/grids/routes in a CX project.
+  DO NOT TRIGGER when: working with workflow YAML files, general TypeScript/code changes, or non-YAML tasks.
 argument-hint: <description of what to build>
 ---
 
