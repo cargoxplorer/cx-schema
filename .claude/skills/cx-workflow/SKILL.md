@@ -6,28 +6,28 @@ argument-hint: <description of what to build>
 
 You are a CargoXplorer workflow YAML builder. You generate schema-valid YAML for CX workflows — both standard process workflows (activities, steps, triggers) and Flow state machine workflows (entity lifecycle, states, transitions). All output must conform to the JSON schemas in `.cx-schema/`.
 
-**IMPORTANT — use `cx-cli` for all workflow operations:**
-- **Scaffold**: `npx cx-cli create workflow <name> --template <template>` — generates a schema-valid YAML file. ALWAYS run this first, then read the generated file, then customize. Do NOT write YAML from scratch or copy templates manually.
-- **Validate**: `npx cx-cli <file.yaml>` — run after every change
-- **Schema lookup**: `npx cx-cli schema <task>` — e.g., `cx-cli schema graphql`, `cx-cli schema foreach`, `cx-cli schema action-event`. Schema names use kebab-case file names. Case-insensitive: `ActionEvent` resolves to `action-event`.
-- **Examples**: `npx cx-cli example <task>` — show example YAML for a task
-- **List schemas**: `npx cx-cli list --type workflow` — shows all available task schemas in the Tasks section
-- **Feature folder**: `npx cx-cli create workflow <name> --template <template> --feature <feature-name>`
-- **Deploy to server**: `npx cx-cli workflow deploy <file.yaml>` — creates or updates workflow on the CX server
-- **Undeploy from server**: `npx cx-cli workflow undeploy <workflowId>` — removes a workflow by UUID
-- **Execute**: `npx cx-cli workflow execute <workflowId|file.yaml> [--vars '<json>']` — trigger a workflow execution
-- **List logs**: `npx cx-cli workflow logs <workflowId|file.yaml> [--from YYYY-MM-DD] [--to YYYY-MM-DD]` — list executions with log availability
-- **Download log**: `npx cx-cli workflow log <executionId> [--json] [--console] [--output <file>]` — download execution log
-- **Publish all**: `npx cx-cli publish [--feature <name>]` — push all modules and workflows to the server
+**IMPORTANT — use `cxtms` for all workflow operations:**
+- **Scaffold**: `npx cxtms create workflow <name> --template <template>` — generates a schema-valid YAML file. ALWAYS run this first, then read the generated file, then customize. Do NOT write YAML from scratch or copy templates manually.
+- **Validate**: `npx cxtms <file.yaml>` — run after every change
+- **Schema lookup**: `npx cxtms schema <task>` — e.g., `cxtms schema graphql`, `cxtms schema foreach`, `cxtms schema action-event`. Schema names use kebab-case file names. Case-insensitive: `ActionEvent` resolves to `action-event`.
+- **Examples**: `npx cxtms example <task>` — show example YAML for a task
+- **List schemas**: `npx cxtms list --type workflow` — shows all available task schemas in the Tasks section
+- **Feature folder**: `npx cxtms create workflow <name> --template <template> --feature <feature-name>`
+- **Deploy to server**: `npx cxtms workflow deploy <file.yaml>` — creates or updates workflow on the CX server
+- **Undeploy from server**: `npx cxtms workflow undeploy <workflowId>` — removes a workflow by UUID
+- **Execute**: `npx cxtms workflow execute <workflowId|file.yaml> [--vars '<json>']` — trigger a workflow execution
+- **List logs**: `npx cxtms workflow logs <workflowId|file.yaml> [--from YYYY-MM-DD] [--to YYYY-MM-DD]` — list executions with log availability
+- **Download log**: `npx cxtms workflow log <executionId> [--json] [--console] [--output <file>]` — download execution log
+- **Publish all**: `npx cxtms publish [--feature <name>]` — push all modules and workflows to the server
 
 ## Generation Workflow
 
 ### Step 1: Scaffold via CLI — MANDATORY
 
-**You MUST run `cx-cli create workflow` to generate the initial file.** Do not skip this step. Do not write YAML from scratch. Do not read template files and copy them manually. The CLI generates correct UUIDs, file paths, and structure.
+**You MUST run `cxtms create workflow` to generate the initial file.** Do not skip this step. Do not write YAML from scratch. Do not read template files and copy them manually. The CLI generates correct UUIDs, file paths, and structure.
 
 ```bash
-npx cx-cli create workflow <name> --template <template>
+npx cxtms create workflow <name> --template <template>
 ```
 
 | Template | Use Case |
@@ -77,7 +77,7 @@ npx cx-cli create workflow <name> --template <template>
 ### Step 4: Validate
 
 ```bash
-npx cx-cli <generated-file.yaml>
+npx cxtms <generated-file.yaml>
 ```
 
 ### File Placement
@@ -319,27 +319,27 @@ Implicit variable: `iteration` (zero-based).
 
 ```bash
 # Push a workflow YAML to the server (creates or updates)
-npx cx-cli workflow deploy workflows/my-workflow.yaml
+npx cxtms workflow deploy workflows/my-workflow.yaml
 
 # Delete a workflow by UUID
-npx cx-cli workflow undeploy <workflowId>
+npx cxtms workflow undeploy <workflowId>
 
 # Publish all modules and workflows (validates first)
-npx cx-cli publish
-npx cx-cli publish --feature billing
+npx cxtms publish
+npx cxtms publish --feature billing
 ```
 
-Deploy reads `workflow.workflowId` from the YAML, queries the server, and creates or updates accordingly. Requires an active session (`cx-cli login` or PAT token — see cx-core skill).
+Deploy reads `workflow.workflowId` from the YAML, queries the server, and creates or updates accordingly. Requires an active session (`cxtms login` or PAT token — see cx-core skill).
 
 ### Execute
 
 ```bash
 # Execute a workflow by UUID or YAML file
-npx cx-cli workflow execute <workflowId>
-npx cx-cli workflow execute workflows/my-workflow.yaml
+npx cxtms workflow execute <workflowId>
+npx cxtms workflow execute workflows/my-workflow.yaml
 
 # Pass input variables as JSON
-npx cx-cli workflow execute <workflowId> --vars '{"city": "London", "count": 5}'
+npx cxtms workflow execute <workflowId> --vars '{"city": "London", "count": 5}'
 ```
 
 Returns execution result including `executionId`, `isAsync`, `outputs` (for Sync workflows).
@@ -348,25 +348,25 @@ Returns execution result including `executionId`, `isAsync`, `outputs` (for Sync
 
 ```bash
 # List executions with log availability (sorted desc by date)
-npx cx-cli workflow logs <workflowId|file.yaml>
+npx cxtms workflow logs <workflowId|file.yaml>
 
 # Filter by date range
-npx cx-cli workflow logs <workflowId> --from 2026-01-01 --to 2026-01-31
+npx cxtms workflow logs <workflowId> --from 2026-01-01 --to 2026-01-31
 
 # Download a specific execution log (saves to temp dir by default)
-npx cx-cli workflow log <executionId>
+npx cxtms workflow log <executionId>
 
 # Save to specific file
-npx cx-cli workflow log <executionId> --output mylog.txt
+npx cxtms workflow log <executionId> --output mylog.txt
 
 # Print to stdout
-npx cx-cli workflow log <executionId> --console
+npx cxtms workflow log <executionId> --console
 
 # Download JSON log (richer data: inputs, outputs, timing, metadata)
-npx cx-cli workflow log <executionId> --json
+npx cxtms workflow log <executionId> --json
 
 # JSON log to stdout
-npx cx-cli workflow log <executionId> --json --console
+npx cxtms workflow log <executionId> --json --console
 ```
 
 `workflow logs` shows a table with execution status, date, duration, user, and log availability indicators (filled/empty circle). `workflow log` downloads the actual log content from the server (gzip-compressed S3 URLs).
@@ -382,7 +382,7 @@ npx cx-cli workflow log <executionId> --json --console
 
 ## Generation Rules
 
-1. **Always scaffold via `cx-cli create workflow` first** — never write YAML from scratch, never copy templates manually
+1. **Always scaffold via `cxtms create workflow` first** — never write YAML from scratch, never copy templates manually
 2. **Naming conventions**: step names PascalCase, variables camelCase, states PascalCase, transitions camelCase
 3. **Template expressions** use `{{ expression }}` — NCalc conditions use `[variable]`
 4. **Do not change `workflowId` or `filePath`** — set correctly by CLI scaffold
@@ -390,4 +390,4 @@ npx cx-cli workflow log <executionId> --json --console
 6. **Flow workflows** require `entity`, `states`, `transitions` (no `activities`)
 7. **Entity triggers** require `entityName` and `eventType`
 8. **Always use null-safe `?`** on variable paths — `Activity?.Step?.output?` — unless referencing guaranteed system variables (see Variable References section)
-9. **Always validate** the final YAML: `npx cx-cli <file.yaml>`
+9. **Always validate** the final YAML: `npx cxtms <file.yaml>`

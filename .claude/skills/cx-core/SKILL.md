@@ -14,10 +14,10 @@ The CLI can authenticate against CX environments and manage server resources. Au
 
 ```bash
 # Login to a CX environment (OAuth2 + PKCE — opens browser)
-npx cx-cli login https://tms-v3-dev.usatrt.com
+npx cxtms login https://tms-v3-dev.usatrt.com
 
 # Logout from current session
-npx cx-cli logout
+npx cxtms logout
 ```
 
 The session is stored at `~/.cxtms/<project-dir>/.session.json`, scoped by project directory name. Each project gets its own server session. The CLI auto-refreshes expired tokens.
@@ -28,16 +28,16 @@ For CI/CD or headless environments, use Personal Access Tokens instead of intera
 
 ```bash
 # Check PAT status and setup instructions
-npx cx-cli pat setup
+npx cxtms pat setup
 
 # Create a new PAT token (requires OAuth login first)
-npx cx-cli pat create "my-ci-token"
+npx cxtms pat create "my-ci-token"
 
 # List active PAT tokens
-npx cx-cli pat list
+npx cxtms pat list
 
 # Revoke a PAT token
-npx cx-cli pat revoke <tokenId>
+npx cxtms pat revoke <tokenId>
 ```
 
 After creating a PAT, add to `.env` in your project root:
@@ -52,16 +52,16 @@ When `CXTMS_AUTH` is set, the CLI skips OAuth and uses the PAT token directly. `
 
 ```bash
 # List organizations on the server
-npx cx-cli orgs list
+npx cxtms orgs list
 
 # Select an organization interactively
-npx cx-cli orgs select
+npx cxtms orgs select
 
 # Set active organization by ID
-npx cx-cli orgs use <orgId>
+npx cxtms orgs use <orgId>
 
 # Show current context (server, org, app)
-npx cx-cli orgs use
+npx cxtms orgs use
 ```
 
 The active org is cached in the session file and used by all server commands. Override with `--org <id>`.
@@ -77,14 +77,14 @@ Server commands resolve the target session in this order:
 
 ```bash
 # Publish all modules and workflows from current project
-npx cx-cli publish
+npx cxtms publish
 
 # Publish only a specific feature directory
-npx cx-cli publish --feature billing
-npx cx-cli publish billing
+npx cxtms publish --feature billing
+npx cxtms publish billing
 
 # Publish with explicit org ID
-npx cx-cli publish --org 42
+npx cxtms publish --org 42
 ```
 
 Validates all YAML files first, then pushes modules and workflows to the server. Skips files with validation errors and reports results.
@@ -106,7 +106,7 @@ When creating new modules or workflows, always place them under the correct feat
 - `features/<feature_name>/modules/<name>-module.yaml`
 - `features/<feature_name>/workflows/<name>.yaml`
 
-Use `--feature <feature_name>` with `cx-cli create` to automatically place files in the correct location.
+Use `--feature <feature_name>` with `cxtms create` to automatically place files in the correct location.
 
 ## Entity Field Reference
 

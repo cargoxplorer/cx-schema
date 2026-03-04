@@ -182,7 +182,7 @@ function main() {
 
   console.log('✓ CX Schema Validator installed successfully!');
   console.log('\nUsage:');
-  console.log('  npx cx-cli modules/your-module.yaml');
+  console.log('  npx cxtms modules/your-module.yaml');
   console.log('  node .cx-schema/validate.js modules/your-module.yaml');
   console.log('  /cx-module <description>   (Claude Code skill - UI modules)');
   console.log('  /cx-workflow <description>  (Claude Code skill - workflows)');

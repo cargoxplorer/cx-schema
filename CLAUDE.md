@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repo is the home of the **cx-\* Claude Code skills** (`cx-core`, `cx-module`, `cx-workflow`) — the knowledge base and generation rules that teach Claude Code how to build CargoXplorer modules and workflows. It also contains `cx-cli`, a TypeScript CLI tool the skills use to scaffold, validate, and inspect YAML files.
+This repo is the home of the **cx-\* Claude Code skills** (`cx-core`, `cx-module`, `cx-workflow`) — the knowledge base and generation rules that teach Claude Code how to build CargoXplorer modules and workflows. It also contains `cxtms`, a TypeScript CLI tool the skills use to scaffold, validate, and inspect YAML files.
 
 The three pillars:
 1. **Skills** (`.claude/skills/`) — SKILL.md + ref-*.md files that Claude Code loads when generating YAML
 2. **Schemas** (`schemas/`) — JSON Schema definitions that enforce correctness
-3. **CLI** (`src/cli.ts` → `cx-cli`) — scaffolding from templates, validation, schema introspection
+3. **CLI** (`src/cli.ts` → `cxtms`) — scaffolding from templates, validation, schema introspection
 
 Published as `@cxtms/cx-schema` npm package, consumed by CX application repos.
 
@@ -17,16 +17,16 @@ Published as `@cxtms/cx-schema` npm package, consumed by CX application repos.
 
 ```bash
 npm run build                              # TypeScript → dist/
-npx cx-cli create workflow <n> --template <t>  # Scaffold from template (skills always start here)
-npx cx-cli create module <n> --template <t>    # Scaffold from template
-npx cx-cli <file.yaml>                     # Validate any YAML (skills always validate after changes)
-npx cx-cli <file.yaml> --verbose           # Detailed errors with schema paths
-npx cx-cli schema <name>                   # Show JSON schema (skills use this to look up task/component schemas)
-npx cx-cli example <name>                  # Show example YAML
-npx cx-cli list                            # List all available schemas
+npx cxtms create workflow <n> --template <t>  # Scaffold from template (skills always start here)
+npx cxtms create module <n> --template <t>    # Scaffold from template
+npx cxtms <file.yaml>                     # Validate any YAML (skills always validate after changes)
+npx cxtms <file.yaml> --verbose           # Detailed errors with schema paths
+npx cxtms schema <name>                   # Show JSON schema (skills use this to look up task/component schemas)
+npx cxtms example <name>                  # Show example YAML
+npx cxtms list                            # List all available schemas
 ```
 
-No test suite (`npm test` is a no-op). Verify changes by scaffolding from templates and running `cx-cli` validation.
+No test suite (`npm test` is a no-op). Verify changes by scaffolding from templates and running `cxtms` validation.
 
 ## Architecture
 
@@ -35,10 +35,10 @@ No test suite (`npm test` is a no-op). Verify changes by scaffolding from templa
 Each skill has a `SKILL.md` entry point and `ref-*.md` reference files loaded on demand.
 
 - **`cx-core`** — Shared entity field reference (Order, Contact, Commodity, Job, etc.), enums, customValues patterns. Loaded by both cx-module and cx-workflow as a dependency.
-- **`cx-module`** — Teaches Claude Code to generate UI module YAML. References: layout, form, data grid, field types, actions, routes. Uses cx-cli to scaffold (`create module`) and validate.
-- **`cx-workflow`** — Teaches Claude Code to generate workflow YAML. References: task types (utilities, query, entity CRUD, communication, file transfer, accounting), expression syntax, Flow state machines. Uses cx-cli to scaffold (`create workflow --template <t>`) and validate.
+- **`cx-module`** — Teaches Claude Code to generate UI module YAML. References: layout, form, data grid, field types, actions, routes. Uses cxtms to scaffold (`create module`) and validate.
+- **`cx-workflow`** — Teaches Claude Code to generate workflow YAML. References: task types (utilities, query, entity CRUD, communication, file transfer, accounting), expression syntax, Flow state machines. Uses cxtms to scaffold (`create workflow --template <t>`) and validate.
 
-**Skill contract**: skills instruct Claude Code to always scaffold via `cx-cli create` (never write YAML from scratch), then customize the output, then validate with `cx-cli`. The CLI, schemas, and templates exist to support this workflow.
+**Skill contract**: skills instruct Claude Code to always scaffold via `cxtms create` (never write YAML from scratch), then customize the output, then validate with `cxtms`. The CLI, schemas, and templates exist to support this workflow.
 
 **Keep skills and CLI in sync**: when adding or changing CLI commands, templates, or schemas, always update the corresponding skill SKILL.md/ref-*.md files so Claude Code knows about the new capabilities. The skills are how the CLI gets used — an undocumented CLI feature is an invisible one.
 
@@ -107,3 +107,57 @@ schemas/
 - All workflow templates include event handlers (onActivityStarted/Completed/Failed, onWorkflowStarted/Executed/Failed)
 - Template expressions: `{{ path }}` in step inputs (raw object or string interpolation), `[variable]` in NCalc conditions
 - Null-safe `?` operator is used by default on all variable paths except guaranteed system variables
+
+<!-- cx-schema-instructions -->
+## CargoXplorer Project
+
+This is a CargoXplorer (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by `@cxtms/cx-schema`.
+
+### Project Structure
+
+```
+app.yaml              # Application manifest (name, version, description)
+modules/              # UI module YAML files
+workflows/            # Workflow YAML files
+features/             # Feature-scoped modules and workflows
+  <feature>/
+    modules/
+    workflows/
+```
+
+### CLI — `cxtms`
+
+**Always scaffold via CLI, never write YAML from scratch.**
+
+| Command | Description |
+|---------|-------------|
+| `npx cxtms create module <name>` | Scaffold a UI module |
+| `npx cxtms create workflow <name>` | Scaffold a workflow |
+| `npx cxtms create module <name> --template <t>` | Use a specific template |
+| `npx cxtms create workflow <name> --template <t>` | Use a specific template |
+| `npx cxtms create module <name> --feature <f>` | Place under features/<f>/modules/ |
+| `npx cxtms <file.yaml>` | Validate a YAML file |
+| `npx cxtms <file.yaml> --verbose` | Validate with detailed errors |
+| `npx cxtms schema <name>` | Show JSON schema for a component or task |
+| `npx cxtms example <name>` | Show example YAML |
+| `npx cxtms list` | List all available schemas |
+| `npx cxtms extract <src> <comp> --to <tgt>` | Move component between modules |
+
+**Module templates:** `default`, `form`, `grid`, `select`, `configuration`
+**Workflow templates:** `basic`, `entity-trigger`, `document`, `scheduled`, `utility`, `webhook`, `public-api`, `mcp-tool`, `ftp-tracking`, `ftp-edi`, `api-tracking`
+
+### Skills (slash commands)
+
+| Skill | Purpose |
+|-------|---------|
+| `/cx-module <description>` | Generate a UI module (forms, grids, screens) |
+| `/cx-workflow <description>` | Generate a workflow (automation, triggers, integrations) |
+| `/cx-core <entity or question>` | Look up entity fields, enums, and domain reference |
+
+### Workflow: Scaffold → Customize → Validate
+
+1. **Scaffold** — `npx cxtms create module|workflow <name> --template <t>`
+2. **Read** the generated file
+3. **Customize** for the use case
+4. **Validate** — `npx cxtms <file.yaml>` — run after every change, fix all errors
+<!-- cx-schema-instructions -->

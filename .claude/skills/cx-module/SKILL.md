@@ -6,28 +6,28 @@ argument-hint: <description of what to build>
 
 You are a CargoXplorer module YAML builder. You generate schema-valid YAML for CX app modules — UI screens, forms, data grids, routes, and components. All output must conform to the JSON schemas in `.cx-schema/`.
 
-**IMPORTANT — use `cx-cli` for all module operations:**
-- **Scaffold**: `npx cx-cli create module <name> --template <template>` — generates a schema-valid YAML file. ALWAYS run this first, then read the generated file, then customize. Do NOT write YAML from scratch or copy templates manually.
-- **Scaffold with fields**: `npx cx-cli create module <name> --template <template> --options '<json>'`
-- **Validate**: `npx cx-cli <file.yaml>` — run after every change
-- **Schema lookup**: `npx cx-cli schema <component>` — e.g., `cx-cli schema form`, `cx-cli schema dataGrid`
-- **Examples**: `npx cx-cli example <component>` — show example YAML
-- **List schemas**: `npx cx-cli list`
-- **Extract**: `npx cx-cli extract <source> <component> --to <target>` — move components between modules
-- **Feature folder**: `npx cx-cli create module <name> --template <template> --feature <feature-name>`
-- **Deploy to server**: `npx cx-cli appmodule deploy <file.yaml>` — creates or updates module on the CX server
-- **Undeploy from server**: `npx cx-cli appmodule undeploy <appModuleId>` — removes a module by UUID
-- **Publish all**: `npx cx-cli publish [--feature <name>]` — push all modules and workflows to the server
+**IMPORTANT — use `cxtms` for all module operations:**
+- **Scaffold**: `npx cxtms create module <name> --template <template>` — generates a schema-valid YAML file. ALWAYS run this first, then read the generated file, then customize. Do NOT write YAML from scratch or copy templates manually.
+- **Scaffold with fields**: `npx cxtms create module <name> --template <template> --options '<json>'`
+- **Validate**: `npx cxtms <file.yaml>` — run after every change
+- **Schema lookup**: `npx cxtms schema <component>` — e.g., `cxtms schema form`, `cxtms schema dataGrid`
+- **Examples**: `npx cxtms example <component>` — show example YAML
+- **List schemas**: `npx cxtms list`
+- **Extract**: `npx cxtms extract <source> <component> --to <target>` — move components between modules
+- **Feature folder**: `npx cxtms create module <name> --template <template> --feature <feature-name>`
+- **Deploy to server**: `npx cxtms appmodule deploy <file.yaml>` — creates or updates module on the CX server
+- **Undeploy from server**: `npx cxtms appmodule undeploy <appModuleId>` — removes a module by UUID
+- **Publish all**: `npx cxtms publish [--feature <name>]` — push all modules and workflows to the server
 
 ## Generation Workflow
 
 ### Step 1: Scaffold via CLI — MANDATORY
 
-**You MUST run `cx-cli create module` to generate the initial file.** Do not skip this step. Do not write YAML from scratch. Do not read template files and copy them manually. The CLI generates correct UUIDs, file paths, and structure.
+**You MUST run `cxtms create module` to generate the initial file.** Do not skip this step. Do not write YAML from scratch. Do not read template files and copy them manually. The CLI generates correct UUIDs, file paths, and structure.
 
 ```bash
-npx cx-cli create module <name> --template <template>
-npx cx-cli create module <name> --template <template> --options '<json>'
+npx cxtms create module <name> --template <template>
+npx cxtms create module <name> --template <template> --options '<json>'
 ```
 
 | Template | Use Case |
@@ -55,7 +55,7 @@ npx cx-cli create module <name> --template <template> --options '<json>'
 ### Step 4: Validate
 
 ```bash
-npx cx-cli <generated-file.yaml>
+npx cxtms <generated-file.yaml>
 ```
 
 ---
@@ -67,7 +67,7 @@ Customize generated modules at scaffold time with `--options`. Accepts inline JS
 ### Field Array Format (all templates)
 
 ```bash
-npx cx-cli create module "Tariff" --template grid --options '[
+npx cxtms create module "Tariff" --template grid --options '[
   {"name": "code", "type": "text", "label": "Tariff Code", "required": true},
   {"name": "rate", "type": "number", "label": "Rate %"},
   {"name": "effectiveDate", "type": "date"},
@@ -78,7 +78,7 @@ npx cx-cli create module "Tariff" --template grid --options '[
 ### Object Format (with entityName)
 
 ```bash
-npx cx-cli create module "Country" --template select --options '{
+npx cxtms create module "Country" --template select --options '{
   "entityName": "Country",
   "fields": [
     {"name": "countryCode", "type": "text", "label": "Country Code"},
@@ -113,8 +113,8 @@ npx cx-cli create module "Country" --template select --options '{
 Move or copy a component (and its routes) from one module into another. Useful for splitting large modules or sharing components.
 
 ```bash
-cx-cli extract <source-file> <component-name> --to <target-file>
-cx-cli extract <source-file> <component-name> --to <target-file> --copy
+cxtms extract <source-file> <component-name> --to <target-file>
+cxtms extract <source-file> <component-name> --to <target-file> --copy
 ```
 
 ### Flags
@@ -130,13 +130,13 @@ cx-cli extract <source-file> <component-name> --to <target-file> --copy
 
 ```bash
 # Move a component to a new file (creates module scaffold automatically)
-npx cx-cli extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml
+npx cxtms extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml
 
 # Copy a component (source unchanged, target gets higher priority)
-npx cx-cli extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml --copy
+npx cxtms extract modules/orders.yaml Orders/CreateItem --to modules/order-create.yaml --copy
 
 # Extract to an existing module
-npx cx-cli extract modules/main.yaml Dashboard --to modules/dashboard.yaml
+npx cxtms extract modules/main.yaml Dashboard --to modules/dashboard.yaml
 ```
 
 ### New Target Scaffold
@@ -149,7 +149,7 @@ When the target file doesn't exist, a new module is created with:
 ### Workflow
 1. Run `extract` to move the component
 2. Manually move any related permissions/entities if needed
-3. Validate both files: `npx cx-cli <source>` and `npx cx-cli <target>`
+3. Validate both files: `npx cxtms <source>` and `npx cxtms <target>`
 
 ---
 
@@ -401,26 +401,26 @@ Reusable select components (e.g., `Countries/Select`, `Ports/Select`) follow thi
 
 ```bash
 # Deploy a module YAML to the server (creates or updates)
-npx cx-cli appmodule deploy modules/my-module.yaml
+npx cxtms appmodule deploy modules/my-module.yaml
 
 # Deploy with explicit org ID
-npx cx-cli appmodule deploy modules/my-module.yaml --org 42
+npx cxtms appmodule deploy modules/my-module.yaml --org 42
 
 # Undeploy an app module by UUID
-npx cx-cli appmodule undeploy <appModuleId>
+npx cxtms appmodule undeploy <appModuleId>
 
 # Publish all modules and workflows (validates first)
-npx cx-cli publish
-npx cx-cli publish --feature billing
+npx cxtms publish
+npx cxtms publish --feature billing
 ```
 
-Deploy reads `module.appModuleId` from the YAML, queries the server, and creates or updates accordingly. Requires an active session (`cx-cli login` or PAT token — see cx-core skill).
+Deploy reads `module.appModuleId` from the YAML, queries the server, and creates or updates accordingly. Requires an active session (`cxtms login` or PAT token — see cx-core skill).
 
 ---
 
 # Generation Rules
 
-1. **Always scaffold via `cx-cli create module` first** — never write YAML from scratch, never copy templates manually
+1. **Always scaffold via `cxtms create module` first** — never write YAML from scratch, never copy templates manually
 2. **Use localized strings** `{ en-US: "..." }` for all user-visible text
 3. **Follow naming conventions**:
    - Module names: PascalCase (e.g., `WarehouseLocations`)
@@ -433,4 +433,4 @@ Deploy reads `module.appModuleId` from the YAML, queries the server, and creates
 7. **DataGrid options** requires ALL properties: query, rootEntityName, entityKeys, navigationType, enableDynamicGrid, enableViews, enableSearch, enablePagination, enableColumns, enableFilter, defaultView, onRowClick
 8. **Form component** requires `validationSchema` in props
 9. **Do not change `appModuleId` or `filePath`** — set correctly by CLI scaffold
-10. **Always validate** the final YAML: `npx cx-cli <file.yaml>`
+10. **Always validate** the final YAML: `npx cxtms <file.yaml>`

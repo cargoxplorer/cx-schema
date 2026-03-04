@@ -120,7 +120,7 @@ interface TokenFile {
 // ============================================================================
 
 const VERSION = require('../package.json').version;
-const PROGRAM_NAME = 'cx-cli';
+const PROGRAM_NAME = 'cxtms';
 
 // ============================================================================
 // Help Text
@@ -157,6 +157,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('appmodule')}       Manage app modules on a CX server (deploy, undeploy)
   ${chalk.green('workflow')}        Manage workflows on a CX server (deploy, undeploy, execute, logs, log)
   ${chalk.green('publish')}         Publish all modules and workflows to a CX server
+  ${chalk.green('query')}           Run a GraphQL query against the CX server
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
   ${chalk.green('list')}            List available schemas (modules, workflows, tasks)
@@ -326,6 +327,16 @@ ${chalk.bold.yellow('PUBLISH COMMANDS:')}
 
   ${chalk.gray('# Publish with explicit org ID')}
   ${chalk.cyan(`${PROGRAM_NAME} publish --org 42`)}
+
+${chalk.bold.yellow('QUERY COMMANDS:')}
+  ${chalk.gray('# Run an inline GraphQL query')}
+  ${chalk.cyan(`${PROGRAM_NAME} query '{ organizations(take: 5) { items { organizationId companyName } } }'`)}
+
+  ${chalk.gray('# Run a query from a .graphql file')}
+  ${chalk.cyan(`${PROGRAM_NAME} query my-query.graphql`)}
+
+  ${chalk.gray('# Pass variables as JSON')}
+  ${chalk.cyan(`${PROGRAM_NAME} query my-query.graphql --vars '{"id": 42}'`)}
 
 ${chalk.bold.yellow('VALIDATION TYPES:')}
   ${chalk.bold('module')}     - CargoXplorer UI module definitions (components, routes, entities)
@@ -539,39 +550,39 @@ npm install @cxtms/cx-schema
 
 \`\`\`bash
 # Validate all modules
-npx cx-cli modules/*.yaml
+npx cxtms modules/*.yaml
 
 # Validate all workflows
-npx cx-cli workflows/*.yaml
+npx cxtms workflows/*.yaml
 
 # Validate with detailed output
-npx cx-cli --verbose modules/my-module.yaml
+npx cxtms --verbose modules/my-module.yaml
 
 # Generate validation report
-npx cx-cli report modules/*.yaml workflows/*.yaml --report report.html
+npx cxtms report modules/*.yaml workflows/*.yaml --report report.html
 \`\`\`
 
 ### Create new files
 
 \`\`\`bash
 # Create a new module
-npx cx-cli create module my-module
+npx cxtms create module my-module
 
 # Create a new workflow
-npx cx-cli create workflow my-workflow
+npx cxtms create workflow my-workflow
 \`\`\`
 
 ### View schemas and examples
 
 \`\`\`bash
 # List available schemas
-npx cx-cli list
+npx cxtms list
 
 # View schema for a component
-npx cx-cli schema form
+npx cxtms schema form
 
 # View example YAML
-npx cx-cli example workflow
+npx cxtms example workflow
 \`\`\`
 
 ## Documentation
@@ -593,13 +604,13 @@ When making changes to YAML files, always validate them:
 
 \`\`\`bash
 # Validate a specific module file
-npx cx-cli modules/<module-name>.yaml
+npx cxtms modules/<module-name>.yaml
 
 # Validate a specific workflow file
-npx cx-cli workflows/<workflow-name>.yaml
+npx cxtms workflows/<workflow-name>.yaml
 
 # Validate all files with a report
-npx cx-cli report modules/*.yaml workflows/*.yaml --report validation-report.md
+npx cxtms report modules/*.yaml workflows/*.yaml --report validation-report.md
 \`\`\`
 
 ## Schema Reference
@@ -608,14 +619,14 @@ Before editing components or tasks, check the schema:
 
 \`\`\`bash
 # View schema for components
-npx cx-cli schema form
-npx cx-cli schema dataGrid
-npx cx-cli schema layout
+npx cxtms schema form
+npx cxtms schema dataGrid
+npx cxtms schema layout
 
 # View schema for workflow tasks
-npx cx-cli schema foreach
-npx cx-cli schema graphql
-npx cx-cli schema switch
+npx cxtms schema foreach
+npx cxtms schema graphql
+npx cxtms schema switch
 \`\`\`
 
 ## Creating New Files
@@ -624,16 +635,16 @@ Use templates to create properly structured files:
 
 \`\`\`bash
 # Create a new module
-npx cx-cli create module <name>
+npx cxtms create module <name>
 
 # Create a new workflow
-npx cx-cli create workflow <name>
+npx cxtms create workflow <name>
 
 # Create from a specific template variant
-npx cx-cli create workflow <name> --template basic
+npx cxtms create workflow <name> --template basic
 
 # Create inside a feature folder (features/<name>/workflows/)
-npx cx-cli create workflow <name> --feature billing
+npx cxtms create workflow <name> --feature billing
 \`\`\`
 
 ## Module Structure
@@ -1576,23 +1587,23 @@ features/             # Feature-scoped modules and workflows
     workflows/
 \`\`\`
 
-### CLI — \`cx-cli\`
+### CLI — \`cxtms\`
 
 **Always scaffold via CLI, never write YAML from scratch.**
 
 | Command | Description |
 |---------|-------------|
-| \`npx cx-cli create module <name>\` | Scaffold a UI module |
-| \`npx cx-cli create workflow <name>\` | Scaffold a workflow |
-| \`npx cx-cli create module <name> --template <t>\` | Use a specific template |
-| \`npx cx-cli create workflow <name> --template <t>\` | Use a specific template |
-| \`npx cx-cli create module <name> --feature <f>\` | Place under features/<f>/modules/ |
-| \`npx cx-cli <file.yaml>\` | Validate a YAML file |
-| \`npx cx-cli <file.yaml> --verbose\` | Validate with detailed errors |
-| \`npx cx-cli schema <name>\` | Show JSON schema for a component or task |
-| \`npx cx-cli example <name>\` | Show example YAML |
-| \`npx cx-cli list\` | List all available schemas |
-| \`npx cx-cli extract <src> <comp> --to <tgt>\` | Move component between modules |
+| \`npx cxtms create module <name>\` | Scaffold a UI module |
+| \`npx cxtms create workflow <name>\` | Scaffold a workflow |
+| \`npx cxtms create module <name> --template <t>\` | Use a specific template |
+| \`npx cxtms create workflow <name> --template <t>\` | Use a specific template |
+| \`npx cxtms create module <name> --feature <f>\` | Place under features/<f>/modules/ |
+| \`npx cxtms <file.yaml>\` | Validate a YAML file |
+| \`npx cxtms <file.yaml> --verbose\` | Validate with detailed errors |
+| \`npx cxtms schema <name>\` | Show JSON schema for a component or task |
+| \`npx cxtms example <name>\` | Show example YAML |
+| \`npx cxtms list\` | List all available schemas |
+| \`npx cxtms extract <src> <comp> --to <tgt>\` | Move component between modules |
 
 **Module templates:** \`default\`, \`form\`, \`grid\`, \`select\`, \`configuration\`
 **Workflow templates:** \`basic\`, \`entity-trigger\`, \`document\`, \`scheduled\`, \`utility\`, \`webhook\`, \`public-api\`, \`mcp-tool\`, \`ftp-tracking\`, \`ftp-edi\`, \`api-tracking\`
@@ -1607,10 +1618,10 @@ features/             # Feature-scoped modules and workflows
 
 ### Workflow: Scaffold → Customize → Validate
 
-1. **Scaffold** — \`npx cx-cli create module|workflow <name> --template <t>\`
+1. **Scaffold** — \`npx cxtms create module|workflow <name> --template <t>\`
 2. **Read** the generated file
 3. **Customize** for the use case
-4. **Validate** — \`npx cx-cli <file.yaml>\` — run after every change, fix all errors
+4. **Validate** — \`npx cxtms <file.yaml>\` — run after every change, fix all errors
 ${CX_CLAUDE_MARKER}`;
 }
 
@@ -1774,7 +1785,7 @@ async function registerOAuthClient(domain: string): Promise<string> {
   const res = await httpsPost(
     `${domain}/connect/register`,
     JSON.stringify({
-      client_name: `cx-cli-${crypto.randomBytes(4).toString('hex')}`,
+      client_name: `cxtms-${crypto.randomBytes(4).toString('hex')}`,
       redirect_uris: [`http://localhost:${AUTH_CALLBACK_PORT}/callback`],
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
@@ -1948,12 +1959,12 @@ async function graphqlRequest(domain: string, token: string, query: string, vari
     if (process.env.CXTMS_AUTH) throw new Error('PAT token unauthorized (401). Check your CXTMS_AUTH token.');
     // Try refresh for OAuth sessions
     const stored = readSessionFile();
-    if (!stored) throw new Error('Session expired. Run `cx-cli login <url>` again.');
+    if (!stored) throw new Error('Session expired. Run `cxtms login <url>` again.');
     try {
       const refreshed = await refreshTokens(stored);
       res = await graphqlPostWithAuth(domain, refreshed.access_token, body);
     } catch {
-      throw new Error('Session expired. Run `cx-cli login <url>` again.');
+      throw new Error('Session expired. Run `cxtms login <url>` again.');
     }
   }
 
@@ -2047,7 +2058,7 @@ function resolveSession(): TokenFile {
   if (session) return session;
 
   // 2. Not logged in
-  console.error(chalk.red('Not logged in. Run `cx-cli login <url>` first.'));
+  console.error(chalk.red('Not logged in. Run `cxtms login <url>` first.'));
   process.exit(2);
 }
 
@@ -2084,7 +2095,7 @@ async function resolveOrgId(domain: string, token: string, override?: number): P
   for (const org of orgs) {
     console.error(chalk.white(`    ${org.organizationId}  ${org.companyName}`));
   }
-  console.error(chalk.gray(`\n  Run \`cx-cli orgs select\` to choose, or pass --org <id>.\n`));
+  console.error(chalk.gray(`\n  Run \`cxtms orgs select\` to choose, or pass --org <id>.\n`));
   process.exit(2);
 }
 
@@ -2854,7 +2865,7 @@ async function runPatCreate(name: string): Promise<void> {
   console.log(chalk.cyan(`  CXTMS_AUTH=${patToken}`));
   console.log(chalk.cyan(`  CXTMS_SERVER=${domain}`));
   console.log();
-  console.log(chalk.gray('When CXTMS_AUTH is set, cx-cli will skip OAuth login and use the PAT token directly.'));
+  console.log(chalk.gray('When CXTMS_AUTH is set, cxtms will skip OAuth login and use the PAT token directly.'));
   console.log(chalk.gray('You can also export these as environment variables instead of using .env.'));
 }
 
@@ -2940,7 +2951,7 @@ async function runPatSetup(): Promise<void> {
     console.log(chalk.bold('To set up PAT authentication:'));
     console.log();
     console.log(chalk.white('  1. Create a token:'));
-    console.log(chalk.cyan('     cx-cli pat create "my-token-name"'));
+    console.log(chalk.cyan('     cxtms pat create "my-token-name"'));
     console.log();
     console.log(chalk.white('  2. Add to your project .env file:'));
     console.log(chalk.cyan('     CXTMS_AUTH=pat_xxxxx'));
@@ -3077,6 +3088,44 @@ async function runPublish(featureDir: string | undefined, orgOverride?: number):
   } else {
     console.log(chalk.yellow(`  Published ${succeeded} file(s), ${failed} failed\n`));
   }
+}
+
+// ============================================================================
+// Query Command
+// ============================================================================
+
+async function runQuery(queryArg: string | undefined, variables?: string): Promise<void> {
+  if (!queryArg) {
+    console.error(chalk.red('Error: query argument required (inline GraphQL string or .graphql/.gql file path)'));
+    process.exit(2);
+  }
+
+  // Resolve query: file path or inline string
+  let query: string;
+  if (queryArg.endsWith('.graphql') || queryArg.endsWith('.gql')) {
+    if (!fs.existsSync(queryArg)) {
+      console.error(chalk.red(`Error: file not found: ${queryArg}`));
+      process.exit(2);
+    }
+    query = fs.readFileSync(queryArg, 'utf-8');
+  } else {
+    query = queryArg;
+  }
+
+  // Parse variables if provided
+  let vars: Record<string, any> = {};
+  if (variables) {
+    try {
+      vars = JSON.parse(variables);
+    } catch {
+      console.error(chalk.red('Error: --vars must be valid JSON'));
+      process.exit(2);
+    }
+  }
+
+  const session = resolveSession();
+  const data = await graphqlRequest(session.domain, session.access_token, query, vars);
+  console.log(JSON.stringify(data, null, 2));
 }
 
 // ============================================================================
@@ -3308,7 +3357,7 @@ function parseArgs(args: string[]): ParsedArgs {
   };
 
   // Check for commands
-  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude', 'login', 'logout', 'pat', 'appmodule', 'orgs', 'workflow', 'publish'];
+  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude', 'login', 'logout', 'pat', 'appmodule', 'orgs', 'workflow', 'publish', 'query'];
   if (args.length > 0 && commands.includes(args[0])) {
     command = args[0];
     args = args.slice(1);
@@ -3854,7 +3903,7 @@ function getSuggestion(error: ValidationError): string | null {
         return 'Check that the value type matches the expected type (string, number, boolean, etc.)';
       }
       if (error.message.includes('additionalProperties')) {
-        return 'Remove unrecognized properties. Use `cx-cli schema <type>` to see allowed properties.';
+        return 'Remove unrecognized properties. Use `cxtms schema <type>` to see allowed properties.';
       }
       return 'Review the schema requirements for this property';
 
@@ -3862,7 +3911,7 @@ function getSuggestion(error: ValidationError): string | null {
       return 'Check YAML indentation and syntax. Use a YAML linter to identify issues.';
 
     case 'invalid_task_type':
-      return `Use 'cx-cli list --type workflow' to see available task types`;
+      return `Use 'cxtms list --type workflow' to see available task types`;
 
     case 'invalid_activity':
       return 'Each activity must have a "name" and "steps" array';
@@ -4286,7 +4335,7 @@ async function main() {
 
   // Handle version
   if (options.version) {
-    console.log(`cx-cli v${VERSION}`);
+    console.log(`cxtms v${VERSION}`);
     process.exit(0);
   }
 
@@ -4392,6 +4441,12 @@ async function main() {
   // Handle publish command (no schemas needed)
   if (command === 'publish') {
     await runPublish(files[0] || options.feature, options.orgId);
+    process.exit(0);
+  }
+
+  // Handle query command (no schemas needed)
+  if (command === 'query') {
+    await runQuery(files[0], options.vars);
     process.exit(0);
   }
 
