@@ -1981,8 +1981,11 @@ async function graphqlRequest(domain: string, token: string, query: string, vari
 
   if (json.errors && json.errors.length > 0) {
     const messages = json.errors.map((e: any) => {
+      const parts: string[] = [e.message];
       const ext = e.extensions?.message;
-      return ext && ext !== e.message ? `${e.message} — ${ext}` : e.message;
+      if (ext && ext !== e.message) parts.push(ext);
+      if (e.path) parts.push(`path: ${e.path.join('.')}`);
+      return parts.join(' — ');
     });
     throw new Error(`GraphQL error: ${messages.join('; ')}`);
   }
@@ -2527,7 +2530,7 @@ async function runWorkflowExecute(workflowIdOrFile: string | undefined, orgOverr
     mutation ($input: ExecuteWorkflowInput!) {
       executeWorkflow(input: $input) {
         workflowExecutionResult {
-          executionId workflowId isAsync workflowType outputs
+          executionId workflowId isAsync outputs
         }
       }
     }
@@ -2542,7 +2545,6 @@ async function runWorkflowExecute(workflowIdOrFile: string | undefined, orgOverr
   console.log(chalk.green(`  ✓ Executed: ${workflowName}`));
   console.log(chalk.white(`  Execution ID: ${result.executionId}`));
   console.log(chalk.white(`  Async:        ${result.isAsync}`));
-  console.log(chalk.white(`  Type:         ${result.workflowType || 'standard'}`));
   if (result.outputs && Object.keys(result.outputs).length > 0) {
     console.log(chalk.white(`  Outputs:`));
     console.log(chalk.gray(`    ${JSON.stringify(result.outputs, null, 2).split('\n').join('\n    ')}`));
