@@ -1,7 +1,7 @@
 ---
 name: cx-core
 description: >
-  Provides shared CargoXplorer entity field reference — domain entities, field names, enums, and customValues patterns.
+  Provides shared CXTMS entity field reference — domain entities, field names, enums, and customValues patterns.
   Use when the user asks about CX entity fields, enums, customValues, entity relationships, or needs domain reference for Orders, Contacts, Commodities, Jobs, etc.
 argument-hint: <entity name or question about fields>
 ---

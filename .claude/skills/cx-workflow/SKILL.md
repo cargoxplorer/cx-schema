@@ -1,7 +1,7 @@
 ---
 name: cx-workflow
 description: >
-  Generates schema-valid CargoXplorer workflow YAML files (standard process and Flow state machine workflows).
+  Works with CXTMS workflow YAML files — creates, modifies, fixes, validates, and deploys standard process and Flow state machine workflows.
   Use when the user asks to create, modify, or fix a workflow YAML file, references workflow/*.yaml files, or asks about workflow tasks/triggers/activities in a CX project.
   Not for module YAML files, TypeScript code, or non-YAML tasks.
 argument-hint: <description of what to build>

@@ -1,7 +1,7 @@
 ---
 name: cx-module
 description: >
-  Generates schema-valid CargoXplorer app module YAML files (UI screens, forms, grids, routes).
+  Works with CXTMS app module YAML files — creates, modifies, fixes, validates, and deploys UI screens, forms, grids, and routes.
   Use when the user asks to create, modify, or fix a module YAML file, references *-module.yaml files, or asks about UI components/forms/grids/routes in a CX project.
   Not for workflow YAML files, TypeScript code, or non-YAML tasks.
 argument-hint: <description of what to build>
