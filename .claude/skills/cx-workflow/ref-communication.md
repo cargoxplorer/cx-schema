@@ -1,5 +1,13 @@
 # Communication & Document Tasks Reference
 
+## Contents
+- Email/Send task (send emails with templates and attachments)
+- Email/VerifyCode task (send and verify email verification codes)
+- Document/Render task (render PDF or Excel from HTML templates)
+- Document/Send task (send a previously rendered document)
+- Attachment tasks (Create, Update, Thumbnail, PdfThumbnail, RegenerateThumbnails)
+- PdfDocument/Merge task (merge multiple PDFs into one)
+
 ## Email/Send
 
 Sends emails with optional templates and attachments.

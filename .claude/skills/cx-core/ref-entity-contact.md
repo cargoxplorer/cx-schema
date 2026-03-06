@@ -1,5 +1,15 @@
 # Contact Entity Field Reference
 
+## Contents
+- Contact Scalar Fields
+- Contact Navigation Properties
+- Contact Collection Properties
+- Contact Computed/Resolved GraphQL Fields
+- ContactType Enum
+- ContactAddress Sub-Entity
+- Contact Other Related Enums
+- Contact CustomValues
+
 Field names as used in workflow expressions: `{{ entity.name }}`, `{{ entity.customValues.myField }}`.
 
 ## Scalar Fields

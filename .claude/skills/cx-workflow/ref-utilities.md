@@ -1,5 +1,17 @@
 # Utilities Tasks Reference
 
+## Contents
+- Available utility tasks (summary table of all Utilities/* tasks)
+- SetVariable task (set variables in activity and global scope)
+- Log task (log variables and messages to workflow logger)
+- Error task (throw workflow error to halt execution)
+- HttpRequest task (HTTP calls to external APIs with action events)
+- Map task (extract and reshape data into new variables)
+- Template task (Handlebars template rendering)
+- CsvParse task (parse CSV content into structured data)
+- Export task (export data to file format)
+- Import task (import data from file content)
+
 ## Available Tasks
 
 | Task | Description |

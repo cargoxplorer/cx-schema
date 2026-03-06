@@ -1,5 +1,17 @@
 # Commodity Entity Field Reference
 
+## Contents
+- Commodity Scalar Fields
+- Commodity Navigation Properties
+- Commodity Collection Properties
+- Commodity Computed/Resolved GraphQL Fields
+- Commodity Container/Child Pattern (Self-Referencing)
+- CommodityTrackingNumber Sub-Entity
+- OrderCommodity Join Entity
+- Commodity Enums
+- Commodity CustomValues
+- CommodityEvent (Bridge Entity)
+
 Field names as used in workflow expressions: `{{ entity.description }}`, `{{ entity.customValues.myField }}`.
 
 ## Scalar Fields

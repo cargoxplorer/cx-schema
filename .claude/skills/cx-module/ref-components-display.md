@@ -1,5 +1,18 @@
 # Data Display Components
 
+## Contents
+- DataGrid component
+- Text component
+- Markup component
+- Badge component
+- Icon component
+- Image component
+- Photo component
+- Summary component
+- Diff component
+- Viewer component
+- Embed component
+
 ## dataGrid
 
 Full-featured data table with views, filtering, sorting, pagination, and row actions.

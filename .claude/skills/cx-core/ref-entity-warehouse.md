@@ -1,5 +1,10 @@
 # Warehouse & Inventory Entity Reference
 
+## Contents
+- InventoryItem
+- WarehouseLocation
+- CargoMovement
+
 ## InventoryItem
 
 SKU-level inventory tracking.

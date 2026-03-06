@@ -1,5 +1,12 @@
 # Flow Workflow YAML Reference
 
+## Contents
+- Flow top-level structure (workflowType, entity, states, transitions, aggregations)
+- Flow entity section (entity name, type, includes, query)
+- Flow states section (initial, final, parent hierarchy, onEnter/onExit steps)
+- Flow transitions section (manual, auto, event triggers; from/to states; conditions)
+- Flow aggregations section (reusable collection expressions: all, any, sum, count)
+
 Flow workflows are declarative state machines for entity lifecycle management. Use `workflowType: Flow` in the workflow section.
 
 ## Top-Level Structure

@@ -1,5 +1,22 @@
 # Entity CRUD Tasks Reference
 
+## Contents
+- Entity/Change task (generic entity modification in Before triggers)
+- Order tasks (Create, Update, Delete, Get, Copy, Split, Import, etc.)
+- Contact tasks (Create, Update, Delete)
+- ContactAddress tasks (Create, Update, Delete, Import)
+- ContactPaymentMethod tasks (Create, Update, SendChargedAmount, VerifyChargedAmount)
+- Commodity tasks (Create, Update, Split, Repack, Unpack)
+- CommodityTrackingNumber tasks (Create, Update, Delete)
+- Job tasks (Create, Update, Delete, Assign, Unassign)
+- Charge tasks (Create, Update, Delete, DynamicUpdate, Calculate)
+- Discount task (Update)
+- Order sub-entity tasks (OrderCommodity, OrderCharge, OrderDocument, OrderTrackingEvent, OrderEntity)
+- Inventory tasks (InventoryItem Create, Update, Delete)
+- Other entity tasks (Movement, Country, Cities, Rate, TrackingEvent/Import)
+- Note tasks (Create, Update, Delete, Import, Export, RenameThread)
+- AccountingTransaction/ApplyCredit task
+
 All entity tasks follow the `Namespace/Operation@Version` pattern. Outputs are stored as `ActivityName.StepName.outputKey`.
 
 ## Generic Entity Change

@@ -1,5 +1,14 @@
 # Other Tasks Reference
 
+## Contents
+- User & Auth tasks (User CRUD, verification codes, OAuth2 authentication)
+- Caching tasks (SetCache and GetCache for in-memory key-value storage)
+- EDI & Structured File Parsing tasks (EDI/Parse for X12/EDIFACT, StructuredFile/Parse)
+- Flow/Transition task (trigger state machine transitions programmatically)
+- Note tasks (Create, Update, Delete, NoteThread/Rename, bulk Import/Export)
+- AppModule tasks (Create, Update, Delete app modules)
+- ActionEvent/Create task (trigger UI notifications or webhooks)
+
 ## User & Auth
 
 | Task | Description |

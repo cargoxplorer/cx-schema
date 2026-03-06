@@ -1,5 +1,15 @@
 # Order Entity Field Reference
 
+## Contents
+- Order Scalar Fields
+- Order Navigation Properties
+- Order Collection Properties
+- Pre-filtered OrderEntity Collections (GraphQL)
+- Order Computed/Resolved GraphQL Fields
+- OrderTypes Enum
+- EntityTypes Enum (for OrderEntity)
+- Order CustomValues
+
 Field names as used in workflow expressions: `{{ entity.orderId }}`, `{{ entity.customValues.myField }}`.
 
 ## Scalar Fields

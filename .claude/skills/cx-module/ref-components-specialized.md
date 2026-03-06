@@ -1,5 +1,15 @@
 # Specialized Components
 
+## Contents
+- Calendar component
+- Notes component
+- Dashboard component
+- DashboardWidget component
+- Widget component
+- Timeline component
+- TimelineGrid component
+- OAuth2 component
+
 ## calendar
 
 FullCalendar integration with GraphQL event sources, timezone support, and programmatic control.

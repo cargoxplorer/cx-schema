@@ -1,5 +1,10 @@
 # Variable References & Expressions
 
+## Contents
+- Template Expressions: `{{ path }}` (in step inputs)
+- NCalc Expressions: `[variable]` (in conditions and expression directives)
+- Property Path Syntax (in collection, mapping, variable paths)
+
 There are **two distinct syntaxes** for referencing variables, used in different contexts.
 
 ## Template Expressions: `{{ path }}` (in step inputs)

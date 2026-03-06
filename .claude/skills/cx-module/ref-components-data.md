@@ -1,5 +1,12 @@
 # Data & Collection Components
 
+## Contents
+- Collection component
+- List component
+- ListItem component
+- Datasource component
+- Script component
+
 ## collection
 
 Iterates over data items and renders children as templates. Supports drag-and-drop reordering.
