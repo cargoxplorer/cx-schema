@@ -191,7 +191,8 @@ events:                                     # Workflow-level event handlers
 
 ## Variable References (quick summary)
 
-For full reference: `!cat .claude/skills/cx-workflow/ref-expressions.md`
+For template expressions and value directives: see [ref-expressions-template.md](.claude/skills/cx-workflow/ref-expressions-template.md)
+For NCalc conditions and functions: see [ref-expressions-ncalc.md](.claude/skills/cx-workflow/ref-expressions-ncalc.md)
 
 **`{{ path }}`** — in step inputs. Single `{{ }}` returns raw object. Multiple returns string interpolation.
 **`[variable]`** — in conditions and `expression:` directives. NCalc syntax.
@@ -294,7 +295,8 @@ Implicit variable: `iteration` (zero-based).
 
 | Reference | Load |
 |-----------|------|
-| Expressions & Functions | `!cat .claude/skills/cx-workflow/ref-expressions.md` |
+| Template Expressions & Value Directives | `!cat .claude/skills/cx-workflow/ref-expressions-template.md` |
+| NCalc Expressions & Functions | `!cat .claude/skills/cx-workflow/ref-expressions-ncalc.md` |
 | Flow Workflows (state machines) | `!cat .claude/skills/cx-workflow/ref-flow.md` |
 
 ## Dynamic Schema Access (load on demand)
