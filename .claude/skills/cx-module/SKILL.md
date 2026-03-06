@@ -1,9 +1,9 @@
 ---
 name: cx-module
 description: >
-  Generate schema-valid CargoXplorer app module YAML files (UI screens, forms, grids, routes).
-  TRIGGER when: user asks to create, modify, or fix a module YAML file, or references *-module.yaml files, or asks about UI components/forms/grids/routes in a CX project.
-  DO NOT TRIGGER when: working with workflow YAML files, general TypeScript/code changes, or non-YAML tasks.
+  Generates schema-valid CargoXplorer app module YAML files (UI screens, forms, grids, routes).
+  Use when the user asks to create, modify, or fix a module YAML file, references *-module.yaml files, or asks about UI components/forms/grids/routes in a CX project.
+  Not for workflow YAML files, TypeScript code, or non-YAML tasks.
 argument-hint: <description of what to build>
 ---
 
@@ -400,24 +400,7 @@ Reusable select components (e.g., `Countries/Select`, `Ports/Select`) follow thi
 
 ## Server Module Commands
 
-### Deploy / Undeploy
-
-```bash
-# Deploy a module YAML to the server (creates or updates)
-npx cxtms appmodule deploy modules/my-module.yaml
-
-# Deploy with explicit org ID
-npx cxtms appmodule deploy modules/my-module.yaml --org 42
-
-# Undeploy an app module by UUID
-npx cxtms appmodule undeploy <appModuleId>
-
-# Publish all modules and workflows (validates first)
-npx cxtms publish
-npx cxtms publish --feature billing
-```
-
-Deploy reads `module.appModuleId` from the YAML, queries the server, and creates or updates accordingly. Requires an active session (`cxtms login` or PAT token — see cx-core skill).
+Deploy, undeploy, and publish commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cx-core/ref-cli-auth.md](.claude/skills/cx-core/ref-cli-auth.md)
 
 ---
 

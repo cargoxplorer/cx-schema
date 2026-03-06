@@ -1,9 +1,9 @@
 ---
 name: cx-workflow
 description: >
-  Generate schema-valid CargoXplorer workflow YAML files (standard process and Flow state machine workflows).
-  TRIGGER when: user asks to create, modify, or fix a workflow YAML file, or references workflow/*.yaml files, or asks about workflow tasks/triggers/activities in a CX project.
-  DO NOT TRIGGER when: working with module YAML files, general TypeScript/code changes, or non-YAML tasks.
+  Generates schema-valid CargoXplorer workflow YAML files (standard process and Flow state machine workflows).
+  Use when the user asks to create, modify, or fix a workflow YAML file, references workflow/*.yaml files, or asks about workflow tasks/triggers/activities in a CX project.
+  Not for module YAML files, TypeScript code, or non-YAML tasks.
 argument-hint: <description of what to build>
 ---
 
@@ -318,21 +318,7 @@ Implicit variable: `iteration` (zero-based).
 
 ## Server Workflow Commands
 
-### Deploy / Undeploy
-
-```bash
-# Push a workflow YAML to the server (creates or updates)
-npx cxtms workflow deploy workflows/my-workflow.yaml
-
-# Delete a workflow by UUID
-npx cxtms workflow undeploy <workflowId>
-
-# Publish all modules and workflows (validates first)
-npx cxtms publish
-npx cxtms publish --feature billing
-```
-
-Deploy reads `workflow.workflowId` from the YAML, queries the server, and creates or updates accordingly. Requires an active session (`cxtms login` or PAT token — see cx-core skill).
+Deploy, undeploy, and publish commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cx-core/ref-cli-auth.md](.claude/skills/cx-core/ref-cli-auth.md)
 
 ### Execute
 
