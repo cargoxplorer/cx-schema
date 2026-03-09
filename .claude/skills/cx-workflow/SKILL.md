@@ -16,12 +16,12 @@ You are a CargoXplorer workflow YAML builder. You generate schema-valid YAML for
 - **Examples**: `npx cxtms example <task>` — show example YAML for a task
 - **List schemas**: `npx cxtms list --type workflow` — shows all available task schemas in the Tasks section
 - **Feature folder**: `npx cxtms create workflow <name> --template <template> --feature <feature-name>`
-- **Deploy to server**: `npx cxtms workflow deploy <file.yaml>` — creates or updates workflow on the CX server
-- **Undeploy from server**: `npx cxtms workflow undeploy <workflowId>` — removes a workflow by UUID
-- **Execute**: `npx cxtms workflow execute <workflowId|file.yaml> [--vars '<json>']` — trigger a workflow execution
-- **List logs**: `npx cxtms workflow logs <workflowId|file.yaml> [--from YYYY-MM-DD] [--to YYYY-MM-DD]` — list executions with log availability
-- **Download log**: `npx cxtms workflow log <executionId> [--json] [--console] [--output <file>]` — download execution log
-- **Publish all**: `npx cxtms publish [--feature <name>]` — push all modules and workflows to the server
+- **Deploy to server**: `npx cxtms workflow deploy <file.yaml> --org <id>` — creates or updates workflow on the CX server
+- **Undeploy from server**: `npx cxtms workflow undeploy <workflowId> --org <id>` — removes a workflow by UUID
+- **Execute**: `npx cxtms workflow execute <workflowId|file.yaml> --org <id> [--vars '<json>']` — trigger a workflow execution
+- **List logs**: `npx cxtms workflow logs <workflowId|file.yaml> --org <id> [--from YYYY-MM-DD] [--to YYYY-MM-DD]` — list executions with log availability
+- **Download log**: `npx cxtms workflow log <executionId> --org <id> [--json] [--console] [--output <file>]` — download execution log
+- **Publish all**: `npx cxtms publish [--feature <name>] --org <id>` — push all modules and workflows to the server
 
 ## Generation Workflow
 

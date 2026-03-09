@@ -18,9 +18,9 @@ You are a CargoXplorer module YAML builder. You generate schema-valid YAML for C
 - **List schemas**: `npx cxtms list`
 - **Extract**: `npx cxtms extract <source> <component> --to <target>` — move components between modules
 - **Feature folder**: `npx cxtms create module <name> --template <template> --feature <feature-name>`
-- **Deploy to server**: `npx cxtms appmodule deploy <file.yaml>` — creates or updates module on the CX server
-- **Undeploy from server**: `npx cxtms appmodule undeploy <appModuleId>` — removes a module by UUID
-- **Publish all**: `npx cxtms publish [--feature <name>]` — push all modules and workflows to the server
+- **Deploy to server**: `npx cxtms appmodule deploy <file.yaml> --org <id>` — creates or updates module on the CX server
+- **Undeploy from server**: `npx cxtms appmodule undeploy <appModuleId> --org <id>` — removes a module by UUID
+- **Publish all**: `npx cxtms publish [--feature <name>] --org <id>` — push all modules and workflows to the server
 
 ## Generation Workflow
 

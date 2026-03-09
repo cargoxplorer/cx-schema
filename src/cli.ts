@@ -80,6 +80,10 @@ interface CLIOptions {
   to?: string;
   output?: string;
   console?: boolean;
+  message?: string;
+  branch?: string;
+  force?: boolean;
+  skipChanged?: boolean;
 }
 
 interface FileValidationResult {
@@ -157,6 +161,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('appmodule')}       Manage app modules on a CX server (deploy, undeploy)
   ${chalk.green('workflow')}        Manage workflows on a CX server (deploy, undeploy, execute, logs, log)
   ${chalk.green('publish')}         Publish all modules and workflows to a CX server
+  ${chalk.green('app')}             Manage app manifests (install from git, publish to git, list)
   ${chalk.green('query')}           Run a GraphQL query against the CX server
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
@@ -187,6 +192,10 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--output <file>')}        Save workflow log to file (or -o)
   ${chalk.green('--console')}              Print workflow log to stdout
   ${chalk.green('--json')}                 Download JSON log instead of text
+  ${chalk.green('-m, --message <msg>')}     Commit message for app publish
+  ${chalk.green('-b, --branch <branch>')}   Branch override for app install/publish
+  ${chalk.green('--force')}                Force install (even if same version) or publish all
+  ${chalk.green('--skip-changed')}         Skip modules with unpublished changes during install
 
 ${chalk.bold.yellow('VALIDATION EXAMPLES:')}
   ${chalk.gray('# Validate a module YAML file')}
@@ -327,6 +336,31 @@ ${chalk.bold.yellow('PUBLISH COMMANDS:')}
 
   ${chalk.gray('# Publish with explicit org ID')}
   ${chalk.cyan(`${PROGRAM_NAME} publish --org 42`)}
+
+${chalk.bold.yellow('APP COMMANDS:')}
+  ${chalk.gray('# Install/refresh app from git repository into the CX server')}
+  ${chalk.cyan(`${PROGRAM_NAME} app install`)}
+
+  ${chalk.gray('# Force reinstall even if same version')}
+  ${chalk.cyan(`${PROGRAM_NAME} app install --force`)}
+
+  ${chalk.gray('# Install from a specific branch')}
+  ${chalk.cyan(`${PROGRAM_NAME} app install --branch develop`)}
+
+  ${chalk.gray('# Install but skip modules that have local changes')}
+  ${chalk.cyan(`${PROGRAM_NAME} app install --skip-changed`)}
+
+  ${chalk.gray('# Publish server changes to git (creates a PR)')}
+  ${chalk.cyan(`${PROGRAM_NAME} app publish`)}
+
+  ${chalk.gray('# Publish with a custom commit message')}
+  ${chalk.cyan(`${PROGRAM_NAME} app publish --message "Add new shipping module"`)}
+
+  ${chalk.gray('# Force publish all modules and workflows')}
+  ${chalk.cyan(`${PROGRAM_NAME} app publish --force`)}
+
+  ${chalk.gray('# List installed app manifests on the server')}
+  ${chalk.cyan(`${PROGRAM_NAME} app list`)}
 
 ${chalk.bold.yellow('QUERY COMMANDS:')}
   ${chalk.gray('# Run an inline GraphQL query')}
@@ -3093,6 +3127,198 @@ async function runPublish(featureDir: string | undefined, orgOverride?: number):
 }
 
 // ============================================================================
+// App Manifest Commands (install from git, publish to git, list)
+// ============================================================================
+
+function readAppYaml(): { id?: string; name?: string; description?: string; repository?: string; branch?: string } {
+  const appYamlPath = path.join(process.cwd(), 'app.yaml');
+  if (!fs.existsSync(appYamlPath)) {
+    console.error(chalk.red('Error: app.yaml not found in current directory'));
+    process.exit(2);
+  }
+  return YAML.parse(fs.readFileSync(appYamlPath, 'utf-8')) as any;
+}
+
+async function runAppInstall(orgOverride?: number, branch?: string, force?: boolean, skipChanged?: boolean): Promise<void> {
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  const appYaml = readAppYaml();
+  const repository = appYaml.repository;
+  if (!repository) {
+    console.error(chalk.red('Error: app.yaml must have a `repository` field'));
+    process.exit(2);
+  }
+
+  const repositoryBranch = branch || appYaml.branch || 'main';
+
+  console.log(chalk.bold.cyan('\n  App Install\n'));
+  console.log(chalk.gray(`  Server:     ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Org:        ${orgId}`));
+  console.log(chalk.gray(`  Repository: ${repository}`));
+  console.log(chalk.gray(`  Branch:     ${repositoryBranch}`));
+  if (force) console.log(chalk.gray(`  Force:      yes`));
+  if (skipChanged) console.log(chalk.gray(`  Skip changed: yes`));
+  console.log('');
+
+  try {
+    const data = await graphqlRequest(domain, token, `
+      mutation ($input: InstallAppManifestInput!) {
+        installAppManifest(input: $input) {
+          appManifest {
+            appManifestId
+            name
+            currentVersion
+            isEnabled
+            hasUnpublishedChanges
+            isUpdateAvailable
+          }
+        }
+      }
+    `, {
+      input: {
+        organizationId: orgId,
+        values: {
+          repository,
+          repositoryBranch,
+          force: force || false,
+          skipModulesWithChanges: skipChanged || false,
+        }
+      }
+    });
+
+    const manifest = data?.installAppManifest?.appManifest;
+    if (manifest) {
+      console.log(chalk.green(`  ✓ Installed ${manifest.name} v${manifest.currentVersion}`));
+      if (manifest.hasUnpublishedChanges) {
+        console.log(chalk.yellow(`    Has unpublished changes`));
+      }
+    } else {
+      console.log(chalk.green('  ✓ Install completed'));
+    }
+  } catch (e: any) {
+    console.error(chalk.red(`  ✗ Install failed: ${e.message}`));
+    process.exit(1);
+  }
+  console.log('');
+}
+
+async function runAppPublish(orgOverride?: number, message?: string, branch?: string, force?: boolean): Promise<void> {
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  const appYaml = readAppYaml();
+  const appManifestId = appYaml.id;
+  if (!appManifestId) {
+    console.error(chalk.red('Error: app.yaml must have an `id` field'));
+    process.exit(2);
+  }
+
+  console.log(chalk.bold.cyan('\n  App Publish\n'));
+  console.log(chalk.gray(`  Server:  ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Org:     ${orgId}`));
+  console.log(chalk.gray(`  App:     ${appYaml.name || appManifestId}`));
+  if (message) console.log(chalk.gray(`  Message: ${message}`));
+  if (branch) console.log(chalk.gray(`  Branch:  ${branch}`));
+  if (force) console.log(chalk.gray(`  Force:   yes`));
+  console.log('');
+
+  try {
+    const data = await graphqlRequest(domain, token, `
+      mutation ($input: PublishAppManifestInput!) {
+        publishAppManifest(input: $input) {
+          appManifest {
+            appManifestId
+            name
+            currentVersion
+            hasUnpublishedChanges
+          }
+        }
+      }
+    `, {
+      input: {
+        organizationId: orgId,
+        appManifestId,
+        values: {
+          message: message || undefined,
+          branch: branch || undefined,
+          force: force || false,
+        }
+      }
+    });
+
+    const manifest = data?.publishAppManifest?.appManifest;
+    if (manifest) {
+      console.log(chalk.green(`  ✓ Published ${manifest.name} v${manifest.currentVersion}`));
+    } else {
+      console.log(chalk.green('  ✓ Publish completed'));
+    }
+  } catch (e: any) {
+    console.error(chalk.red(`  ✗ Publish failed: ${e.message}`));
+    process.exit(1);
+  }
+  console.log('');
+}
+
+async function runAppList(orgOverride?: number): Promise<void> {
+  const session = resolveSession();
+  const domain = session.domain;
+  const token = session.access_token;
+  const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  console.log(chalk.bold.cyan('\n  App Manifests\n'));
+  console.log(chalk.gray(`  Server: ${new URL(domain).hostname}`));
+  console.log(chalk.gray(`  Org:    ${orgId}\n`));
+
+  try {
+    const data = await graphqlRequest(domain, token, `
+      query ($organizationId: Int!) {
+        appManifests(organizationId: $organizationId) {
+          items {
+            appManifestId
+            name
+            currentVersion
+            isEnabled
+            hasUnpublishedChanges
+            isUpdateAvailable
+            repository
+            repositoryBranch
+          }
+        }
+      }
+    `, { organizationId: orgId });
+
+    const items = data?.appManifests?.items || [];
+    if (items.length === 0) {
+      console.log(chalk.gray('  No app manifests installed\n'));
+      return;
+    }
+
+    for (const app of items) {
+      const flags: string[] = [];
+      if (!app.isEnabled) flags.push(chalk.red('disabled'));
+      if (app.hasUnpublishedChanges) flags.push(chalk.yellow('unpublished'));
+      if (app.isUpdateAvailable) flags.push(chalk.cyan('update available'));
+      const flagStr = flags.length > 0 ? ` [${flags.join(', ')}]` : '';
+
+      console.log(`  ${chalk.bold(app.name)} ${chalk.gray(`v${app.currentVersion}`)}${flagStr}`);
+      console.log(chalk.gray(`    ID:   ${app.appManifestId}`));
+      if (app.repository) {
+        console.log(chalk.gray(`    Repo: ${app.repository} (${app.repositoryBranch || 'main'})`));
+      }
+    }
+    console.log('');
+  } catch (e: any) {
+    console.error(chalk.red(`  ✗ Failed to list apps: ${e.message}`));
+    process.exit(1);
+  }
+}
+
+// ============================================================================
 // Query Command
 // ============================================================================
 
@@ -3359,7 +3585,7 @@ function parseArgs(args: string[]): ParsedArgs {
   };
 
   // Check for commands
-  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude', 'login', 'logout', 'pat', 'appmodule', 'orgs', 'workflow', 'publish', 'query'];
+  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude', 'login', 'logout', 'pat', 'appmodule', 'orgs', 'workflow', 'publish', 'query', 'app'];
   if (args.length > 0 && commands.includes(args[0])) {
     command = args[0];
     args = args.slice(1);
@@ -3436,6 +3662,14 @@ function parseArgs(args: string[]): ParsedArgs {
       options.output = args[++i];
     } else if (arg === '--console') {
       options.console = true;
+    } else if (arg === '--message' || arg === '-m') {
+      options.message = args[++i];
+    } else if (arg === '--branch' || arg === '-b') {
+      options.branch = args[++i];
+    } else if (arg === '--force') {
+      options.force = true;
+    } else if (arg === '--skip-changed') {
+      options.skipChanged = true;
     } else if (!arg.startsWith('-')) {
       files.push(arg);
     } else {
@@ -4443,6 +4677,23 @@ async function main() {
   // Handle publish command (no schemas needed)
   if (command === 'publish') {
     await runPublish(files[0] || options.feature, options.orgId);
+    process.exit(0);
+  }
+
+  // Handle app command (no schemas needed)
+  if (command === 'app') {
+    const sub = files[0];
+    if (sub === 'install') {
+      await runAppInstall(options.orgId, options.branch, options.force, options.skipChanged);
+    } else if (sub === 'publish') {
+      await runAppPublish(options.orgId, options.message, options.branch, options.force);
+    } else if (sub === 'list' || !sub) {
+      await runAppList(options.orgId);
+    } else {
+      console.error(chalk.red(`Unknown app subcommand: ${sub}`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} app <install|publish|list>`));
+      process.exit(2);
+    }
     process.exit(0);
   }
 
