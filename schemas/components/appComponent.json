@@ -42,6 +42,14 @@
         }
       ]
     },
+    "platforms": {
+      "type": "array",
+      "description": "Target platforms for this component",
+      "items": {
+        "type": "string",
+        "enum": ["web", "mobile"]
+      }
+    },
     "layout": {
       "$ref": "../schemas.json#/definitions/component"
     }

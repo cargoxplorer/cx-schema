@@ -132,6 +132,35 @@
         },
         "required": ["name", "roles"]
       }
+    },
+    "configurations": {
+      "type": "array",
+      "description": "Organization configuration definitions",
+      "items": {
+        "type": "object",
+        "properties": {
+          "configName": {
+            "type": "string",
+            "description": "Unique configuration key (e.g., apps.myFeature)"
+          },
+          "displayName": {
+            "$ref": "../schemas.json#/definitions/localized"
+          },
+          "description": {
+            "$ref": "../schemas.json#/definitions/localized"
+          },
+          "component": {
+            "type": "string",
+            "description": "Component name that renders the configuration UI"
+          },
+          "defaultValue": {
+            "type": "object",
+            "description": "Default configuration values",
+            "additionalProperties": true
+          }
+        },
+        "required": ["configName", "component"]
+      }
     }
   },
   "required": ["module"]

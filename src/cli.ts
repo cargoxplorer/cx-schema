@@ -161,7 +161,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('appmodule')}       Manage app modules on a CX server (deploy, undeploy)
   ${chalk.green('workflow')}        Manage workflows on a CX server (deploy, undeploy, execute, logs, log)
   ${chalk.green('publish')}         Publish all modules and workflows to a CX server
-  ${chalk.green('app')}             Manage app manifests (install from git, publish to git, list)
+  ${chalk.green('app')}             Manage app manifests (install/upgrade from git, publish to git, list)
   ${chalk.green('query')}           Run a GraphQL query against the CX server
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
@@ -349,6 +349,10 @@ ${chalk.bold.yellow('APP COMMANDS:')}
 
   ${chalk.gray('# Install but skip modules that have local changes')}
   ${chalk.cyan(`${PROGRAM_NAME} app install --skip-changed`)}
+
+  ${chalk.gray('# Upgrade app from git (alias for install)')}
+  ${chalk.cyan(`${PROGRAM_NAME} app upgrade`)}
+  ${chalk.cyan(`${PROGRAM_NAME} app upgrade --force`)}
 
   ${chalk.gray('# Publish server changes to git (creates a PR)')}
   ${chalk.cyan(`${PROGRAM_NAME} app publish`)}
@@ -971,6 +975,25 @@ function applyFieldsToForm(form: any, fields: CreateFieldOption[]): void {
   }
 }
 
+function applyFieldsToConfiguration(layout: any, fields: CreateFieldOption[]): void {
+  // Configuration fields are stored under customValues, so prefix all field names
+  const configFields = fields.map(f => ({
+    component: 'field',
+    name: `customValues.${f.name}`,
+    props: {
+      type: f.type,
+      label: { 'en-US': f.label || fieldNameToLabel(f.name) },
+      ...(f.required ? { required: true } : {})
+    }
+  }));
+
+  if (!layout.children) layout.children = [];
+  layout.children.push(...configFields);
+
+  // Update defaultValue in configurations if present
+  // (handled separately since configurations is a top-level key)
+}
+
 function findDataGridComponents(obj: any): any[] {
   const grids: any[] = [];
   if (!obj || typeof obj !== 'object') return grids;
@@ -1111,10 +1134,18 @@ function applyCreateOptions(content: string, optionsArg: string): string {
   if (!doc) throw new Error('Failed to parse template YAML for --options processing');
 
   let applied = false;
+  const isConfiguration = Array.isArray(doc.configurations);
 
   if (doc.components && Array.isArray(doc.components)) {
     for (const comp of doc.components) {
-      // Apply to form components (configuration template)
+      // Apply to configuration templates (fields go directly into layout children)
+      if (isConfiguration && comp.layout) {
+        applyFieldsToConfiguration(comp.layout, fields);
+        applied = true;
+        continue;
+      }
+
+      // Apply to form components
       const forms = findFormComponents(comp);
       for (const form of forms) {
         applyFieldsToForm(form, fields);
@@ -1144,6 +1175,18 @@ function applyCreateOptions(content: string, optionsArg: string): string {
   if (doc.entities && Array.isArray(doc.entities)) {
     applyFieldsToEntities(doc, fields, opts.entityName);
     applied = true;
+  }
+
+  // Apply defaults to configuration defaultValue
+  if (isConfiguration && doc.configurations) {
+    for (const config of doc.configurations) {
+      if (!config.defaultValue) config.defaultValue = {};
+      for (const f of fields) {
+        if (f.default !== undefined) {
+          config.defaultValue[f.name] = f.default;
+        }
+      }
+    }
   }
 
   if (!applied) {
@@ -4683,7 +4726,7 @@ async function main() {
   // Handle app command (no schemas needed)
   if (command === 'app') {
     const sub = files[0];
-    if (sub === 'install') {
+    if (sub === 'install' || sub === 'upgrade') {
       await runAppInstall(options.orgId, options.branch, options.force, options.skipChanged);
     } else if (sub === 'publish') {
       await runAppPublish(options.orgId, options.message, options.branch, options.force);
@@ -4691,7 +4734,7 @@ async function main() {
       await runAppList(options.orgId);
     } else {
       console.error(chalk.red(`Unknown app subcommand: ${sub}`));
-      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} app <install|publish|list>`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} app <install|upgrade|publish|list>`));
       process.exit(2);
     }
     process.exit(0);

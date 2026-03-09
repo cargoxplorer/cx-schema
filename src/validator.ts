@@ -130,6 +130,11 @@ export class ModuleValidator {
         this.validateEntities(moduleData.entities, errors, warnings);
       }
 
+      // Validate configurations
+      if (moduleData.configurations && Array.isArray(moduleData.configurations)) {
+        this.validateConfigurations(moduleData.configurations, errors, warnings);
+      }
+
       return this.createResult(filePath, errors, warnings);
     } catch (error: any) {
       errors.push({
@@ -427,6 +432,33 @@ export class ModuleValidator {
           type: 'missing_property',
           path: `${entityPath}.name`,
           message: 'Entity must have a name property'
+        });
+      }
+    });
+  }
+
+  /**
+   * Validate configurations array
+   */
+  private validateConfigurations(
+    configurations: any[],
+    errors: ValidationError[],
+    warnings: ValidationWarning[]
+  ): void {
+    configurations.forEach((config, index) => {
+      const configPath = `configurations[${index}]`;
+      if (!config.configName) {
+        errors.push({
+          type: 'missing_property',
+          path: `${configPath}.configName`,
+          message: 'Configuration must have a configName property'
+        });
+      }
+      if (!config.component) {
+        errors.push({
+          type: 'missing_property',
+          path: `${configPath}.component`,
+          message: 'Configuration must have a component property'
         });
       }
     });

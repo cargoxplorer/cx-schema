@@ -16,11 +16,9 @@ components:
       en-US: "{{displayName}} Config"
     platforms:
       - web
-    props:
     layout:
       component: layout
       name: {{displayNameNoSpaces}}ConfigLayout
-      inputs:
       props:
         cols: 1
         title:
@@ -28,21 +26,12 @@ components:
         icon: Create
         permission: System/OrganizationConfigs/Update
       children:
-        - component: form
-          name: organizationConfigForm
-          inputs:
+        - component: field
+          name: customValues.enabled
           props:
-            cols: 1
-            title:
-              en-US: "{{displayName}} Settings"
-            initialValues:
-          children:
-            - component: field
-              name: customValues.enabled
-              props:
-                type: checkbox
-                label:
-                  en-US: "Enable {{displayName}}"
+            type: checkbox
+            label:
+              en-US: "Enable {{displayName}}"
 
 configurations:
   - configName: "apps.{{name}}"
