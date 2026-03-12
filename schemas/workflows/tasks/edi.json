@@ -104,6 +104,26 @@
             }
           }
         },
+        "goodsItems": {
+          "type": "array",
+          "description": "Goods item details (GID segment group). Numeric fields (itemNumber, numberOfPackages) are serialized as strings.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "itemNumber": { "type": ["integer", "string"], "description": "Goods item number (GID/0). Auto-incremented." },
+              "numberOfPackages": { "type": ["integer", "string"], "description": "Number of outer packages (C213/7224)" },
+              "packageType": { "type": "string", "description": "Package type code, UN/ECE rec. 21 (C213/7065, e.g. CT, PK, PL)" },
+              "packageTypeDescription": { "type": "string", "description": "Package type description (C213/7065 text)" },
+              "packageTypeAgencyCode": { "type": "string", "description": "Code list responsible agency (C213/3055). Auto-set to '6' (UN/ECE) when packageType is provided." },
+              "packageTypeDescriptionText": { "type": "string", "description": "Package type description text for B/L printing (C213/7064)" },
+              "innerPackageCount": { "type": ["integer", "string"], "description": "Number of inner packages (second C213/7224)" },
+              "innerPackageType": { "type": "string", "description": "Inner package type code (second C213/7065)" },
+              "grossWeight": { "type": ["number", "string"], "description": "Gross weight value" },
+              "weightUnit": { "type": "string", "description": "Weight unit (KGM, LBR)" },
+              "description": { "type": "string", "description": "Goods description free text" }
+            }
+          }
+        },
         "equipment": {
           "type": "array",
           "description": "Container/equipment details",
