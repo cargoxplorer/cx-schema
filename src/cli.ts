@@ -2231,6 +2231,8 @@ async function runAppModuleDeploy(file: string | undefined, orgOverride?: number
   if (checkData?.appModule) {
     // Update
     console.log(chalk.gray('  Updating existing module...'));
+    const updateValues: Record<string, any> = { appModuleYamlDocument: yamlContent };
+    if (appManifestId) updateValues.appManifestId = appManifestId;
     const result = await graphqlRequest(domain, token, `
       mutation ($input: UpdateAppModuleInput!) {
         updateAppModule(input: $input) {
@@ -2241,7 +2243,7 @@ async function runAppModuleDeploy(file: string | undefined, orgOverride?: number
       input: {
         organizationId: orgId,
         appModuleId,
-        values: { appModuleYamlDocument: yamlContent },
+        values: updateValues,
       },
     });
     const mod = result?.updateAppModule?.appModule;
@@ -2496,6 +2498,12 @@ async function runWorkflowDeploy(file: string | undefined, orgOverride?: number)
 
   if (checkData?.workflow) {
     console.log(chalk.gray('  Updating existing workflow...'));
+    const updateInput: Record<string, any> = {
+      organizationId: orgId,
+      workflowId,
+      workflowYamlDocument: yamlContent,
+    };
+    if (appManifestId) updateInput.appManifestId = appManifestId;
     const result = await graphqlRequest(domain, token, `
       mutation ($input: UpdateWorkflowInput!) {
         updateWorkflow(input: $input) {
@@ -2503,11 +2511,7 @@ async function runWorkflowDeploy(file: string | undefined, orgOverride?: number)
         }
       }
     `, {
-      input: {
-        organizationId: orgId,
-        workflowId,
-        workflowYamlDocument: yamlContent,
-      },
+      input: updateInput,
     });
     console.log(chalk.green(`  ✓ Updated: ${workflowName}\n`));
   } else {
@@ -2859,11 +2863,13 @@ async function pushWorkflowQuiet(domain: string, token: string, orgId: number, f
     `, { organizationId: orgId, workflowId });
 
     if (checkData?.workflow) {
+      const updateInput: Record<string, any> = { organizationId: orgId, workflowId, workflowYamlDocument: yamlContent };
+      if (appManifestId) updateInput.appManifestId = appManifestId;
       await graphqlRequest(domain, token, `
         mutation ($input: UpdateWorkflowInput!) {
           updateWorkflow(input: $input) { workflow { workflowId } }
         }
-      `, { input: { organizationId: orgId, workflowId, workflowYamlDocument: yamlContent } });
+      `, { input: updateInput });
     } else {
       const createInput: Record<string, any> = { organizationId: orgId, workflowYamlDocument: yamlContent };
       if (appManifestId) createInput.appManifestId = appManifestId;
@@ -2895,11 +2901,13 @@ async function pushModuleQuiet(domain: string, token: string, orgId: number, fil
     `, { organizationId: orgId, appModuleId });
 
     if (checkData?.appModule) {
+      const updateValues: Record<string, any> = { appModuleYamlDocument: yamlContent };
+      if (appManifestId) updateValues.appManifestId = appManifestId;
       await graphqlRequest(domain, token, `
         mutation ($input: UpdateAppModuleInput!) {
           updateAppModule(input: $input) { appModule { appModuleId name } }
         }
-      `, { input: { organizationId: orgId, appModuleId, values: { appModuleYamlDocument: yamlContent } } });
+      `, { input: { organizationId: orgId, appModuleId, values: updateValues } });
     } else {
       const values: Record<string, any> = { appModuleYamlDocument: yamlContent };
       if (appManifestId) values.appManifestId = appManifestId;
