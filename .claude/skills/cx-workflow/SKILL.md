@@ -18,7 +18,7 @@ You are a CargoXplorer workflow YAML builder. You generate schema-valid YAML for
 - **Feature folder**: `npx cxtms create workflow <name> --template <template> --feature <feature-name>`
 - **Deploy to server**: `npx cxtms workflow deploy <file.yaml> --org <id>` — creates or updates workflow on the CX server
 - **Undeploy from server**: `npx cxtms workflow undeploy <workflowId> --org <id>` — removes a workflow by UUID
-- **Execute**: `npx cxtms workflow execute <workflowId|file.yaml> --org <id> [--vars '<json>']` — trigger a workflow execution
+- **Execute**: `npx cxtms workflow execute <workflowId|file.yaml> --org <id> [--vars '<json>'] [--file varName=path]` — trigger a workflow execution (--file uploads a local file and passes the URL as a variable)
 - **List logs**: `npx cxtms workflow logs <workflowId|file.yaml> --org <id> [--from YYYY-MM-DD] [--to YYYY-MM-DD]` — list executions with log availability
 - **Download log**: `npx cxtms workflow log <executionId> --org <id> [--json] [--console] [--output <file>]` — download execution log
 - **Publish all**: `npx cxtms publish [--feature <name>] --org <id>` — push all modules and workflows to the server
@@ -380,7 +380,15 @@ npx cxtms workflow execute workflows/my-workflow.yaml
 
 # Pass input variables as JSON
 npx cxtms workflow execute <workflowId> --vars '{"city": "London", "count": 5}'
+
+# Upload a local file and pass its URL as a workflow variable
+npx cxtms workflow execute workflow.yaml --file importFile=/path/to/data.csv
+
+# Combine variables and file uploads
+npx cxtms workflow execute workflow.yaml --vars '{"mode": "preview"}' --file importFile=data.csv --file templateFile=template.xlsx
 ```
+
+`--file varName=path` uploads the local file to the server via presigned URL and sets the resulting URL as the named variable. Can be specified multiple times.
 
 Returns execution result including `executionId`, `isAsync`, `outputs` (for Sync workflows).
 
@@ -417,6 +425,7 @@ npx cxtms workflow log <executionId> --json --console
 - Text logs show step-by-step execution trace with timestamps
 - Sync workflow executions may not appear in `workflow logs` — they return results inline
 - Use `workflow execute --vars` to test workflows with specific inputs
+- Use `workflow execute --file varName=path` to upload local files for workflows that expect file URL inputs
 
 ---
 

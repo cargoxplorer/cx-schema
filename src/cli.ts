@@ -84,6 +84,7 @@ interface CLIOptions {
   branch?: string;
   force?: boolean;
   skipChanged?: boolean;
+  file?: string[];
 }
 
 interface FileValidationResult {
@@ -2572,10 +2573,69 @@ async function runWorkflowUndeploy(uuid: string | undefined, orgOverride?: numbe
   console.log(chalk.green(`  ✓ Deleted: ${uuid}\n`));
 }
 
-async function runWorkflowExecute(workflowIdOrFile: string | undefined, orgOverride?: number, variables?: string): Promise<void> {
+async function uploadFileToServer(domain: string, token: string, orgId: number, localPath: string): Promise<string> {
+  const fileName = path.basename(localPath);
+  const ext = path.extname(localPath).toLowerCase();
+  const contentTypeMap: Record<string, string> = {
+    '.csv': 'text/csv', '.json': 'application/json', '.xml': 'application/xml',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.xls': 'application/vnd.ms-excel', '.pdf': 'application/pdf',
+    '.txt': 'text/plain', '.zip': 'application/zip',
+  };
+  const contentType = contentTypeMap[ext] || 'application/octet-stream';
+
+  // Step 1: Get presigned upload URL
+  const data = await graphqlRequest(domain, token, `
+    query ($organizationId: Int!, $fileName: String!, $contentType: String!) {
+      uploadUrl(organizationId: $organizationId, fileName: $fileName, contentType: $contentType) {
+        presignedUrl
+        fileUrl
+      }
+    }
+  `, { organizationId: orgId, fileName, contentType });
+
+  const presignedUrl = data?.uploadUrl?.presignedUrl;
+  const fileUrl = data?.uploadUrl?.fileUrl;
+  if (!presignedUrl || !fileUrl) {
+    throw new Error('Failed to get upload URL from server');
+  }
+
+  // Step 2: PUT file content to presigned URL
+  const fileContent = fs.readFileSync(localPath);
+  const url = new URL(presignedUrl);
+  const httpModule = url.protocol === 'https:' ? https : http;
+
+  await new Promise<void>((resolve, reject) => {
+    const req = httpModule.request(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': contentType,
+        'Content-Length': fileContent.length,
+        'x-ms-blob-type': 'BlockBlob',
+      },
+    }, (res) => {
+      let body = '';
+      res.on('data', (chunk: Buffer) => body += chunk);
+      res.on('end', () => {
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+          resolve();
+        } else {
+          reject(new Error(`File upload failed (${res.statusCode}): ${body}`));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.write(fileContent);
+    req.end();
+  });
+
+  return fileUrl;
+}
+
+async function runWorkflowExecute(workflowIdOrFile: string | undefined, orgOverride?: number, variables?: string, fileArgs?: string[]): Promise<void> {
   if (!workflowIdOrFile) {
     console.error(chalk.red('Error: Workflow ID or YAML file required'));
-    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow execute <workflowId|file.yaml> [--org <id>] [--vars '{"key":"value"}']`));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} workflow execute <workflowId|file.yaml> [--org <id>] [--vars '{"key":"value"}'] [--file varName=path]`));
     process.exit(2);
   }
 
@@ -2608,6 +2668,28 @@ async function runWorkflowExecute(workflowIdOrFile: string | undefined, orgOverr
     } catch {
       console.error(chalk.red('Error: --vars must be valid JSON'));
       process.exit(2);
+    }
+  }
+
+  // Process --file args: upload files and set URLs as variables
+  if (fileArgs && fileArgs.length > 0) {
+    if (!vars) vars = {};
+    for (const fileArg of fileArgs) {
+      const eqIdx = fileArg.indexOf('=');
+      if (eqIdx < 1) {
+        console.error(chalk.red(`Error: --file must be in format varName=path (got: ${fileArg})`));
+        process.exit(2);
+      }
+      const varName = fileArg.substring(0, eqIdx);
+      const filePath = fileArg.substring(eqIdx + 1);
+      if (!fs.existsSync(filePath)) {
+        console.error(chalk.red(`Error: File not found: ${filePath}`));
+        process.exit(2);
+      }
+      console.log(chalk.gray(`  Uploading ${path.basename(filePath)}...`));
+      const fileUrl = await uploadFileToServer(domain, token, orgId, filePath);
+      vars[varName] = fileUrl;
+      console.log(chalk.gray(`  → ${varName} = ${fileUrl}`));
     }
   }
 
@@ -3760,6 +3842,9 @@ function parseArgs(args: string[]): ParsedArgs {
       options.message = args[++i];
     } else if (arg === '--branch' || arg === '-b') {
       options.branch = args[++i];
+    } else if (arg === '--file') {
+      if (!options.file) options.file = [];
+      options.file.push(args[++i]);
     } else if (arg === '--force') {
       options.force = true;
     } else if (arg === '--skip-changed') {
@@ -4755,7 +4840,7 @@ async function main() {
     } else if (sub === 'undeploy') {
       await runWorkflowUndeploy(files[1], options.orgId);
     } else if (sub === 'execute') {
-      await runWorkflowExecute(files[1], options.orgId, options.vars);
+      await runWorkflowExecute(files[1], options.orgId, options.vars, options.file);
     } else if (sub === 'logs') {
       await runWorkflowLogs(files[1], options.orgId, options.from, options.to);
     } else if (sub === 'log') {

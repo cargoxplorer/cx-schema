@@ -238,6 +238,15 @@ permissions:
     displayName: { en-US: "..." }
     roles: ["Admin", "Manager"]
 
+configurations:                              # Optional: org-level config definitions
+  - configName: "apps.myFeature"             # Unique config key
+    displayName: { en-US: "My Feature Settings" }
+    description: { en-US: "Configure my feature" }
+    component: "ModuleName/ConfigComponent"  # Component that renders the config UI
+    defaultValue:                            # Optional default values
+      enabled: true
+      limit: 100
+
 routes:
   - name: "routeName"
     path: "/module-path"                   # Supports :params
