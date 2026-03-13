@@ -2471,6 +2471,14 @@ async function runWorkflowDeploy(file: string | undefined, orgOverride?: number)
 
   const workflowName = parsed?.workflow?.name || workflowId;
 
+  // Read app.yaml for appManifestId
+  let appManifestId: string | undefined;
+  const appYamlPath = path.join(process.cwd(), 'app.yaml');
+  if (fs.existsSync(appYamlPath)) {
+    const appYaml = YAML.parse(fs.readFileSync(appYamlPath, 'utf-8')) as any;
+    appManifestId = appYaml?.id;
+  }
+
   console.log(chalk.bold.cyan('\n  Workflow Deploy\n'));
   console.log(chalk.gray(`  Server:    ${new URL(domain).hostname}`));
   console.log(chalk.gray(`  Org:       ${orgId}`));
@@ -2504,6 +2512,11 @@ async function runWorkflowDeploy(file: string | undefined, orgOverride?: number)
     console.log(chalk.green(`  ✓ Updated: ${workflowName}\n`));
   } else {
     console.log(chalk.gray('  Creating new workflow...'));
+    const createInput: Record<string, any> = {
+      organizationId: orgId,
+      workflowYamlDocument: yamlContent,
+    };
+    if (appManifestId) createInput.appManifestId = appManifestId;
     const result = await graphqlRequest(domain, token, `
       mutation ($input: CreateWorkflowInput!) {
         createWorkflow(input: $input) {
@@ -2511,10 +2524,7 @@ async function runWorkflowDeploy(file: string | undefined, orgOverride?: number)
         }
       }
     `, {
-      input: {
-        organizationId: orgId,
-        workflowYamlDocument: yamlContent,
-      },
+      input: createInput,
     });
     console.log(chalk.green(`  ✓ Created: ${workflowName}\n`));
   }
@@ -2834,7 +2844,7 @@ async function runWorkflowLog(executionId: string | undefined, orgOverride?: num
 // Publish Command
 // ============================================================================
 
-async function pushWorkflowQuiet(domain: string, token: string, orgId: number, file: string): Promise<{ ok: boolean; name: string; error?: string }> {
+async function pushWorkflowQuiet(domain: string, token: string, orgId: number, file: string, appManifestId?: string): Promise<{ ok: boolean; name: string; error?: string }> {
   let name = path.basename(file);
   try {
     const yamlContent = fs.readFileSync(file, 'utf-8');
@@ -2855,11 +2865,13 @@ async function pushWorkflowQuiet(domain: string, token: string, orgId: number, f
         }
       `, { input: { organizationId: orgId, workflowId, workflowYamlDocument: yamlContent } });
     } else {
+      const createInput: Record<string, any> = { organizationId: orgId, workflowYamlDocument: yamlContent };
+      if (appManifestId) createInput.appManifestId = appManifestId;
       await graphqlRequest(domain, token, `
         mutation ($input: CreateWorkflowInput!) {
           createWorkflow(input: $input) { workflow { workflowId } }
         }
-      `, { input: { organizationId: orgId, workflowYamlDocument: yamlContent } });
+      `, { input: createInput });
     }
     return { ok: true, name };
   } catch (e: any) {
@@ -3137,7 +3149,7 @@ async function runPublish(featureDir: string | undefined, orgOverride?: number):
   // Step 3: Deploy workflows
   for (const file of workflowFiles) {
     const relPath = path.relative(process.cwd(), file);
-    const result = await pushWorkflowQuiet(domain, token, orgId, file);
+    const result = await pushWorkflowQuiet(domain, token, orgId, file, appManifestId);
     if (result.ok) {
       console.log(chalk.green(`  ✓ ${relPath}`));
       succeeded++;
