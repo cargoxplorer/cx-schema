@@ -360,6 +360,10 @@ ${chalk.bold.yellow('APP COMMANDS:')}
   ${chalk.gray('# Publish with a custom commit message')}
   ${chalk.cyan(`${PROGRAM_NAME} app publish --message "Add new shipping module"`)}
 
+  ${chalk.gray('# Publish specific workflows and/or modules by YAML file')}
+  ${chalk.cyan(`${PROGRAM_NAME} app publish workflows/my-workflow.yaml`)}
+  ${chalk.cyan(`${PROGRAM_NAME} app publish workflows/a.yaml modules/b.yaml`)}
+
   ${chalk.gray('# Force publish all modules and workflows')}
   ${chalk.cyan(`${PROGRAM_NAME} app publish --force`)}
 
@@ -3268,7 +3272,7 @@ async function runAppInstall(orgOverride?: number, branch?: string, force?: bool
   console.log('');
 }
 
-async function runAppPublish(orgOverride?: number, message?: string, branch?: string, force?: boolean): Promise<void> {
+async function runAppPublish(orgOverride?: number, message?: string, branch?: string, force?: boolean, targetFiles?: string[]): Promise<void> {
   const session = resolveSession();
   const domain = session.domain;
   const token = session.access_token;
@@ -3288,9 +3292,40 @@ async function runAppPublish(orgOverride?: number, message?: string, branch?: st
   if (message) console.log(chalk.gray(`  Message: ${message}`));
   if (branch) console.log(chalk.gray(`  Branch:  ${branch}`));
   if (force) console.log(chalk.gray(`  Force:   yes`));
+
+  // Extract workflow/module IDs from target files
+  const workflowIds: string[] = [];
+  const moduleIds: string[] = [];
+  if (targetFiles && targetFiles.length > 0) {
+    for (const file of targetFiles) {
+      if (!fs.existsSync(file)) {
+        console.error(chalk.red(`  Error: File not found: ${file}`));
+        process.exit(2);
+      }
+      const parsed = YAML.parse(fs.readFileSync(file, 'utf-8')) as any;
+      if (parsed?.workflow?.workflowId) {
+        workflowIds.push(parsed.workflow.workflowId);
+        console.log(chalk.gray(`  Workflow: ${parsed.workflow.name || parsed.workflow.workflowId}`));
+      } else if (parsed?.module?.appModuleId) {
+        moduleIds.push(parsed.module.appModuleId);
+        console.log(chalk.gray(`  Module:   ${parsed.module.name || parsed.module.appModuleId}`));
+      } else {
+        console.error(chalk.red(`  Error: Cannot identify file type: ${file}`));
+        process.exit(2);
+      }
+    }
+  }
   console.log('');
 
   try {
+    const publishValues: Record<string, any> = {
+      message: message || undefined,
+      branch: branch || undefined,
+      force: force || false,
+    };
+    if (workflowIds.length > 0) publishValues.workflowIds = workflowIds;
+    if (moduleIds.length > 0) publishValues.moduleIds = moduleIds;
+
     const data = await graphqlRequest(domain, token, `
       mutation ($input: PublishAppManifestInput!) {
         publishAppManifest(input: $input) {
@@ -3306,11 +3341,7 @@ async function runAppPublish(orgOverride?: number, message?: string, branch?: st
       input: {
         organizationId: orgId,
         appManifestId,
-        values: {
-          message: message || undefined,
-          branch: branch || undefined,
-          force: force || false,
-        }
+        values: publishValues,
       }
     });
 
@@ -4749,7 +4780,7 @@ async function main() {
     if (sub === 'install' || sub === 'upgrade') {
       await runAppInstall(options.orgId, options.branch, options.force, options.skipChanged);
     } else if (sub === 'publish') {
-      await runAppPublish(options.orgId, options.message, options.branch, options.force);
+      await runAppPublish(options.orgId, options.message, options.branch, options.force, files.slice(1));
     } else if (sub === 'list' || !sub) {
       await runAppList(options.orgId);
     } else {

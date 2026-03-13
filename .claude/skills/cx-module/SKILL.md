@@ -402,6 +402,55 @@ Reusable select components (e.g., `Countries/Select`, `Ports/Select`) follow thi
 
 Deploy, undeploy, and publish commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cx-core/ref-cli-auth.md](.claude/skills/cx-core/ref-cli-auth.md)
 
+### Publishing App to GitHub
+
+Use `app publish` to push modified modules and workflows from the CX server to a GitHub repository. This creates a branch and pull request — it does NOT push directly to the target branch.
+
+```bash
+# Publish all unpublished changes to GitHub (creates a PR)
+npx cxtms app publish
+
+# Publish specific modules and/or workflows by YAML file
+npx cxtms app publish modules/my-module.yaml
+npx cxtms app publish modules/a.yaml workflows/b.yaml
+
+# Publish with a custom commit message
+npx cxtms app publish --message "Add warehouse locations module"
+
+# Force publish all modules and workflows (not just unpublished ones)
+npx cxtms app publish --force
+
+# Publish with explicit org
+npx cxtms app publish --org 42
+```
+
+**What `app publish` does:**
+1. Reads `app.yaml` for the `id` (appManifestId), repository, and branch
+2. Increments the app version (patch bump)
+3. Creates a `publish/{app-name}-v{version}-{timestamp}` branch on GitHub
+4. Commits `app.yaml` + selected module/workflow YAML files to the branch
+5. Creates a pull request from the publish branch to the target branch
+6. Marks published modules and workflows as `hasUnpublishedChanges: false`
+
+**This is a commit-and-push operation** — it commits the current server-side YAML directly to GitHub via the API. No local git repo is involved. The modules and workflows being published are taken from the CX server database, not from local files. The YAML file arguments only identify *which* items to include by their IDs.
+
+**Important:** Modules and workflows must be deployed to the TMS server before they can be published. Use `cxtms appmodule deploy` or `cxtms workflow deploy` first, then `cxtms app publish` to commit them to GitHub.
+
+**Do NOT run `app publish` automatically.** Only publish when the user explicitly requests it. Publishing creates a branch and PR on GitHub, so it should be done once when all changes are ready — not after every deploy.
+
+**Prerequisites:**
+- `app.yaml` must exist with a valid `id` field
+- The app manifest must be installed on the server (`app install` first)
+- The server must have a GitHub token configured for the organization
+- The repository and branch must be set on the app manifest
+
+**Related commands:**
+- `npx cxtms app install` — install/refresh app from GitHub into the server
+- `npx cxtms app install --force` — force reinstall even if same version
+- `npx cxtms app install --branch develop` — install from a specific branch
+- `npx cxtms app install --skip-changed` — skip modules with local changes
+- `npx cxtms app list` — list installed app manifests on the server
+
 ---
 
 # Generation Rules
