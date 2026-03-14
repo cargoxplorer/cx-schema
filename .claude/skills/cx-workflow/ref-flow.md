@@ -145,10 +145,11 @@ transitions:
 
 ### Execution Order
 1. Validate transition from current state
-2. Execute `onExit` steps (from source state)
-3. Execute transition `steps`
-4. Update entity status
-5. Execute `onEnter` steps (on target state)
+2. Evaluate conditions (all must pass)
+3. Execute `onExit` steps (from source state)
+4. Execute transition `steps` (step inputs merged + template expressions resolved)
+5. Update entity status
+6. Execute `onEnter` steps (on target state)
 
 ## Aggregations Section
 

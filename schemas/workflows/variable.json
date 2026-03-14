@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Workflow Variable",
-  "description": "Definition of a workflow variable. Valid properties: name, value, fromConfig.",
+  "description": "Definition of a workflow variable. Valid properties: name, value, fromConfig, expression.",
   "type": "object",
   "properties": {
     "name": {
@@ -11,6 +11,10 @@
     },
     "value": {
       "description": "Static variable value or template expression"
+    },
+    "expression": {
+      "type": "string",
+      "description": "NCalc expression to evaluate at runtime. Has access to all previously resolved variables. Mutually exclusive with value and fromConfig."
     },
     "fromConfig": {
       "oneOf": [

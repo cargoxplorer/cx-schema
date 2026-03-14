@@ -145,3 +145,23 @@ No customValues. Linked to carriers via `CarrierEquipment` join.
 | `isDeleted` | `bool` | Soft delete |
 
 **Navigation:** `thread` (NoteThread)
+
+---
+
+## Secret
+
+Encrypted key-value store for sensitive configuration (API keys, tokens, credentials). Encrypted at rest with AES-256; scoped to organizations via qualified naming.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | `int` | PK |
+| `secretName` | `string` | Qualified name: `org/{organizationId}/{secretName}`. Unique index. Max 500 chars. |
+| `encryptedValue` | `string` | AES-256 encrypted, base64-encoded (random IV prepended) |
+| `createdAt` | `DateTime` | |
+| `updatedAt` | `DateTime` | |
+
+**Table:** `secrets` (snake_case columns)
+**Provider:** `PostgresSecretManager` (default) or `AzureKeyVault` via `SecretManager:Provider` config.
+
+**GraphQL mutations:** `setSecret(organizationId, secretName, secretValue)`, `deleteSecret(organizationId, secretName)`.
+**Org scoping:** Commands validate user org membership; qualified name `org/{orgId}/{name}` is built by the command handler.

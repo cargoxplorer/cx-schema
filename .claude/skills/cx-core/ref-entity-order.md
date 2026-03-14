@@ -99,6 +99,7 @@ These are virtual fields that filter `orderEntities` by type:
 | `lastTrackingEvent(eventDefinitionName)` | `TrackingEvent` | Most recent |
 | `notesCount(threadFilter)` | `int` | |
 | `changeHistory(startDate, endDate, maxResults)` | `[ChangeHistory]` | Audit trail |
+| `getCommoditiesWithRelatedOrder(orderType!, filter?)` | `[Commodity]` | Leaf commodities linked to related orders of specified type. Traverses commodity hierarchy, excludes wrappers. |
 
 ## OrderTypes Enum
 

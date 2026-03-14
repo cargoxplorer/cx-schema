@@ -8,6 +8,8 @@
       "type": "string",
       "enum": [
         "EDI/Parse@1",
+        "EDIFACT/Parse@1",
+        "EDIFACT/Generate@1",
         "StructuredFile/Parse"
       ],
       "description": "Task type identifier"
@@ -39,11 +41,101 @@
       "properties": {
         "content": {
           "type": "string",
-          "description": "File content to parse"
+          "description": "File content to parse (EDI/Parse)"
         },
         "format": {
           "type": "string",
           "description": "EDI format (e.g., X12, EDIFACT)"
+        },
+        "edifactData": {
+          "type": "string",
+          "description": "Raw EDIFACT data string (EDIFACT/Parse, EDIFACT/Generate)"
+        },
+        "messageType": {
+          "type": "string",
+          "enum": ["IFTMIN", "CONTRL", "APERAK"],
+          "description": "EDIFACT message type for parse/generate tasks"
+        },
+        "sender": {
+          "type": "object",
+          "description": "Sender identification for EDIFACT/Generate",
+          "properties": {
+            "id": { "type": "string", "description": "Sender ID (Trading Partner ID)" },
+            "qualifier": { "type": "string", "description": "Partner ID code qualifier (e.g., ZZZ)" }
+          }
+        },
+        "recipient": {
+          "type": "object",
+          "description": "Recipient identification for EDIFACT/Generate",
+          "properties": {
+            "id": { "type": "string", "description": "Recipient ID (e.g., INTTRA)" },
+            "qualifier": { "type": "string", "description": "Partner ID code qualifier" }
+          }
+        },
+        "documentNumber": {
+          "type": "string",
+          "description": "Shipment Identification Number"
+        },
+        "messageFunctionCode": {
+          "type": "string",
+          "enum": ["5", "9"],
+          "description": "9 = Original, 5 = Replace"
+        },
+        "references": {
+          "type": "array",
+          "description": "Business references (BN=Booking, BM=B/L, etc.)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "qualifier": { "type": "string" },
+              "identifier": { "type": "string" }
+            }
+          }
+        },
+        "parties": {
+          "type": "array",
+          "description": "Party details (HI=Requestor, CZ=Shipper, CA=Carrier, CN=Consignee)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "functionCode": { "type": "string" },
+              "identification": { "type": "string" },
+              "name": { "type": "string" }
+            }
+          }
+        },
+        "goodsItems": {
+          "type": "array",
+          "description": "Goods item details (GID segment group). Numeric fields (itemNumber, numberOfPackages) are serialized as strings.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "itemNumber": { "type": ["integer", "string"], "description": "Goods item number (GID/0). Auto-incremented." },
+              "numberOfPackages": { "type": ["integer", "string"], "description": "Number of outer packages (C213/7224)" },
+              "packageType": { "type": "string", "description": "Package type code, UN/ECE rec. 21 (C213/7065, e.g. CT, PK, PL)" },
+              "packageTypeDescription": { "type": "string", "description": "Package type description (C213/7065 text)" },
+              "packageTypeAgencyCode": { "type": "string", "description": "Code list responsible agency (C213/3055). Auto-set to '6' (UN/ECE) when packageType is provided." },
+              "packageTypeDescriptionText": { "type": "string", "description": "Package type description text for B/L printing (C213/7064)" },
+              "innerPackageCount": { "type": ["integer", "string"], "description": "Number of inner packages (second C213/7224)" },
+              "innerPackageType": { "type": "string", "description": "Inner package type code (second C213/7065)" },
+              "grossWeight": { "type": ["number", "string"], "description": "Gross weight value" },
+              "weightUnit": { "type": "string", "description": "Weight unit (KGM, LBR)" },
+              "description": { "type": "string", "description": "Goods description free text" }
+            }
+          }
+        },
+        "equipment": {
+          "type": "array",
+          "description": "Container/equipment details",
+          "items": {
+            "type": "object",
+            "properties": {
+              "equipmentQualifier": { "type": "string" },
+              "equipmentIdentification": { "type": "string" },
+              "sizeTypeCode": { "type": "string" },
+              "fullEmptyIndicator": { "type": "string" }
+            }
+          }
         }
       },
       "additionalProperties": true
