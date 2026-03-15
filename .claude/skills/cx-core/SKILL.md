@@ -12,6 +12,10 @@ Shared domain reference for CargoXplorer entities. Used by `cx-workflow` and `cx
 
 For CLI authentication, PAT tokens, org management, and publishing: see [ref-cli-auth.md](ref-cli-auth.md)
 
+## GraphQL Querying & Audit History
+
+For running GraphQL queries via CLI, filter syntax (Lucene), pagination, audit change history, and field discovery: see [ref-graphql-query.md](ref-graphql-query.md)
+
 ## Feature File Layout
 
 All modules and workflows are organized under feature directories:

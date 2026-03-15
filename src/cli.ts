@@ -85,6 +85,7 @@ interface CLIOptions {
   force?: boolean;
   skipChanged?: boolean;
   file?: string[];
+  filter?: string;
 }
 
 interface FileValidationResult {
@@ -164,6 +165,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('publish')}         Publish all modules and workflows to a CX server
   ${chalk.green('app')}             Manage app manifests (install/upgrade from git, publish to git, list)
   ${chalk.green('query')}           Run a GraphQL query against the CX server
+  ${chalk.green('gql')}             Explore GraphQL schema (types, queries, mutations)
   ${chalk.green('schema')}          Show JSON schema for a component or task
   ${chalk.green('example')}         Show example YAML for a component or task
   ${chalk.green('list')}            List available schemas (modules, workflows, tasks)
@@ -380,6 +382,20 @@ ${chalk.bold.yellow('QUERY COMMANDS:')}
 
   ${chalk.gray('# Pass variables as JSON')}
   ${chalk.cyan(`${PROGRAM_NAME} query my-query.graphql --vars '{"id": 42}'`)}
+
+${chalk.bold.yellow('GRAPHQL SCHEMA EXPLORATION:')}
+  ${chalk.gray('# List all queries, mutations, and types')}
+  ${chalk.cyan(`${PROGRAM_NAME} gql queries`)}
+  ${chalk.cyan(`${PROGRAM_NAME} gql mutations`)}
+  ${chalk.cyan(`${PROGRAM_NAME} gql types`)}
+
+  ${chalk.gray('# Filter by name')}
+  ${chalk.cyan(`${PROGRAM_NAME} gql types --filter audit`)}
+  ${chalk.cyan(`${PROGRAM_NAME} gql queries --filter order`)}
+
+  ${chalk.gray('# Inspect a specific type')}
+  ${chalk.cyan(`${PROGRAM_NAME} gql type OrderGqlDto`)}
+  ${chalk.cyan(`${PROGRAM_NAME} gql type AuditChangeEntry`)}
 
 ${chalk.bold.yellow('VALIDATION TYPES:')}
   ${chalk.bold('module')}     - CargoXplorer UI module definitions (components, routes, entities)
@@ -3533,6 +3549,176 @@ async function runQuery(queryArg: string | undefined, variables?: string): Promi
 }
 
 // ============================================================================
+// GQL Schema Exploration Command
+// ============================================================================
+
+async function runGql(sub: string | undefined, filter: string | undefined): Promise<void> {
+  if (!sub) {
+    console.error(chalk.red('Error: subcommand required'));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} gql <queries|mutations|types|type> [name] [--filter <text>]`));
+    process.exit(2);
+  }
+
+  const session = resolveSession();
+
+  if (sub === 'type') {
+    if (!filter) {
+      console.error(chalk.red('Error: type name required'));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} gql type <TypeName>`));
+      process.exit(2);
+    }
+    await runGqlType(session, filter);
+  } else if (sub === 'queries') {
+    await runGqlRootFields(session, 'queryType', filter);
+  } else if (sub === 'mutations') {
+    await runGqlRootFields(session, 'mutationType', filter);
+  } else if (sub === 'types') {
+    await runGqlTypes(session, filter);
+  } else {
+    console.error(chalk.red(`Unknown gql subcommand: ${sub}`));
+    console.error(chalk.gray(`Usage: ${PROGRAM_NAME} gql <queries|mutations|types|type> [--filter <text>]`));
+    process.exit(2);
+  }
+}
+
+function formatGqlType(t: any): string {
+  if (!t) return 'unknown';
+  if (t.kind === 'NON_NULL') return `${formatGqlType(t.ofType)}!`;
+  if (t.kind === 'LIST') return `[${formatGqlType(t.ofType)}]`;
+  return t.name || 'unknown';
+}
+
+async function runGqlType(session: { domain: string; access_token: string }, typeName: string): Promise<void> {
+  const query = `{
+    __type(name: "${typeName}") {
+      name kind description
+      fields { name description type { name kind ofType { name kind ofType { name kind ofType { name kind } } } } args { name type { name kind ofType { name kind ofType { name kind } } } defaultValue } }
+      inputFields { name type { name kind ofType { name kind ofType { name kind } } } defaultValue }
+      enumValues { name description }
+    }
+  }`;
+
+  const data = await graphqlRequest(session.domain, session.access_token, query, {});
+  const type = data.__type;
+  if (!type) {
+    console.error(chalk.red(`Type "${typeName}" not found`));
+    process.exit(1);
+  }
+
+  console.log(chalk.bold.cyan(`${type.name}`) + chalk.gray(` (${type.kind})`));
+  if (type.description) console.log(chalk.gray(type.description));
+  console.log('');
+
+  if (type.fields && type.fields.length > 0) {
+    console.log(chalk.bold.yellow('Fields:'));
+    for (const f of type.fields) {
+      const typeStr = formatGqlType(f.type);
+      let line = `  ${chalk.green(f.name)}: ${chalk.cyan(typeStr)}`;
+      if (f.args && f.args.length > 0) {
+        const argsStr = f.args.map((a: any) => {
+          const argType = formatGqlType(a.type);
+          return a.defaultValue ? `${a.name}: ${argType} = ${a.defaultValue}` : `${a.name}: ${argType}`;
+        }).join(', ');
+        line += chalk.gray(` (${argsStr})`);
+      }
+      if (f.description) line += chalk.gray(` — ${f.description}`);
+      console.log(line);
+    }
+  }
+
+  if (type.inputFields && type.inputFields.length > 0) {
+    console.log(chalk.bold.yellow('Input Fields:'));
+    for (const f of type.inputFields) {
+      const typeStr = formatGqlType(f.type);
+      let line = `  ${chalk.green(f.name)}: ${chalk.cyan(typeStr)}`;
+      if (f.defaultValue) line += chalk.gray(` = ${f.defaultValue}`);
+      console.log(line);
+    }
+  }
+
+  if (type.enumValues && type.enumValues.length > 0) {
+    console.log(chalk.bold.yellow('Enum Values:'));
+    for (const v of type.enumValues) {
+      let line = `  ${chalk.green(v.name)}`;
+      if (v.description) line += chalk.gray(` — ${v.description}`);
+      console.log(line);
+    }
+  }
+}
+
+async function runGqlRootFields(session: { domain: string; access_token: string }, rootType: string, filter: string | undefined): Promise<void> {
+  const query = `{
+    __schema {
+      ${rootType} {
+        fields { name description args { name type { name kind ofType { name kind ofType { name kind } } } defaultValue } type { name kind ofType { name kind ofType { name kind } } } }
+      }
+    }
+  }`;
+
+  const data = await graphqlRequest(session.domain, session.access_token, query, {});
+  const fields = data.__schema?.[rootType]?.fields || [];
+
+  const filtered = filter
+    ? fields.filter((f: any) => f.name.toLowerCase().includes(filter.toLowerCase()))
+    : fields;
+
+  const label = rootType === 'queryType' ? 'Queries' : 'Mutations';
+  console.log(chalk.bold.yellow(`${label}${filter ? ` (filter: "${filter}")` : ''}:`));
+  console.log('');
+
+  for (const f of filtered) {
+    const returnType = formatGqlType(f.type);
+    console.log(`  ${chalk.green(f.name)}: ${chalk.cyan(returnType)}`);
+    if (f.description) console.log(`    ${chalk.gray(f.description)}`);
+    if (f.args && f.args.length > 0) {
+      for (const a of f.args) {
+        const argType = formatGqlType(a.type);
+        const def = a.defaultValue ? chalk.gray(` = ${a.defaultValue}`) : '';
+        console.log(`    ${chalk.white(a.name)}: ${chalk.cyan(argType)}${def}`);
+      }
+    }
+    console.log('');
+  }
+
+  console.log(chalk.gray(`${filtered.length} ${label.toLowerCase()} found`));
+}
+
+async function runGqlTypes(session: { domain: string; access_token: string }, filter: string | undefined): Promise<void> {
+  const query = `{
+    __schema {
+      types { name kind description }
+    }
+  }`;
+
+  const data = await graphqlRequest(session.domain, session.access_token, query, {});
+  const types = (data.__schema?.types || [])
+    .filter((t: any) => !t.name.startsWith('__'))
+    .filter((t: any) => !filter || t.name.toLowerCase().includes(filter.toLowerCase()));
+
+  const grouped: Record<string, any[]> = {};
+  for (const t of types) {
+    const kind = t.kind || 'OTHER';
+    if (!grouped[kind]) grouped[kind] = [];
+    grouped[kind].push(t);
+  }
+
+  const kindOrder = ['OBJECT', 'INPUT_OBJECT', 'ENUM', 'INTERFACE', 'UNION', 'SCALAR'];
+  for (const kind of kindOrder) {
+    const items = grouped[kind];
+    if (!items || items.length === 0) continue;
+    console.log(chalk.bold.yellow(`${kind} (${items.length}):`));
+    for (const t of items.sort((a: any, b: any) => a.name.localeCompare(b.name))) {
+      let line = `  ${chalk.green(t.name)}`;
+      if (t.description) line += chalk.gray(` — ${t.description}`);
+      console.log(line);
+    }
+    console.log('');
+  }
+
+  console.log(chalk.gray(`${types.length} types found${filter ? ` matching "${filter}"` : ''}`));
+}
+
+// ============================================================================
 // Extract Command
 // ============================================================================
 
@@ -3761,7 +3947,7 @@ function parseArgs(args: string[]): ParsedArgs {
   };
 
   // Check for commands
-  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude', 'login', 'logout', 'pat', 'appmodule', 'orgs', 'workflow', 'publish', 'query', 'app'];
+  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude', 'login', 'logout', 'pat', 'appmodule', 'orgs', 'workflow', 'publish', 'query', 'gql', 'app'];
   if (args.length > 0 && commands.includes(args[0])) {
     command = args[0];
     args = args.slice(1);
@@ -3845,6 +4031,8 @@ function parseArgs(args: string[]): ParsedArgs {
     } else if (arg === '--file') {
       if (!options.file) options.file = [];
       options.file.push(args[++i]);
+    } else if (arg === '--filter') {
+      options.filter = args[++i];
     } else if (arg === '--force') {
       options.force = true;
     } else if (arg === '--skip-changed') {
@@ -4873,6 +5061,15 @@ async function main() {
       console.error(chalk.gray(`Usage: ${PROGRAM_NAME} app <install|upgrade|publish|list>`));
       process.exit(2);
     }
+    process.exit(0);
+  }
+
+  // Handle gql command (no schemas needed)
+  if (command === 'gql') {
+    const sub = files[0];
+    // For 'gql type <name>', the type name is in files[1] — use it as filter
+    const filterArg = sub === 'type' ? (files[1] || options.filter) : options.filter;
+    await runGql(sub, filterArg);
     process.exit(0);
   }
 
