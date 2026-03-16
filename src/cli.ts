@@ -163,7 +163,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('appmodule')}       Manage app modules on a CX server (deploy, undeploy)
   ${chalk.green('workflow')}        Manage workflows on a CX server (deploy, undeploy, execute, logs, log)
   ${chalk.green('publish')}         Publish all modules and workflows to a CX server
-  ${chalk.green('app')}             Manage app manifests (install/upgrade from git, publish to git, list)
+  ${chalk.green('app')}             Manage app manifests (install/upgrade from git, release to git, list)
   ${chalk.green('query')}           Run a GraphQL query against the CX server
   ${chalk.green('gql')}             Explore GraphQL schema (types, queries, mutations)
   ${chalk.green('schema')}          Show JSON schema for a component or task
@@ -195,7 +195,7 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--output <file>')}        Save workflow log to file (or -o)
   ${chalk.green('--console')}              Print workflow log to stdout
   ${chalk.green('--json')}                 Download JSON log instead of text
-  ${chalk.green('-m, --message <msg>')}     Commit message for app publish (required)
+  ${chalk.green('-m, --message <msg>')}     Release message for app release (required)
   ${chalk.green('-b, --branch <branch>')}   Branch override for app install/publish
   ${chalk.green('--force')}                Force install (even if same version) or publish all
   ${chalk.green('--skip-changed')}         Skip modules with unpublished changes during install
@@ -357,15 +357,15 @@ ${chalk.bold.yellow('APP COMMANDS:')}
   ${chalk.cyan(`${PROGRAM_NAME} app upgrade`)}
   ${chalk.cyan(`${PROGRAM_NAME} app upgrade --force`)}
 
-  ${chalk.gray('# Publish server changes to git (creates a PR) — message is required')}
-  ${chalk.cyan(`${PROGRAM_NAME} app publish -m "Add new shipping module"`)}
+  ${chalk.gray('# Release server changes to git (creates a PR) — message is required')}
+  ${chalk.cyan(`${PROGRAM_NAME} app release -m "Add new shipping module"`)}
 
-  ${chalk.gray('# Publish specific workflows and/or modules by YAML file')}
-  ${chalk.cyan(`${PROGRAM_NAME} app publish -m "Fix order workflow" workflows/my-workflow.yaml`)}
-  ${chalk.cyan(`${PROGRAM_NAME} app publish -m "Update billing" workflows/a.yaml modules/b.yaml`)}
+  ${chalk.gray('# Release specific workflows and/or modules by YAML file')}
+  ${chalk.cyan(`${PROGRAM_NAME} app release -m "Fix order workflow" workflows/my-workflow.yaml`)}
+  ${chalk.cyan(`${PROGRAM_NAME} app release -m "Update billing" workflows/a.yaml modules/b.yaml`)}
 
-  ${chalk.gray('# Force publish all modules and workflows')}
-  ${chalk.cyan(`${PROGRAM_NAME} app publish -m "Full republish" --force`)}
+  ${chalk.gray('# Force release all modules and workflows')}
+  ${chalk.cyan(`${PROGRAM_NAME} app release -m "Full republish" --force`)}
 
   ${chalk.gray('# List installed app manifests on the server')}
   ${chalk.cyan(`${PROGRAM_NAME} app list`)}
@@ -3374,9 +3374,9 @@ async function runAppPublish(orgOverride?: number, message?: string, branch?: st
   const orgId = await resolveOrgId(domain, token, orgOverride);
 
   if (!message) {
-    console.error(chalk.red('Error: --message (-m) is required for app publish'));
+    console.error(chalk.red('Error: --message (-m) is required for app release'));
     console.error(chalk.gray('Describe what changed, similar to a git commit message.'));
-    console.error(chalk.gray(`Example: ${PROGRAM_NAME} app publish -m "Add new shipping module"`));
+    console.error(chalk.gray(`Example: ${PROGRAM_NAME} app release -m "Add new shipping module"`));
     process.exit(2);
   }
 
@@ -3387,7 +3387,7 @@ async function runAppPublish(orgOverride?: number, message?: string, branch?: st
     process.exit(2);
   }
 
-  console.log(chalk.bold.cyan('\n  App Publish\n'));
+  console.log(chalk.bold.cyan('\n  App Release\n'));
   console.log(chalk.gray(`  Server:  ${new URL(domain).hostname}`));
   console.log(chalk.gray(`  Org:     ${orgId}`));
   console.log(chalk.gray(`  App:     ${appYaml.name || appManifestId}`));
@@ -5056,13 +5056,13 @@ async function main() {
     const sub = files[0];
     if (sub === 'install' || sub === 'upgrade') {
       await runAppInstall(options.orgId, options.branch, options.force, options.skipChanged);
-    } else if (sub === 'publish') {
+    } else if (sub === 'release' || sub === 'publish') {
       await runAppPublish(options.orgId, options.message, options.branch, options.force, files.slice(1));
     } else if (sub === 'list' || !sub) {
       await runAppList(options.orgId);
     } else {
       console.error(chalk.red(`Unknown app subcommand: ${sub}`));
-      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} app <install|upgrade|publish|list>`));
+      console.error(chalk.gray(`Usage: ${PROGRAM_NAME} app <install|upgrade|release|list>`));
       process.exit(2);
     }
     process.exit(0);

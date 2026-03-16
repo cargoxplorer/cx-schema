@@ -411,26 +411,26 @@ Reusable select components (e.g., `Countries/Select`, `Ports/Select`) follow thi
 
 Deploy, undeploy, and publish commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cx-core/ref-cli-auth.md](.claude/skills/cx-core/ref-cli-auth.md)
 
-### Publishing App to GitHub
+### Releasing App to GitHub
 
-Use `app publish` to push modified modules and workflows from the CX server to a GitHub repository. This creates a branch and pull request — it does NOT push directly to the target branch.
+Use `app release` to release modified modules and workflows from the CX server to a GitHub repository. This creates a branch and pull request — it does NOT push directly to the target branch.
 
 ```bash
-# Publish all unpublished changes to GitHub (creates a PR) — message is required
-npx cxtms app publish -m "Add warehouse locations module"
+# Release all unpublished changes to GitHub (creates a PR) — message is required
+npx cxtms app release -m "Add warehouse locations module"
 
-# Publish specific modules and/or workflows by YAML file
-npx cxtms app publish -m "Fix country module" modules/my-module.yaml
-npx cxtms app publish -m "Update billing" modules/a.yaml workflows/b.yaml
+# Release specific modules and/or workflows by YAML file
+npx cxtms app release -m "Fix country module" modules/my-module.yaml
+npx cxtms app release -m "Update billing" modules/a.yaml workflows/b.yaml
 
-# Force publish all modules and workflows (not just unpublished ones)
-npx cxtms app publish -m "Full republish" --force
+# Force release all modules and workflows (not just unpublished ones)
+npx cxtms app release -m "Full republish" --force
 
-# Publish with explicit org
-npx cxtms app publish -m "Add warehouse locations module" --org 42
+# Release with explicit org
+npx cxtms app release -m "Add warehouse locations module" --org 42
 ```
 
-**What `app publish` does:**
+**What `app release` does:**
 1. Reads `app.yaml` for the `id` (appManifestId), repository, and branch
 2. Increments the app version (patch bump)
 3. Creates a `publish/{app-name}-v{version}-{timestamp}` branch on GitHub
@@ -440,9 +440,9 @@ npx cxtms app publish -m "Add warehouse locations module" --org 42
 
 **This is a commit-and-push operation** — it commits the current server-side YAML directly to GitHub via the API. No local git repo is involved. The modules and workflows being published are taken from the CX server database, not from local files. The YAML file arguments only identify *which* items to include by their IDs.
 
-**Important:** Modules and workflows must be deployed to the TMS server before they can be published. Use `cxtms appmodule deploy` or `cxtms workflow deploy` first, then `cxtms app publish` to commit them to GitHub.
+**Important:** Modules and workflows must be deployed to the TMS server before they can be published. Use `cxtms appmodule deploy` or `cxtms workflow deploy` first, then `cxtms app release` to commit them to GitHub.
 
-**Do NOT run `app publish` automatically.** Only publish when the user explicitly requests it. Publishing creates a branch and PR on GitHub, so it should be done once when all changes are ready — not after every deploy.
+**Do NOT run `app release` automatically.** Only publish when the user explicitly requests it. Publishing creates a branch and PR on GitHub, so it should be done once when all changes are ready — not after every deploy.
 
 **Prerequisites:**
 - `app.yaml` must exist with a valid `id` field

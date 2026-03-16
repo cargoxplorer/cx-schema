@@ -322,26 +322,26 @@ Implicit variable: `iteration` (zero-based).
 
 Deploy, undeploy, and publish commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cx-core/ref-cli-auth.md](.claude/skills/cx-core/ref-cli-auth.md)
 
-### Publishing App to GitHub
+### Releasing App to GitHub
 
-Use `app publish` to push modified workflows and modules from the CX server to a GitHub repository. This creates a branch and pull request — it does NOT push directly to the target branch.
+Use `app release` to release modified workflows and modules from the CX server to a GitHub repository. This creates a branch and pull request — it does NOT push directly to the target branch.
 
 ```bash
-# Publish all unpublished changes to GitHub (creates a PR) — message is required
-npx cxtms app publish -m "Add order notification workflow"
+# Release all unpublished changes to GitHub (creates a PR) — message is required
+npx cxtms app release -m "Add order notification workflow"
 
-# Publish specific workflows and/or modules by YAML file
-npx cxtms app publish -m "Fix tracking workflow" workflows/my-workflow.yaml
-npx cxtms app publish -m "Update shipping" workflows/a.yaml modules/b.yaml
+# Release specific workflows and/or modules by YAML file
+npx cxtms app release -m "Fix tracking workflow" workflows/my-workflow.yaml
+npx cxtms app release -m "Update shipping" workflows/a.yaml modules/b.yaml
 
-# Force publish all workflows and modules (not just unpublished ones)
-npx cxtms app publish -m "Full republish" --force
+# Force release all workflows and modules (not just unpublished ones)
+npx cxtms app release -m "Full republish" --force
 
-# Publish with explicit org
-npx cxtms app publish -m "Add order notification workflow" --org 42
+# Release with explicit org
+npx cxtms app release -m "Add order notification workflow" --org 42
 ```
 
-**What `app publish` does:**
+**What `app release` does:**
 1. Reads `app.yaml` for the `id` (appManifestId), repository, and branch
 2. Increments the app version (patch bump)
 3. Creates a `publish/{app-name}-v{version}-{timestamp}` branch on GitHub
@@ -351,9 +351,9 @@ npx cxtms app publish -m "Add order notification workflow" --org 42
 
 **This is a commit-and-push operation** — it commits the current server-side YAML directly to GitHub via the API. No local git repo is involved. The workflows and modules being published are taken from the CX server database, not from local files. The YAML file arguments only identify *which* items to include by their IDs.
 
-**Important:** Workflows and modules must be deployed to the TMS server before they can be published. Use `cxtms workflow deploy` or `cxtms appmodule deploy` first, then `cxtms app publish` to commit them to GitHub.
+**Important:** Workflows and modules must be deployed to the TMS server before they can be published. Use `cxtms workflow deploy` or `cxtms appmodule deploy` first, then `cxtms app release` to commit them to GitHub.
 
-**Do NOT run `app publish` automatically.** Only publish when the user explicitly requests it. Publishing creates a branch and PR on GitHub, so it should be done once when all changes are ready — not after every deploy.
+**Do NOT run `app release` automatically.** Only publish when the user explicitly requests it. Publishing creates a branch and PR on GitHub, so it should be done once when all changes are ready — not after every deploy.
 
 **Prerequisites:**
 - `app.yaml` must exist with a valid `id` field
