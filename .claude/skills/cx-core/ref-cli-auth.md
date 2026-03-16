@@ -103,14 +103,11 @@ npx cxtms app install --branch develop
 # Install but skip modules that have unpublished local changes
 npx cxtms app install --skip-changed
 
-# Publish server changes to git (creates a PR)
-npx cxtms app publish
-
-# Publish with a custom commit message
-npx cxtms app publish --message "Add new shipping module"
+# Publish server changes to git (creates a PR) — message is required
+npx cxtms app publish -m "Add new shipping module"
 
 # Force publish all modules and workflows (not just changed ones)
-npx cxtms app publish --force
+npx cxtms app publish -m "Full republish" --force
 
 # List installed app manifests on the server
 npx cxtms app list
@@ -118,6 +115,6 @@ npx cxtms app list
 
 **`app install`** reads `repository` and `branch` from `app.yaml`, downloads the repo on the server side, and installs/updates all modules and workflows. Use `--force` to reinstall even if the version hasn't changed. Use `--skip-changed` to preserve modules with unpublished changes.
 
-**`app publish`** takes the current server state and publishes it to git by creating a PR. The server increments the version, creates a publish branch, commits all module/workflow YAML files, and opens a pull request to the target branch.
+**`app publish`** takes the current server state and publishes it to git by creating a PR. Requires a `-m` message describing the changes (like a git commit message). The server increments the version, creates a publish branch, commits all module/workflow YAML files, and opens a pull request to the target branch.
 
 **`app list`** shows all installed app manifests with their version, status flags (disabled, unpublished changes, update available), and repository info.

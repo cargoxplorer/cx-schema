@@ -1,6 +1,6 @@
 {
   "name": "@cxtms/cx-schema",
-  "version": "1.7.13",
+  "version": "1.7.14",
   "description": "Schema validation package for CargoXplorer YAML modules",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

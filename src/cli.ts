@@ -195,7 +195,7 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--output <file>')}        Save workflow log to file (or -o)
   ${chalk.green('--console')}              Print workflow log to stdout
   ${chalk.green('--json')}                 Download JSON log instead of text
-  ${chalk.green('-m, --message <msg>')}     Commit message for app publish
+  ${chalk.green('-m, --message <msg>')}     Commit message for app publish (required)
   ${chalk.green('-b, --branch <branch>')}   Branch override for app install/publish
   ${chalk.green('--force')}                Force install (even if same version) or publish all
   ${chalk.green('--skip-changed')}         Skip modules with unpublished changes during install
@@ -357,18 +357,15 @@ ${chalk.bold.yellow('APP COMMANDS:')}
   ${chalk.cyan(`${PROGRAM_NAME} app upgrade`)}
   ${chalk.cyan(`${PROGRAM_NAME} app upgrade --force`)}
 
-  ${chalk.gray('# Publish server changes to git (creates a PR)')}
-  ${chalk.cyan(`${PROGRAM_NAME} app publish`)}
-
-  ${chalk.gray('# Publish with a custom commit message')}
-  ${chalk.cyan(`${PROGRAM_NAME} app publish --message "Add new shipping module"`)}
+  ${chalk.gray('# Publish server changes to git (creates a PR) — message is required')}
+  ${chalk.cyan(`${PROGRAM_NAME} app publish -m "Add new shipping module"`)}
 
   ${chalk.gray('# Publish specific workflows and/or modules by YAML file')}
-  ${chalk.cyan(`${PROGRAM_NAME} app publish workflows/my-workflow.yaml`)}
-  ${chalk.cyan(`${PROGRAM_NAME} app publish workflows/a.yaml modules/b.yaml`)}
+  ${chalk.cyan(`${PROGRAM_NAME} app publish -m "Fix order workflow" workflows/my-workflow.yaml`)}
+  ${chalk.cyan(`${PROGRAM_NAME} app publish -m "Update billing" workflows/a.yaml modules/b.yaml`)}
 
   ${chalk.gray('# Force publish all modules and workflows')}
-  ${chalk.cyan(`${PROGRAM_NAME} app publish --force`)}
+  ${chalk.cyan(`${PROGRAM_NAME} app publish -m "Full republish" --force`)}
 
   ${chalk.gray('# List installed app manifests on the server')}
   ${chalk.cyan(`${PROGRAM_NAME} app list`)}
@@ -3375,6 +3372,13 @@ async function runAppPublish(orgOverride?: number, message?: string, branch?: st
   const domain = session.domain;
   const token = session.access_token;
   const orgId = await resolveOrgId(domain, token, orgOverride);
+
+  if (!message) {
+    console.error(chalk.red('Error: --message (-m) is required for app publish'));
+    console.error(chalk.gray('Describe what changed, similar to a git commit message.'));
+    console.error(chalk.gray(`Example: ${PROGRAM_NAME} app publish -m "Add new shipping module"`));
+    process.exit(2);
+  }
 
   const appYaml = readAppYaml();
   const appManifestId = appYaml.id;

@@ -416,21 +416,18 @@ Deploy, undeploy, and publish commands are listed in the CLI section at the top 
 Use `app publish` to push modified modules and workflows from the CX server to a GitHub repository. This creates a branch and pull request — it does NOT push directly to the target branch.
 
 ```bash
-# Publish all unpublished changes to GitHub (creates a PR)
-npx cxtms app publish
+# Publish all unpublished changes to GitHub (creates a PR) — message is required
+npx cxtms app publish -m "Add warehouse locations module"
 
 # Publish specific modules and/or workflows by YAML file
-npx cxtms app publish modules/my-module.yaml
-npx cxtms app publish modules/a.yaml workflows/b.yaml
-
-# Publish with a custom commit message
-npx cxtms app publish --message "Add warehouse locations module"
+npx cxtms app publish -m "Fix country module" modules/my-module.yaml
+npx cxtms app publish -m "Update billing" modules/a.yaml workflows/b.yaml
 
 # Force publish all modules and workflows (not just unpublished ones)
-npx cxtms app publish --force
+npx cxtms app publish -m "Full republish" --force
 
 # Publish with explicit org
-npx cxtms app publish --org 42
+npx cxtms app publish -m "Add warehouse locations module" --org 42
 ```
 
 **What `app publish` does:**
