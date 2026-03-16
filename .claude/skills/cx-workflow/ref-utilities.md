@@ -147,7 +147,7 @@ Renders a Handlebars template string with data.
 
 ## CsvParse@1
 
-Parses CSV content into structured data.
+Parses CSV content into structured data. CSV headers are automatically trimmed of whitespace, BOM characters, and other special characters to ensure reliable column matching.
 
 ```yaml
 - task: "Utilities/CsvParse@1"

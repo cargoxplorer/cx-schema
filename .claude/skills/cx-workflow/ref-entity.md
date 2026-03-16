@@ -59,6 +59,8 @@ All entity tasks follow the `Namespace/Operation@Version` pattern. Outputs are s
       notes: "Updated by workflow"
 ```
 
+**Order/Import commodity fields**: When importing commodities, you can supply `packageTypeName` (string) instead of `packageTypeId`. The import handler resolves the name to an ID using an N+1-safe per-import cache (one DB query per unique package type name).
+
 ## Contact
 
 | Task | Description |

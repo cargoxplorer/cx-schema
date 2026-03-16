@@ -99,6 +99,16 @@ orderData:
     notes: "{{ newNotes }}"
 ```
 
+**`resolve`** -- Entity ID lookup by querying a GraphQL collection:
+```yaml
+customerId:
+  resolve:
+    entity: "Contact"                        # Entity type (auto-pluralized for query)
+    filter: "name={{ customerName }}"        # Lucene filter (template-parsed)
+    field: "contactId"                       # Field to return (default: <entity>Id)
+```
+Results are batched and cached per unique `entity|filter|field` combination by `ResolvePreProcessor` before step execution. Cache misses return `null`. Useful inside `foreach` mappings where many items reference the same entity — only one query per unique filter value.
+
 **`$raw`** -- Prevent template parsing (pass as-is):
 ```yaml
 template:
