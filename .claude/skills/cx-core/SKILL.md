@@ -10,7 +10,7 @@ Shared domain reference for CargoXplorer entities. Used by `cx-workflow` and `cx
 
 ## CX Server Authentication & Management
 
-For CLI authentication, PAT tokens, org management, and publishing: see [ref-cli-auth.md](ref-cli-auth.md)
+For CLI authentication, PAT tokens, org management, and releasing: see [ref-cli-auth.md](ref-cli-auth.md)
 
 ## GraphQL Querying & Audit History
 

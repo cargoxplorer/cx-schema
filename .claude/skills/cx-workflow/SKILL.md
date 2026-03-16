@@ -21,7 +21,7 @@ You are a CargoXplorer workflow YAML builder. You generate schema-valid YAML for
 - **Execute**: `npx cxtms workflow execute <workflowId|file.yaml> --org <id> [--vars '<json>'] [--file varName=path]` — trigger a workflow execution (--file uploads a local file and passes the URL as a variable)
 - **List logs**: `npx cxtms workflow logs <workflowId|file.yaml> --org <id> [--from YYYY-MM-DD] [--to YYYY-MM-DD]` — list executions with log availability
 - **Download log**: `npx cxtms workflow log <executionId> --org <id> [--json] [--console] [--output <file>]` — download execution log
-- **Publish all**: `npx cxtms publish [--feature <name>] --org <id>` — push all modules and workflows to the server
+- **Publish all**: `npx cxtms publish [--feature <name>] --org <id>` — deploy all modules and workflows to the server
 
 ## Generation Workflow
 
@@ -320,7 +320,7 @@ Implicit variable: `iteration` (zero-based).
 
 ## Server Workflow Commands
 
-Deploy, undeploy, and publish commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cx-core/ref-cli-auth.md](.claude/skills/cx-core/ref-cli-auth.md)
+Deploy, undeploy, and release commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cx-core/ref-cli-auth.md](.claude/skills/cx-core/ref-cli-auth.md)
 
 ### Releasing App to GitHub
 
@@ -349,11 +349,11 @@ npx cxtms app release -m "Add order notification workflow" --org 42
 5. Creates a pull request from the publish branch to the target branch
 6. Marks published workflows and modules as `hasUnpublishedChanges: false`
 
-**This is a commit-and-push operation** — it commits the current server-side YAML directly to GitHub via the API. No local git repo is involved. The workflows and modules being published are taken from the CX server database, not from local files. The YAML file arguments only identify *which* items to include by their IDs.
+**This is a release-to-git operation** — it commits the current server-side YAML directly to GitHub via the API. No local git repo is involved. The workflows and modules being released are taken from the CX server database, not from local files. The YAML file arguments only identify *which* items to include by their IDs.
 
-**Important:** Workflows and modules must be deployed to the TMS server before they can be published. Use `cxtms workflow deploy` or `cxtms appmodule deploy` first, then `cxtms app release` to commit them to GitHub.
+**Important:** Workflows and modules must be deployed to the TMS server before they can be released. Use `cxtms workflow deploy` or `cxtms appmodule deploy` first, then `cxtms app release` to commit them to GitHub.
 
-**Do NOT run `app release` automatically.** Only publish when the user explicitly requests it. Publishing creates a branch and PR on GitHub, so it should be done once when all changes are ready — not after every deploy.
+**Do NOT run `app release` automatically.** Only release when the user explicitly requests it. Releasing creates a branch and PR on GitHub, so it should be done once when all changes are ready — not after every deploy.
 
 **Prerequisites:**
 - `app.yaml` must exist with a valid `id` field

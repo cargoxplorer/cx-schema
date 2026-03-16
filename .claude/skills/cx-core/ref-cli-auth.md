@@ -61,7 +61,7 @@ npx cxtms orgs use <orgId>
 npx cxtms orgs use
 ```
 
-The active org is cached in the session file and used by all server commands. **Always pass `--org <id>` on deploy/undeploy/publish/execute/logs commands** to avoid the interactive org picker blocking automation.
+The active org is cached in the session file and used by all server commands. **Always pass `--org <id>` on deploy/undeploy/release/execute/logs commands** to avoid the interactive org picker blocking automation.
 
 ## Session Resolution
 
@@ -88,7 +88,7 @@ Validates all YAML files first, then pushes modules and workflows to the server.
 
 ## App Manifest Management
 
-Server-side app manifest operations — install from git, publish changes to git, and list installed apps.
+Server-side app manifest operations — install from git, release changes to git, and list installed apps.
 
 ```bash
 # Install/refresh app from its git repository into the CX server
