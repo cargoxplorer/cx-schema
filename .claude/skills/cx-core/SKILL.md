@@ -50,6 +50,10 @@ Use `--feature <feature_name>` with `cx-cli create` to automatically place files
 
 !cat .claude/skills/cx-core/ref-entity-warehouse.md
 
+### Notifications
+
+!cat .claude/skills/cx-core/ref-entity-notification.md
+
 | Category | Entities | Reference |
 |----------|----------|-----------|
 | **Primary** | Order, Contact, Commodity, AccountingTransaction | ref-entity-order/contact/commodity/accounting.md |
@@ -59,6 +63,7 @@ Use `--feature <feature_name>` with `cx-cli create` to automatically place files
 | **Shared** | Tag, Attachment, Division, EquipmentType, PackageType, Note/NoteThread | ref-entity-shared.md |
 | **Geography** | Country, State, City, Port, Vessel, CustomCode, ModeOfTransportation | ref-entity-geography.md |
 | **Warehouse** | InventoryItem, WarehouseLocation, CargoMovement (Order variant) | ref-entity-warehouse.md |
+| **Notification** | Notification, UserNotification | ref-entity-notification.md |
 
 ## CustomValues Pattern
 
