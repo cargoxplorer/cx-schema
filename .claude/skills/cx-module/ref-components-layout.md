@@ -288,6 +288,47 @@ children:
 
 ---
 
+## slot
+
+Extension point that renders dynamically registered components targeting a named slot. Enables cross-module UI extensions without modifying the original layout.
+
+**Props:**
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `name` | `string` | — | Slot name to match. Supports templates: `TMS/{{entityType}}/Actions` |
+| `itemTag` | `string` | `React.Fragment` | HTML element to wrap each extension (`div`, `li`, etc.) |
+
+**Children:** No — extensions are loaded from the database at runtime.
+
+Extension components must define `props.targetSlot` matching the slot name, `props.order` for sort order, and a `layout` object.
+
+```yaml
+# Define a slot extension point
+component: slot
+props:
+  name: "TMS/ShipmentDashboard/Tabs"
+```
+
+```yaml
+# Extension component (registered via another module's appComponents)
+name: "TMS/ShipmentDashboard/TrackingTab"
+props:
+  targetSlot: "TMS/ShipmentDashboard/Tabs"
+  order: 10
+layout:
+  component: tab
+  props:
+    label: { en-US: "Tracking" }
+  children:
+    - component: layout
+      props:
+        component: "TMS/Tracking/Panel"
+```
+
+**Naming convention:** `{Module}/{Entity}/{Location}` (e.g., `TMS/OrderDetail/Actions`)
+
+---
+
 ## line
 
 Simple `<hr>` horizontal divider.
