@@ -341,7 +341,9 @@ CSS Grid-based timeline with swim lanes, drill-down, and virtual scrolling.
 | `view` | `day \| week \| month \| year` | `week` | Time view |
 | `startDate` / `endDate` | `string` | — | Date range |
 | `eventSources` | `EventSource[]` | — | Event data sources |
+| `eventSources[].query.name` | `string` | `query1`, `query2`... | Source name, used as key in `summaryComponent` `dataSources` |
 | `eventTemplate` | `ComponentProps` | — | Custom event template |
+| `summaryComponent` | `ComponentProps` | — | Custom component rendered per column in the summary row. Replaces numeric totals when set. |
 | `options.height` | `string \| number` | `600` | Container height |
 | `options.cellHeight` | `number` | `60/100` | Cell height (px) |
 | `options.groupBy` | `string` | — | Field for swim lane grouping |
@@ -351,6 +353,14 @@ CSS Grid-based timeline with swim lanes, drill-down, and virtual scrolling.
 | `options.hourInterval` | `15 \| 30 \| 60` | `60` | Time intervals (day/week) |
 | `options.showWeekends` | `boolean` | `true` | Show weekends |
 | `options.showTotalCount` | `boolean` | `false` | Show event totals |
+
+**Summary component variables** (available when `summaryComponent` is set):
+| Variable | Type | Description |
+|----------|------|-------------|
+| `dataSources` | `Record<string, TimelineEvent[]>` | Per-source events filtered to the column, keyed by `query.name` |
+| `column` | `ColumnDefinition` | Column metadata (`id`, `label`, `date`, `startDate`, `endDate`) |
+| `columnIndex` | `number` | Zero-based column index |
+| `totalCount` | `number` | Total event count for the column across all sources |
 
 **Events:**
 | Event | Data | Description |
@@ -395,6 +405,36 @@ props:
       - dialog:
           component: Schedule/CreateEvent
           props: { date: "{{ date }}", assignee: "{{ row }}" }
+```
+
+**Summary component example** (per-source breakdown per column):
+```yaml
+component: timeline-grid
+props:
+  view: week
+  options: { height: 600, enableNavigation: true }
+  eventSources:
+    - query:
+        name: ups
+        command: "query($s:String!,$e:String!){ upsShipments(start:$s,end:$e){ id date title } }"
+        variables: { s: "{{ startDate }}", e: "{{ endDate }}" }
+        path: upsShipments
+    - query:
+        name: fedex
+        command: "query($s:String!,$e:String!){ fedexShipments(start:$s,end:$e){ id date title } }"
+        variables: { s: "{{ startDate }}", e: "{{ endDate }}" }
+        path: fedexShipments
+  summaryComponent:
+    component: layout
+    props:
+      direction: column
+    children:
+      - component: text
+        props: { value: "UPS: {{ dataSources.ups.length }}" }
+      - component: text
+        props: { value: "FedEx: {{ dataSources.fedex.length }}" }
+      - component: text
+        props: { value: "Total: {{ totalCount }}" }
 ```
 
 ---
