@@ -99,6 +99,16 @@ orderData:
     notes: "{{ newNotes }}"
 ```
 
+**`resolve`** -- Entity ID lookup by querying a GraphQL collection:
+```yaml
+customerId:
+  resolve:
+    entity: "Contact"                        # Entity type (auto-pluralized for query)
+    filter: "name={{ customerName }}"        # Lucene filter (template-parsed)
+    field: "contactId"                       # Field to return (default: <entity>Id)
+```
+Results are batched and cached per unique `entity|filter|field` combination by `ResolvePreProcessor` before step execution. Cache misses return `null`. Useful inside `foreach` mappings where many items reference the same entity — only one query per unique filter value.
+
 **`$raw`** -- Prevent template parsing (pass as-is):
 ```yaml
 template:
@@ -206,6 +216,24 @@ Functions use two iterator variable names:
 | `formatDate([date], 'dd/MM/yyyy', 'en-US')` | Format date with culture. Accepts DateTime or string |
 | `dateFromUnix([unixTime])` | Unix timestamp (seconds) -> `DateTimeOffset`. Accepts int, long, decimal, string |
 | `dateToUtc([date])` or `dateToUtc([date], 'en-US')` | Convert to UTC. Optional culture for string parsing |
+
+### Business Date Math (in Lucene filter expressions)
+
+The filter engine (`FilterBy`) supports business-aware date math units in Lucene date expressions:
+
+| Unit | Aliases | Description |
+|------|---------|-------------|
+| `BHOUR` | `BHOURS` | Add/subtract business hours (respects weekly schedule + holidays) |
+| `BDAY` | `BDAYS` | Add/subtract business days (skips non-working days) |
+
+**Usage**: These units are used in **Lucene filter strings** (not NCalc expressions). They require an `IBusinessDateMathResolver` and are resolved via the organization's business calendar.
+
+```
+dueDate: [NOW TO NOW+3BDAYS]
+pickupDate: [* TO NOW-8BHOURS]
+```
+
+The resolver loads `CalendarBusinessHour` (weekly schedule) and `CalendarAvailabilityBlock` (holidays) for the organization's `business`-type calendar, then walks through working time segments to compute the target date.
 
 ### Math Functions (NCalc built-in)
 

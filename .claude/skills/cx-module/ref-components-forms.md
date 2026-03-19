@@ -156,6 +156,7 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `quill` | Rich text editor (Quill) |
 | `object` | JSON object editor |
 | `yaml` | YAML editor |
+| `secret` | Encrypted secret input — stores `${secret:qualifiedName}` reference. Requires `secretPath` prop for naming. |
 
 **Select/Async options (under `options`):**
 | Prop | Type | Description |
