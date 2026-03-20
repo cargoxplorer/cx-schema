@@ -65,6 +65,8 @@ Field names as used in workflow expressions: `{{ entity.orderId }}`, `{{ entity.
 | `orderCarriers` | `[OrderCarrier]` | |
 | `allTags` | `[OrderAllTagsView]` | View: all tags including from commodities |
 | `allRelatedOrders` | `[OrderRelatedOrdersView]` | Orders sharing commodities |
+| `attachmentsSummary` | `OrderAttachmentSummaryView?` | DB view: `.totalCount`, `.hasAny` (active attachments) |
+| `notesSummary` | `OrderNoteSummaryView?` | DB view: `.totalCount`, `.hasAny` (non-deleted notes) |
 | `outgoingLinks` | `[LinkedOrder]` | |
 | `incomingLinks` | `[LinkedOrder]` | |
 
@@ -107,6 +109,8 @@ These are virtual fields that filter `orderEntities` by type:
 | `getChargesByChargeType(chargeType)` | `[Charge]` | Charges filtered by type |
 | `getOrderSummary(weightUnit, volumeUnit, dimensionsUnit)` | `OrderSummary` | |
 | `lastTrackingEvent(eventDefinitionName)` | `TrackingEvent` | Most recent |
+| `attachmentsSummary` | `OrderAttachmentSummaryGqlDto` | `.totalCount` (int), `.hasAny` (bool) — batched DataLoader, backed by DB view |
+| `notesSummary` | `OrderNoteSummaryGqlDto` | `.totalCount` (int), `.hasAny` (bool) — batched DataLoader, backed by DB view |
 | `notesCount(threadFilter)` | `int` | |
 | `changeHistory(startDate, endDate, maxResults)` | `[ChangeHistory]` | Audit trail |
 
