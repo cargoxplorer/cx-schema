@@ -130,6 +130,10 @@
           "$ref": "../schemas.json#/definitions/component",
           "description": "Template for items; receives 'item' context"
         },
+        "summaryComponent": {
+          "$ref": "../schemas.json#/definitions/component",
+          "description": "Custom component for the summary row. When set, the built-in overall total row is hidden and replaced with this component. Receives aggregated data."
+        },
         "isHidden": {
           "$ref": "../schemas.json#/definitions/templateExpression",
           "description": "Boolean expression for conditional rendering"

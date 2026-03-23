@@ -115,6 +115,18 @@
               "isHidden": {
                 "type": "boolean",
                 "description": "Whether column is hidden"
+              },
+              "enableEdit": {
+                "type": "boolean",
+                "description": "Enables inline cell editing for this column"
+              },
+              "editor": {
+                "$ref": "#/definitions/component",
+                "description": "Component rendered via ComponentRender when enableEdit is true. Uses same pattern as showAs."
+              },
+              "onEdit": {
+                "$ref": "#/definitions/actionsList",
+                "description": "Action array executed sequentially when the cell value changes. Receives changedValues and value variables."
               }
             }
           }
