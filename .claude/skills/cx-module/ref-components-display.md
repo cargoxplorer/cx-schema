@@ -44,7 +44,11 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `defaultView` | `string` | — | Default view name |
 | `defaultPageSize` | `number` | `20` | Rows per page |
 | `enableRefresh` | `boolean` | — | Auto-refresh |
+| `refreshInterval` | `number` | `30000` | Auto-refresh polling interval (ms) |
 | `enableChangeTracking` | `boolean` | `true` | Track data changes |
+| `highlightNew` | `boolean` | `true` | Highlight newly added rows |
+| `highlightUpdated` | `boolean` | `true` | Highlight rows with updated values |
+| `highlightForRefreshes` | `number` | `1` | Per-row TTL — refresh cycles a highlight persists |
 | `onRowClick` | `action[]` | — | Default row click action |
 | `onDataLoad` | `action[]` | — | Action after data loads |
 | `items` | `any` | — | Static data (instead of query) |
