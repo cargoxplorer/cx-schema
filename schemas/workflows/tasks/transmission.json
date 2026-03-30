@@ -1,0 +1,185 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Transmission Tasks",
+  "description": "Create, update, and delete transmission records linked to orders",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "Transmission/Create@1",
+        "Transmission/Update@1",
+        "Transmission/Delete@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Task inputs — shape depends on task type",
+      "properties": {
+        "organizationId": {
+          "type": ["string", "integer"],
+          "description": "Organization ID (required for all task types)"
+        },
+        "transmissionId": {
+          "type": ["string", "integer"],
+          "description": "Transmission ID (required for Update and Delete)"
+        },
+        "transmission": {
+          "type": "object",
+          "description": "Transmission field values (Create: full object; Update: partial/dynamic)",
+          "properties": {
+            "orderIds": {
+              "type": ["array", "string"],
+              "items": { "type": ["integer", "string"] },
+              "description": "Order IDs to link (required for Create, at least one)"
+            },
+            "channel": {
+              "type": "string",
+              "maxLength": 20,
+              "description": "Communication channel (e.g. EDI, API, EMAIL, WEBHOOK)"
+            },
+            "direction": {
+              "type": ["string", "integer"],
+              "enum": ["Inbound", "Outbound", 0, 1],
+              "description": "Inbound (0) or Outbound (1)"
+            },
+            "messageType": {
+              "type": "string",
+              "maxLength": 50,
+              "description": "Message type identifier (e.g. 204, 990, 214)"
+            },
+            "sender": {
+              "type": "string",
+              "maxLength": 100,
+              "description": "Sender identifier"
+            },
+            "receiver": {
+              "type": "string",
+              "maxLength": 100,
+              "description": "Receiver identifier"
+            },
+            "correlationId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Correlation ID (auto-generated if omitted on Create)"
+            },
+            "parentId": {
+              "type": ["integer", "string", "null"],
+              "description": "Parent transmission ID for chaining"
+            },
+            "status": {
+              "type": ["string", "integer"],
+              "enum": ["Pending", "InProgress", "Sent", "Received", "Delivered", "Acknowledged", "Rejected", "Error", "RetryScheduled", "Cancelled", "Expired", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+              "description": "Transmission status"
+            },
+            "endpoint": {
+              "type": "string",
+              "maxLength": 500,
+              "description": "Target endpoint URL"
+            },
+            "protocol": {
+              "type": "string",
+              "maxLength": 20,
+              "description": "Protocol (e.g. HTTPS, SFTP, AS2)"
+            },
+            "httpStatus": {
+              "type": ["integer", "string", "null"],
+              "description": "HTTP response status code"
+            },
+            "byteSize": {
+              "type": ["integer", "string", "null"],
+              "description": "Payload size in bytes"
+            },
+            "retryCount": {
+              "type": ["integer", "string"],
+              "description": "Current retry count (default: 0)"
+            },
+            "maxRetries": {
+              "type": ["integer", "string"],
+              "description": "Maximum retry attempts (default: 3)"
+            },
+            "nextRetryAt": {
+              "type": ["string", "null"],
+              "description": "Scheduled next retry time (ISO 8601)"
+            },
+            "errorCode": {
+              "type": ["string", "null"],
+              "maxLength": 50,
+              "description": "Error code"
+            },
+            "errorMessage": {
+              "type": ["string", "null"],
+              "description": "Error description"
+            },
+            "customValues": {
+              "type": ["object", "string", "null"],
+              "description": "Arbitrary key-value metadata (JSONB)"
+            },
+            "headers": {
+              "type": ["object", "string", "null"],
+              "description": "Message headers (JSONB)"
+            },
+            "payloadRef": {
+              "type": ["string", "null"],
+              "description": "Reference to stored payload (e.g. blob URI)"
+            },
+            "scheduledAt": {
+              "type": ["string", "null"],
+              "description": "Scheduled send time (ISO 8601)"
+            },
+            "startedAt": {
+              "type": ["string", "null"],
+              "description": "Processing start time (ISO 8601)"
+            },
+            "completedAt": {
+              "type": ["string", "null"],
+              "description": "Processing end time (ISO 8601)"
+            },
+            "durationMs": {
+              "type": ["integer", "string", "null"],
+              "description": "Processing duration in milliseconds"
+            }
+          }
+        }
+      },
+      "required": ["organizationId"]
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
+        },
+        "required": ["name", "mapping"]
+      },
+      "description": "Create outputs: transmission (TransmissionDto). Delete outputs: success (boolean)."
+    }
+  },
+  "required": ["task", "name", "inputs"]
+}
