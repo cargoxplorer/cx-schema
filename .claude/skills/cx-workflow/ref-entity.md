@@ -19,6 +19,32 @@
 
 All entity tasks follow the `Namespace/Operation@Version` pattern. Outputs are stored as `ActivityName.StepName.outputKey`.
 
+## PostalCodes
+
+| Task | Description |
+|------|-------------|
+| `PostalCodes/Import@1` | Import postal codes from file URL, stream, or inline data |
+
+### PostalCodes/Import@1
+
+Imports postal codes (CSV, JSON, Excel). Supports upsert via `matchByFields`.
+
+```yaml
+- task: "PostalCodes/Import@1"
+  name: ImportPostalCodes
+  inputs:
+    organizationId: "{{ int inputs.organizationId }}"
+    fileUrl: "{{ inputs.fileUrl }}"
+    matchByFields: ["code", "countryCode"]
+  outputs:
+    - name: importResult
+      mapping: "result?"
+```
+
+**Inputs:** `organizationId` (int, required), `fileUrl` (string?), `fileType` (FileType?), `stream` (Stream?), `postalCodes` (List?), `matchByFields` (string[]?)
+**Outputs:** `result.success`, `result.added`, `result.updated`, `result.errors`, `result.totalProcessed`, `result.hasErrors`
+Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions and returns them in `result.errors`.
+
 ## Generic Entity Change
 
 | Task | Description |

@@ -96,6 +96,7 @@ Functions use two iterator variable names:
 | `formatDate([date], 'dd/MM/yyyy', 'en-US')` | Format date with culture. Accepts DateTime or string |
 | `dateFromUnix([unixTime])` | Unix timestamp (seconds) -> `DateTimeOffset`. Accepts int, long, decimal, string |
 | `dateToUtc([date])` or `dateToUtc([date], 'en-US')` | Convert to UTC. Optional culture for string parsing |
+| `toLocalTime([date], 'America/Chicago')` | Convert UTC datetime to local time in IANA timezone. Returns `null` if date or timezone is invalid |
 
 ### Math Functions (NCalc built-in)
 

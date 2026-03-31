@@ -28,6 +28,30 @@
 | `Utilities/MoveFile@1` | Move file |
 | `Utilities/ValidateReCaptcha` | Validate reCAPTCHA |
 | `Utilities/ValidateHMAC` | Validate HMAC signatures |
+| `Utilities/ResolveTimezone@1` | Resolve IANA timezone and UTC offset from lat/lng coordinates |
+
+## ResolveTimezone@1
+
+Resolves IANA timezone ID and current UTC offset from geographic coordinates using offline boundary lookup (GeoTimeZone).
+
+```yaml
+- task: "Utilities/ResolveTimezone@1"
+  name: ResolveTimezone
+  inputs:
+    latitude: "{{ postalCode.location.y }}"
+    longitude: "{{ postalCode.location.x }}"
+  outputs:
+    - name: tz
+      mapping: "timezoneId?"
+    - name: offset
+      mapping: "utcOffset?"
+```
+
+**Inputs:** `latitude` (double/string, required), `longitude` (double/string, required)
+**Outputs:** `timezoneId` (string, e.g. `America/Chicago`), `utcOffset` (double, e.g. `-5`)
+Throws `WorkflowRuntimeException` if lat/lng missing or unparseable.
+
+---
 
 ## SetVariable@1
 
