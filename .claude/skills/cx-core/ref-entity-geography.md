@@ -4,12 +4,13 @@
 - Country
 - State
 - City
+- PostalCode
 - Port
 - Vessel
 - CustomCode
 - ModeOfTransportation
 
-Country, State, City, Port, Vessel, CustomCode, ModeOfTransportation.
+Country, State, City, PostalCode, Port, Vessel, CustomCode, ModeOfTransportation.
 
 ## Country
 
@@ -56,6 +57,29 @@ Composite key: `organizationId` + `countryCode` + `stateCode`.
 | `customValues` | `Dictionary` | jsonb |
 
 **Navigation:** `state`, `country`
+
+---
+
+## PostalCode
+
+PK: `id` (int, auto). Scoped per organization.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | `int` | PK |
+| `organizationId` | `int` | |
+| `code` | `string` | Postal/zip code value |
+| `countryCode` | `string` | FK to Country |
+| `placeName` | `string` | Place/city name |
+| `stateCode` | `string?` | FK to State |
+| `accuracy` | `AccuracyTypes?` | 1=Region, 2=Municipality, 3=Neighborhood, 4=Place, 5=Street, 6=Centroid |
+| `timeZone` | `string?` | IANA timezone ID (e.g., `America/Chicago`) |
+| `customValues` | `Dictionary` | jsonb |
+| `location` | `Point?` | WGS 84 (SRID 4326). X=longitude, Y=latitude |
+
+**Navigation:** `country`, `state`
+
+**Mutations:** `ChangeCode`, `ChangePlaceName`, `ChangeCoordinates(lat, lng, accuracy)`, `ChangeCountry`/`ChangeCountryCode`, `ChangeState`/`ChangeStateCode`, `ChangeTimeZone`, `ChangeCustomValues`, `ChangeLatitude`, `ChangeLongitude`
 
 ---
 

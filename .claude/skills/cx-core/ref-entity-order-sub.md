@@ -94,6 +94,12 @@ Template/type definition for tracking events.
 | `triggerConditionFields` | `string?` | |
 | `customValues` | `Dictionary` | jsonb |
 
+### GraphQL Resolvers
+
+| Resolver | Arguments | Returns | Description |
+|----------|-----------|---------|-------------|
+| `getContact` | `customValuesKey: String!` | `Contact` | Looks up a Contact by ID stored in `customValues[key]` |
+
 ---
 
 ## LinkedOrder

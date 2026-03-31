@@ -55,6 +55,7 @@ search: "{{ luceneString query }}"        # escape & quote for Lucene
 | `fromJson` | `dict` or `array` | null. Empty string -> empty dict |
 | `toJson` | `string` | `""` if null |
 | `trim` | `string` | null |
+| `toLocalTime` | `DateTime` or `string` | null. Syntax: `{{ toLocalTime path 'TimezoneId' 'format?' }}` |
 
 ### Value Directives (in YAML input mappings)
 
