@@ -93,7 +93,7 @@ states:
 
 ### State Rules
 - **name**: Required, must be unique across all states
-- **isInitial**: At most one state can be initial
+- **isInitial**: At most one state can be initial. When an entity has null status, the engine resolves it to the initial state automatically.
 - **isFinal**: Final states cannot be transition sources
 - **parent**: References another state; parent cannot be initial or final; children inherit parent transitions
 
