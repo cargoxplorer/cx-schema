@@ -1,0 +1,1 @@
+Open the order-notification workflow YAML and add a new activity that sends an SMS notification after the email is sent. Make sure to validate the workflow after the change.
