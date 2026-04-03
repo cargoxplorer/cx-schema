@@ -40,6 +40,13 @@ Represents a party role (Shipper, Consignee, Carrier, etc.) on an order.
 - `attachments` — filterable collection
 - `getOrderEntityAttachments(idPropertyName, filter, orderBy, search)` — resolver
 
+### Import Behavior (Order/Import)
+
+When importing order entities via `Order/Import@1`:
+- The `contact` and `contactAddress` nested objects are excluded from direct field mapping and processed separately.
+- **ContactAddress matching** uses `ImportOrderOptions.ContactAddressMatchByFields` — scoped to organization and (when persisted) to the resolved contact. Supports Lucene filter-based matching on any ContactAddress field (e.g., `["addressLine", "postalCode"]`). If null/empty, falls back to matching by `contactAddressId` only.
+- Both contacts and contact addresses are cached per import session to prevent duplicate creation.
+
 ### EntityTypes Enum
 
 Shipper=0, Consignee=1, Carrier=2, Vendor=3, UltimateConsignee=4, NotifyParty=5, Intermediate=6, ForwardingAgent=7, DestinationAgent=8, PickupFrom=9, DeliverTo=10, DeliveryCarrier=11, ReceivedBy=12, USPPI=13

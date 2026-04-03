@@ -279,13 +279,13 @@ Implicit variable: `iteration` (zero-based).
 
 | Category | Tasks | Load Reference |
 |----------|-------|----------------|
-| Utilities | SetVariable, Log, Error, HttpRequest, Map, Template, Import, Export, CsvParse | `!cat .claude/skills/cx-workflow/ref-utilities.md` |
+| Utilities | SetVariable, Log, Error, HttpRequest, Map, Template, Import, Export, CsvParse, UnzipFile | `!cat .claude/skills/cx-workflow/ref-utilities.md` |
 | Query & Workflow | Query/GraphQL, Validation, Workflow/Execute | `!cat .claude/skills/cx-workflow/ref-query.md` |
-| Entity CRUD | Order, Contact, Commodity, Job, Charge, Discount, Inventory, Movement | `!cat .claude/skills/cx-workflow/ref-entity.md` |
+| Entity CRUD | Order, Contact, Commodity, Job, Charge, Discount, Inventory, Movement, Transmission | `!cat .claude/skills/cx-workflow/ref-entity.md` |
 | Communication | Email/Send, Document/Render, Attachment, PdfDocument/Merge | `!cat .claude/skills/cx-workflow/ref-communication.md` |
 | File Transfer | Connect, Disconnect, ListFiles, Download, Upload, Move, Delete | `!cat .claude/skills/cx-workflow/ref-filetransfer.md` |
 | Accounting | AccountingTransaction, Payment, Number/Generate, SequenceNumber | `!cat .claude/skills/cx-workflow/ref-accounting.md` |
-| Other | User, Auth, Caching, EDI, Flow/Transition, Notes, AppModule, ActionEvent | `!cat .claude/skills/cx-workflow/ref-other.md` |
+| Other | User, Auth, Caching, X12/Parse, EDIFACT, Flow/Transition, Notes, AppModule, ActionEvent | `!cat .claude/skills/cx-workflow/ref-other.md` |
 
 ## Entity Field Reference (cx-core)
 

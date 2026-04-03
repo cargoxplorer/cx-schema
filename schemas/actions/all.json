@@ -21,6 +21,7 @@
     { "$ref": "if.json" },
     { "$ref": "consoleLog.json" },
     { "$ref": "openBarcodeScanner.json" },
-    { "$ref": "resetDirtyState.json" }
+    { "$ref": "resetDirtyState.json" },
+    { "$ref": "clipboard.json" }
   ]
 }

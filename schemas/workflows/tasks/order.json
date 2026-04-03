@@ -69,6 +69,51 @@
         "validateOnly": {
           "type": "boolean",
           "description": "Only validate, don't persist"
+        },
+        "data": {
+          "description": "Structured import data (for Order/Import@1)",
+          "additionalProperties": true
+        },
+        "options": {
+          "type": "object",
+          "description": "Import options (for Order/Import@1)",
+          "properties": {
+            "orderMatchByFields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields to match existing orders. If null, creates new orders."
+            },
+            "contactMatchByFields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields to match existing contacts for order entities."
+            },
+            "contactAddressMatchByFields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields to match existing contact addresses within order entities."
+            },
+            "inventoryItemMatchByFields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields to match existing inventory items on commodities."
+            },
+            "tagMatchByFields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields to match existing tags."
+            },
+            "commodityMatchByFields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields to match existing commodities."
+            },
+            "linkTrackingEventsToCommodities": {
+              "type": "boolean",
+              "description": "When true, imported tracking events are linked to the order's first-level (non-container) commodities. Default: false."
+            }
+          },
+          "additionalProperties": true
         }
       },
       "additionalProperties": true

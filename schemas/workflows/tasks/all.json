@@ -119,7 +119,16 @@
       "$ref": "template.json"
     },
     {
+      "$ref": "resolve-timezone.json"
+    },
+    {
+      "$ref": "unzip-file.json"
+    },
+    {
       "$ref": "tracking-event.json"
+    },
+    {
+      "$ref": "transmission.json"
     },
     {
       "$ref": "user.json"

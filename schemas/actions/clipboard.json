@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "clipboard Action",
+  "type": "object",
+  "properties": {
+    "clipboard": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "description": "Data to copy — string, object, array, or template expression."
+        },
+        "path": {
+          "type": "string",
+          "description": "Dot-notation path to extract from each array item or single object."
+        },
+        "template": {
+          "type": "string",
+          "description": "Per-item template string with {{ }} expressions. Takes precedence over path."
+        },
+        "format": {
+          "type": "string",
+          "enum": ["lines", "json", "csv"],
+          "description": "Output format for arrays. Default: lines."
+        },
+        "separator": {
+          "type": "string",
+          "description": "Separator between items when format is lines. Default: newline."
+        },
+        "message": {
+          "oneOf": [
+            { "type": "string" },
+            { "$ref": "../schemas.json#/definitions/localized" }
+          ],
+          "description": "Custom success notification message."
+        }
+      },
+      "required": ["data"],
+      "x-examples": [
+        { "data": "{{ selectedRows }}", "path": "trackingNumber" },
+        { "data": "{{ selectedRows }}", "template": "{{ trackingNumber }}{{ eval (customValues?.spot ? 'S' : '') }}", "message": "Copied!" },
+        { "data": "{{ selectedRows }}", "format": "json" }
+      ]
+    }
+  },
+  "additionalProperties": false
+}
