@@ -1,0 +1,1 @@
+We have a commodity with tracking number 1Z999AA10123456784 that shows the wrong weight. Can you look up the commodity and tell me what fields are available for weight and dimensions?

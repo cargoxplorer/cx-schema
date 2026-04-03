@@ -1,0 +1,1 @@
+I need to look at parcel shipment 18502. The carrier reported delivery but our system still shows it in transit. Can you pull up the order details and check what tracking events exist?

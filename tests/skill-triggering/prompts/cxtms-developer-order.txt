@@ -1,0 +1,1 @@
+Check order 196001 — the customer says they haven't received a tracking update. Can you look up the order and see what status it's in and if the tracking events were created?

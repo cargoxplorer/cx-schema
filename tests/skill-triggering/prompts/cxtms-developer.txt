@@ -1,0 +1,1 @@
+What fields does the Order entity have? I need to know the field names for status, customer, and tracking number so I can reference them in my workflow.

@@ -1,0 +1,1 @@
+I need to create a workflow that triggers when an order is created and automatically sends an email notification to the customer with the order details. It should also create a tracking event on the order.

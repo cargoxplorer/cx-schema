@@ -1,0 +1,1 @@
+I need a new screen for managing customer contacts. It should have a data grid listing all contacts with columns for name, email, phone, and type. There should also be a form for creating and editing contacts with validation.

@@ -1,0 +1,1 @@
+Can you check the workflow execution logs for order 195432? It ran about 30 minutes ago and seems to have failed at the email step.
