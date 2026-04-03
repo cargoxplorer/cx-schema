@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UnzipFile Task",
+  "description": "Extract files from a ZIP archive (local path or URL)",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["Utilities/UnzipFile@1"],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "UnzipFile inputs — provide either filePath or fileUrl",
+      "properties": {
+        "filePath": {
+          "type": "string",
+          "description": "Local file path to ZIP archive (from saveToFile or previous step)"
+        },
+        "fileUrl": {
+          "type": "string",
+          "description": "URL to ZIP archive (file://, http://, https://)"
+        },
+        "filePattern": {
+          "type": "string",
+          "description": "Glob-style pattern to filter extracted files (e.g. '*.csv', 'data_*.json'). If omitted, all files returned."
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
+        },
+        "required": ["name", "mapping"]
+      },
+      "description": "Outputs: Files (string[] — full paths to extracted files), Count (int — number of matched files)"
+    }
+  },
+  "required": ["task", "name", "inputs"]
+}

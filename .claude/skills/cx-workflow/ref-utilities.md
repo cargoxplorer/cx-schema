@@ -16,6 +16,86 @@
 | `Utilities/MoveFile@1` | Move file |
 | `Utilities/ValidateReCaptcha` | Validate reCAPTCHA |
 | `Utilities/ValidateHMAC` | Validate HMAC signatures |
+| `Utilities/UnzipFile@1` | Extract files from ZIP archive (local path or URL) |
+| `Utilities/ResolveTimezone@1` | Resolve IANA timezone and UTC offset from lat/lng coordinates |
+
+## UnzipFile@1
+
+Extracts files from a ZIP archive. Accepts a local file path (from `saveToFile` or previous step) or a URL (`file://`, `http://`, `https://`). Files are extracted to a workflow-scoped temp directory with auto-cleanup.
+
+```yaml
+- task: "Utilities/UnzipFile@1"
+  name: ExtractArchive
+  inputs:
+    filePath: "{{ Main?.DownloadArchive?.result?.FilePath? }}"
+    filePattern: "*.csv"
+  outputs:
+    - name: files
+      mapping: "Files?"
+    - name: count
+      mapping: "Count?"
+```
+
+**Inputs:** `filePath` (string, local path) OR `fileUrl` (string, URL — `file://`, `http://`, `https://`). Optional: `filePattern` (glob pattern, e.g. `*.csv`, `data_*.json`).
+**Outputs:** `Files` (string[] — full paths to extracted files), `Count` (int — number of matched files).
+Provide one of `filePath` or `fileUrl`. Common pattern: HttpRequest with `saveToFile: true` → UnzipFile with `filePath`.
+
+```yaml
+# Download + unzip + import pipeline
+- task: "Utilities/HttpRequest@1"
+  name: Download
+  inputs:
+    url: "{{ downloadUrl }}"
+    method: GET
+    saveToFile: true
+  outputs:
+    - name: result
+      mapping: "response?"
+
+- task: "Utilities/UnzipFile@1"
+  name: Unzip
+  inputs:
+    filePath: "{{ Main?.Download?.result?.FilePath? }}"
+    filePattern: "*.csv"
+  outputs:
+    - name: files
+      mapping: "Files?"
+
+- task: foreach
+  name: ProcessFiles
+  collection: "Main?.Unzip?.files?"
+  steps:
+    - task: "Utilities/Import@1"
+      name: ImportFile
+      inputs:
+        fileUrl: "file://{{ item }}"
+        format: "csv"
+```
+
+---
+
+## ResolveTimezone@1
+
+Resolves IANA timezone ID and current UTC offset from geographic coordinates using offline boundary lookup (GeoTimeZone).
+
+```yaml
+- task: "Utilities/ResolveTimezone@1"
+  name: ResolveTimezone
+  inputs:
+    latitude: "{{ postalCode.location.y }}"
+    longitude: "{{ postalCode.location.x }}"
+  outputs:
+    - name: tz
+      mapping: "timezoneId?"
+    - name: offset
+      mapping: "utcOffset?"
+```
+
+**Inputs:** `latitude` (double/string, required), `longitude` (double/string, required)
+**Outputs:** `timezoneId` (string, e.g. `America/Chicago`), `utcOffset` (double, e.g. `-5`)
+Throws `WorkflowRuntimeException` if lat/lng missing or unparseable.
+
+---
 
 ## SetVariable@1
 
@@ -90,6 +170,21 @@ Performs HTTP requests to external APIs.
 **Case sensitivity**: Variable paths go through `Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)` — so `body` and `Body` both work. Convention: use lowercase `body`.
 
 Response available at `ActivityName?.CallApi?.result?`.
+
+**`saveToFile` mode**: When `saveToFile: true`, the response body is saved to a temp file instead of being returned in memory. The response object changes to `{ StatusCode, Headers, FilePath }`. Use this for large file downloads, then pass `FilePath` to downstream tasks like `UnzipFile` or `Import`.
+
+```yaml
+- task: "Utilities/HttpRequest@1"
+  name: DownloadArchive
+  inputs:
+    url: "{{ downloadUrl }}"
+    method: GET
+    saveToFile: true
+  outputs:
+    - name: result
+      mapping: "response?"
+# result.FilePath contains the temp file path
+```
 
 **Action events**: When an HTTP request operates on a specific entity (e.g., sending parcel info for an order), enable `actionEvents` in the inputs so the system can track and notify about the request. Include `eventDataExt` with the entity ID to link the event to the entity.
 
@@ -178,7 +273,7 @@ Exports data to file format.
 
 ## Import@1
 
-Imports data from file content.
+Imports data from file content or URL. Supports `file://` URLs for local files (e.g. from UnzipFile output).
 
 ```yaml
 - task: "Utilities/Import@1"
@@ -190,3 +285,17 @@ Imports data from file content.
     - name: data
       mapping: "data?"
 ```
+
+```yaml
+# Import from local file (e.g. extracted from ZIP)
+- task: "Utilities/Import@1"
+  name: ImportLocalFile
+  inputs:
+    fileUrl: "file://{{ localFilePath }}"
+    format: "csv"
+  outputs:
+    - name: data
+      mapping: "data?"
+```
+
+**`file://` URL support**: Import, Order/Import, PostalCodes/Import, and Notes/Import all accept `file://` URLs via UrlStreamHelper. This enables pipeline patterns: HttpRequest (saveToFile) → UnzipFile → Import (file://).

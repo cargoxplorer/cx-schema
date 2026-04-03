@@ -49,6 +49,7 @@ search: "{{ luceneString query }}"        # escape & quote for Lucene
 | `fromJson` | `dict` or `array` | null. Empty string -> empty dict |
 | `toJson` | `string` | `""` if null |
 | `trim` | `string` | null |
+| `toLocalTime` | `string` | null. Function-style: `{{ toLocalTime datePath 'timezoneId' 'format?' }}` |
 
 ### Value Directives (in YAML input mappings)
 
@@ -216,6 +217,7 @@ Functions use two iterator variable names:
 | `formatDate([date], 'dd/MM/yyyy', 'en-US')` | Format date with culture. Accepts DateTime or string |
 | `dateFromUnix([unixTime])` | Unix timestamp (seconds) -> `DateTimeOffset`. Accepts int, long, decimal, string |
 | `dateToUtc([date])` or `dateToUtc([date], 'en-US')` | Convert to UTC. Optional culture for string parsing |
+| `toLocalTime([date], 'America/Chicago')` | Convert UTC date to local time in IANA timezone. Returns `DateTimeOffset`. Null-safe |
 
 ### Business Date Math (in Lucene filter expressions)
 

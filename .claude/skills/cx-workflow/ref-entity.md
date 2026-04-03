@@ -232,6 +232,66 @@ Output `result`: `{ added, updated, skipped, failed, total, errors[] }`.
 | `Note/Export` | Export notes for an entity |
 | `Note/RenameThread` | Rename a note thread |
 
+## Transmission
+
+| Task | Description |
+|------|-------------|
+| `Transmission/Create` | Create transmission record linked to orders |
+| `Transmission/Update` | Update transmission fields (dynamic) |
+| `Transmission/Delete` | Delete transmission record |
+
+Records inbound/outbound message transmissions (EDI, API, Email, Webhook) linked to orders.
+
+```yaml
+- task: "Transmission/Create@1"
+  name: CreateTransmission
+  inputs:
+    organizationId: "{{ int organizationId }}"
+    transmission:
+      orderIds: "{{ orderIds }}"
+      channel: "EDI"
+      direction: "Outbound"
+      messageType: "214"
+      sender: "{{ senderISA }}"
+      receiver: "{{ receiverISA }}"
+      status: "Pending"
+      endpoint: "{{ endpoint }}"
+      protocol: "SFTP"
+  outputs:
+    - name: transmission
+      mapping: "transmission"
+```
+
+```yaml
+- task: "Transmission/Update@1"
+  name: UpdateTransmission
+  inputs:
+    organizationId: "{{ int organizationId }}"
+    transmissionId: "{{ int Main?.CreateTransmission?.transmission?.id? }}"
+    transmission:
+      status: "Sent"
+      completedAt: "{{ now() }}"
+```
+
+```yaml
+- task: "Transmission/Delete@1"
+  name: DeleteTransmission
+  inputs:
+    organizationId: "{{ int organizationId }}"
+    transmissionId: "{{ int inputs.transmissionId }}"
+  outputs:
+    - name: success
+      mapping: "success"
+```
+
+**Create inputs:** `organizationId` (int, required), `transmission` object — `orderIds` (required, at least one), `channel`, `direction` (Inbound/Outbound), `messageType`, `sender`, `receiver`, `status`, `endpoint`, `protocol`, `correlationId` (auto-generated if omitted), `parentId`, `httpStatus`, `byteSize`, `retryCount`, `maxRetries`, `nextRetryAt`, `errorCode`, `errorMessage`, `customValues`, `headers`, `payloadRef`, `scheduledAt`, `startedAt`, `completedAt`, `durationMs`.
+
+**Create outputs:** `transmission` (full TransmissionDto).
+**Update inputs:** `organizationId`, `transmissionId`, `transmission` (dynamic partial fields).
+**Delete outputs:** `success` (boolean).
+
+**Status enum:** Pending, InProgress, Sent, Received, Delivered, Acknowledged, Rejected, Error, RetryScheduled, Cancelled, Expired, Accepted.
+
 ## Accounting Transaction (Additional)
 
 | Task | Description |

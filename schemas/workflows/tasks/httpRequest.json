@@ -105,6 +105,10 @@
             }
           }
         },
+        "saveToFile": {
+          "type": "boolean",
+          "description": "When true, saves response body to a temp file instead of returning it in memory. Response returns { StatusCode, Headers, FilePath } instead of body content."
+        },
         "cache": {
           "type": "object",
           "properties": {

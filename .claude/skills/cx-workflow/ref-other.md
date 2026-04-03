@@ -55,18 +55,46 @@
 
 | Task | Description |
 |------|-------------|
-| `EDI/Parse` | Parse EDI documents (X12, EDIFACT) |
+| `X12/Parse` | Parse X12 EDI documents (850, 856) |
+| `EDIFACT/Parse` | Parse EDIFACT messages (IFTMIN) |
+| `EDIFACT/Generate` | Generate EDIFACT messages (IFTMIN) |
+| `EDI/Parse` | **Deprecated** — alias for X12/Parse, use `X12/Parse` instead |
 | `StructuredFile/Parse` | Parse structured files |
 
 ```yaml
-- task: "EDI/Parse@1"
-  name: ParseEdi
+- task: "X12/Parse@1"
+  name: ParseX12
   inputs:
-    content: "{{ Transfer.Download.content }}"
-    format: "X12"
+    ediData: "{{ Transfer.Download.content }}"
+    transactionSet: "850"
+    validateSchema: true
   outputs:
     - name: parsed
       mapping: "document"
+```
+
+```yaml
+- task: "EDIFACT/Parse@1"
+  name: ParseEdifact
+  inputs:
+    edifactData: "{{ Transfer.Download.content }}"
+    messageType: "IFTMIN"
+  outputs:
+    - name: parsed
+      mapping: "document"
+```
+
+```yaml
+- task: "EDIFACT/Generate@1"
+  name: GenerateEdifact
+  inputs:
+    messageType: "IFTMIN"
+    data: "{{ shipmentData }}"
+  outputs:
+    - name: edifactData
+      mapping: "edifactData"
+    - name: messageType
+      mapping: "messageType"
 ```
 
 ## Flow
