@@ -68,13 +68,52 @@
           "properties": {
             "foreach": {
               "type": "string",
-              "description": "Collection to iterate"
+              "description": "Expression evaluating to array collection to iterate (e.g., 'stepName.result?.items?')"
+            },
+            "item": {
+              "type": "string",
+              "description": "Variable name for current item (default: 'item')"
+            },
+            "index": {
+              "type": "string",
+              "description": "Variable name for current index"
+            },
+            "conditions": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "description": "Single NCalc filter expression (e.g., '[item.isActive] = true')"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      { "type": "string" },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "expression": { "type": "string" }
+                        }
+                      }
+                    ]
+                  },
+                  "description": "Array of condition expressions (all must be true)"
+                }
+              ],
+              "description": "Filter conditions — only items matching all conditions are included"
+            },
+            "continueOnError": {
+              "type": "boolean",
+              "description": "Skip items that cause errors and continue"
             },
             "mapping": {
               "type": "object",
+              "description": "Object defining the output shape — each key maps to a template expression or nested value directive",
               "additionalProperties": true
             }
-          }
+          },
+          "required": ["foreach", "mapping"],
+          "additionalProperties": false
         },
         {
           "type": "object",
