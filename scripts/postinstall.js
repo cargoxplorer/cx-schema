@@ -111,6 +111,97 @@ main().catch(error => {
   }
 }
 
+const CX_CLAUDE_MARKER = '<!-- cx-schema-instructions -->';
+
+function generateClaudeMdContent() {
+  return `${CX_CLAUDE_MARKER}
+## CargoXplorer Project
+
+This is a CargoXplorer (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by \`@cxtms/cx-schema\`.
+
+### Project Structure
+
+\`\`\`
+app.yaml              # Application manifest (name, version, description)
+modules/              # UI module YAML files
+workflows/            # Workflow YAML files
+features/             # Feature-scoped modules and workflows
+  <feature>/
+    modules/
+    workflows/
+\`\`\`
+
+### CLI — \`cxtms\`
+
+**Always scaffold via CLI, never write YAML from scratch.**
+
+| Command | Description |
+|---------|-------------|
+| \`npx cxtms create module <name>\` | Scaffold a UI module |
+| \`npx cxtms create workflow <name>\` | Scaffold a workflow |
+| \`npx cxtms create module <name> --template <t>\` | Use a specific template |
+| \`npx cxtms create workflow <name> --template <t>\` | Use a specific template |
+| \`npx cxtms create module <name> --feature <f>\` | Place under features/<f>/modules/ |
+| \`npx cxtms <file.yaml>\` | Validate a YAML file |
+| \`npx cxtms <file.yaml> --verbose\` | Validate with detailed errors |
+| \`npx cxtms schema <name>\` | Show JSON schema for a component or task |
+| \`npx cxtms example <name>\` | Show example YAML |
+| \`npx cxtms list\` | List all available schemas |
+| \`npx cxtms extract <src> <comp> --to <tgt>\` | Move component between modules |
+
+**Module templates:** \`default\`, \`form\`, \`grid\`, \`select\`, \`configuration\`
+**Workflow templates:** \`basic\`, \`entity-trigger\`, \`document\`, \`scheduled\`, \`utility\`, \`webhook\`, \`public-api\`, \`mcp-tool\`, \`ftp-tracking\`, \`ftp-edi\`, \`api-tracking\`
+
+### Skills (slash commands)
+
+| Skill | Purpose |
+|-------|---------|
+| \`/cxtms-module-builder <description>\` | Generate a UI module (forms, grids, screens) |
+| \`/cxtms-workflow-builder <description>\` | Generate a workflow (automation, triggers, integrations) |
+| \`/cxtms-developer <entity or question>\` | Look up entity fields, enums, and domain reference |
+
+### Workflow: Scaffold → Customize → Validate
+
+1. **Scaffold** — \`npx cxtms create module|workflow <name> --template <t>\`
+2. **Read** the generated file
+3. **Customize** for the use case
+4. **Validate** — \`npx cxtms <file.yaml>\` — run after every change, fix all errors
+${CX_CLAUDE_MARKER}`;
+}
+
+function setupClaudeMd(projectRoot) {
+  const claudeMdPath = path.join(projectRoot, 'CLAUDE.md');
+  const cxContent = generateClaudeMdContent();
+
+  if (fs.existsSync(claudeMdPath)) {
+    const existing = fs.readFileSync(claudeMdPath, 'utf-8');
+
+    if (existing.includes(CX_CLAUDE_MARKER)) {
+      // Replace existing CX section
+      const markerRegex = new RegExp(
+        CX_CLAUDE_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+        '[\\s\\S]*?' +
+        CX_CLAUDE_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      );
+      const updated = existing.replace(markerRegex, cxContent);
+      if (updated !== existing) {
+        fs.writeFileSync(claudeMdPath, updated, 'utf-8');
+        console.log('Updated CX instructions in CLAUDE.md');
+      } else {
+        console.log('CLAUDE.md CX instructions already up to date');
+      }
+    } else {
+      // Append to existing file
+      const separator = existing.endsWith('\n') ? '\n' : '\n\n';
+      fs.writeFileSync(claudeMdPath, existing + separator + cxContent + '\n', 'utf-8');
+      console.log('Appended CX instructions to CLAUDE.md');
+    }
+  } else {
+    fs.writeFileSync(claudeMdPath, `# Project Instructions\n\n${cxContent}\n`, 'utf-8');
+    console.log('Created CLAUDE.md with CX instructions');
+  }
+}
+
 function main() {
   console.log('CX Schema Validator: Running postinstall...');
 
@@ -182,6 +273,9 @@ function main() {
       }
     }
   }
+
+  // TODO: Enable once CLAUDE.md content is finalized
+  // setupClaudeMd(projectRoot);
 
   console.log('✓ CX Schema Validator installed successfully!');
   console.log('\nUsage:');

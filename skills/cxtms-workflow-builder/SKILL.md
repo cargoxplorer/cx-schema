@@ -43,7 +43,6 @@ npx cxtms create workflow <name> --template <template>
 | `ftp-tracking` | Import tracking events from FTP |
 | `ftp-edi` | Import orders from FTP via EDI |
 | `api-tracking` | Fetch tracking from carrier API |
-| `mcp-tool` | Expose workflow as MCP tool |
 | `webhook` | HTTP endpoint for external callers |
 | `public-api` | REST API endpoint with OpenAPI docs |
 
@@ -66,8 +65,6 @@ npx cxtms create workflow <name> --template <template>
 **`ftp-edi`** — update `ftpConfig` configName, `directory` in ListFiles, set `workflowId` or `workflowName` in `Workflow/Execute@1` to point to your EDI parser sub-workflow. Map parsed EDI output to `orders` for `Order/Import@1`. Configure `orderMatchByFields` and `commodityMatchByFields`. Adjust `cron` schedule and MoveFile destination path.
 
 **`api-tracking`** — update `apiConfig` configName with carrier API credentials (`baseUrl`, `apiKey`, `carrierId`). Update the GraphQL filter to select orders needing tracking. Map the carrier's API response structure in ParseTrackingResponse (foreach path, field names for `eventDate`, `location`, `statusCode`). Configure `trackingEventMatchByFields` and `matchByEventDefinition` custom value keys.
-
-**`mcp-tool`** — write a clear `agentInstruction` describing when to use the tool, expected inputs, and return values. Keep `executionMode: Sync` so the agent gets results immediately. Define typed `inputs` with descriptive `props` (the AI reads these). Return structured data via `outputs`. The `mcp-tool` tag is required — it's what makes the workflow discoverable via `list_custom_tools` in the MCP server. Validate inputs with `Utilities/Error@1` conditions.
 
 **`webhook`** — endpoint: `POST /api/v2/orgs/{organizationId}/webhooks/{workflowId}`. The endpoint is anonymous (`[AllowAnonymous]`) and rate-limited (10/sec, 100/min per IP). Two inputs are auto-injected by the controller: `payload` (parsed JSON body or raw string) and `request` (object with `headers`, `body`, `remoteIpAddress`). Control the HTTP response via `response` and `statusCode` outputs. Update `webhookSecret` configName to your app config path. Customize the `ValidateWebhook` step for your auth method (header secret, HMAC signature, etc.). Use `executionMode: Sync` when the caller needs a response; use `Async` for fire-and-forget (returns immediately). Keep `runAs: "system"` since the endpoint is anonymous. Add `additionalProperties.cors.allowedOrigins` to restrict CORS if needed.
 

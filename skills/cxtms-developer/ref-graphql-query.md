@@ -290,17 +290,6 @@ npx cxtms gql type EntityAuditHistoryLightResult
 npx cxtms gql type CreateOrderInput
 ```
 
-### TMS MCP: `graphql_schema` / `graphql_type` — equivalent MCP tools
-
-When TMS MCP is available, the same discovery is available via MCP tools:
-
-```
-graphql_schema(section: "queries", filter: "order")
-graphql_schema(section: "types", filter: "audit")
-graphql_type(typeName: "OrderGqlDto")
-graphql_execute(query: "{ orders(organizationId: 1, take: 1) { items { orderId } } }")
-```
-
 ### Workflow: discover → query
 
 1. **Find the type** — `cxtms gql types --filter order` to find type names

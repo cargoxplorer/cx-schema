@@ -6,6 +6,7 @@ dist/
 .idea/
 *.tgz
 
+.claude/
 .cx-schema/
 
 nul
