@@ -1,5 +1,5 @@
 ---
-name: cx-module
+name: cxtms-module-builder
 description: >
   Works with CXTMS app module YAML files — creates, modifies, fixes, validates, and deploys UI screens, forms, grids, and routes.
   Use when the user asks to create, modify, or fix a module YAML file, references *-module.yaml files, or asks about UI components/forms/grids/routes in a CX project.
@@ -160,9 +160,9 @@ When the target file doesn't exist, a new module is created with:
 
 **Read these files only when needed for the current task.** Do not load all references upfront.
 
-### Entity Field Reference (cx-core)
+### Entity Field Reference (cxtms-developer)
 
-!cat .claude/skills/cx-core/SKILL.md
+!cat skills/cxtms-developer/SKILL.md
 
 ### Component Directory
 
@@ -170,12 +170,12 @@ Read the relevant category ref file when building specific component types:
 
 | Category | Components | File |
 |----------|-----------|------|
-| **Layout & Structure** | `layout`, `row`, `col`, `header`, `tabs`, `toolbar`, `card`, `line`, `slot` | `.claude/skills/cx-module/ref-components-layout.md` |
-| **Forms & Input** | `form`, `field`, `field-collection`, `barcodeScanner` | `.claude/skills/cx-module/ref-components-forms.md` |
-| **Data Display** | `dataGrid`, `text`, `markup`, `badge`, `icon`, `image`, `photo`, `summary`, `diff`, `viewer`, `embed` | `.claude/skills/cx-module/ref-components-display.md` |
-| **Interactive & Nav** | `button`, `dropdown`, `menuButton`, `link`, `redirect`, `navbar`, `navbarItem`, `navbarLink`, `navDropdown` | `.claude/skills/cx-module/ref-components-interactive.md` |
-| **Data & Collections** | `collection`, `list`, `listItem`, `datasource`, `script` | `.claude/skills/cx-module/ref-components-data.md` |
-| **Specialized** | `calendar`, `notes`, `dashboard`, `dashboard-widget`, `widget`, `timeline`, `timeline-grid`, `oauth2` | `.claude/skills/cx-module/ref-components-specialized.md` |
+| **Layout & Structure** | `layout`, `row`, `col`, `header`, `tabs`, `toolbar`, `card`, `line`, `slot` | `skills/cxtms-module-builder/ref-components-layout.md` |
+| **Forms & Input** | `form`, `field`, `field-collection`, `barcodeScanner` | `skills/cxtms-module-builder/ref-components-forms.md` |
+| **Data Display** | `dataGrid`, `text`, `markup`, `badge`, `icon`, `image`, `photo`, `summary`, `diff`, `viewer`, `embed` | `skills/cxtms-module-builder/ref-components-display.md` |
+| **Interactive & Nav** | `button`, `dropdown`, `menuButton`, `link`, `redirect`, `navbar`, `navbarItem`, `navbarLink`, `navDropdown` | `skills/cxtms-module-builder/ref-components-interactive.md` |
+| **Data & Collections** | `collection`, `list`, `listItem`, `datasource`, `script` | `skills/cxtms-module-builder/ref-components-data.md` |
+| **Specialized** | `calendar`, `notes`, `dashboard`, `dashboard-widget`, `widget`, `timeline`, `timeline-grid`, `oauth2` | `skills/cxtms-module-builder/ref-components-specialized.md` |
 
 ### Templates
 
@@ -409,7 +409,7 @@ Reusable select components (e.g., `Countries/Select`, `Ports/Select`) follow thi
 
 ## Server Module Commands
 
-Deploy, undeploy, and release commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cx-core/ref-cli-auth.md](.claude/skills/cx-core/ref-cli-auth.md)
+Deploy, undeploy, and release commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cxtms-developer/ref-cli-auth.md](skills/cxtms-developer/ref-cli-auth.md)
 
 ### Releasing App to GitHub
 

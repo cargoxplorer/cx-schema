@@ -150,9 +150,9 @@ function main() {
   createValidationScript(projectRoot);
 
   // Copy Claude Code skills (clean existing first to remove stale files)
-  const skillNames = ['cx-core', 'cx-module', 'cx-workflow'];
+  const skillNames = ['cxtms-developer', 'cxtms-module-builder', 'cxtms-workflow-builder'];
   for (const skillName of skillNames) {
-    const skillSource = path.join(__dirname, '..', '.claude', 'skills', skillName);
+    const skillSource = path.join(__dirname, '..', 'skills', skillName);
     if (fs.existsSync(skillSource)) {
       const skillDest = path.join(projectRoot, '.claude', 'skills', skillName);
       console.log(`Installing ${skillName} skill...`);
@@ -169,14 +169,17 @@ function main() {
     }
   }
 
-  // Remove old cx-build skill if it exists
-  const oldSkillDest = path.join(projectRoot, '.claude', 'skills', 'cx-build');
-  if (fs.existsSync(oldSkillDest)) {
-    try {
-      fs.rmSync(oldSkillDest, { recursive: true });
-      console.log('Removed deprecated cx-build skill.');
-    } catch (error) {
-      // Ignore cleanup errors
+  // Remove deprecated skills
+  const deprecatedSkills = ['cx-build', 'cx-core', 'cx-module', 'cx-workflow'];
+  for (const oldSkill of deprecatedSkills) {
+    const oldSkillDest = path.join(projectRoot, '.claude', 'skills', oldSkill);
+    if (fs.existsSync(oldSkillDest)) {
+      try {
+        fs.rmSync(oldSkillDest, { recursive: true });
+        console.log(`Removed deprecated ${oldSkill} skill.`);
+      } catch (error) {
+        // Ignore cleanup errors
+      }
     }
   }
 
@@ -184,8 +187,8 @@ function main() {
   console.log('\nUsage:');
   console.log('  npx cxtms modules/your-module.yaml');
   console.log('  node .cx-schema/validate.js modules/your-module.yaml');
-  console.log('  /cx-module <description>   (Claude Code skill - UI modules)');
-  console.log('  /cx-workflow <description>  (Claude Code skill - workflows)');
+  console.log('  /cxtms-module-builder <description>   (Claude Code skill - UI modules)');
+  console.log('  /cxtms-workflow-builder <description>  (Claude Code skill - workflows)');
 }
 
 // Only run if this is not being installed as a dependency of cx-schema-validator itself

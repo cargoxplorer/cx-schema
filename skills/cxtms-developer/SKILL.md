@@ -1,10 +1,12 @@
 ---
-name: cx-core
-description: Shared CargoXplorer entity field reference — domain entities, field names, enums, and customValues patterns
+name: cxtms-developer
+description: >
+  Shared CargoXplorer domain reference — entity fields, enums, customValues, GraphQL queries, and CLI auth.
+  Use when the user asks about CX entity fields, enums, customValues, entity relationships, or needs domain reference for Orders, Contacts, Commodities, Jobs, Charges, or other CX entities.
 argument-hint: <entity name or question about fields>
 ---
 
-Shared domain reference for CargoXplorer entities. Used by `cx-workflow` and `cx-module` skills for entity field names, types, navigation properties, enums, and customValues extension patterns.
+Shared domain reference for CargoXplorer entities. Used by `cxtms-workflow-builder` and `cxtms-module-builder` skills for entity field names, types, navigation properties, enums, and customValues extension patterns.
 
 ## Feature File Layout
 
@@ -27,32 +29,32 @@ Use `--feature <feature_name>` with `cx-cli create` to automatically place files
 
 ### Primary Entities
 
-!cat .claude/skills/cx-core/ref-entity-order.md
-!cat .claude/skills/cx-core/ref-entity-contact.md
-!cat .claude/skills/cx-core/ref-entity-commodity.md
-!cat .claude/skills/cx-core/ref-entity-accounting.md
+!cat skills/cxtms-developer/ref-entity-order.md
+!cat skills/cxtms-developer/ref-entity-contact.md
+!cat skills/cxtms-developer/ref-entity-commodity.md
+!cat skills/cxtms-developer/ref-entity-accounting.md
 
 ### Order Sub-Entities & Related
 
-!cat .claude/skills/cx-core/ref-entity-order-sub.md
-!cat .claude/skills/cx-core/ref-entity-job.md
+!cat skills/cxtms-developer/ref-entity-order-sub.md
+!cat skills/cxtms-developer/ref-entity-job.md
 
 ### Pricing & Accounting Lookups
 
-!cat .claude/skills/cx-core/ref-entity-rate.md
+!cat skills/cxtms-developer/ref-entity-rate.md
 
 ### Shared & Lookup Entities
 
-!cat .claude/skills/cx-core/ref-entity-shared.md
-!cat .claude/skills/cx-core/ref-entity-geography.md
+!cat skills/cxtms-developer/ref-entity-shared.md
+!cat skills/cxtms-developer/ref-entity-geography.md
 
 ### Warehouse & Inventory
 
-!cat .claude/skills/cx-core/ref-entity-warehouse.md
+!cat skills/cxtms-developer/ref-entity-warehouse.md
 
 ### Notifications
 
-!cat .claude/skills/cx-core/ref-entity-notification.md
+!cat skills/cxtms-developer/ref-entity-notification.md
 
 | Category | Entities | Reference |
 |----------|----------|-----------|

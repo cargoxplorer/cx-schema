@@ -1,5 +1,5 @@
 ---
-name: cx-workflow
+name: cxtms-workflow-builder
 description: >
   Works with CXTMS workflow YAML files — creates, modifies, fixes, validates, and deploys standard process and Flow state machine workflows.
   Use when the user asks to create, modify, or fix a workflow YAML file, references workflow/*.yaml files, or asks about workflow tasks/triggers/activities in a CX project.
@@ -75,7 +75,7 @@ npx cxtms create workflow <name> --template <template>
 
 **All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowExecuted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed.
 
-**Flow workflows** — scaffold with `basic` then set `workflowType: Flow`, remove `activities`/`triggers`, add `entity`, `states`, `transitions`, `aggregations`. Load Flow reference: `!cat .claude/skills/cx-workflow/ref-flow.md`
+**Flow workflows** — scaffold with `basic` then set `workflowType: Flow`, remove `activities`/`triggers`, add `entity`, `states`, `transitions`, `aggregations`. Load Flow reference: `!cat skills/cxtms-workflow-builder/ref-flow.md`
 
 ### Step 4: Validate
 
@@ -191,8 +191,8 @@ events:                                     # Workflow-level event handlers
 
 ## Variable References (quick summary)
 
-For template expressions and value directives: see [ref-expressions-template.md](.claude/skills/cx-workflow/ref-expressions-template.md)
-For NCalc conditions and functions: see [ref-expressions-ncalc.md](.claude/skills/cx-workflow/ref-expressions-ncalc.md)
+For template expressions and value directives: see [ref-expressions-template.md](skills/cxtms-workflow-builder/ref-expressions-template.md)
+For NCalc conditions and functions: see [ref-expressions-ncalc.md](skills/cxtms-workflow-builder/ref-expressions-ncalc.md)
 
 **`{{ path }}`** — in step inputs. Single `{{ }}` returns raw object. Multiple returns string interpolation.
 **`[variable]`** — in conditions and `expression:` directives. NCalc syntax.
@@ -279,25 +279,25 @@ Implicit variable: `iteration` (zero-based).
 
 | Category | Tasks | Load Reference |
 |----------|-------|----------------|
-| Utilities | SetVariable, Log, Error, HttpRequest, Map, Template, Import, Export, CsvParse, UnzipFile | `!cat .claude/skills/cx-workflow/ref-utilities.md` |
-| Query & Workflow | Query/GraphQL, Validation, Workflow/Execute | `!cat .claude/skills/cx-workflow/ref-query.md` |
-| Entity CRUD | Order, Contact, Commodity, Job, Charge, Discount, Inventory, Movement, Transmission | `!cat .claude/skills/cx-workflow/ref-entity.md` |
-| Communication | Email/Send, Document/Render, Attachment, PdfDocument/Merge | `!cat .claude/skills/cx-workflow/ref-communication.md` |
-| File Transfer | Connect, Disconnect, ListFiles, Download, Upload, Move, Delete | `!cat .claude/skills/cx-workflow/ref-filetransfer.md` |
-| Accounting | AccountingTransaction, Payment, Number/Generate, SequenceNumber | `!cat .claude/skills/cx-workflow/ref-accounting.md` |
-| Other | User, Auth, Caching, X12/Parse, EDIFACT, Flow/Transition, Notes, AppModule, ActionEvent | `!cat .claude/skills/cx-workflow/ref-other.md` |
+| Utilities | SetVariable, Log, Error, HttpRequest, Map, Template, Import, Export, CsvParse, UnzipFile | `!cat skills/cxtms-workflow-builder/ref-utilities.md` |
+| Query & Workflow | Query/GraphQL, Validation, Workflow/Execute | `!cat skills/cxtms-workflow-builder/ref-query.md` |
+| Entity CRUD | Order, Contact, Commodity, Job, Charge, Discount, Inventory, Movement, Transmission | `!cat skills/cxtms-workflow-builder/ref-entity.md` |
+| Communication | Email/Send, Document/Render, Attachment, PdfDocument/Merge | `!cat skills/cxtms-workflow-builder/ref-communication.md` |
+| File Transfer | Connect, Disconnect, ListFiles, Download, Upload, Move, Delete | `!cat skills/cxtms-workflow-builder/ref-filetransfer.md` |
+| Accounting | AccountingTransaction, Payment, Number/Generate, SequenceNumber | `!cat skills/cxtms-workflow-builder/ref-accounting.md` |
+| Other | User, Auth, Caching, X12/Parse, EDIFACT, Flow/Transition, Notes, AppModule, ActionEvent | `!cat skills/cxtms-workflow-builder/ref-other.md` |
 
-## Entity Field Reference (cx-core)
+## Entity Field Reference (cxtms-developer)
 
-!cat .claude/skills/cx-core/SKILL.md
+!cat skills/cxtms-developer/SKILL.md
 
 ## Additional References (load on demand)
 
 | Reference | Load |
 |-----------|------|
-| Template Expressions & Value Directives | `!cat .claude/skills/cx-workflow/ref-expressions-template.md` |
-| NCalc Expressions & Functions | `!cat .claude/skills/cx-workflow/ref-expressions-ncalc.md` |
-| Flow Workflows (state machines) | `!cat .claude/skills/cx-workflow/ref-flow.md` |
+| Template Expressions & Value Directives | `!cat skills/cxtms-workflow-builder/ref-expressions-template.md` |
+| NCalc Expressions & Functions | `!cat skills/cxtms-workflow-builder/ref-expressions-ncalc.md` |
+| Flow Workflows (state machines) | `!cat skills/cxtms-workflow-builder/ref-flow.md` |
 
 ## Dynamic Schema Access (load on demand)
 
@@ -320,7 +320,7 @@ Implicit variable: `iteration` (zero-based).
 
 ## Server Workflow Commands
 
-Deploy, undeploy, and release commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cx-core/ref-cli-auth.md](.claude/skills/cx-core/ref-cli-auth.md)
+Deploy, undeploy, and release commands are listed in the CLI section at the top of this file. For authentication setup (login, PAT tokens, org management): see [cxtms-developer/ref-cli-auth.md](skills/cxtms-developer/ref-cli-auth.md)
 
 ### Releasing App to GitHub
 

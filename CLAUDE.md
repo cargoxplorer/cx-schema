@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repo is the home of the **cx-\* Claude Code skills** (`cx-core`, `cx-module`, `cx-workflow`) — the knowledge base and generation rules that teach Claude Code how to build CargoXplorer modules and workflows. It also contains `cxtms`, a TypeScript CLI tool the skills use to scaffold, validate, and inspect YAML files.
+This repo is the home of the **cxtms-\* Claude Code skills** (`cxtms-developer`, `cxtms-module-builder`, `cxtms-workflow-builder`) — the knowledge base and generation rules that teach Claude Code how to build CargoXplorer modules and workflows. It also contains `cxtms`, a TypeScript CLI tool the skills use to scaffold, validate, and inspect YAML files.
 
 The three pillars:
-1. **Skills** (`.claude/skills/`) — SKILL.md + ref-*.md files that Claude Code loads when generating YAML
+1. **Skills** (`skills/`) — SKILL.md + ref-*.md files that Claude Code loads when generating YAML
 2. **Schemas** (`schemas/`) — JSON Schema definitions that enforce correctness
 3. **CLI** (`src/cli.ts` → `cxtms`) — scaffolding from templates, validation, schema introspection
 
@@ -30,13 +30,13 @@ No test suite (`npm test` is a no-op). Verify changes by scaffolding from templa
 
 ## Architecture
 
-### Skills (`.claude/skills/`) — the primary deliverable
+### Skills (`skills/`) — the primary deliverable
 
 Each skill has a `SKILL.md` entry point and `ref-*.md` reference files loaded on demand.
 
-- **`cx-core`** — Shared entity field reference (Order, Contact, Commodity, Job, etc.), enums, customValues patterns. Loaded by both cx-module and cx-workflow as a dependency.
-- **`cx-module`** — Teaches Claude Code to generate UI module YAML. References: layout, form, data grid, field types, actions, routes. Uses cxtms to scaffold (`create module`) and validate.
-- **`cx-workflow`** — Teaches Claude Code to generate workflow YAML. References: task types (utilities, query, entity CRUD, communication, file transfer, accounting), expression syntax, Flow state machines. Uses cxtms to scaffold (`create workflow --template <t>`) and validate.
+- **`cxtms-developer`** — Shared entity field reference (Order, Contact, Commodity, Job, etc.), enums, customValues patterns, GraphQL queries, CLI auth. Loaded by both cxtms-module-builder and cxtms-workflow-builder as a dependency.
+- **`cxtms-module-builder`** — Teaches Claude Code to generate UI module YAML. References: layout, form, data grid, field types, actions, routes. Uses cxtms to scaffold (`create module`) and validate.
+- **`cxtms-workflow-builder`** — Teaches Claude Code to generate workflow YAML. References: task types (utilities, query, entity CRUD, communication, file transfer, accounting), expression syntax, Flow state machines. Uses cxtms to scaffold (`create workflow --template <t>`) and validate.
 
 **Skill contract**: skills instruct Claude Code to always scaffold via `cxtms create` (never write YAML from scratch), then customize the output, then validate with `cxtms`. The CLI, schemas, and templates exist to support this workflow.
 
@@ -150,9 +150,9 @@ features/             # Feature-scoped modules and workflows
 
 | Skill | Purpose |
 |-------|---------|
-| `/cx-module <description>` | Generate a UI module (forms, grids, screens) |
-| `/cx-workflow <description>` | Generate a workflow (automation, triggers, integrations) |
-| `/cx-core <entity or question>` | Look up entity fields, enums, and domain reference |
+| `/cxtms-module-builder <description>` | Generate a UI module (forms, grids, screens) |
+| `/cxtms-workflow-builder <description>` | Generate a workflow (automation, triggers, integrations) |
+| `/cxtms-developer <entity or question>` | Look up entity fields, enums, and domain reference |
 
 ### Workflow: Scaffold → Customize → Validate
 

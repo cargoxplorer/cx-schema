@@ -1547,10 +1547,10 @@ function runSyncSchemas(): void {
 // ============================================================================
 
 function findPackageSkillsDir(): string | null {
-  // Skills live in the package's .claude/skills/ directory
+  // Skills live in the package's skills/ directory
   // When running from dist/cli.js, the package root is one level up
   const packageRoot = path.resolve(__dirname, '..');
-  const skillsDir = path.join(packageRoot, '.claude', 'skills');
+  const skillsDir = path.join(packageRoot, 'skills');
   if (fs.existsSync(skillsDir)) {
     return skillsDir;
   }
@@ -1585,7 +1585,7 @@ function runInstallSkills(): void {
   }
 
   const projectRoot = process.cwd();
-  const skillNames = ['cx-core', 'cx-module', 'cx-workflow'];
+  const skillNames = ['cxtms-developer', 'cxtms-module-builder', 'cxtms-workflow-builder'];
   let installed = 0;
 
   for (const skillName of skillNames) {
@@ -1607,11 +1607,14 @@ function runInstallSkills(): void {
     installed++;
   }
 
-  // Remove deprecated cx-build skill if it exists
-  const oldSkillDest = path.join(projectRoot, '.claude', 'skills', 'cx-build');
-  if (fs.existsSync(oldSkillDest)) {
-    fs.rmSync(oldSkillDest, { recursive: true });
-    console.log(chalk.gray('  Removed deprecated cx-build skill.'));
+  // Remove deprecated skills if they exist
+  const deprecatedSkills = ['cx-build', 'cx-core', 'cx-module', 'cx-workflow'];
+  for (const oldSkill of deprecatedSkills) {
+    const oldSkillDest = path.join(projectRoot, '.claude', 'skills', oldSkill);
+    if (fs.existsSync(oldSkillDest)) {
+      fs.rmSync(oldSkillDest, { recursive: true });
+      console.log(chalk.gray(`  Removed deprecated ${oldSkill} skill.`));
+    }
   }
 
   console.log('');
@@ -1707,9 +1710,9 @@ features/             # Feature-scoped modules and workflows
 
 | Skill | Purpose |
 |-------|---------|
-| \`/cx-module <description>\` | Generate a UI module (forms, grids, screens) |
-| \`/cx-workflow <description>\` | Generate a workflow (automation, triggers, integrations) |
-| \`/cx-core <entity or question>\` | Look up entity fields, enums, and domain reference |
+| \`/cxtms-module-builder <description>\` | Generate a UI module (forms, grids, screens) |
+| \`/cxtms-workflow-builder <description>\` | Generate a workflow (automation, triggers, integrations) |
+| \`/cxtms-developer <entity or question>\` | Look up entity fields, enums, and domain reference |
 
 ### Workflow: Scaffold → Customize → Validate
 
