@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PostalCodes Import Task",
+  "description": "Import postal codes from file, URL, or direct data",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["PostalCodes/Import@1"],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "PostalCodes/Import inputs — provide fileUrl, stream, or postalCodes",
+      "properties": {
+        "fileUrl": {
+          "type": "string",
+          "description": "URL to import file (CSV, XLSX, JSON, XML). File type is auto-detected from URL extension."
+        },
+        "fileType": {
+          "type": "string",
+          "enum": ["Csv", "Xlsx", "Json", "Xml", "Html"],
+          "description": "File format. Required when using stream input; auto-detected from fileUrl otherwise."
+        },
+        "stream": {
+          "description": "Raw stream data (binary). Requires fileType to be set."
+        },
+        "postalCodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Code": { "type": "string" },
+              "CountryCode": { "type": "string" },
+              "PlaceName": { "type": "string" },
+              "StateCode": { "type": "string" },
+              "Latitude": { "type": "number" },
+              "Longitude": { "type": "number" },
+              "TimeZone": { "type": "string" },
+              "CustomValues": { "type": "object", "additionalProperties": true }
+            },
+            "required": ["Code", "CountryCode", "PlaceName"]
+          },
+          "description": "Direct postal code objects for import"
+        },
+        "matchByFields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Fields to match existing records for upsert (e.g. ['Code', 'CountryCode'])"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
+        },
+        "required": ["name", "mapping"]
+      },
+      "description": "Outputs: result.success (boolean), result.added (int), result.updated (int), result.totalProcessed (int), result.errors (string[]), result.hasErrors (boolean)"
+    }
+  },
+  "required": ["task", "name", "inputs"],
+  "additionalProperties": true
+}
