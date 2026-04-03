@@ -242,18 +242,47 @@ Renders a Handlebars template string with data.
 
 ## CsvParse@1
 
-Parses CSV content into structured data. CSV headers are automatically trimmed of whitespace, BOM characters, and other special characters to ensure reliable column matching.
+Parses CSV/TSV data from a URL (file://, http://, https://). Headers are trimmed of whitespace, BOM, and special characters. Outputs: `records` (array of dicts), `count` (int), `hasRecords` (boolean).
 
 ```yaml
 - task: "Utilities/CsvParse@1"
   name: ParseCsv
   inputs:
-    content: "{{ Data?.DownloadFile?.fileContent? }}"
-    delimiter: ","
+    url: "{{ Data?.DownloadFile?.filePath? }}"
     hasHeader: true
   outputs:
     - name: rows
-      mapping: "rows?"
+      mapping: "records?"
+    - name: rowCount
+      mapping: "count?"
+```
+
+Tab-delimited with custom columns (e.g. GeoNames postal code files):
+
+```yaml
+- task: "Utilities/CsvParse@1"
+  name: ParsePostalCodes
+  inputs:
+    url: "{{ Data?.UnzipFiles?.filePath? }}"
+    delimiter: "\t"
+    columns:
+      - CountryCode
+      - Code
+      - PlaceName
+      - StateName
+      - StateCode
+      - AdminName2
+      - AdminCode2
+      - AdminName3
+      - AdminCode3
+      - Latitude
+      - Longitude
+      - Accuracy
+  outputs:
+    - name: postalCodes
+      mapping: "records?"
+    - name: totalCount
+      mapping: "count?"
 ```
 
 ## Export@1

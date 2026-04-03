@@ -514,6 +514,7 @@ ${chalk.bold.yellow('WORKFLOW TEMPLATES:')}
   ${chalk.green('entity-trigger')}  React to entity changes (Before/After triggers)
   ${chalk.green('document')}        Generate PDF/Excel documents
   ${chalk.green('scheduled')}       Cron-based batch processing
+  ${chalk.green('scheduled-execute')} Schedule another workflow on cron
   ${chalk.green('utility')}         Reusable helper (called via Workflow/Execute)
   ${chalk.green('webhook')}         HTTP endpoint for external callers (anonymous, rate-limited)
   ${chalk.green('public-api')}      REST API endpoint with OpenAPI documentation
@@ -1704,7 +1705,7 @@ features/             # Feature-scoped modules and workflows
 | \`npx cxtms extract <src> <comp> --to <tgt>\` | Move component between modules |
 
 **Module templates:** \`default\`, \`form\`, \`grid\`, \`select\`, \`configuration\`
-**Workflow templates:** \`basic\`, \`entity-trigger\`, \`document\`, \`scheduled\`, \`utility\`, \`webhook\`, \`public-api\`, \`mcp-tool\`, \`ftp-tracking\`, \`ftp-edi\`, \`api-tracking\`
+**Workflow templates:** \`basic\`, \`entity-trigger\`, \`document\`, \`scheduled\`, \`scheduled-execute\`, \`utility\`, \`webhook\`, \`public-api\`, \`mcp-tool\`, \`ftp-tracking\`, \`ftp-edi\`, \`api-tracking\`
 
 ### Skills (slash commands)
 

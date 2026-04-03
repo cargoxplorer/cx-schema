@@ -144,7 +144,7 @@ features/             # Feature-scoped modules and workflows
 | `npx cxtms extract <src> <comp> --to <tgt>` | Move component between modules |
 
 **Module templates:** `default`, `form`, `grid`, `select`, `configuration`
-**Workflow templates:** `basic`, `entity-trigger`, `document`, `scheduled`, `utility`, `webhook`, `public-api`, `mcp-tool`, `ftp-tracking`, `ftp-edi`, `api-tracking`
+**Workflow templates:** `basic`, `entity-trigger`, `document`, `scheduled`, `scheduled-execute`, `utility`, `webhook`, `public-api`, `mcp-tool`, `ftp-tracking`, `ftp-edi`, `api-tracking`
 
 ### Skills (slash commands)
 

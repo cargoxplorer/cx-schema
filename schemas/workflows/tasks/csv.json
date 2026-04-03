@@ -1,12 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "CSV Task",
-  "description": "Parse or generate CSV data",
+  "title": "CSV Parse Task",
+  "description": "Parse CSV/TSV data from a URL (supports file:// and http(s)://)",
   "type": "object",
   "properties": {
     "task": {
       "type": "string",
-      "enum": ["Utilities/CSV@1", "Utilities/CsvParse"],
+      "enum": ["Utilities/CsvParse@1"],
       "description": "Task type identifier"
     },
     "name": {
@@ -34,28 +34,30 @@
     },
     "inputs": {
       "type": "object",
-      "description": "CSV inputs",
+      "description": "CsvParse inputs",
       "properties": {
-        "data": {
+        "url": {
           "type": "string",
-          "description": "CSV data to parse"
-        },
-        "delimiter": {
-          "type": "string",
-          "description": "Column delimiter (default: ',')"
+          "description": "URL to CSV file (file://, http://, https://)"
         },
         "hasHeader": {
           "type": "boolean",
-          "description": "Whether first row is header"
+          "default": true,
+          "description": "Whether first row is a header row (default: true). Ignored when columns is provided."
+        },
+        "delimiter": {
+          "type": "string",
+          "description": "Column delimiter (default: ','). Use '\\t' for tab-delimited files."
         },
         "columns": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Column names"
+          "description": "Column names to assign (e.g. ['CountryCode', 'Code', 'PlaceName']). When provided, hasHeader is forced to false. Names are lowercaseFirst in output."
         }
       },
+      "required": ["url"],
       "additionalProperties": true
     },
     "outputs": {
@@ -74,6 +76,6 @@
       }
     }
   },
-  "required": ["task"],
+  "required": ["task", "name", "inputs"],
   "additionalProperties": true
 }
