@@ -66,21 +66,27 @@
         "body": {
           "description": "Request body (can be string or object)"
         },
-        "timeout": {
-          "type": "integer",
-          "description": "Request timeout in milliseconds"
-        },
-        "retry": {
+        "retryOptions": {
           "type": "object",
           "properties": {
-            "count": {
-              "type": "integer"
+            "limit": {
+              "type": "integer",
+              "description": "Number of retry attempts"
             },
-            "delay": {
-              "type": "integer"
+            "codes": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "description": "HTTP status codes that trigger a retry (e.g. [429, 502, 503])"
             }
           },
-          "description": "Retry configuration"
+          "description": "Retry configuration with exponential backoff"
+        },
+        "circuitBreaker": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable circuit breaker for the target host (default: true). When open, serves stale cache or throws."
         },
         "responseContentType": {
           "type": "string",
@@ -112,14 +118,23 @@
         "cache": {
           "type": "object",
           "properties": {
-            "key": {
-              "type": "string"
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable response caching"
             },
             "duration": {
-              "type": "string"
+              "type": "string",
+              "default": "1h",
+              "description": "Cache duration (e.g. '30s', '5m', '1h', '2d', 'EndOfDay', 'EndOfDay|America/Chicago')"
+            },
+            "useSlidingExpiration": {
+              "type": "boolean",
+              "default": false,
+              "description": "Use sliding expiration instead of absolute"
             }
           },
-          "description": "Response caching configuration"
+          "description": "Response caching configuration. Cache key is auto-generated from url + method + headers + body."
         }
       },
       "required": ["url", "method"],
