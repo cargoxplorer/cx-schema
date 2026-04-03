@@ -70,7 +70,7 @@ npx cxtms create workflow <name> --template <template>
 
 **`public-api`** — requires a top-level `api` section defining the REST endpoint. Set `api.path` with route params (e.g., `/orders/{orderId}`), `api.method` (GET/POST/PUT/PATCH/DELETE), `api.authentication` (`none`, `bearer`, `apiKey`), `api.document` (swagger doc name, default `"public"`), and `api.category` (swagger tag). Configure `api.rateLimit` with `perSecond`/`perMinute`. Each input uses `props.in` (`path`, `query`, `header`, `body`) to specify where the parameter comes from, and `props.format` for OpenAPI type hints (e.g., `uuid`, `date-time`). Outputs use `props.type`, `props.description`, and `props.schema` to describe the response for OpenAPI docs. Must use `executionMode: Sync`. Control HTTP response via `response` and `statusCode` outputs.
 
-**All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowExecuted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed.
+**All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowCompleted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed. (`onWorkflowExecuted` is a deprecated alias for `onWorkflowCompleted` — use `onWorkflowCompleted` in new workflows.)
 
 **Flow workflows** — scaffold with `basic` then set `workflowType: Flow`, remove `activities`/`triggers`, add `entity`, `states`, `transitions`, `aggregations`. Load Flow reference: `!cat skills/cxtms-workflow-builder/ref-flow.md`
 
@@ -164,7 +164,7 @@ schedules:
 
 events:                                     # Workflow-level event handlers
   onWorkflowStarted: [...]
-  onWorkflowExecuted: [...]
+  onWorkflowCompleted: [...]
   onWorkflowFailed: [...]
 ```
 
@@ -180,7 +180,7 @@ events:                                     # Workflow-level event handlers
 
 **Conditions**: Any step/activity can have `conditions` — all must be true (AND) or step is skipped.
 
-**Events**: `onWorkflowStarted`, `onWorkflowExecuted`, `onWorkflowFailed`, `onActivityStarted`, `onActivityCompleted`, `onActivityFailed`
+**Events**: `onWorkflowStarted`, `onWorkflowCompleted`, `onWorkflowFailed`, `onActivityStarted`, `onActivityCompleted`, `onActivityFailed`
 
 **Task naming**: `Namespace/TaskName@Version` — version optional, defaults to highest.
 

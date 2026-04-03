@@ -51,34 +51,7 @@
       "type": "array",
       "description": "Steps within the activity",
       "items": {
-        "type": "object",
-        "properties": {
-          "task": {
-            "type": "string",
-            "description": "Task type identifier"
-          },
-          "name": {
-            "type": "string"
-          },
-          "inputs": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "outputs": {
-            "type": "array"
-          },
-          "conditions": {
-            "oneOf": [
-              { "type": "string" },
-              { "type": "array" }
-            ]
-          },
-          "continueOnError": {
-            "type": "boolean"
-          }
-        },
-        "required": ["task"],
-        "additionalProperties": true
+        "$ref": "common/step.json"
       },
       "minItems": 1
     },
@@ -88,11 +61,23 @@
           "type": "object",
           "description": "Activity-level event handlers as object",
           "properties": {
-            "onActivityStarted": { "type": "array" },
-            "onActivityCompleted": { "type": "array" },
-            "onActivityFailed": { "type": "array" }
+            "onActivityStarted": {
+              "type": "array",
+              "description": "Steps to execute when activity starts",
+              "items": { "$ref": "common/step.json" }
+            },
+            "onActivityCompleted": {
+              "type": "array",
+              "description": "Steps to execute when activity completes",
+              "items": { "$ref": "common/step.json" }
+            },
+            "onActivityFailed": {
+              "type": "array",
+              "description": "Steps to execute when activity fails",
+              "items": { "$ref": "common/step.json" }
+            }
           },
-          "additionalProperties": true
+          "additionalProperties": false
         },
         {
           "type": "array",

@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow Step",
+  "description": "A single step (task) within a workflow activity or event handler",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "description": "Task type identifier (e.g., 'Utilities/Log@1', 'GraphQL/Query@1')"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Task-specific input parameters",
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "description": "Output mappings from task results"
+    },
+    "conditions": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array" }
+      ],
+      "description": "Conditions for step execution"
+    },
+    "continueOnError": {
+      "type": "boolean",
+      "description": "Whether to continue workflow on step error"
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}

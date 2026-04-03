@@ -203,6 +203,24 @@ export class WorkflowValidator {
         }
       }
 
+      // Validate workflow-level event handler steps
+      this.validateEventSteps(
+        workflowData.events,
+        'events',
+        ['onWorkflowStarted', 'onWorkflowCompleted', 'onWorkflowExecuted', 'onWorkflowFailed'],
+        errors,
+        warnings
+      );
+
+      // Warn on deprecated onWorkflowExecuted
+      if (workflowData.events && !Array.isArray(workflowData.events) && workflowData.events.onWorkflowExecuted) {
+        warnings.push({
+          type: 'deprecated_property',
+          path: 'events.onWorkflowExecuted',
+          message: 'Use "onWorkflowCompleted" instead of "onWorkflowExecuted"'
+        });
+      }
+
       return this.createResult(filePath, errors, warnings);
     } catch (error: any) {
       errors.push({
@@ -413,6 +431,37 @@ export class WorkflowValidator {
       const stepPath = `${activityPath}.steps[${stepIndex}]`;
       this.validateStep(step, stepPath, errors, warnings);
     });
+
+    // Validate activity-level event handler steps
+    this.validateEventSteps(
+      activity.events,
+      `${activityPath}.events`,
+      ['onActivityStarted', 'onActivityCompleted', 'onActivityFailed'],
+      errors,
+      warnings
+    );
+  }
+
+  /**
+   * Validate steps inside event handlers (object format)
+   */
+  private validateEventSteps(
+    events: any,
+    basePath: string,
+    eventNames: string[],
+    errors: ValidationError[],
+    warnings: ValidationWarning[]
+  ): void {
+    if (!events || typeof events !== 'object' || Array.isArray(events)) return;
+
+    for (const eventName of eventNames) {
+      const steps = events[eventName];
+      if (steps && Array.isArray(steps)) {
+        steps.forEach((step: any, index: number) => {
+          this.validateStep(step, `${basePath}.${eventName}[${index}]`, errors, warnings);
+        });
+      }
+    }
   }
 
   /**

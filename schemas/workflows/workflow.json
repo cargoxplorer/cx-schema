@@ -167,18 +167,26 @@
           "properties": {
             "onWorkflowStarted": {
               "type": "array",
-              "description": "Steps to execute when workflow starts"
+              "description": "Steps to execute when workflow starts",
+              "items": { "$ref": "common/step.json" }
+            },
+            "onWorkflowCompleted": {
+              "type": "array",
+              "description": "Steps to execute when workflow completes",
+              "items": { "$ref": "common/step.json" }
             },
             "onWorkflowExecuted": {
               "type": "array",
-              "description": "Steps to execute when workflow completes"
+              "description": "Alias for onWorkflowCompleted (deprecated, use onWorkflowCompleted)",
+              "items": { "$ref": "common/step.json" }
             },
             "onWorkflowFailed": {
               "type": "array",
-              "description": "Steps to execute when workflow fails"
+              "description": "Steps to execute when workflow fails",
+              "items": { "$ref": "common/step.json" }
             }
           },
-          "additionalProperties": true
+          "additionalProperties": false
         },
         {
           "type": "array",
@@ -192,7 +200,8 @@
               },
               "steps": {
                 "type": "array",
-                "description": "Steps to execute for this event"
+                "description": "Steps to execute for this event",
+                "items": { "$ref": "common/step.json" }
               }
             },
             "additionalProperties": true

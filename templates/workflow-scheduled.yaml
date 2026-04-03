@@ -111,9 +111,9 @@ events:
       inputs:
         message: "{{displayName}} workflow started"
         level: Information
-  onWorkflowExecuted:
+  onWorkflowCompleted:
     - task: "Utilities/Log@1"
-      name: LogWorkflowExecuted
+      name: LogWorkflowCompleted
       inputs:
         message: "{{displayName}} workflow completed successfully"
         level: Information
