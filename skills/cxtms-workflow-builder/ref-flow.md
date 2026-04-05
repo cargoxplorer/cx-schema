@@ -145,6 +145,28 @@ transitions:
 - **auto**: Automatic evaluation based on conditions; sorted by priority descending
 - **event**: External event-driven; requires `eventName`
 
+### Auto-Transitions and Cross-Entity Support
+
+Auto-transitions can fire on related entities. For example, an Order status change can trigger a Commodity flow transition via the `OrderCommodities` join table.
+
+```yaml
+states:
+  - name: Pending
+    autoTransitions:
+      - to: InTransit
+        trigger:
+          entityType: Order
+          event: StatusChanged
+        conditions:
+          - "order.orderStatusName == 'Shipped'"
+        priority: 1
+```
+
+**Cross-entity resolution:**
+| Triggering Entity | Flow Entity | Resolution |
+|-------------------|-------------|------------|
+| Order | Commodity | Via `OrderCommodities` join table |
+
 ### From States
 - Single state: `from: Draft`
 - Multiple states: `from: [Draft, Submitted]`
