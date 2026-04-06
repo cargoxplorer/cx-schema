@@ -12,7 +12,8 @@
 | `Utilities/Template@1` | Handlebars template rendering |
 | `Utilities/Import@1` | Import data |
 | `Utilities/Export@1` | Export data |
-| `Utilities/CsvParse@1` | Parse CSV content |
+| `Utilities/CsvParse@1` | Parse CSV content (supports columns, distinct) |
+| `Utilities/GroupBy@1` | Group collection by fields |
 | `Utilities/MoveFile@1` | Move file |
 | `Utilities/ValidateReCaptcha` | Validate reCAPTCHA |
 | `Utilities/ValidateHMAC` | Validate HMAC signatures |
@@ -242,7 +243,19 @@ Renders a Handlebars template string with data.
 
 ## CsvParse@1
 
-Parses CSV/TSV data from a URL (file://, http://, https://). Headers are trimmed of whitespace, BOM, and special characters. Outputs: `records` (array of dicts), `count` (int), `hasRecords` (boolean).
+Parses CSV/TSV data from a URL (file://, http://, https://). Headers are trimmed of whitespace, BOM, and special characters and converted to camelCase. Blank rows are skipped.
+
+**Inputs:**
+
+| Input | Type | Required | Description |
+|-------|------|----------|-------------|
+| `url` | string | yes | URL to CSV file |
+| `hasHeader` | bool | no | `true` (default). Whether first row has headers |
+| `delimiter` | string | no | `,` (default). Field delimiter. Use `\t` for tab |
+| `columns` | string[] | no | Explicit column names; overrides file header |
+| `distinct` | string[] | no | Deduplicate by these fields; output projected to only these fields |
+
+**Outputs:** `records` (array of dicts), `count` (int), `hasRecords` (boolean).
 
 ```yaml
 - task: "Utilities/CsvParse@1"
@@ -253,36 +266,25 @@ Parses CSV/TSV data from a URL (file://, http://, https://). Headers are trimmed
   outputs:
     - name: rows
       mapping: "records?"
-    - name: rowCount
-      mapping: "count?"
-```
 
-Tab-delimited with custom columns (e.g. GeoNames postal code files):
-
-```yaml
 - task: "Utilities/CsvParse@1"
   name: ParsePostalCodes
   inputs:
     url: "{{ Data?.UnzipFiles?.filePath? }}"
     delimiter: "\t"
-    columns:
-      - CountryCode
-      - Code
-      - PlaceName
-      - StateName
-      - StateCode
-      - AdminName2
-      - AdminCode2
-      - AdminName3
-      - AdminCode3
-      - Latitude
-      - Longitude
-      - Accuracy
+    columns: ["CountryCode", "Code", "PlaceName", "StateName", "StateCode"]
   outputs:
     - name: postalCodes
       mapping: "records?"
-    - name: totalCount
-      mapping: "count?"
+
+- task: "Utilities/CsvParse@1"
+  name: ExtractDistinctStates
+  inputs:
+    url: "{{ fileUrl }}"
+    distinct: ["stateCode", "stateName", "countryCode"]
+  outputs:
+    - name: states
+      mapping: "records?"
 ```
 
 ## Export@1
@@ -328,3 +330,88 @@ Imports data from file content or URL. Supports `file://` URLs for local files (
 ```
 
 **`file://` URL support**: Import, Order/Import, PostalCodes/Import, and Notes/Import all accept `file://` URLs via UrlStreamHelper. This enables pipeline patterns: HttpRequest (saveToFile) → UnzipFile → Import (file://).
+
+---
+
+## GroupBy@1
+
+Groups a collection of dictionaries by one or more fields. Produces `{ key, values }` groups for batch processing.
+
+**Inputs:**
+
+| Input | Type | Required | Description |
+|-------|------|----------|-------------|
+| `collection` | List<Dictionary> | yes | Records to group |
+| `by` | string[] | yes | Field names to group by (case-insensitive) |
+
+**Outputs:** `items` (array of `{ key: {field: value, ...}, values: [...] }`), `count` (int).
+
+```yaml
+- task: "Utilities/GroupBy@1"
+  name: GroupByCustomer
+  inputs:
+    collection: "{{ Data?.ParseCsv?.records? }}"
+    by: ["customerId"]
+  outputs:
+    - name: groups
+      mapping: "items?"
+    - name: groupCount
+      mapping: "count?"
+```
+
+---
+
+## Import Tasks
+
+Import tasks handle bulk data ingestion. All support `file://` URLs for chaining with UnzipFile.
+
+### Order/Import@1
+
+Imports orders from CSV, JSON, or XLSX. Inputs: `organizationId` (auto-injected), `fileUrl`/`stream`/`orders` (one required), `fileType` (auto-detected), `options` (match-by, update behavior).
+
+### States/Import@1
+
+Imports US states/provinces. Inputs: `organizationId`, `fileUrl`/`stream`/`states`, `matchByFields`, `updateIfExists`. Deduplicates by match key.
+
+### PostalCodes/Import@1
+
+Imports postal/ZIP codes. Inputs: `organizationId`, `fileUrl`/`stream`/`postalCodes`, `matchByFields`. Match-key fields protected from overwrite.
+
+### TrackingEvent/Import@1
+
+Imports tracking events for an order. Inputs: `orderId`, `events`, `matchByFields` (default: `["eventDefinitionName", "eventDate"]`), `skipIfExists`, `createEventDefinitions`. Auto-links commodities via `CommodityId`.
+
+```yaml
+# Full ZIP-to-import pipeline
+- task: "Utilities/HttpRequest@1"
+  name: Download
+  inputs:
+    url: "{{ downloadUrl }}"
+    method: GET
+    saveToFile: true
+
+- task: "Utilities/UnzipFile@1"
+  name: Unzip
+  inputs:
+    filePath: "{{ Main?.Download?.result?.FilePath? }}"
+    filePattern: "*.csv"
+
+- task: "Utilities/CsvParse@1"
+  name: Parse
+  inputs:
+    url: "file://{{ Main?.Unzip?.files?[0] }}"
+    distinct: ["stateCode", "stateName", "countryCode"]
+
+- task: "States/Import@1"
+  name: ImportStates
+  inputs:
+    organizationId: "{{ organizationId }}"
+    states: "{{ Main?.Parse?.records? }}"
+
+- task: "PostalCodes/Import@1"
+  name: ImportPostalCodes
+  inputs:
+    organizationId: "{{ organizationId }}"
+    fileUrl: "file://{{ Main?.Unzip?.files?[0] }}"
+    fileType: "csv"
+```
