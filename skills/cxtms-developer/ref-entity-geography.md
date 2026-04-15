@@ -73,7 +73,9 @@ PK: `id` (int, auto). Scoped per organization.
 | `placeName` | `string` | Place/city name |
 | `stateCode` | `string?` | FK to State |
 | `accuracy` | `AccuracyTypes?` | 1=Region, 2=Municipality, 3=Neighborhood, 4=Place, 5=Street, 6=Centroid |
-| `timeZone` | `string?` | IANA timezone ID (e.g., `America/Chicago`) |
+| `timeZone` | `string?` | IANA timezone ID (e.g., `America/Chicago`). GraphQL auto-resolves from GPS coordinates when not stored |
+| `longitude` | `double?` | From Location.X (GraphQL computed) |
+| `latitude` | `double?` | From Location.Y (GraphQL computed) |
 | `customValues` | `Dictionary` | jsonb |
 | `location` | `Point?` | WGS 84 (SRID 4326). X=longitude, Y=latitude |
 

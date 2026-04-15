@@ -147,6 +147,8 @@ Used in `collection:` (foreach), `mapping:` (outputs), and variable resolution.
 |---------|-------------|---------|
 | `a.b.c` | Dot-separated nested path | `order.customer.name` |
 | `prop?` | Optional access (null if missing) | `order.customer?.name?` |
+
+> **Note**: Object-type task inputs (e.g., `headers`, `columnMappings`) are automatically null-safe at the engine level. Omitting an optional object input from YAML returns `null` without errors. The `?` suffix remains required in template expression paths and NCalc conditions.
 | `list[0]` | Array index | `items[0]` |
 | `list[^1]` | Index from end (last item) | `items[^1]` |
 | `list[*]` | Flatten/wildcard (all items) | `containers[*].commodities` |
