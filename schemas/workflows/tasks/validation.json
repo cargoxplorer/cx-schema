@@ -44,25 +44,34 @@
           "items": {
             "type": "object",
             "properties": {
-              "type": {
+              "rule": {
                 "type": "string",
-                "enum": ["required", "expression"],
-                "description": "Validation rule type"
-              },
-              "expression": {
-                "type": "string",
-                "description": "Expression to validate (for expression type)"
+                "enum": ["required"],
+                "description": "Rule type. Use 'required' to check a value is not null or empty"
               },
               "value": {
+                "description": "Value to validate (used with rule: required). Typically a template expression e.g. {{ fieldName }}",
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "number" },
+                  { "type": "boolean" },
+                  { "type": "object" },
+                  { "type": "null" }
+                ]
+              },
+              "conditions": {
                 "type": "string",
-                "description": "Value to validate (for required type)"
+                "description": "NCalc expression evaluated against task variables. Fails when expression is false. Variables use bracket syntax e.g. [orderId] > 0"
               },
               "message": {
                 "type": "string",
-                "description": "Error message if validation fails"
+                "description": "Custom error message returned when validation fails"
               }
             },
-            "required": ["type"]
+            "anyOf": [
+              { "required": ["rule"] },
+              { "required": ["conditions"] }
+            ]
           }
         }
       },

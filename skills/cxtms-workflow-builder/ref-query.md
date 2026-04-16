@@ -39,20 +39,40 @@ The query result is a dictionary. The `mapping` path extracts from the result. O
 
 Validates data against rules. Commonly used in Before entity triggers to block invalid changes.
 
+Two rule types:
+- **`rule: "required"`** — checks that `value` is not null or empty
+- **Condition expression** — evaluates an NCalc `conditions` expression (no `rule` property needed)
+
 ```yaml
 - task: "Validation/Validate@1"
   name: ValidateOrder
   inputs:
     rules:
-      - field: "status"
-        condition: "[Data.GetOrder.order.status] != 'Cancelled'"
+      - rule: "required"
+        value: "{{ Data.GetOrder.order.status? }}"
+        message: "Order status is required"
+      - conditions: "[Data.GetOrder.order.status] != 'Cancelled'"
         message: "Cannot modify cancelled orders"
-      - field: "amount"
-        condition: "[Data.GetOrder.order.amount] > 0"
+      - conditions: "[Data.GetOrder.order.amount] > 0"
         message: "Amount must be positive"
 ```
 
-If validation fails, execution stops and error is returned to the caller.
+If validation fails and `continueOnError` is false (default), execution stops and a `ValidationException` is returned. Set `continueOnError: true` to collect errors in the `errors` output instead:
+
+```yaml
+- task: "Validation/Validate@1"
+  name: ValidateOrder
+  continueOnError: true
+  inputs:
+    rules:
+      - rule: "required"
+        value: "{{ Data.GetOrder.order.status? }}"
+        message: "Order status is required"
+      - conditions: "[Data.GetOrder.order.amount] > 0"
+        message: "Amount must be positive"
+  outputs:
+    - name: errors
+```
 
 ## Workflow/Execute
 
