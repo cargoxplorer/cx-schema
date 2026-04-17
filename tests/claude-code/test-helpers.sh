@@ -81,7 +81,22 @@ assert_order() {
     fi
 }
 
+# Run only a specific test if TESTS_TO_RUN is non-empty.
+# Test scripts should set TESTS_TO_RUN=("$@") near the top, then wrap
+# each test block in: if should_run N; then ... fi
+should_run() {
+    local num="$1"
+    if [ "${#TESTS_TO_RUN[@]}" -eq 0 ]; then
+        return 0
+    fi
+    for t in "${TESTS_TO_RUN[@]}"; do
+        [ "$t" = "$num" ] && return 0
+    done
+    return 1
+}
+
 export -f run_claude
 export -f assert_contains
 export -f assert_not_contains
 export -f assert_order
+export -f should_run
