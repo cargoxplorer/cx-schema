@@ -11,11 +11,25 @@ import * as https from 'https';
 import * as crypto from 'crypto';
 import * as os from 'os';
 import chalk from 'chalk';
+import updateNotifier from 'update-notifier';
 import YAML, { isSeq, isMap, YAMLSeq, Document as YAMLDocument } from 'yaml';
 import { ModuleValidator } from './validator';
 import { WorkflowValidator } from './workflowValidator';
 import { ValidationResult, ValidationError } from './types';
 import { computeExtractPriority } from './extractUtils';
+
+const pkg = require('../package.json');
+
+function checkForUpdates(): void {
+  try {
+    updateNotifier({
+      pkg,
+      updateCheckInterval: 1000 * 60 * 60 * 24,
+    }).notify({ isGlobal: true });
+  } catch {
+    // Update check must never break the CLI.
+  }
+}
 
 // ============================================================================
 // .env loader — load KEY=VALUE pairs from .env in CWD into process.env
@@ -4923,6 +4937,7 @@ async function validateFile(
 // ============================================================================
 
 async function main() {
+  checkForUpdates();
   const args = process.argv.slice(2);
   const { command, files, options } = parseArgs(args);
 
