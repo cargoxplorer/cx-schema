@@ -124,6 +124,21 @@
             }
           }
         },
+        "freeText": {
+          "type": "array",
+          "description": "Free text segments (FTX). Each entry produces one FTX segment in the EDIFACT message.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "qualifier": { "type": "string", "description": "Text subject code qualifier (4451). Common values: AAA (General), AAI (Instructions), CCI (Customs/Compliance), DOC (Document), BLC (B/L Clause)." },
+              "functionCode": { "type": "string", "description": "Free text function code (4453)." },
+              "textReferenceCode": { "type": "string", "description": "C107/4441 free text value code. When qualifier=CCI: MFS (Manifest Filer Status), ENS (Entry Summary Declaration), HBL (House Bill Indicator). When qualifier=DOC: SMI (Single Message Indicator). When qualifier=BLC: clause code (01-45, CB, CC, etc.)." },
+              "text": { "type": "string", "description": "C108/4440 free text value, line 1 (max 512 chars)." },
+              "text2": { "type": "string", "description": "C108/4440 free text value, line 2 (max 512 chars)." },
+              "text3": { "type": "string", "description": "C108/4440 free text value, line 3 (max 512 chars). When textReferenceCode=MFS: Manifest Filer Identification (SCAC). When textReferenceCode=HBL: To Order Shipment indicator (TOS)." }
+            }
+          }
+        },
         "equipment": {
           "type": "array",
           "description": "Container/equipment details",

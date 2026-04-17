@@ -5,7 +5,7 @@
 - Operators (comparison, logical, arithmetic, ternary, membership)
 - Iterator variables (`[each.*]` and `[item.*]`)
 - Collection functions (any, all, count, sum, first, last, distinct, groupBy, join, etc.)
-- String functions (isNullOrEmpty, length, lower, upper, replace, format, base64, etc.)
+- String functions (isNullOrEmpty, length, lower, upper, replace, format, base64, regex, etc.)
 - Date functions (now, parseDate, addDays, formatDate, dateFromUnix, etc.)
 - Math functions (Abs, Ceiling, Floor, Round, Min, Max, etc.)
 - Domain functions (convertWeight, convertDimension)
