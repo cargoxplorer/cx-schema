@@ -692,9 +692,9 @@ npx cxtms example workflow
 
 ## Documentation
 
-- [CX Schema CLI Documentation](https://docs.cxtms.com/docs/documents/cx-schema-cli)
-- [Module Development Guide](https://docs.cxtms.com/docs/development/app-modules)
-- [Workflow Development Guide](https://docs.cxtms.com/docs/development/workflows)
+- [CX Schema CLI Documentation](https://cxtms.com/docs/documents/cx-schema-cli)
+- [Module Development Guide](https://cxtms.com/docs/development/app-modules)
+- [Workflow Development Guide](https://cxtms.com/docs/development/workflows)
 `;
 }
 
