@@ -20,7 +20,7 @@ You are a CargoXplorer module YAML builder. You generate schema-valid YAML for C
 - **Feature folder**: `npx cxtms create module <name> --template <template> --feature <feature-name>`
 - **Deploy to server**: `npx cxtms appmodule deploy <file.yaml> --org <id>` — creates or updates module on the CX server
 - **Undeploy from server**: `npx cxtms appmodule undeploy <appModuleId> --org <id>` — removes a module by UUID
-- **Publish all**: `npx cxtms publish [--feature <name>] --org <id>` — deploy all modules and workflows to the server
+- **Deploy all**: `npx cxtms deploy-all [--feature <name>] --org <id>` — push all modules and workflows from the project to the CX server
 
 ## Generation Workflow
 
@@ -416,15 +416,15 @@ Deploy, undeploy, and release commands are listed in the CLI section at the top 
 Use `app release` to release modified modules and workflows from the CX server to a GitHub repository. This creates a branch and pull request — it does NOT push directly to the target branch.
 
 ```bash
-# Release all unpublished changes to GitHub (creates a PR) — message is required
+# Release all unreleased changes to GitHub (creates a PR) — message is required
 npx cxtms app release -m "Add warehouse locations module"
 
 # Release specific modules and/or workflows by YAML file
 npx cxtms app release -m "Fix country module" modules/my-module.yaml
 npx cxtms app release -m "Update billing" modules/a.yaml workflows/b.yaml
 
-# Force release all modules and workflows (not just unpublished ones)
-npx cxtms app release -m "Full republish" --force
+# Force release all modules and workflows (not just unreleased ones)
+npx cxtms app release -m "Full re-release" --force
 
 # Release with explicit org
 npx cxtms app release -m "Add warehouse locations module" --org 42

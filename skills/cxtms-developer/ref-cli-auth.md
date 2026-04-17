@@ -5,7 +5,7 @@
 - PAT Tokens (CI/CD alternative to OAuth)
 - Organization Management
 - Session Resolution
-- Publish (push modules and workflows to server)
+- Deploy All (push modules and workflows to server)
 
 ## Authentication
 
@@ -70,21 +70,23 @@ Server commands resolve the target session in this order:
 2. `~/.cxtms/<project-dir>/.session.json` → project-scoped OAuth session
 3. Not logged in → error
 
-## Publish
+## Deploy All
 
 ```bash
-# Publish all modules and workflows from current project
-npx cxtms publish
+# Deploy all modules and workflows from current project to the CX server
+npx cxtms deploy-all
 
-# Publish only a specific feature directory
-npx cxtms publish --feature billing
-npx cxtms publish billing
+# Deploy only a specific feature directory
+npx cxtms deploy-all --feature billing
+npx cxtms deploy-all billing
 
-# Publish with explicit org ID
-npx cxtms publish --org 42
+# Deploy with explicit org ID
+npx cxtms deploy-all --org 42
 ```
 
 Validates all YAML files first, then pushes modules and workflows to the server. Skips files with validation errors and reports results.
+
+> Note: `deploy-all` pushes local YAML files to the CX server (per-file `updateWorkflow` / `updateAppModule` mutations). It does **not** touch git or create a PR. Use `app release` to open a git PR from the server's pending changes.
 
 ## App Manifest Management
 
@@ -100,21 +102,21 @@ npx cxtms app install --force
 # Install from a specific branch
 npx cxtms app install --branch develop
 
-# Install but skip modules that have unpublished local changes
+# Install but skip modules that have unreleased local changes
 npx cxtms app install --skip-changed
 
 # Release server changes to git (creates a PR) — message is required
 npx cxtms app release -m "Add new shipping module"
 
 # Force release all modules and workflows (not just changed ones)
-npx cxtms app release -m "Full republish" --force
+npx cxtms app release -m "Full re-release" --force
 
 # List installed app manifests on the server
 npx cxtms app list
 ```
 
-**`app install`** reads `repository` and `branch` from `app.yaml`, downloads the repo on the server side, and installs/updates all modules and workflows. Use `--force` to reinstall even if the version hasn't changed. Use `--skip-changed` to preserve modules with unpublished changes.
+**`app install`** reads `repository` and `branch` from `app.yaml`, downloads the repo on the server side, and installs/updates all modules and workflows. Use `--force` to reinstall even if the version hasn't changed. Use `--skip-changed` to preserve modules with unreleased changes.
 
 **`app release`** takes the current server state and releases it to git by creating a PR. Requires a `-m` message describing the changes (like a git commit message). The server increments the version, creates a release branch, commits all module/workflow YAML files, and opens a pull request to the target branch.
 
-**`app list`** shows all installed app manifests with their version, status flags (disabled, unpublished changes, update available), and repository info.
+**`app list`** shows all installed app manifests with their version, status flags (disabled, unreleased changes, update available), and repository info.

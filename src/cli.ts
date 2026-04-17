@@ -31,6 +31,40 @@ function checkForUpdates(): void {
   }
 }
 
+const CX_SKILL_NAMES = ['cxtms-developer', 'cxtms-module-builder', 'cxtms-workflow-builder'];
+
+function findCxProjectRoot(): string | null {
+  let dir = process.cwd();
+  while (dir !== path.dirname(dir)) {
+    if (fs.existsSync(path.join(dir, 'app.yaml'))) return dir;
+    dir = path.dirname(dir);
+  }
+  return null;
+}
+
+function checkSkillsInstalled(command: string | null | undefined): void {
+  if (command === 'install-skills' || command === 'init') return;
+  try {
+    const projectRoot = findCxProjectRoot();
+    if (!projectRoot) return;
+
+    const missing = CX_SKILL_NAMES.filter(
+      name => !fs.existsSync(path.join(projectRoot, '.claude', 'skills', name))
+    );
+    if (missing.length === 0) return;
+
+    console.error('');
+    console.error(chalk.yellow('╔═══════════════════════════════════════════════════════════╗'));
+    console.error(chalk.yellow('║  cxtms skills are not installed in this project.          ║'));
+    console.error(chalk.yellow('╚═══════════════════════════════════════════════════════════╝'));
+    console.error(chalk.yellow(`  Missing: ${missing.join(', ')}`));
+    console.error(chalk.cyan('  Install: ') + chalk.bold('npx cxtms install-skills'));
+    console.error('');
+  } catch {
+    // Skills check must never break the CLI.
+  }
+}
+
 // ============================================================================
 // .env loader — load KEY=VALUE pairs from .env in CWD into process.env
 // ============================================================================
@@ -176,7 +210,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('orgs')}            List, select, or set active organization
   ${chalk.green('appmodule')}       Manage app modules on a CX server (deploy, undeploy)
   ${chalk.green('workflow')}        Manage workflows on a CX server (deploy, undeploy, execute, logs, log)
-  ${chalk.green('publish')}         Publish all modules and workflows to a CX server
+  ${chalk.green('deploy-all')}      Deploy all modules and workflows to a CX server
   ${chalk.green('app')}             Manage app manifests (install/upgrade from git, release to git, list)
   ${chalk.green('query')}           Run a GraphQL query against the CX server
   ${chalk.green('gql')}             Explore GraphQL schema (types, queries, mutations)
@@ -210,9 +244,9 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('--console')}              Print workflow log to stdout
   ${chalk.green('--json')}                 Download JSON log instead of text
   ${chalk.green('-m, --message <msg>')}     Release message for app release (required)
-  ${chalk.green('-b, --branch <branch>')}   Branch override for app install/publish
-  ${chalk.green('--force')}                Force install (even if same version) or publish all
-  ${chalk.green('--skip-changed')}         Skip modules with unpublished changes during install
+  ${chalk.green('-b, --branch <branch>')}   Branch override for app install/release
+  ${chalk.green('--force')}                Force install (even if same version) or release all
+  ${chalk.green('--skip-changed')}         Skip modules with unreleased changes during install
 
 ${chalk.bold.yellow('VALIDATION EXAMPLES:')}
   ${chalk.gray('# Validate a module YAML file')}
@@ -343,16 +377,16 @@ ${chalk.bold.yellow('WORKFLOW COMMANDS:')}
   ${chalk.cyan(`${PROGRAM_NAME} workflow log <executionId> --json`)}            ${chalk.gray('# download JSON log (more detail)')}
   ${chalk.cyan(`${PROGRAM_NAME} workflow log <executionId> --json --console`)}  ${chalk.gray('# JSON log to stdout')}
 
-${chalk.bold.yellow('PUBLISH COMMANDS:')}
-  ${chalk.gray('# Publish all modules and workflows from current project')}
-  ${chalk.cyan(`${PROGRAM_NAME} publish`)}
+${chalk.bold.yellow('DEPLOY-ALL COMMANDS:')}
+  ${chalk.gray('# Deploy all modules and workflows from current project to the CX server')}
+  ${chalk.cyan(`${PROGRAM_NAME} deploy-all`)}
 
-  ${chalk.gray('# Publish only a specific feature directory')}
-  ${chalk.cyan(`${PROGRAM_NAME} publish --feature billing`)}
-  ${chalk.cyan(`${PROGRAM_NAME} publish billing`)}
+  ${chalk.gray('# Deploy only a specific feature directory')}
+  ${chalk.cyan(`${PROGRAM_NAME} deploy-all --feature billing`)}
+  ${chalk.cyan(`${PROGRAM_NAME} deploy-all billing`)}
 
-  ${chalk.gray('# Publish with explicit org ID')}
-  ${chalk.cyan(`${PROGRAM_NAME} publish --org 42`)}
+  ${chalk.gray('# Deploy with explicit org ID')}
+  ${chalk.cyan(`${PROGRAM_NAME} deploy-all --org 42`)}
 
 ${chalk.bold.yellow('APP COMMANDS:')}
   ${chalk.gray('# Install/refresh app from git repository into the CX server')}
@@ -379,7 +413,7 @@ ${chalk.bold.yellow('APP COMMANDS:')}
   ${chalk.cyan(`${PROGRAM_NAME} app release -m "Update billing" workflows/a.yaml modules/b.yaml`)}
 
   ${chalk.gray('# Force release all modules and workflows')}
-  ${chalk.cyan(`${PROGRAM_NAME} app release -m "Full republish" --force`)}
+  ${chalk.cyan(`${PROGRAM_NAME} app release -m "Full re-release" --force`)}
 
   ${chalk.gray('# List installed app manifests on the server')}
   ${chalk.cyan(`${PROGRAM_NAME} app list`)}
@@ -3177,7 +3211,7 @@ async function runPatSetup(): Promise<void> {
   }
 }
 
-async function runPublish(featureDir: string | undefined, orgOverride?: number): Promise<void> {
+async function runDeployAll(featureDir: string | undefined, orgOverride?: number): Promise<void> {
   const session = resolveSession();
   const domain = session.domain;
   const token = session.access_token;
@@ -3193,7 +3227,7 @@ async function runPublish(featureDir: string | undefined, orgOverride?: number):
   const appManifestId = appYaml?.id;
   const appName = appYaml?.name || 'unknown';
 
-  console.log(chalk.bold.cyan('\n  Publish\n'));
+  console.log(chalk.bold.cyan('\n  Deploy All\n'));
   console.log(chalk.gray(`  Server:  ${new URL(domain).hostname}`));
   console.log(chalk.gray(`  Org:     ${orgId}`));
   console.log(chalk.gray(`  App:     ${appName}`));
@@ -3204,7 +3238,7 @@ async function runPublish(featureDir: string | undefined, orgOverride?: number):
 
   // Step 1: Create or update app manifest
   if (appManifestId) {
-    console.log(chalk.gray('  Publishing app manifest...'));
+    console.log(chalk.gray('  Deploying app manifest...'));
     try {
       const checkData = await graphqlRequest(domain, token, `
         query ($organizationId: Int!, $appManifestId: UUID!) {
@@ -3300,14 +3334,14 @@ async function runPublish(featureDir: string | undefined, orgOverride?: number):
   // Summary
   console.log('');
   if (failed === 0) {
-    console.log(chalk.green(`  ✓ Published ${succeeded} file(s) successfully\n`));
+    console.log(chalk.green(`  ✓ Deployed ${succeeded} file(s) successfully\n`));
   } else {
-    console.log(chalk.yellow(`  Published ${succeeded} file(s), ${failed} failed\n`));
+    console.log(chalk.yellow(`  Deployed ${succeeded} file(s), ${failed} failed\n`));
   }
 }
 
 // ============================================================================
-// App Manifest Commands (install from git, publish to git, list)
+// App Manifest Commands (install from git, release to git, list)
 // ============================================================================
 
 function readAppYaml(): { id?: string; name?: string; description?: string; repository?: string; branch?: string } {
@@ -3373,7 +3407,7 @@ async function runAppInstall(orgOverride?: number, branch?: string, force?: bool
     if (manifest) {
       console.log(chalk.green(`  ✓ Installed ${manifest.name} v${manifest.currentVersion}`));
       if (manifest.hasUnpublishedChanges) {
-        console.log(chalk.yellow(`    Has unpublished changes`));
+        console.log(chalk.yellow(`    Has unreleased changes`));
       }
     } else {
       console.log(chalk.green('  ✓ Install completed'));
@@ -3385,7 +3419,7 @@ async function runAppInstall(orgOverride?: number, branch?: string, force?: bool
   console.log('');
 }
 
-async function runAppPublish(orgOverride?: number, message?: string, branch?: string, force?: boolean, targetFiles?: string[]): Promise<void> {
+async function runAppRelease(orgOverride?: number, message?: string, branch?: string, force?: boolean, targetFiles?: string[]): Promise<void> {
   const session = resolveSession();
   const domain = session.domain;
   const token = session.access_token;
@@ -3438,13 +3472,13 @@ async function runAppPublish(orgOverride?: number, message?: string, branch?: st
   console.log('');
 
   try {
-    const publishValues: Record<string, any> = {
+    const releaseValues: Record<string, any> = {
       message: message || undefined,
       branch: branch || undefined,
       force: force || false,
     };
-    if (workflowIds.length > 0) publishValues.workflowIds = workflowIds;
-    if (moduleIds.length > 0) publishValues.moduleIds = moduleIds;
+    if (workflowIds.length > 0) releaseValues.workflowIds = workflowIds;
+    if (moduleIds.length > 0) releaseValues.moduleIds = moduleIds;
 
     const data = await graphqlRequest(domain, token, `
       mutation ($input: PublishAppManifestInput!) {
@@ -3461,18 +3495,18 @@ async function runAppPublish(orgOverride?: number, message?: string, branch?: st
       input: {
         organizationId: orgId,
         appManifestId,
-        values: publishValues,
+        values: releaseValues,
       }
     });
 
     const manifest = data?.publishAppManifest?.appManifest;
     if (manifest) {
-      console.log(chalk.green(`  ✓ Published ${manifest.name} v${manifest.currentVersion}`));
+      console.log(chalk.green(`  ✓ Released ${manifest.name} v${manifest.currentVersion}`));
     } else {
-      console.log(chalk.green('  ✓ Publish completed'));
+      console.log(chalk.green('  ✓ Release completed'));
     }
   } catch (e: any) {
-    console.error(chalk.red(`  ✗ Publish failed: ${e.message}`));
+    console.error(chalk.red(`  ✗ Release failed: ${e.message}`));
     process.exit(1);
   }
   console.log('');
@@ -3515,7 +3549,7 @@ async function runAppList(orgOverride?: number): Promise<void> {
     for (const app of items) {
       const flags: string[] = [];
       if (!app.isEnabled) flags.push(chalk.red('disabled'));
-      if (app.hasUnpublishedChanges) flags.push(chalk.yellow('unpublished'));
+      if (app.hasUnpublishedChanges) flags.push(chalk.yellow('unreleased'));
       if (app.isUpdateAvailable) flags.push(chalk.cyan('update available'));
       const flagStr = flags.length > 0 ? ` [${flags.join(', ')}]` : '';
 
@@ -3969,7 +4003,7 @@ function parseArgs(args: string[]): ParsedArgs {
   };
 
   // Check for commands
-  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude', 'login', 'logout', 'pat', 'appmodule', 'orgs', 'workflow', 'publish', 'query', 'gql', 'app'];
+  const commands = ['validate', 'schema', 'example', 'list', 'help', 'version', 'report', 'init', 'create', 'extract', 'sync-schemas', 'install-skills', 'update', 'setup-claude', 'login', 'logout', 'pat', 'appmodule', 'orgs', 'workflow', 'deploy-all', 'query', 'gql', 'app'];
   if (args.length > 0 && commands.includes(args[0])) {
     command = args[0];
     args = args.slice(1);
@@ -4940,6 +4974,7 @@ async function main() {
   checkForUpdates();
   const args = process.argv.slice(2);
   const { command, files, options } = parseArgs(args);
+  checkSkillsInstalled(command);
 
   // Handle help
   if (options.help) {
@@ -5064,9 +5099,9 @@ async function main() {
     process.exit(0);
   }
 
-  // Handle publish command (no schemas needed)
-  if (command === 'publish') {
-    await runPublish(files[0] || options.feature, options.orgId);
+  // Handle deploy-all command (no schemas needed)
+  if (command === 'deploy-all') {
+    await runDeployAll(files[0] || options.feature, options.orgId);
     process.exit(0);
   }
 
@@ -5075,8 +5110,8 @@ async function main() {
     const sub = files[0];
     if (sub === 'install' || sub === 'upgrade') {
       await runAppInstall(options.orgId, options.branch, options.force, options.skipChanged);
-    } else if (sub === 'release' || sub === 'publish') {
-      await runAppPublish(options.orgId, options.message, options.branch, options.force, files.slice(1));
+    } else if (sub === 'release') {
+      await runAppRelease(options.orgId, options.message, options.branch, options.force, files.slice(1));
     } else if (sub === 'list' || !sub) {
       await runAppList(options.orgId);
     } else {
