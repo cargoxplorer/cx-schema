@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "CargoXplorer Workflow",
-  "description": "Schema for CargoXplorer workflow YAML files. Supports standard task-based workflows and Flow (state machine) workflows.",
+  "title": "CXTMS Workflow",
+  "description": "Schema for CXTMS workflow YAML files. Supports standard task-based workflows and Flow (state machine) workflows.",
   "type": "object",
   "properties": {
     "workflow": {

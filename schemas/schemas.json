@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "CargoXplorer Module and Component Schemas",
+  "title": "CXTMS Module and Component Schemas",
   "type": "object",
   "definitions": {
     "templateExpression": {
@@ -45,7 +45,7 @@
 
     "component": {
       "type": "object",
-      "description": "Generic component structure for CargoXplorer",
+      "description": "Generic component structure for CXTMS",
       "properties": {
         "component": {
           "type": "string",
@@ -404,7 +404,7 @@
 
     "entity": {
       "type": "object",
-      "description": "CargoXplorer entity definition",
+      "description": "CXTMS entity definition",
       "properties": {
         "name": { "type": "string" },
         "entityKind": {

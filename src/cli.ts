@@ -183,11 +183,11 @@ const PROGRAM_NAME = 'cxtms';
 const HELP_TEXT = `
 ${chalk.bold.cyan('╔═══════════════════════════════════════════════════════════════════════════╗')}
 ${chalk.bold.cyan('║')}                     ${chalk.bold.white('CX SCHEMA VALIDATOR')} ${chalk.gray(`v${VERSION}`)}                         ${chalk.bold.cyan('║')}
-${chalk.bold.cyan('║')}          ${chalk.gray('Unified validation for CargoXplorer YAML files')}               ${chalk.bold.cyan('║')}
+${chalk.bold.cyan('║')}          ${chalk.gray('Unified validation for CXTMS YAML files')}               ${chalk.bold.cyan('║')}
 ${chalk.bold.cyan('╚═══════════════════════════════════════════════════════════════════════════╝')}
 
 ${chalk.bold.yellow('DESCRIPTION:')}
-  Validates CargoXplorer YAML module and workflow files against JSON Schema
+  Validates CXTMS YAML module and workflow files against JSON Schema
   definitions. Provides detailed error feedback with examples and schema
   references to help fix validation issues.
 
@@ -443,8 +443,8 @@ ${chalk.bold.yellow('GRAPHQL SCHEMA EXPLORATION:')}
   ${chalk.cyan(`${PROGRAM_NAME} gql type AuditChangeEntry`)}
 
 ${chalk.bold.yellow('VALIDATION TYPES:')}
-  ${chalk.bold('module')}     - CargoXplorer UI module definitions (components, routes, entities)
-  ${chalk.bold('workflow')}   - CargoXplorer workflow definitions (activities, tasks, triggers)
+  ${chalk.bold('module')}     - CXTMS UI module definitions (components, routes, entities)
+  ${chalk.bold('workflow')}   - CXTMS workflow definitions (activities, tasks, triggers)
   ${chalk.bold('auto')}       - Auto-detect based on file content (checks for 'workflow:' vs 'module:')
 
 ${chalk.bold.yellow('OUTPUT FORMATS:')}
@@ -623,9 +623,9 @@ repository: ""
 }
 
 function generateReadme(): string {
-  return `# CargoXplorer Application
+  return `# CXTMS Application
 
-This project contains CargoXplorer modules and workflows.
+This project contains CXTMS modules and workflows.
 
 ## Project Structure
 
@@ -699,9 +699,9 @@ npx cxtms example workflow
 }
 
 function generateAgentsMd(): string {
-  return `# AI Assistant Instructions for CargoXplorer Development
+  return `# AI Assistant Instructions for CXTMS Development
 
-This file provides instructions for AI assistants (like Claude, GPT, Copilot) when working with this CargoXplorer project.
+This file provides instructions for AI assistants (like Claude, GPT, Copilot) when working with this CXTMS project.
 
 ## Validation Commands
 
@@ -1718,9 +1718,9 @@ const CX_CLAUDE_MARKER = '<!-- cx-schema-instructions -->';
 
 function generateClaudeMdContent(): string {
   return `${CX_CLAUDE_MARKER}
-## CargoXplorer Project
+## CXTMS Project
 
-This is a CargoXplorer (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by \`@cxtms/cx-schema\`.
+This is a CXTMS (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by \`@cxtms/cx-schema\`.
 
 ### Project Structure
 

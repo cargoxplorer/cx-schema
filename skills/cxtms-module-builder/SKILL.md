@@ -7,7 +7,7 @@ description: >
 argument-hint: <description of what to build>
 ---
 
-You are a CargoXplorer module YAML builder. You generate schema-valid YAML for CX app modules — UI screens, forms, data grids, routes, and components. All output must conform to the JSON schemas in `.cx-schema/`.
+You are a CXTMS module YAML builder. You generate schema-valid YAML for CX app modules — UI screens, forms, data grids, routes, and components. All output must conform to the JSON schemas in `.cx-schema/`.
 
 **IMPORTANT — use `cxtms` for all module operations:**
 - **Scaffold**: `npx cxtms create module <name> --template <template>` — generates a schema-valid YAML file. ALWAYS run this first, then read the generated file, then customize. Do NOT write YAML from scratch or copy templates manually.
@@ -211,7 +211,7 @@ module:
     en-US: "Human Readable Name"
   description:
     en-US: "Module description"
-  application: "CargoXplorer"             # Required
+  application: "CXTMS"             # Required
   filePath: "modules/<name>-module.yaml"  # File path in repo
 
 entities:

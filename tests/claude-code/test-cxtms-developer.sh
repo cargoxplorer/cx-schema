@@ -16,7 +16,7 @@ echo ""
 
 # Test 2: Primary entities
 echo "Test 2: Primary entity awareness..."
-output=$(run_claude "What are the primary entities in CargoXplorer according to cxtms-developer?" 30)
+output=$(run_claude "What are the primary entities in CXTMS according to cxtms-developer?" 30)
 assert_contains "$output" "Order" "Knows Order entity" || exit 1
 assert_contains "$output" "Contact" "Knows Contact entity" || exit 1
 assert_contains "$output" "Commodity" "Knows Commodity entity" || exit 1

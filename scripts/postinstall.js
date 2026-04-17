@@ -115,9 +115,9 @@ const CX_CLAUDE_MARKER = '<!-- cx-schema-instructions -->';
 
 function generateClaudeMdContent() {
   return `${CX_CLAUDE_MARKER}
-## CargoXplorer Project
+## CXTMS Project
 
-This is a CargoXplorer (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by \`@cxtms/cx-schema\`.
+This is a CXTMS (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by \`@cxtms/cx-schema\`.
 
 ### Project Structure
 

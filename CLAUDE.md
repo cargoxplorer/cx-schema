@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repo is the home of the **cxtms-\* Claude Code skills** (`cxtms-developer`, `cxtms-module-builder`, `cxtms-workflow-builder`) — the knowledge base and generation rules that teach Claude Code how to build CargoXplorer modules and workflows. It also contains `cxtms`, a TypeScript CLI tool the skills use to scaffold, validate, and inspect YAML files.
+This repo is the home of the **cxtms-\* Claude Code skills** (`cxtms-developer`, `cxtms-module-builder`, `cxtms-workflow-builder`) — the knowledge base and generation rules that teach Claude Code how to build CXTMS modules and workflows. It also contains `cxtms`, a TypeScript CLI tool the skills use to scaffold, validate, and inspect YAML files.
 
 The three pillars:
 1. **Skills** (`skills/`) — SKILL.md + ref-*.md files that Claude Code loads when generating YAML
@@ -109,9 +109,9 @@ schemas/
 - Null-safe `?` operator is used by default on all variable paths except guaranteed system variables
 
 <!-- cx-schema-instructions -->
-## CargoXplorer Project
+## CXTMS Project
 
-This is a CargoXplorer (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by `@cxtms/cx-schema`.
+This is a CXTMS (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by `@cxtms/cx-schema`.
 
 ### Project Structure
 

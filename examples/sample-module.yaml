@@ -8,7 +8,7 @@ module:
     en-US: "Sample Module"
   description:
     en-US: "A sample module for testing validation"
-  application: CargoXplorer
+  application: CXTMS
 
 components:
   - name: SampleModule/ListItems

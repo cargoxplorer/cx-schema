@@ -1,6 +1,6 @@
 # Field Type Schemas
 
-This directory contains separate JSON schema files for each field type supported by the CargoXplorer TMS system.
+This directory contains separate JSON schema files for each field type supported by CXTMS.
 
 ## Available Field Types
 
@@ -39,7 +39,7 @@ Each field type schema includes:
 - Field-specific properties and validation
 - Event handlers (onChange, onBlur, onFocus, onSelectValue)
 - Transformation configurations
-- Real-world examples from the CargoXplorer modules
+- Real-world examples from the CXTMS modules
 - Complete type safety and validation rules
 
 ## Usage
@@ -63,4 +63,4 @@ The field schemas integrate with:
 
 ## Examples
 
-Each schema includes comprehensive examples derived from real usage patterns in the CargoXplorer TMS modules, ensuring practical applicability and correct implementation.
+Each schema includes comprehensive examples derived from real usage patterns in the CXTMS modules, ensuring practical applicability and correct implementation.

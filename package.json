@@ -1,7 +1,7 @@
 {
   "name": "@cxtms/cx-schema",
-  "version": "1.9.17",
-  "description": "Schema validation package for CargoXplorer YAML modules",
+  "version": "1.9.18",
+  "description": "Schema validation package for CXTMS YAML modules",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -19,10 +19,10 @@
     "validation",
     "yaml",
     "tms",
-    "cargoxplorer",
+    "cxtms",
     "module"
   ],
-  "author": "CargoXplorer",
+  "author": "CXTMS",
   "license": "MIT",
   "repository": {
     "type": "git",

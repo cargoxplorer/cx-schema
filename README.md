@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/cargoxplorer/cx-schema/workflows/Publish%20to%20npm/badge.svg)](https://github.com/cargoxplorer/cx-schema/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Schema validation package for CargoXplorer YAML modules and workflows. This package provides comprehensive validation for YAML-based configurations used in the CargoXplorer Transportation Management System (TMS).
+Schema validation package for CXTMS YAML modules and workflows. This package provides comprehensive validation for YAML-based configurations used in CXTMS.
 
 ## Features
 

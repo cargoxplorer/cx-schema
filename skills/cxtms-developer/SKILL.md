@@ -1,13 +1,13 @@
 ---
 name: cxtms-developer
 description: >
-  Shared CargoXplorer domain reference — entity fields, enums, customValues, GraphQL queries, and CLI auth.
+  Shared CXTMS domain reference — entity fields, enums, customValues, GraphQL queries, and CLI auth.
   Use when the user asks about CX entity fields, enums, customValues, entity relationships, or needs domain reference for Orders, Contacts, Commodities, Jobs, Charges, or other CX entities.
   Also use when the user wants to look up, check, or query specific orders, parcel shipments, commodities, tracking events, workflow logs, or any CX data.
 argument-hint: <entity name or question about fields>
 ---
 
-Shared domain reference for CargoXplorer entities. Used by `cxtms-workflow-builder` and `cxtms-module-builder` skills for entity field names, types, navigation properties, enums, and customValues extension patterns.
+Shared domain reference for CXTMS entities. Used by `cxtms-workflow-builder` and `cxtms-module-builder` skills for entity field names, types, navigation properties, enums, and customValues extension patterns.
 
 ## Feature File Layout
 
