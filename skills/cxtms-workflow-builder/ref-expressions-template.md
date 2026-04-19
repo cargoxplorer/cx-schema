@@ -152,6 +152,7 @@ Used in `collection:` (foreach), `mapping:` (outputs), and variable resolution.
 | `list[0]` | Array index | `items[0]` |
 | `list[^1]` | Index from end (last item) | `items[^1]` |
 | `list[*]` | Flatten/wildcard (all items) | `containers[*].commodities` |
+| `list[*].dictKey` | Wildcard traversal into Dictionary/JObject keys | `items[*].customValues.chapter_en` |
 | `list[**]` | Recursive flatten (all depths) | `containerCommodities[**]` |
 | `list[-1]` | Depth filter (leaves only) | `tree[**][-1]` |
 | `list[condition]` | Filter by condition | `items[status=Active]` |
@@ -159,3 +160,7 @@ Used in `collection:` (foreach), `mapping:` (outputs), and variable resolution.
 | `list[*].{f1 f2}` | Field selector (projection) | `items[*].{name description}` |
 | `list[*].{alias:source}` | Field selector with alias | `items[*].{id:commodityId}` |
 | `list[*].{alias:_.parent}` | Field selector referencing parent | `items[*].{parentId:_.orderId}` |
+
+**Wildcard traversal into Dictionary/JObject**: After `[*]`, subsequent path segments drill into Dictionary keys and JObject properties on each item. Dictionary-like values are preserved intact (not flattened) so multi-hop paths work: `items[*].customValues.chapter_en` extracts the `chapter_en` key from each item's `customValues` dictionary. This also works with nested dictionaries (`items[*].meta.locale.name`) and JObject items from JSON payloads.
+
+**JArray primitive unwrapping**: When `GetPropertyValue` encounters a JArray where every element is a JValue (primitive), it automatically unwraps the array into a `List<object>` of plain .NET values. This ensures downstream iteration (e.g., `select()`, `zip()`, `foreach`) works with primitives rather than JValue wrappers.
