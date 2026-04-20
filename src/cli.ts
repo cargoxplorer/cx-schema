@@ -203,7 +203,7 @@ ${chalk.bold.yellow('COMMANDS:')}
   ${chalk.green('sync-schemas')}    Regenerate all.json from task schema directory
   ${chalk.green('install-skills')}  Install Claude Code skills into project .claude/skills/
   ${chalk.green('setup-claude')}    Add CX project instructions to CLAUDE.md
-  ${chalk.green('update')}          Update @cxtms/cx-schema to the latest version
+  ${chalk.green('update')}          Update cxtms to the latest version
   ${chalk.green('login')}           Login to a CX environment (OAuth2 + PKCE)
   ${chalk.green('logout')}          Logout from a CX environment
   ${chalk.green('pat')}             Manage personal access tokens (create, list, revoke)
@@ -1677,30 +1677,45 @@ function runInstallSkills(): void {
 
 function runUpdate(): void {
   console.log(chalk.bold.cyan('\n╔═══════════════════════════════════════════════════════════════════╗'));
-  console.log(chalk.bold.cyan('║                  UPDATE @cxtms/cx-schema                          ║'));
+  console.log(chalk.bold.cyan('║                        UPDATE cxtms                               ║'));
   console.log(chalk.bold.cyan('╚═══════════════════════════════════════════════════════════════════╝\n'));
 
   const { execSync } = require('child_process');
 
+  const legacyPkgPath = path.join(process.cwd(), 'node_modules', '@cxtms', 'cx-schema', 'package.json');
+  if (fs.existsSync(legacyPkgPath)) {
+    console.log('  Removing legacy @cxtms/cx-schema...\n');
+    try {
+      execSync('npm uninstall @cxtms/cx-schema', {
+        stdio: 'inherit',
+        cwd: process.cwd()
+      });
+    } catch (error: any) {
+      console.error(chalk.red('\nError: Failed to uninstall @cxtms/cx-schema'));
+      console.error(chalk.gray(error.message));
+      process.exit(1);
+    }
+  }
+
   console.log('  Updating to latest version...\n');
 
   try {
-    execSync('npm install @cxtms/cx-schema@latest', {
+    execSync('npm install cxtms@latest', {
       stdio: 'inherit',
       cwd: process.cwd()
     });
 
     // Read installed version from the updated package
-    const installedPkgPath = path.join(process.cwd(), 'node_modules', '@cxtms', 'cx-schema', 'package.json');
+    const installedPkgPath = path.join(process.cwd(), 'node_modules', 'cxtms', 'package.json');
     let installedVersion = 'unknown';
     if (fs.existsSync(installedPkgPath)) {
       installedVersion = JSON.parse(fs.readFileSync(installedPkgPath, 'utf-8')).version;
     }
 
     console.log('');
-    console.log(chalk.green(`✓ @cxtms/cx-schema updated to v${installedVersion}`));
+    console.log(chalk.green(`✓ cxtms updated to v${installedVersion}`));
   } catch (error: any) {
-    console.error(chalk.red('\nError: Failed to update @cxtms/cx-schema'));
+    console.error(chalk.red('\nError: Failed to update cxtms'));
     console.error(chalk.gray(error.message));
     process.exit(1);
   }
@@ -1720,7 +1735,7 @@ function generateClaudeMdContent(): string {
   return `${CX_CLAUDE_MARKER}
 ## CXTMS Project
 
-This is a CXTMS (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by \`@cxtms/cx-schema\`.
+This is a CXTMS (CX) application. Modules and workflows are defined as YAML files validated against JSON schemas provided by \`cxtms\`.
 
 ### Project Structure
 
