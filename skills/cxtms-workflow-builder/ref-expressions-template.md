@@ -84,6 +84,7 @@ commodities:
   mapping:                                 # dict -> List<dict>, string -> List<object>
     name: "{{ item.name }}"
     quantity: "{{ item.qty }}"
+    "{{ item.langKey }}": "{{ item.value }}"  # dynamic key (template-substituted)
 ```
 
 **`switch`** (value context) -- Value-based switch (case-insensitive match):
@@ -104,6 +105,7 @@ orderData:
   mapping:                                 # dict: merge overrides. array: append items
     status: "Updated"
     notes: "{{ newNotes }}"
+    "{{ dynamicField }}": "{{ value }}"    # dynamic key (template-substituted)
 ```
 
 **`resolve`** -- Entity ID lookup by querying a GraphQL collection:
@@ -136,6 +138,25 @@ apiKey:
     key: "{{ encryptionKey }}"             # optional Base64 AES key
     initializationVector: "{{ iv }}"       # optional Base64 IV
 ```
+
+### Template-Substituted Dictionary Keys
+
+Dictionary **keys** (not just values) support `{{ path }}` template expressions. The engine resolves each key through the same template parser before inserting it into the result dictionary. This works in:
+
+- **Generic dictionaries** (plain object mappings in step inputs)
+- **`foreach` complex mapping** keys
+- **`extends` mapping** keys
+
+```yaml
+# Build a dict whose keys depend on a variable
+inputs:
+  customValues:
+    "{{ fieldName }}": "{{ fieldValue }}"          # single variable key
+    "{{ prefix }}_{{ lang }}": "translated text"   # composite key
+    staticKey: "literal value"                     # plain keys pass through unchanged
+```
+
+**Fallback**: If a templated key resolves to null or empty string, the engine keeps the original literal key (e.g., `{{ missingVar }}`) to avoid silently dropping entries. An `InvalidOperationException` during resolution also falls back to the literal key.
 
 ---
 
