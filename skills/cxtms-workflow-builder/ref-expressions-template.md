@@ -22,6 +22,8 @@ inputs:
 
 **Key behavior**: A single `{{ path }}` returns the **raw object** (preserving type). Multiple `{{ }}` in a string returns string interpolation (each resolved value is `.ToString()`).
 
+**Date string normalization in step inputs**: When a string value is merged into a step's input dictionary (via `AddRangeN`), the engine auto-detects date/datetime strings and converts them to ISO format. Common formats recognized: ISO (`2024-03-15`), US (`03/15/2024`), EU (`25/12/2024`), datetime with offset (`2024-03-15T15:30:45+05:00` → UTC). Empty strings are converted to `null`. OLE Automation date numbers (e.g., `"45752"`) are also recognized as dates — but only when the field name includes a date/time keyword (e.g., `departureDate`, `pickupTime`). A numeric string like `"45752"` for a field named `amount` is kept as-is.
+
 ### Type Converters (prefix in {{ }})
 
 ```yaml
@@ -106,7 +108,10 @@ orderData:
     status: "Updated"
     notes: "{{ newNotes }}"
     "{{ dynamicField }}": "{{ value }}"    # dynamic key (template-substituted)
+    legacyField: "$delete"                 # remove key from base object
 ```
+
+**Remove sentinel `"$delete"`**: Setting any mapping value to the literal string `"$delete"` removes that key from the merged result instead of setting it. This works in `extends` mappings and anywhere dictionary merging occurs (e.g., entity update `customValues`). The sentinel bypasses the duplicate-key guard — it is always safe to delete, even when `overwriteExisting` is false. Exact match only: `"$DELETE"`, `" $delete"`, or `"$delete extra"` are treated as regular string values, not remove markers. To store the literal string `"$delete"` as a value (not a remove command), use direct field assignment patterns rather than a merge mapping.
 
 **`resolve`** -- Entity ID lookup by querying a GraphQL collection:
 ```yaml
