@@ -197,11 +197,11 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
 | `OrderCharge/Create` | Create order charge |
 | `OrderDocument/Create` | Create order document |
 | `OrderDocument/Send` | Send order document |
-| `OrderTrackingEvent/Create` | Create a single tracking event on an order |
+| `OrderTrackingEvent/Create` | Create a single tracking event on an order. Auto-links to first-level commodities by default; override per task via `autoLinkToCommodities` or target specific commodities via `commodityIds`. |
 | `OrderEntity/ChangeCustomValue` | Change custom field value |
 
 ```yaml
-# Create a single tracking event
+# Create a single tracking event (auto-links to first-level commodities by default)
 - task: "OrderTrackingEvent/Create@1"
   name: AddPickupEvent
   inputs:
@@ -219,6 +219,32 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
       carrierEventCode: "PU"
 ```
 
+**Auto-link to commodities.** When the event is added to an order, it is also linked to every first-level commodity (commodities where `ContainerCommodityId` is null). This behavior is governed by the org config `tms.trackingEvents.autoLinkToCommodities` (default `true`) and can be overridden per task:
+
+```yaml
+# Force-enable auto-link even if the org config disables it
+- task: "OrderTrackingEvent/Create@1"
+  inputs:
+    orderId: "{{ order.orderId }}"
+    organizationId: "{{ organizationId }}"
+    eventDefinitionName: "Arrived"
+    autoLinkToCommodities: true
+
+# Link to specific commodities only (bypasses auto-link entirely)
+- task: "OrderTrackingEvent/Create@1"
+  inputs:
+    orderId: "{{ order.orderId }}"
+    organizationId: "{{ organizationId }}"
+    eventDefinitionName: "Partial Delivery"
+    commodityIds: [101, 102, 103]
+```
+
+| Precedence | Source | Behavior |
+|---|---|---|
+| 1 (highest) | `commodityIds` input | Link exactly those IDs. IDs not on the order are silently dropped. `autoLinkToCommodities` is ignored. |
+| 2 | `autoLinkToCommodities` input | `true` → link all first-level commodities; `false` → link none. Overrides org config. |
+| 3 (default) | `tms.trackingEvents.autoLinkToCommodities` org config | Default `true` → link first-level commodities. |
+
 ## Inventory
 
 | Task | Description |
@@ -235,7 +261,26 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
 | `Country/Create`, `Country/Update`, `Country/Delete` | Country CRUD |
 | `Cities/Import` | Import cities |
 | `Rate/Update` | Update rate |
+| `TrackingEvent/Create` | Create a single tracking event and link to an order, a commodity, or multiple commodities |
 | `TrackingEvent/Import` | Batch import tracking events into an order |
+
+```yaml
+# Create a single tracking event linked to a commodity (or a list of commodities)
+- task: "TrackingEvent/Create@1"
+  name: CreateCommodityEvent
+  inputs:
+    organizationId: "{{ organizationId }}"
+    eventDefinitionName: "Scanned"
+    commodityIds: [101, 102]   # or commodityId for a single commodity
+    orderId: "{{ order.orderId }}"   # optional; triggers auto-link to first-level commodities
+    eventDate: "{{ utcNow() }}"
+    location: "{{ scan.location }}"
+    includeInTracking: true
+    sendEmail: false
+    skipIfExists: true
+```
+
+Use [`OrderTrackingEvent/Create@1`](#order-sub-entities) when you want per-task overrides of the commodity auto-link behavior (`autoLinkToCommodities`, `commodityIds`). `TrackingEvent/Create@1` only honors the org-wide `tms.trackingEvents.autoLinkToCommodities` default for the auto-link step.
 
 ```yaml
 # Batch import tracking events

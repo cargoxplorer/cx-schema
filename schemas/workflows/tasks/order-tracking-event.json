@@ -74,6 +74,17 @@
           "type": ["boolean", "string"],
           "description": "Skip if same EventDefinitionId already on order"
         },
+        "autoLinkToCommodities": {
+          "type": ["boolean", "string"],
+          "description": "Per-task override for the tms.trackingEvents.autoLinkToCommodities org config. When true, links the tracking event to all first-level commodities; when false, skips auto-linking. Ignored when commodityIds is supplied."
+        },
+        "commodityIds": {
+          "type": ["array", "string"],
+          "description": "Explicit list of commodity IDs to link the tracking event to. When provided (non-empty), overrides auto-link entirely and links only these commodities. IDs not belonging to the order are silently dropped.",
+          "items": {
+            "type": ["integer", "string"]
+          }
+        },
         "eventDefinitionValues?": {
           "type": "object",
           "description": "Values for creating a new EventDefinition if not found by name",
