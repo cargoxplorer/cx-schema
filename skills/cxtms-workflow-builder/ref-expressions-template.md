@@ -181,7 +181,7 @@ Used in `collection:` (foreach), `mapping:` (outputs), and variable resolution.
 | `list[*].dictKey` | Wildcard traversal into Dictionary/JObject keys | `items[*].customValues.chapter_en` |
 | `list[**]` | Recursive flatten (all depths) | `containerCommodities[**]` |
 | `list[-1]` | Depth filter (leaves only) | `tree[**][-1]` |
-| `list[condition]` | Filter by condition | `items[status=Active]` |
+| `list[condition]` | Filter by condition. LHS supports dotted nested paths | `items[status=Active]`, `activity[status.type=D]` |
 | `dict['key']` | Dictionary key access | `customValues['myField']` |
 | `list[*].{f1 f2}` | Field selector (projection) | `items[*].{name description}` |
 | `list[*].{alias:source}` | Field selector with alias | `items[*].{id:commodityId}` |
