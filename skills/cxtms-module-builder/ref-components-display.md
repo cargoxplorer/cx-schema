@@ -227,6 +227,7 @@ Colored chip/badge with dot indicator.
 | `label` | `string` | Badge text (template-parsed) |
 | `colorKey` | `string` | Color lookup key (template-parsed; defaults to lowercased label) |
 | `options.colors` | `Record<string, {label, bgcolor, dot}>` | Color map (must include `default`) |
+| `onClick` | `Action[]` | Actions to dispatch when the badge is clicked. Makes the badge interactive (pointer cursor). |
 
 ```yaml
 component: badge
@@ -238,6 +239,22 @@ props:
       active: { label: "Active", bgcolor: "#e8f5e9", dot: "#4caf50" }
       inactive: { label: "Inactive", bgcolor: "#fce4ec", dot: "#f44336" }
       default: { label: "Unknown", bgcolor: "#f5f5f5", dot: "#9e9e9e" }
+
+# Badge with click action
+component: badge
+name: priorityBadge
+props:
+  label: "{{ order.priority }}"
+  colorKey: "{{ order.priority }}"
+  options:
+    colors:
+      high: { label: "High", bgcolor: "#fce4ec", dot: "#f44336" }
+      normal: { label: "Normal", bgcolor: "#e8f5e9", dot: "#4caf50" }
+      default: { label: "Unknown", bgcolor: "#f5f5f5", dot: "#9e9e9e" }
+  onClick:
+    - navigate:
+        route: order-detail
+        params: { id: "{{ order.id }}" }
 ```
 
 ---
