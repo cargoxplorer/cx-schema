@@ -108,7 +108,7 @@ These are virtual fields that filter `orderEntities` by type:
 | `getCharge(chargeDescription)` | `Charge` | Single charge by description |
 | `getChargesByChargeType(chargeType)` | `[Charge]` | Charges filtered by type |
 | `getOrderSummary(weightUnit, volumeUnit, dimensionsUnit)` | `OrderSummary` | |
-| `lastTrackingEvent(eventDefinitionName)` | `TrackingEvent` | Most recent |
+| `lastTrackingEvent(eventDefinitionName, orderBy?)` | `TrackingEvent` | Most recent tracking event. Resolved via batched DataLoader. `orderBy` is accepted for backward compatibility but **ignored** — ordering is always `COALESCE(EventDate, Created) DESC, TrackingEventId DESC`. |
 | `businessDays(path: String!)` | `int?` | Business days from the date at `path` to today, using the org's business calendar. `path` is a dot-separated property path on the order (e.g. `"customValues.leg.pickup.scheduledAt"`). Returns `null` if path doesn't resolve or value isn't a parseable date. |
 | `attachmentsSummary` | `OrderAttachmentSummaryGqlDto` | `.totalCount` (int), `.hasAny` (bool) — batched DataLoader, backed by DB view |
 | `notesSummary` | `OrderNoteSummaryGqlDto` | `.totalCount` (int), `.hasAny` (bool) — batched DataLoader, backed by DB view |

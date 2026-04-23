@@ -119,6 +119,7 @@ Field names as used in workflow expressions: `{{ entity.description }}`, `{{ ent
 | `getRelatedOrder(filter)` | `Order` | First related order |
 | `getCommodityTrackingNumber(idPropertyName)` | `TrackingNumber` | Lookup |
 | `getCommodityAttachments(filter)` | `[Attachment]` | |
+| `lastTrackingEvent(eventDefinitionName, orderBy?)` | `TrackingEvent` | Most recent tracking event. Resolved via batched DataLoader. `orderBy` is accepted for backward compatibility but **ignored** — ordering is always `COALESCE(EventDate, Created) DESC, TrackingEventId DESC`. |
 | `changeHistory(startDate, endDate, maxResults)` | `[ChangeHistory]` | Audit trail |
 
 ## Container/Child Pattern (Self-Referencing)

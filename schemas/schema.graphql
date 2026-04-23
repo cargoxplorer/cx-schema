@@ -5515,6 +5515,10 @@ type commodity {
   allTagNames: [String!]! @cost(weight: "10")
   "Gets only the tags directly assigned to this commodity"
   directTagNames: [String!]! @cost(weight: "10")
+  lastTrackingEvent(
+    eventDefinitionName: String
+    orderBy: String
+  ): trackingEvent @cost(weight: "10")
 }
 
 type commodityStatus {
