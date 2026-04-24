@@ -97,6 +97,25 @@ orderBy: "customValues.fieldName"     # Custom field sort
 orderBy: "orderNumber~ToInt32"        # Type conversion during sort
 ```
 
+### `lastTrackingEvent` synthetic sort path (Order / Commodity)
+
+Sort the result list by the winning tracking event of each order or commodity. The "winner" is selected using `COALESCE(EventDate, Created) DESC/ASC, TrackingEventId DESC/ASC` — identical to the DataLoader logic — so SQL-level ordering and per-row resolution are always consistent.
+
+```
+orderBy: "-lastTrackingEvent.eventDate"   # Latest event first (DESC)
+orderBy: "lastTrackingEvent.eventDate"    # Earliest event first (ASC)
+```
+
+Filter to a specific event type using bracket notation before sorting:
+
+```
+orderBy: "-lastTrackingEvent[eventDefinition.eventName:Departed].eventDate"
+```
+
+- The bracket predicate (`[path:value]`) filters the `TrackingEvents` collection before the winner is picked.
+- Only `.eventDate` is supported as the sub-path. The expression resolves to `COALESCE(winner.EventDate, winner.Created)`, so null `EventDate` values fall back to `Created`.
+- Works on both `orders` and `commodities` top-level queries.
+
 ## Pagination
 
 ```graphql
