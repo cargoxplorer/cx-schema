@@ -119,7 +119,7 @@ Field names as used in workflow expressions: `{{ entity.description }}`, `{{ ent
 | `getRelatedOrder(filter)` | `Order` | First related order |
 | `getCommodityTrackingNumber(idPropertyName)` | `TrackingNumber` | Lookup |
 | `getCommodityAttachments(filter)` | `[Attachment]` | |
-| `lastTrackingEvent(eventDefinitionName, orderBy?)` | `TrackingEvent` | Most recent tracking event. Resolved via batched DataLoader. `orderBy` is accepted for backward compatibility but **ignored** — ordering is always `COALESCE(EventDate, Created) DESC, TrackingEventId DESC`. |
+| `lastTrackingEvent(eventDefinitionName, orderBy?)` | `TrackingEvent` | Most recent (or earliest) tracking event, resolved via batched DataLoader. `orderBy` is **honoured**: omit or prefix with `-` for DESC (latest event: `COALESCE(EventDate, Created) DESC, TrackingEventId DESC`); no prefix for ASC (earliest event: same columns ASC). Default is DESC. |
 | `changeHistory(startDate, endDate, maxResults)` | `[ChangeHistory]` | Audit trail |
 
 ## Container/Child Pattern (Self-Referencing)
