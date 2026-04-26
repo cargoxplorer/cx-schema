@@ -78,15 +78,29 @@
           "type": "object",
           "description": "Import options (for Order/Import@1)",
           "properties": {
+            "defaultDivisionId": {
+              "type": "integer",
+              "description": "Default division to use when divisionId is omitted from an imported order."
+            },
             "orderMatchByFields": {
               "type": "array",
               "items": { "type": "string" },
-              "description": "Fields to match existing orders. If null, creates new orders."
+              "description": "Fields to match existing orders. If null or empty, falls back to orderId when provided."
             },
-            "contactMatchByFields": {
+            "orderEntityMatchByFields": {
               "type": "array",
               "items": { "type": "string" },
-              "description": "Fields to match existing contacts for order entities."
+              "description": "Fields used to match existing order entities. Supports nested values like contact.name."
+            },
+            "orderEntityContactMatchByFields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields used to match contacts nested inside order entities."
+            },
+            "billToContactMatchByFields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields used to match the bill-to contact."
             },
             "contactAddressMatchByFields": {
               "type": "array",
@@ -98,19 +112,56 @@
               "items": { "type": "string" },
               "description": "Fields to match existing inventory items on commodities."
             },
+            "inventoryItemCustomerContactMatchByFields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields used to match customer contacts nested inside inventory items."
+            },
             "tagMatchByFields": {
               "type": "array",
               "items": { "type": "string" },
               "description": "Fields to match existing tags."
+            },
+            "commodityMatchByTrackingNumber": {
+              "type": "boolean",
+              "description": "When true, commodities can be matched by tracking number-oriented data instead of commodityId."
             },
             "commodityMatchByFields": {
               "type": "array",
               "items": { "type": "string" },
               "description": "Fields to match existing commodities."
             },
+            "createEventDefinitions": {
+              "type": "boolean",
+              "description": "Auto-create missing tracking event definitions during import. Default: true."
+            },
+            "eventDefinitionDefaults": {
+              "type": "object",
+              "description": "Default values applied when creating event definitions during import.",
+              "additionalProperties": true
+            },
+            "trackingEventMatchByFields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields used to deduplicate imported tracking events."
+            },
+            "matchByEventDefinition": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields on eventDefinition customValues used to match event definitions instead of eventDefinitionName."
+            },
+            "skipIfExists": {
+              "type": "boolean",
+              "description": "Skip importing tracking events that already exist based on the configured match fields. Default: true."
+            },
             "linkTrackingEventsToCommodities": {
               "type": "boolean",
               "description": "When true, imported tracking events are linked to the order's first-level (non-container) commodities. Default: false."
+            },
+            "skipValues": {
+              "type": "string",
+              "enum": ["None", "Null", "NullOrEmpty"],
+              "description": "Controls whether null/empty values in the import payload are stripped before updating existing orders, commodities, and order entities. None: overwrite with nulls; Null: skip null values; NullOrEmpty: skip null and empty strings (default). Prevents feed data that stops returning fields (e.g. ETA after delivery) from wiping existing data."
             }
           },
           "additionalProperties": true
