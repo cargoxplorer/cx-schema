@@ -102,6 +102,42 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
       notes: "Updated by workflow"
 ```
 
+### Order/Import@1
+
+Imports order data from an external feed. Supports create and upsert (match-by-fields).
+
+```yaml
+- task: "Order/Import@1"
+  name: ImportOrder
+  inputs:
+    data: "{{ inputs.orderData }}"
+    options:
+      orderMatchByFields: ["customValues.externalId"]
+      commodityMatchByFields: ["customValues.lineId"]
+      skipValues: "NullOrEmpty"   # default — preserves existing data when feed stops sending a field
+  outputs:
+    - name: result
+      mapping: "result?"
+```
+
+**`options` parameters:**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `orderMatchByFields` | string[] | null | Fields to match existing orders for upsert. null = always create. |
+| `contactMatchByFields` | string[] | null | Fields to match existing contacts on order entities. |
+| `contactAddressMatchByFields` | string[] | null | Fields to match existing contact addresses within order entities. |
+| `inventoryItemMatchByFields` | string[] | null | Fields to match existing inventory items on commodities. |
+| `tagMatchByFields` | string[] | null | Fields to match existing tags. |
+| `commodityMatchByFields` | string[] | null | Fields to match existing commodities on update. |
+| `linkTrackingEventsToCommodities` | boolean | false | Link imported tracking events to first-level commodities. |
+| `skipValues` | `None` \| `Null` \| `NullOrEmpty` | `NullOrEmpty` | Strip null/empty values before updating existing records. `NullOrEmpty` (default) prevents feeds that stop returning a field from wiping existing data (e.g. ETA after delivery). Use `None` to allow explicit null overwrites. |
+
+**`skipValues` modes:**
+- `NullOrEmpty` (default) — strips null and empty string values before update; existing field values are preserved when the feed omits them
+- `Null` — strips only null values; empty strings still overwrite
+- `None` — no stripping; all values including nulls overwrite existing data
+
 **Order/Import commodity fields**: When importing commodities, you can supply `packageTypeName` (string) instead of `packageTypeId`. The import handler resolves the name to an ID using an N+1-safe per-import cache (one DB query per unique package type name).
 
 ## Contact

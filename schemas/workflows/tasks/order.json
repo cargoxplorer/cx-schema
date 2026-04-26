@@ -111,6 +111,11 @@
             "linkTrackingEventsToCommodities": {
               "type": "boolean",
               "description": "When true, imported tracking events are linked to the order's first-level (non-container) commodities. Default: false."
+            },
+            "skipValues": {
+              "type": "string",
+              "enum": ["None", "Null", "NullOrEmpty"],
+              "description": "Controls whether null/empty values in the import payload are stripped before updating existing orders, commodities, and order entities. None: overwrite with nulls; Null: skip null values; NullOrEmpty: skip null and empty strings (default). Prevents feed data that stops returning fields (e.g. ETA after delivery) from wiping existing data."
             }
           },
           "additionalProperties": true
