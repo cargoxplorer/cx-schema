@@ -14,6 +14,7 @@
 - Order sub-entity tasks (OrderCommodity, OrderCharge, OrderDocument, OrderTrackingEvent, OrderEntity)
 - Inventory tasks (InventoryItem Create, Update, Delete)
 - Other entity tasks (Movement, Country, Cities, Rate, TrackingEvent/Import)
+- Notification tasks (Create)
 - Note tasks (Create, Update, Delete, Import, Export, RenameThread)
 - AccountingTransaction/ApplyCredit task
 
@@ -344,6 +345,28 @@ Use [`OrderTrackingEvent/Create@1`](#order-sub-entities) when you want per-task 
 Each event in the `events` array: `eventDefinitionName` (required), `eventDate`, `description`, `location`, `includeInTracking`, `sendEmail`, `isInactive`, `customValues` (object).
 
 Output `result`: `{ added, updated, skipped, failed, total, errors[] }`.
+
+## Notification
+
+| Task | Description |
+|------|-------------|
+| `Notification/Create` | Create a notification for an organization |
+
+```yaml
+- task: "Notification/Create@1"
+  name: CreateNotification
+  inputs:
+    organizationId: "{{ int inputs.organizationId }}"
+    notification:
+      message: "Order {{ inputs.orderNumber }} has been processed"
+      type: "Info"
+  outputs:
+    - name: notification
+      mapping: "notification"
+```
+
+**Inputs:** `organizationId` (int, required), `notification` (object, required — notification values).
+**Outputs:** `notification` (the created notification object).
 
 ## Note
 
