@@ -473,5 +473,17 @@ npx cxtms app release -m "Add warehouse locations module" --org 42
 6. **Set proper entityKind** when defining entities (Order, Contact, OrderEntity, AccountingTransaction, Calendar, CalendarEvent, Other)
 7. **DataGrid options** requires ALL properties: query, rootEntityName, entityKeys, navigationType, enableDynamicGrid, enableViews, enableSearch, enablePagination, enableColumns, enableFilter, defaultView, onRowClick
 8. **Form component** requires `validationSchema` in props
-9. **Do not change `appModuleId` or `filePath`** — set correctly by CLI scaffold
-10. **Always validate** the final YAML: `npx cxtms <file.yaml>`
+9. **Adaptive (mobile/tablet/desktop) design by default** — every form and layout must work on phones (`xs`), tablets (`sm`/`md`), and desktops (`lg+`):
+   - Wrap form fields in a `layout` child with `itemDefaults.size: { xs: 12, md: 6 }` (1 col on phone, 2 col on tablet+)
+   - Long fields (`textarea`, `quill`, `attachment`, multi-line `notes`) → `size: { xs: 12 }` (always full width)
+   - Cap visible columns: max 2 on `sm`, 3 on `md`, 4 on `lg`
+   - Group large forms into `card` sections that reflow with `size: { xs: 12, lg: 6 }`
+   - **Use modern MUI Grid v2 spacing**: `columnSpacing` + `rowSpacing` (both accept responsive maps `{ xs, sm, md, lg, xl }`) per https://mui.com/material-ui/react-grid/#row-and-column-spacing. Use `spacing` only when both axes should match.
+   - For details, see `skills/cxtms-module-builder/ref-components-layout.md` ("Adaptive / Responsive Design") and `skills/cxtms-module-builder/ref-components-forms.md` ("Mobile-Friendly Form Layout")
+10. **Do NOT use these legacy / forbidden layout patterns:**
+    - **No `cols: N`** on `layout` or `form` — non-responsive, ignored on mobile. Use `itemDefaults: { size: { xs: 12, md: <12/N> } }` instead.
+    - **No `row` component** in new code — use `layout` with responsive `columns` and `itemDefaults.size`. Existing `row` usages can stay.
+    - **No CSS class names (`className`) for layout** — neither on `layout`, `row`, nor `col`. Layouts must control sizing and spacing through `size`, `columns`, `spacing`/`rowSpacing`/`columnSpacing`, and `sx` / `containerSx` / `itemDefaults.sx`. Bootstrap-style classes (`col-md-6`, `row`, `container-fluid`) do not affect MUI Grid and have no effect.
+    - **No bare `spacing: <number>` for adaptive layouts** — use a breakpoint map (`spacing: { xs: 1, md: 3 }`) or split into `columnSpacing`/`rowSpacing`.
+11. **Do not change `appModuleId` or `filePath`** — set correctly by CLI scaffold
+12. **Always validate** the final YAML: `npx cxtms <file.yaml>`

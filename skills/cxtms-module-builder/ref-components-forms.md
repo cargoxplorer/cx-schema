@@ -1,10 +1,216 @@
 # Form & Input Components
 
 ## Contents
+- Mobile-friendly form layout (adaptive design)
 - Form component
 - Field component
 - FieldCollection component
 - BarcodeScanner component
+
+---
+
+## Mobile-Friendly Form Layout
+
+> See **`ref-components-layout.md` → Adaptive / Responsive Design** for breakpoint definitions and the full responsive prop reference. This section covers form-specific patterns.
+
+`form` itself is a flexbox column — children stack top-to-bottom with no horizontal flow. To create responsive multi-column forms (one column on mobile, two on tablet, etc.), wrap fields in a `layout` child and use **modern MUI Grid v2 spacing** (`columnSpacing` + `rowSpacing`, both responsive) plus `itemDefaults.size`.
+
+> **Do NOT** use `cols: N`, the `row` component, or CSS `className`s for form layout. Use `layout` + `size` + `columnSpacing`/`rowSpacing` + `sx` only.
+
+### Pattern 1 — Responsive 2-column form (1 column on mobile)
+
+```yaml
+component: form
+name: contactForm
+props:
+  validationSchema:
+    firstName: { type: string, required: true }
+    lastName:  { type: string, required: true }
+    email:     { type: string, required: true }
+children:
+  - component: layout
+    name: contactFields
+    props:
+      columnSpacing: { xs: 1, md: 2 }   # tighter horizontal gap on mobile
+      rowSpacing: { xs: 2, md: 3 }      # comfortable vertical breathing room
+      itemDefaults:
+        size: { xs: 12, md: 6 }         # 1 col mobile, 2 col tablet+
+    children:
+      - component: field
+        name: firstName
+        props: { type: text, label: { en-US: "First Name" } }
+      - component: field
+        name: lastName
+        props: { type: text, label: { en-US: "Last Name" } }
+      - component: field
+        name: email
+        props:
+          type: email
+          label: { en-US: "Email" }
+          size: { xs: 12 }              # always full width
+      - component: field
+        name: notes
+        props:
+          type: textarea
+          label: { en-US: "Notes" }
+          rows: 4
+          size: { xs: 12 }              # textareas always full width
+```
+
+### Pattern 2 — Three-tier form (1 / 2 / 3 columns)
+
+```yaml
+component: form
+name: productForm
+props:
+  validationSchema:
+    sku: { type: string, required: true }
+children:
+  - component: layout
+    props:
+      columnSpacing: { xs: 1, sm: 2, md: 3 }
+      rowSpacing: { xs: 2, md: 3 }
+      itemDefaults:
+        size: { xs: 12, sm: 6, lg: 4 }  # phone: 1 col, tablet: 2 col, desktop: 3 col
+    children:
+      - component: field
+        name: sku
+        props: { type: text, label: { en-US: "SKU" } }
+      - component: field
+        name: name
+        props: { type: text, label: { en-US: "Name" } }
+      - component: field
+        name: price
+        props: { type: number, label: { en-US: "Price" } }
+      - component: field
+        name: weight
+        props: { type: number, label: { en-US: "Weight" } }
+      - component: field
+        name: status
+        props: { type: select, label: { en-US: "Status" } }
+      - component: field
+        name: category
+        props: { type: select, label: { en-US: "Category" } }
+```
+
+### Pattern 3 — Section cards that reflow
+
+Group related fields into cards. The cards stack on mobile and sit side-by-side on desktop.
+
+```yaml
+component: form
+name: orderForm
+props:
+  validationSchema: { orderNumber: { type: string, required: true } }
+children:
+  - component: layout
+    props:
+      spacing: { xs: 2, md: 3 }         # uniform gap between cards
+      itemDefaults:
+        size: { xs: 12, lg: 6 }         # cards stack on phone/tablet, split on desktop
+    children:
+      - component: card
+        name: customerCard
+        props:
+          options:
+            variant: outlined
+            header: { title: "Customer" }
+        children:
+          - component: layout
+            props:
+              columnSpacing: { xs: 1, md: 2 }
+              rowSpacing: 2
+              itemDefaults:
+                size: { xs: 12, sm: 6 }
+            children:
+              - component: field
+                name: customerId
+                props: { type: select-async, label: { en-US: "Customer" } }
+              - component: field
+                name: poNumber
+                props: { type: text, label: { en-US: "PO #" } }
+      - component: card
+        name: shippingCard
+        props:
+          options:
+            variant: outlined
+            header: { title: "Shipping" }
+        children:
+          - component: layout
+            props:
+              columnSpacing: { xs: 1, md: 2 }
+              rowSpacing: 2
+              itemDefaults:
+                size: { xs: 12, sm: 6 }
+            children:
+              - component: field
+                name: shipDate
+                props: { type: date, label: { en-US: "Ship Date" } }
+              - component: field
+                name: carrier
+                props: { type: select, label: { en-US: "Carrier" } }
+```
+
+### Pattern 4 — Paired fields that wrap together
+
+Fields that belong together (qty + uom, from + to dates, address city/state/zip) should share breakpoints so they always wrap as a unit. Use a responsive `columns` total to pack 3 short fields into a single mobile row.
+
+```yaml
+- component: layout
+  props:
+    columns: { xs: 12, md: 12 }
+    columnSpacing: { xs: 1, md: 2 }
+    rowSpacing: 2
+  children:
+    - component: field
+      name: quantity
+      props: { type: number, label: { en-US: "Qty" }, size: { xs: 4 } }
+    - component: field
+      name: uom
+      props: { type: select, label: { en-US: "UOM" }, size: { xs: 4 } }
+    - component: field
+      name: weight
+      props: { type: number, label: { en-US: "Weight" }, size: { xs: 4 } }
+```
+
+### Pattern 5 — Toolbar that adapts
+
+```yaml
+- component: layout
+  name: formActions
+  props:
+    columnSpacing: { xs: 1, md: 2 }
+    sx: { justifyContent: { xs: 'space-between', md: 'flex-end' } }
+  children:
+    - component: button
+      name: cancel
+      props: { label: { en-US: "Cancel" }, variant: outlined }
+    - component: button
+      name: save
+      props: { label: { en-US: "Save" }, options: { type: submit, variant: primary } }
+```
+
+### Form mobile checklist
+
+- **Default to 1 column on `xs`** — never assume horizontal space. Use `itemDefaults.size: { xs: 12, ... }`.
+- **2 columns on `md+`** for paired short fields (firstName/lastName, qty/uom, from/to).
+- **Long fields full-width**: `textarea`, `quill`, `attachment`, `notes`, multi-line inputs → `size: { xs: 12 }`.
+- **Cap visible columns**: max 2 on `sm`, max 3 on `md`, max 4 on `lg`. More than that overcrowds.
+- **Group with cards** when a form has 3+ logical sections — gives clear visual breaks on mobile and reflow targets on desktop.
+- **Use the modern Grid spacing pattern**: `columnSpacing` + `rowSpacing` (responsive maps) over the legacy single-number `spacing`. Tighter columns on phones, comfortable rows always.
+- **Toolbar on phones**: prefer `space-between` (cancel left, save right) so primary action stays in the thumb zone. Switch to `flex-end` on `md+`.
+- **Validation messages** appear under the field — make sure `helperText` length doesn't break tight 2-col `sm` layouts.
+- **Tap targets ≥ 44px**: don't set `size: small` on primary buttons / interactive fields on `xs`.
+
+### What NOT to do in form layouts
+
+- ❌ `cols: N` on `form` (or anywhere) — non-responsive, ignored on mobile.
+- ❌ `row` component for new layouts — use `layout`.
+- ❌ `className: "row"` / `className: "col-md-6"` / any Bootstrap-style class — these don't affect MUI Grid sizing. Use `size` + `columns` instead.
+- ❌ Custom CSS classes on `layout` / `row` / `col` for sizing or spacing — those props belong on `size`, `spacing`, `rowSpacing`, `columnSpacing`, `sx`, or `containerSx`.
+- ❌ Mixing `spacing` with explicit `rowSpacing` AND `columnSpacing` (the explicit ones override).
+
+---
 
 ## form
 
@@ -31,7 +237,7 @@ Data entry form with validation, queries, and submission. Wraps React Hook Form'
 | `resetOnSubmit` | `boolean` | Reset form after submit |
 | `preventDefault` | `boolean` | Prevent default form submit |
 | `toolbar` | `component[]` | Toolbar components |
-| `cols` | `number` | Column layout for children |
+| ~~`cols: N`~~ | _legacy_ | **Do not use.** Non-responsive. Wrap children in a `layout` with `itemDefaults.size: { xs: 12, md: 6 }` instead. See "Mobile-Friendly Form Layout" above. |
 | `orientation` | `string` | Layout orientation |
 
 **Events:**
@@ -98,17 +304,25 @@ props:
           - notification: { message: { en-US: "Saved!" }, type: success }
           - navigateBack: { fallback: "/orders" }
 children:
-  - component: field
-    name: orderNumber
-    props: { type: text, label: { en-US: "Order Number" }, required: true }
-  - component: field
-    name: status
+  - component: layout
+    name: orderFormFields
     props:
-      type: select
-      label: { en-US: "Status" }
-      items:
-        - { label: "Draft", value: "Draft" }
-        - { label: "Active", value: "Active" }
+      columnSpacing: { xs: 1, md: 2 }   # tighter on mobile, breathing room on desktop
+      rowSpacing: { xs: 2, md: 3 }
+      itemDefaults:
+        size: { xs: 12, md: 6 }         # 1 col on phone, 2 col on tablet+
+    children:
+      - component: field
+        name: orderNumber
+        props: { type: text, label: { en-US: "Order Number" }, required: true }
+      - component: field
+        name: status
+        props:
+          type: select
+          label: { en-US: "Status" }
+          items:
+            - { label: "Draft", value: "Draft" }
+            - { label: "Active", value: "Active" }
 ```
 
 ---
@@ -134,6 +348,9 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `defaultCountry` | `string` | Default country for phone type |
 | `isClearable` | `boolean` | Allow clearing the value |
 | `InputProps` | `object` | Passed to underlying MUI TextField |
+| `size` | `number \| {xs,sm,md,lg,xl}` | When the field is a child of a `layout`, controls the Grid item width per breakpoint. Use `{ xs: 12, md: 6 }` for 1-col mobile / 2-col tablet+. Omit to inherit `itemDefaults.size` from parent layout. |
+| `offset` | `number \| {xs,sm,md,lg,xl}` | Leading offset (push field right) when inside a `layout` |
+| `order` | `number \| {xs,sm,md,lg,xl}` | Visual order per breakpoint when inside a `layout` |
 
 **Field Types:**
 | Type | Description |
@@ -314,7 +531,7 @@ Dynamic array/list editor for repeating field groups. Supports add/remove/reorde
 | `addButton.position` | `top \| bottom \| both` | `bottom` | Add button placement |
 | `defaultItem` | `any` | — | Template for new items |
 | `layout` | `list \| grid \| accordion` | `list` | Layout mode |
-| `cols` | `number` | `1` | Grid columns |
+| `cols` | `number` | `1` | Grid columns (non-responsive). For adaptive item layouts, set `cols: 1` and use a `layout` inside `itemTemplate` with `itemDefaults.size: { xs, md }`. |
 | `groupMode` | `boolean` | `false` | Enable grouping |
 | `groupBy` | `string` | — | Field path to group by |
 | `groups` | `{key, label, icon?}[]` | — | Group definitions |
@@ -344,19 +561,30 @@ props:
     unitPrice: 0
   layout: list
   itemTemplate:
-    component: row
+    component: layout
     name: lineItemRow
-    props: { spacing: 2 }
+    props:
+      columnSpacing: { xs: 1, md: 2 }
+      rowSpacing: 2
     children:
       - component: field
         name: description
-        props: { type: text, label: { en-US: "Description" } }
+        props:
+          type: text
+          label: { en-US: "Description" }
+          size: { xs: 12, md: 6 }
       - component: field
         name: quantity
-        props: { type: number, label: { en-US: "Qty" } }
+        props:
+          type: number
+          label: { en-US: "Qty" }
+          size: { xs: 6, md: 3 }
       - component: field
         name: unitPrice
-        props: { type: number, label: { en-US: "Unit Price" } }
+        props:
+          type: number
+          label: { en-US: "Unit Price" }
+          size: { xs: 6, md: 3 }
 ```
 
 ---
