@@ -5,11 +5,13 @@
 - Attachment
 - Division
 - EquipmentType
+- Equipment
+- EquipmentStatus
 - PackageType
 - NoteThread
 - Note
 
-Tag, Attachment, Division, EquipmentType, PackageType, Note/NoteThread.
+Tag, Attachment, Division, EquipmentType, Equipment, EquipmentStatus, PackageType, Note/NoteThread.
 
 ## Tag
 
@@ -100,6 +102,54 @@ Organization divisions/branches.
 | `name` | `string` | |
 
 No customValues. Linked to carriers via `CarrierEquipment` join.
+
+---
+
+## Equipment
+
+Physical equipment units (trailers, containers, trucks) tracked within an organization.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `equipmentId` | `int` | PK |
+| `organizationId` | `int` | |
+| `unitNumber` | `string` | Required; unique per org |
+| `equipmentTypeId` | `int` | FK to EquipmentType |
+| `equipmentStatusId` | `int` | FK to EquipmentStatus |
+| `notes` | `string?` | |
+| `customValues` | `Dictionary` | jsonb |
+
+**Navigation:** `organization`, `equipmentType` (EquipmentType), `equipmentStatus` (EquipmentStatus)
+
+**Constraints:** `(organizationId, unitNumber)` unique index.
+
+---
+
+## EquipmentStatus
+
+User-defined statuses for equipment lifecycle management.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `equipmentStatusId` | `int` | PK |
+| `organizationId` | `int` | |
+| `statusName` | `string` | Required |
+| `statusDescription` | `string?` | |
+| `statusStage` | `EquipmentStatusStage` enum | Required |
+| `priority` | `int` | Required; controls display/sort order |
+
+**Navigation:** `organization`
+
+No customValues.
+
+### EquipmentStatusStage Enum
+
+| Value | Int |
+|-------|-----|
+| `Available` | 1 |
+| `InUse` | 2 |
+| `Maintenance` | 3 |
+| `OutOfService` | 4 |
 
 ---
 

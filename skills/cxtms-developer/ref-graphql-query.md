@@ -264,6 +264,71 @@ High-level summary of changes (grouped by change event):
 | `userName` | `String` |
 | `email` | `String` |
 
+## Workflow Execution Queries
+
+### `workflowExecutions` — paginated execution history
+
+Returns paginated `WorkflowExecutionLog` records. Supports Lucene filter scoping, free-text search, and sorting.
+
+```graphql
+{
+  workflowExecutions(
+    organizationId: 1
+    filter: "workflowId:abc123 AND status:Failed"
+    search: "user@example.com"
+    orderBy: "-executedAt"
+    take: 50
+    skip: 0
+  ) {
+    items {
+      executionId
+      workflowId
+      status
+      executedAt
+      userId
+    }
+    totalCount
+    pageInfo { hasNextPage hasPreviousPage }
+  }
+}
+```
+
+**Arguments:**
+
+| Argument | Type | Notes |
+|----------|------|-------|
+| `organizationId` | `Int!` | Required |
+| `filter` | `String` | Lucene query syntax — scope by any field |
+| `search` | `String` | Free-text: matches `userId`, `executionId`, `workflowId` |
+| `orderBy` | `String` | Default: `-executedAt` (newest first) |
+| `take` / `skip` | `Int` | Pagination |
+
+**`filter` examples:**
+```
+filter: "workflowId:abc123"
+filter: "status:Failed"
+filter: "userId:user@example.com AND status:Completed"
+```
+
+**`search` behavior:** case-insensitive match across `userId`, `executionId` (UUID string), and `workflowId` (UUID string).
+
+### `workflowExecution` — single execution by ID
+
+```graphql
+{
+  workflowExecution(
+    organizationId: 1
+    executionId: "00000000-0000-0000-0000-000000000000"
+  ) {
+    executionId
+    workflowId
+    status
+    executedAt
+    userId
+  }
+}
+```
+
 ## Discovering Fields
 
 **Always discover field names before building a query.** Do not guess field names — use the tools below.
