@@ -5420,6 +5420,8 @@ type charge {
   salesTax: salesTax
   tariff: Any
   customValues: MapOfObject
+  createdUser: user!
+  updatedUser: user!
 }
 
 type city {
