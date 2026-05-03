@@ -1,6 +1,6 @@
 {
   "name": "@cxtms/cx-schema",
-  "version": "1.9.39",
+  "version": "1.9.40",
   "description": "Schema validation package for CXTMS YAML modules",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
