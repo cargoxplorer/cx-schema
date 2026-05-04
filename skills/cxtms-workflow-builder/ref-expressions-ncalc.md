@@ -101,7 +101,8 @@ Functions use two iterator variable names:
 | `now('yyyy-MM-dd', 'en-US')` | Formatted current time as string |
 | `addDays([date], 30)` | Add days (decimal, can be negative). Accepts DateTime, DateTimeOffset, string |
 | `addHours([date], 2)` | Add hours (decimal, can be negative). Same type handling |
-| `formatDate([date], 'dd/MM/yyyy', 'en-US')` | Format date with culture. Accepts DateTime or string |
+| `formatDate([date], 'dd/MM/yyyy')` | Format date using InvariantCulture (culture optional). Returns `null` for null or unparseable input. Accepts `DateTime`, `DateTimeOffset`, or string (including `DateTimeOffset`-shaped strings from `toLocalTime`) |
+| `formatDate([date], 'dd/MM/yyyy', 'en-US')` | Format date with explicit culture |
 | `dateFromUnix([unixTime])` | Unix timestamp (seconds) -> `DateTimeOffset`. Accepts int, long, decimal, string |
 | `dateToUtc([date])` or `dateToUtc([date], 'en-US')` | Convert to UTC. Optional culture for string parsing |
 | `toLocalTime([date], 'America/Chicago')` | Convert UTC datetime to local time in IANA timezone. Returns `null` if date or timezone is invalid |
