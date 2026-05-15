@@ -5453,6 +5453,7 @@ type commodity {
     @cost(weight: "10")
   getCommodityAttachments(filter: String): [AttachmentGqlDto]
     @cost(weight: "10")
+  getWeightTotal(weightUnit: String): Decimal @cost(weight: "10")
   changeHistory(
     startDate: DateTime
     endDate: DateTime

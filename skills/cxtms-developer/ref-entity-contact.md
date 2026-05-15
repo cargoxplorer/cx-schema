@@ -45,6 +45,8 @@ Field names as used in workflow expressions: `{{ entity.name }}`, `{{ entity.cus
 | `lastModified` | `DateTime` | |
 | `lastModifiedBy` | `string` | User ID |
 
+When an organization user's profile first/last name changes, linked contact profile names can be regenerated from trimmed `contactFirstName` + `contactLastName` so `name` remains in sync with the person display name.
+
 ## Navigation Properties
 
 | Field | Type | Notes |

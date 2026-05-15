@@ -317,6 +317,23 @@ Imports data from file content or URL. Supports `file://` URLs for local files (
       mapping: "data?"
 ```
 
+Use `columnMappings` when inbound CSV/XLSX headers do not match the internal field paths. Keys are the field paths workflows should consume; values are the headers present in the file.
+
+```yaml
+- task: "Utilities/Import@1"
+  name: ImportMappedData
+  inputs:
+    fileUrl: "{{ inputs.fileUrl }}"
+    format: "csv"
+    columnMappings:
+      contact.name: "Customer Name"
+      contact.emailAddress: "Email"
+      customValues.externalId: "External ID"
+  outputs:
+    - name: data
+      mapping: "data?"
+```
+
 ```yaml
 # Import from local file (e.g. extracted from ZIP)
 - task: "Utilities/Import@1"

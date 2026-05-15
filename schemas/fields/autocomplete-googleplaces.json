@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Autocomplete Google Places Field Type",
-  "description": "Schema for autocomplete-googleplaces field type with Google Places API integration",
+  "description": "Schema for autocomplete-googleplaces field type with Google Places API integration. The Google Maps SDK API key is loaded from organization config (apps.google.googleMapsApiKey), not from module YAML.",
   "type": "object",
   "properties": {
     "type": {

@@ -43,6 +43,11 @@
         "format": {
           "type": "string",
           "description": "Import format (e.g., csv)"
+        },
+        "columnMappings": {
+          "type": "object",
+          "description": "Optional map of internal field paths to inbound CSV/XLSX column headers. Example: {\"contact.name\": \"Customer Name\"}",
+          "additionalProperties": { "type": "string" }
         }
       },
       "additionalProperties": true
