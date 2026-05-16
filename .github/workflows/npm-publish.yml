@@ -29,7 +29,15 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Publish to npm
+      - name: Publish @cxtms/cx-schema to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Rename package to cxtms
+        run: npm pkg set name=cxtms
+
+      - name: Publish cxtms to npm
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

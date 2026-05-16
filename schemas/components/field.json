@@ -22,9 +22,11 @@
           }
         },
         "placeholder": {
-          "type": "string",
-          "description": "Field placeholder text",
-          "x-example": "Enter Country Code"
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "description": "Field placeholder text. Supports plain strings or localized values.",
+          "x-example": {
+            "en-US": "Enter Country Code"
+          }
         },
         "type": {
           "type": "string",
@@ -71,7 +73,10 @@
             "allowMultiple": { "type": "boolean" },
             "allowClear": { "type": "boolean" },
             "allowSearch": { "type": "boolean" },
-            "placeholder": { "type": "string" },
+            "placeholder": {
+              "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+              "description": "Select placeholder text. Supports plain strings or localized values."
+            },
             "minWidth": { "type": "string" },
             "valueFieldName": {
               "type": "string",
@@ -258,7 +263,9 @@
       "props": {
         "label": { "en-US": "Description" },
         "type": "text",
-        "placeholder": "Enter description"
+        "placeholder": {
+          "en-US": "Enter description"
+        }
       }
     }
   ]

@@ -77,6 +77,12 @@ Milestone/tracking event on an order or commodity.
 |-------|------|
 | `eventDefinition` | `EventDefinition` |
 
+### GraphQL Computed
+
+| Field | Returns | Notes |
+|-------|---------|-------|
+| `businessDays(path: String!)` | `int?` | Business days from the date at `path` to today, using the org's business calendar. `path` is a dot-separated property path on the tracking event (e.g. `"eventDate"`, `"customValues.scheduledAt"`). Returns `null` if path doesn't resolve or value isn't a parseable date. |
+
 ---
 
 ## EventDefinition

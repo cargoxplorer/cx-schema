@@ -22,16 +22,19 @@ fi
 VERBOSE=false
 SPECIFIC_TEST=""
 TIMEOUT=300
+ONLY=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --verbose|-v) VERBOSE=true; shift ;;
         --test|-t) SPECIFIC_TEST="$2"; shift 2 ;;
         --timeout) TIMEOUT="$2"; shift 2 ;;
+        --only) IFS=',' read -ra ONLY <<< "$2"; shift 2 ;;
         --help|-h)
             echo "Usage: $0 [options]"
             echo "  --verbose, -v        Show verbose output"
-            echo "  --test, -t NAME      Run only the specified test"
+            echo "  --test, -t NAME      Run only the specified test file"
+            echo "  --only N[,N...]      Run only specific test numbers within the file (e.g. --only 6 or --only 4,6)"
             echo "  --timeout SECONDS    Set timeout per test (default: 300)"
             exit 0 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
@@ -67,7 +70,7 @@ for test in "${tests[@]}"; do
     start_time=$(date +%s)
 
     if [ "$VERBOSE" = true ]; then
-        if timeout "$TIMEOUT" bash "$test_path"; then
+        if timeout "$TIMEOUT" bash "$test_path" ${ONLY[@]+"${ONLY[@]}"}; then
             duration=$(( $(date +%s) - start_time ))
             echo "  [PASS] $test (${duration}s)"
             passed=$((passed + 1))
@@ -77,7 +80,7 @@ for test in "${tests[@]}"; do
             failed=$((failed + 1))
         fi
     else
-        if output=$(timeout "$TIMEOUT" bash "$test_path" 2>&1); then
+        if output=$(timeout "$TIMEOUT" bash "$test_path" ${ONLY[@]+"${ONLY[@]}"} 2>&1); then
             duration=$(( $(date +%s) - start_time ))
             echo "  [PASS] (${duration}s)"
             passed=$((passed + 1))

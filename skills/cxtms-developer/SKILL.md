@@ -1,13 +1,13 @@
 ---
 name: cxtms-developer
 description: >
-  Shared CargoXplorer domain reference — entity fields, enums, customValues, GraphQL queries, and CLI auth.
+  Shared CXTMS domain reference — entity fields, enums, customValues, GraphQL queries, and CLI auth.
   Use when the user asks about CX entity fields, enums, customValues, entity relationships, or needs domain reference for Orders, Contacts, Commodities, Jobs, Charges, or other CX entities.
   Also use when the user wants to look up, check, or query specific orders, parcel shipments, commodities, tracking events, workflow logs, or any CX data.
 argument-hint: <entity name or question about fields>
 ---
 
-Shared domain reference for CargoXplorer entities. Used by `cxtms-workflow-builder` and `cxtms-module-builder` skills for entity field names, types, navigation properties, enums, and customValues extension patterns.
+Shared domain reference for CXTMS entities. Used by `cxtms-workflow-builder` and `cxtms-module-builder` skills for entity field names, types, navigation properties, enums, and customValues extension patterns.
 
 ## Feature File Layout
 
@@ -49,6 +49,10 @@ Use `--feature <feature_name>` with `cx-cli create` to automatically place files
 !cat skills/cxtms-developer/ref-entity-shared.md
 !cat skills/cxtms-developer/ref-entity-geography.md
 
+### Equipment & Fleet
+
+!cat skills/cxtms-developer/ref-entity-equipment.md
+
 ### Warehouse & Inventory
 
 !cat skills/cxtms-developer/ref-entity-warehouse.md
@@ -65,6 +69,7 @@ Use `--feature <feature_name>` with `cx-cli create` to automatically place files
 | **Pricing** | Rate, Lane, Discount, AccountingItem, AccountingAccount, PaymentTerm | ref-entity-rate.md |
 | **Shared** | Tag, Attachment, Division, EquipmentType, Equipment, EquipmentStatus, PackageType, Note/NoteThread | ref-entity-shared.md |
 | **Geography** | Country, State, City, Port, Vessel, CustomCode, ModeOfTransportation | ref-entity-geography.md |
+| **Equipment** | Equipment, EquipmentStatus | ref-entity-equipment.md |
 | **Warehouse** | InventoryItem, WarehouseLocation, CargoMovement (Order variant) | ref-entity-warehouse.md |
 | **Notification** | Notification, UserNotification | ref-entity-notification.md |
 
@@ -87,7 +92,9 @@ Most entities have `customValues` — a `Dictionary<string, object?>` stored as 
 
 **Lookup entities**: Job, JobStatus, Tag, Attachment, EventDefinition, Rate, Lane, Discount, AccountingItem, Port, Country, State, City, ModeOfTransportation
 
-**Without customValues**: Division, EquipmentType, PackageType, Vessel, CustomCode, AccountingAccount, PaymentTerm, WarehouseLocation, JobOrder
+**Fleet**: Equipment (replace semantics — null clears, non-null full-replaces)
+
+**Without customValues**: Division, EquipmentType, EquipmentStatus, PackageType, Vessel, CustomCode, AccountingAccount, PaymentTerm, WarehouseLocation, JobOrder
 
 ### Audit Fields (AuditableEntity)
 

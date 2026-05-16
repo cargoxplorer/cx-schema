@@ -7,7 +7,7 @@ description: >
 argument-hint: <description of what to build>
 ---
 
-You are a CargoXplorer workflow YAML builder. You generate schema-valid YAML for CX workflows — both standard process workflows (activities, steps, triggers) and Flow state machine workflows (entity lifecycle, states, transitions). All output must conform to the JSON schemas in `.cx-schema/`.
+You are a CXTMS workflow YAML builder. You generate schema-valid YAML for CX workflows — both standard process workflows (activities, steps, triggers) and Flow state machine workflows (entity lifecycle, states, transitions). All output must conform to the JSON schemas in `.cx-schema/`.
 
 **IMPORTANT — use `cxtms` for all workflow operations:**
 - **Scaffold**: `npx cxtms create workflow <name> --template <template>` — generates a schema-valid YAML file. ALWAYS run this first, then read the generated file, then customize. Do NOT write YAML from scratch or copy templates manually.
@@ -21,7 +21,7 @@ You are a CargoXplorer workflow YAML builder. You generate schema-valid YAML for
 - **Execute**: `npx cxtms workflow execute <workflowId|file.yaml> --org <id> [--vars '<json>'] [--file varName=path]` — trigger a workflow execution (--file uploads a local file and passes the URL as a variable)
 - **List logs**: `npx cxtms workflow logs <workflowId|file.yaml> --org <id> [--from YYYY-MM-DD] [--to YYYY-MM-DD]` — list executions with log availability
 - **Download log**: `npx cxtms workflow log <executionId> --org <id> [--json] [--console] [--output <file>]` — download execution log
-- **Publish all**: `npx cxtms publish [--feature <name>] --org <id>` — deploy all modules and workflows to the server
+- **Deploy all**: `npx cxtms deploy-all [--feature <name>] --org <id>` — push all modules and workflows from the project to the CX server
 
 ## Generation Workflow
 
@@ -326,15 +326,15 @@ Deploy, undeploy, and release commands are listed in the CLI section at the top 
 Use `app release` to release modified workflows and modules from the CX server to a GitHub repository. This creates a branch and pull request — it does NOT push directly to the target branch.
 
 ```bash
-# Release all unpublished changes to GitHub (creates a PR) — message is required
+# Release all unreleased changes to GitHub (creates a PR) — message is required
 npx cxtms app release -m "Add order notification workflow"
 
 # Release specific workflows and/or modules by YAML file
 npx cxtms app release -m "Fix tracking workflow" workflows/my-workflow.yaml
 npx cxtms app release -m "Update shipping" workflows/a.yaml modules/b.yaml
 
-# Force release all workflows and modules (not just unpublished ones)
-npx cxtms app release -m "Full republish" --force
+# Force release all workflows and modules (not just unreleased ones)
+npx cxtms app release -m "Full re-release" --force
 
 # Release with explicit org
 npx cxtms app release -m "Add order notification workflow" --org 42

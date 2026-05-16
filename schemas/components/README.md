@@ -1,6 +1,6 @@
 # Component Schemas
 
-This directory contains individual JSON schema files for each CargoXplorer component type. Breaking down component schemas into separate files improves maintainability, organization, and reusability.
+This directory contains individual JSON schema files for each CXTMS component type. Breaking down component schemas into separate files improves maintainability, organization, and reusability.
 
 ## Directory Structure
 

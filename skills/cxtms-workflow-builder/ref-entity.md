@@ -14,6 +14,7 @@
 - Order sub-entity tasks (OrderCommodity, OrderCharge, OrderDocument, OrderTrackingEvent, OrderEntity)
 - Inventory tasks (InventoryItem Create, Update, Delete)
 - Other entity tasks (Movement, Country, Cities, Rate, TrackingEvent/Import)
+- Notification tasks (Create)
 - Note tasks (Create, Update, Delete, Import, Export, RenameThread)
 - AccountingTransaction/ApplyCredit task
 
@@ -101,6 +102,42 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
       status: "Active"
       notes: "Updated by workflow"
 ```
+
+### Order/Import@1
+
+Imports order data from an external feed. Supports create and upsert (match-by-fields).
+
+```yaml
+- task: "Order/Import@1"
+  name: ImportOrder
+  inputs:
+    data: "{{ inputs.orderData }}"
+    options:
+      orderMatchByFields: ["customValues.externalId"]
+      commodityMatchByFields: ["customValues.lineId"]
+      skipValues: "NullOrEmpty"   # default — preserves existing data when feed stops sending a field
+  outputs:
+    - name: result
+      mapping: "result?"
+```
+
+**`options` parameters:**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `orderMatchByFields` | string[] | null | Fields to match existing orders for upsert. null = always create. |
+| `contactMatchByFields` | string[] | null | Fields to match existing contacts on order entities. |
+| `contactAddressMatchByFields` | string[] | null | Fields to match existing contact addresses within order entities. |
+| `inventoryItemMatchByFields` | string[] | null | Fields to match existing inventory items on commodities. |
+| `tagMatchByFields` | string[] | null | Fields to match existing tags. |
+| `commodityMatchByFields` | string[] | null | Fields to match existing commodities on update. |
+| `linkTrackingEventsToCommodities` | boolean | false | Link imported tracking events to first-level commodities. |
+| `skipValues` | `None` \| `Null` \| `NullOrEmpty` | `NullOrEmpty` | Strip null/empty values before updating existing records. `NullOrEmpty` (default) prevents feeds that stop returning a field from wiping existing data (e.g. ETA after delivery). Use `None` to allow explicit null overwrites. |
+
+**`skipValues` modes:**
+- `NullOrEmpty` (default) — strips null and empty string values before update; existing field values are preserved when the feed omits them
+- `Null` — strips only null values; empty strings still overwrite
+- `None` — no stripping; all values including nulls overwrite existing data
 
 **Order/Import commodity fields**: When importing commodities, you can supply `packageTypeName` (string) instead of `packageTypeId`. The import handler resolves the name to an ID using an N+1-safe per-import cache (one DB query per unique package type name).
 
@@ -197,11 +234,11 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
 | `OrderCharge/Create` | Create order charge |
 | `OrderDocument/Create` | Create order document |
 | `OrderDocument/Send` | Send order document |
-| `OrderTrackingEvent/Create` | Create a single tracking event on an order |
+| `OrderTrackingEvent/Create` | Create a single tracking event on an order. Auto-links to first-level commodities by default; override per task via `autoLinkToCommodities` or target specific commodities via `commodityIds`. |
 | `OrderEntity/ChangeCustomValue` | Change custom field value |
 
 ```yaml
-# Create a single tracking event
+# Create a single tracking event (auto-links to first-level commodities by default)
 - task: "OrderTrackingEvent/Create@1"
   name: AddPickupEvent
   inputs:
@@ -219,6 +256,32 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
       carrierEventCode: "PU"
 ```
 
+**Auto-link to commodities.** When the event is added to an order, it is also linked to every first-level commodity (commodities where `ContainerCommodityId` is null). This behavior is governed by the org config `tms.trackingEvents.autoLinkToCommodities` (default `true`) and can be overridden per task:
+
+```yaml
+# Force-enable auto-link even if the org config disables it
+- task: "OrderTrackingEvent/Create@1"
+  inputs:
+    orderId: "{{ order.orderId }}"
+    organizationId: "{{ organizationId }}"
+    eventDefinitionName: "Arrived"
+    autoLinkToCommodities: true
+
+# Link to specific commodities only (bypasses auto-link entirely)
+- task: "OrderTrackingEvent/Create@1"
+  inputs:
+    orderId: "{{ order.orderId }}"
+    organizationId: "{{ organizationId }}"
+    eventDefinitionName: "Partial Delivery"
+    commodityIds: [101, 102, 103]
+```
+
+| Precedence | Source | Behavior |
+|---|---|---|
+| 1 (highest) | `commodityIds` input | Link exactly those IDs. IDs not on the order are silently dropped. `autoLinkToCommodities` is ignored. |
+| 2 | `autoLinkToCommodities` input | `true` → link all first-level commodities; `false` → link none. Overrides org config. |
+| 3 (default) | `tms.trackingEvents.autoLinkToCommodities` org config | Default `true` → link first-level commodities. |
+
 ## Inventory
 
 | Task | Description |
@@ -235,7 +298,26 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
 | `Country/Create`, `Country/Update`, `Country/Delete` | Country CRUD |
 | `Cities/Import` | Import cities |
 | `Rate/Update` | Update rate |
+| `TrackingEvent/Create` | Create a single tracking event and link to an order, a commodity, or multiple commodities |
 | `TrackingEvent/Import` | Batch import tracking events into an order |
+
+```yaml
+# Create a single tracking event linked to a commodity (or a list of commodities)
+- task: "TrackingEvent/Create@1"
+  name: CreateCommodityEvent
+  inputs:
+    organizationId: "{{ organizationId }}"
+    eventDefinitionName: "Scanned"
+    commodityIds: [101, 102]   # or commodityId for a single commodity
+    orderId: "{{ order.orderId }}"   # optional; triggers auto-link to first-level commodities
+    eventDate: "{{ utcNow() }}"
+    location: "{{ scan.location }}"
+    includeInTracking: true
+    sendEmail: false
+    skipIfExists: true
+```
+
+Use [`OrderTrackingEvent/Create@1`](#order-sub-entities) when you want per-task overrides of the commodity auto-link behavior (`autoLinkToCommodities`, `commodityIds`). `TrackingEvent/Create@1` only honors the org-wide `tms.trackingEvents.autoLinkToCommodities` default for the auto-link step.
 
 ```yaml
 # Batch import tracking events
@@ -263,6 +345,28 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
 Each event in the `events` array: `eventDefinitionName` (required), `eventDate`, `description`, `location`, `includeInTracking`, `sendEmail`, `isInactive`, `customValues` (object).
 
 Output `result`: `{ added, updated, skipped, failed, total, errors[] }`.
+
+## Notification
+
+| Task | Description |
+|------|-------------|
+| `Notification/Create` | Create a notification for an organization |
+
+```yaml
+- task: "Notification/Create@1"
+  name: CreateNotification
+  inputs:
+    organizationId: "{{ int inputs.organizationId }}"
+    notification:
+      message: "Order {{ inputs.orderNumber }} has been processed"
+      type: "Info"
+  outputs:
+    - name: notification
+      mapping: "notification"
+```
+
+**Inputs:** `organizationId` (int, required), `notification` (object, required — notification values).
+**Outputs:** `notification` (the created notification object).
 
 ## Note
 

@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Import Tasks",
-  "description": "Data import operations",
+  "title": "Notification Tasks",
+  "description": "Notification entity operations",
   "type": "object",
   "properties": {
     "task": {
       "type": "string",
       "enum": [
-        "Utilities/Import@1"
+        "Notification/Create@1"
       ],
       "description": "Task type identifier"
     },
@@ -24,7 +24,9 @@
       "items": {
         "type": "object",
         "properties": {
-          "expression": { "type": "string" }
+          "expression": {
+            "type": "string"
+          }
         },
         "required": ["expression"]
       }
@@ -34,20 +36,16 @@
     },
     "inputs": {
       "type": "object",
-      "description": "Import operation inputs",
+      "description": "Notification operation inputs",
       "properties": {
-        "content": {
-          "type": "string",
-          "description": "File content to import"
+        "organizationId": {
+          "type": ["string", "integer"],
+          "description": "Organization ID (int)"
         },
-        "format": {
-          "type": "string",
-          "description": "Import format (e.g., csv)"
-        },
-        "columnMappings": {
+        "notification": {
           "type": "object",
-          "description": "Optional map of internal field paths to inbound CSV/XLSX column headers. Example: {\"contact.name\": \"Customer Name\"}",
-          "additionalProperties": { "type": "string" }
+          "description": "Notification values to create",
+          "additionalProperties": true
         }
       },
       "additionalProperties": true
@@ -57,8 +55,12 @@
       "items": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
-          "mapping": { "type": "string" }
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
         },
         "required": ["name", "mapping"]
       }

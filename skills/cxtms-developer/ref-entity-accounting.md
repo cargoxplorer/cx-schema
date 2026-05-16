@@ -101,7 +101,7 @@ Field names as used in workflow expressions: `{{ entity.transactionNumber }}`, `
 | `rateId` | `int?` | FK to Rate |
 | `customValues` | `Dictionary` | Own customValues |
 
-**Navigation:** `applyToContact`, `currency`, `accountingItem`, `salesTax`, `rate`, `orders` (many-to-many)
+**Navigation:** `applyToContact`, `currency`, `accountingItem`, `salesTax`, `rate`, `orders` (many-to-many), `createdUser`, `updatedUser`
 
 ---
 

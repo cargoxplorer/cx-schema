@@ -1,12 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "TrackingEvent Tasks",
-  "description": "Tracking event import operations",
+  "description": "Tracking event create and import operations",
   "type": "object",
   "properties": {
     "task": {
       "type": "string",
       "enum": [
+        "TrackingEvent/Create@1",
         "TrackingEvent/Import@1"
       ],
       "description": "Task type identifier"
@@ -36,11 +37,64 @@
     },
     "inputs": {
       "type": "object",
-      "description": "TrackingEvent/Import inputs",
+      "description": "TrackingEvent/Create inputs (organizationId, eventDefinitionId or eventDefinitionName, orderId/commodityId/commodityIds, description, location, includeInTracking, sendEmail, eventDate, customValues, skipIfExists, eventDefinitionValues) OR TrackingEvent/Import inputs",
       "properties": {
+        "organizationId": {
+          "type": ["integer", "string"],
+          "description": "Organization ID (required for TrackingEvent/Create@1)"
+        },
         "orderId": {
+          "type": ["integer", "string"],
+          "description": "Target order ID. Required for TrackingEvent/Import@1; for TrackingEvent/Create@1 at least one of orderId, commodityId, or commodityIds must be provided."
+        },
+        "commodityId": {
+          "type": ["integer", "string"],
+          "description": "(TrackingEvent/Create@1) Single commodity to link. Can be combined with orderId and/or commodityIds."
+        },
+        "commodityIds": {
+          "type": ["array", "string"],
+          "description": "(TrackingEvent/Create@1) List of commodities to link. Can be combined with orderId and/or commodityId.",
+          "items": {
+            "type": ["integer", "string"]
+          }
+        },
+        "eventDefinitionId": {
+          "type": ["integer", "string"],
+          "description": "(TrackingEvent/Create@1) ID of an existing event definition. Required if eventDefinitionName is not provided."
+        },
+        "eventDefinitionName": {
           "type": "string",
-          "description": "Target order ID (required)"
+          "description": "(TrackingEvent/Create@1) Name of the event definition. Required if eventDefinitionId is not provided. Auto-creates a new definition when combined with eventDefinitionValues."
+        },
+        "eventDate": {
+          "type": "string",
+          "description": "(TrackingEvent/Create@1) Event date (converted to UTC; defaults to current UTC time)"
+        },
+        "includeInTracking": {
+          "type": ["boolean", "string"],
+          "description": "(TrackingEvent/Create@1) Include in public tracking display"
+        },
+        "sendEmail": {
+          "type": ["boolean", "string"],
+          "description": "(TrackingEvent/Create@1) Send email notification"
+        },
+        "location": {
+          "type": "string",
+          "description": "(TrackingEvent/Create@1) Event location (overrides EventDefinition default)"
+        },
+        "description": {
+          "type": "string",
+          "description": "(TrackingEvent/Create@1) Event description (overrides EventDefinition default). NOTE: When specified at inputs level (not step root), this is the tracking-event description."
+        },
+        "customValues": {
+          "type": "object",
+          "description": "(TrackingEvent/Create@1) Free-form custom values stored on the event",
+          "additionalProperties": true
+        },
+        "eventDefinitionValues": {
+          "type": "object",
+          "description": "(TrackingEvent/Create@1) Values for creating a new EventDefinition when none matches the given name",
+          "additionalProperties": true
         },
         "events": {
           "type": ["array", "string"],
@@ -94,7 +148,7 @@
         },
         "skipIfExists": {
           "type": ["boolean", "string"],
-          "description": "Skip event if duplicate found via matchByFields. Default: true"
+          "description": "(TrackingEvent/Import@1) Skip event if duplicate found via matchByFields. Default: true. (TrackingEvent/Create@1) Skip if an event with the same event definition already exists on the target order or commodity."
         },
         "createEventDefinitions": {
           "type": ["boolean", "string"],

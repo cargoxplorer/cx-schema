@@ -22,6 +22,8 @@ inputs:
 
 **Key behavior**: A single `{{ path }}` returns the **raw object** (preserving type). Multiple `{{ }}` in a string returns string interpolation (each resolved value is `.ToString()`).
 
+**Date string normalization in step inputs**: When a string value is merged into a step's input dictionary (via `AddRangeN`), the engine auto-detects date/datetime strings and converts them to ISO format. Common formats recognized: ISO (`2024-03-15`), US (`03/15/2024`), EU (`25/12/2024`), datetime with offset (`2024-03-15T15:30:45+05:00` → UTC). Empty strings are converted to `null`. OLE Automation date numbers (e.g., `"45752"`) are also recognized as dates — but only when the field name includes a date/time keyword (e.g., `departureDate`, `pickupTime`). A numeric string like `"45752"` for a field named `amount` is kept as-is.
+
 ### Type Converters (prefix in {{ }})
 
 ```yaml
@@ -84,6 +86,7 @@ commodities:
   mapping:                                 # dict -> List<dict>, string -> List<object>
     name: "{{ item.name }}"
     quantity: "{{ item.qty }}"
+    "{{ item.langKey }}": "{{ item.value }}"  # dynamic key (template-substituted)
 ```
 
 **`switch`** (value context) -- Value-based switch (case-insensitive match):
@@ -104,7 +107,11 @@ orderData:
   mapping:                                 # dict: merge overrides. array: append items
     status: "Updated"
     notes: "{{ newNotes }}"
+    "{{ dynamicField }}": "{{ value }}"    # dynamic key (template-substituted)
+    legacyField: "$delete"                 # remove key from base object
 ```
+
+**Remove sentinel `"$delete"`**: Setting any mapping value to the literal string `"$delete"` removes that key from the merged result instead of setting it. This works in `extends` mappings and anywhere dictionary merging occurs (e.g., entity update `customValues`). The sentinel bypasses the duplicate-key guard — it is always safe to delete, even when `overwriteExisting` is false. Exact match only: `"$DELETE"`, `" $delete"`, or `"$delete extra"` are treated as regular string values, not remove markers. To store the literal string `"$delete"` as a value (not a remove command), use direct field assignment patterns rather than a merge mapping.
 
 **`resolve`** -- Entity ID lookup by querying a GraphQL collection:
 ```yaml
@@ -137,6 +144,25 @@ apiKey:
     initializationVector: "{{ iv }}"       # optional Base64 IV
 ```
 
+### Template-Substituted Dictionary Keys
+
+Dictionary **keys** (not just values) support `{{ path }}` template expressions. The engine resolves each key through the same template parser before inserting it into the result dictionary. This works in:
+
+- **Generic dictionaries** (plain object mappings in step inputs)
+- **`foreach` complex mapping** keys
+- **`extends` mapping** keys
+
+```yaml
+# Build a dict whose keys depend on a variable
+inputs:
+  customValues:
+    "{{ fieldName }}": "{{ fieldValue }}"          # single variable key
+    "{{ prefix }}_{{ lang }}": "translated text"   # composite key
+    staticKey: "literal value"                     # plain keys pass through unchanged
+```
+
+**Fallback**: If a templated key resolves to null or empty string, the engine keeps the original literal key (e.g., `{{ missingVar }}`) to avoid silently dropping entries. An `InvalidOperationException` during resolution also falls back to the literal key.
+
 ---
 
 ## Property Path Syntax (in collection, mapping, variable paths)
@@ -152,10 +178,15 @@ Used in `collection:` (foreach), `mapping:` (outputs), and variable resolution.
 | `list[0]` | Array index | `items[0]` |
 | `list[^1]` | Index from end (last item) | `items[^1]` |
 | `list[*]` | Flatten/wildcard (all items) | `containers[*].commodities` |
+| `list[*].dictKey` | Wildcard traversal into Dictionary/JObject keys | `items[*].customValues.chapter_en` |
 | `list[**]` | Recursive flatten (all depths) | `containerCommodities[**]` |
 | `list[-1]` | Depth filter (leaves only) | `tree[**][-1]` |
-| `list[condition]` | Filter by condition | `items[status=Active]` |
+| `list[condition]` | Filter by condition. LHS supports dotted nested paths | `items[status=Active]`, `activity[status.type=D]` |
 | `dict['key']` | Dictionary key access | `customValues['myField']` |
 | `list[*].{f1 f2}` | Field selector (projection) | `items[*].{name description}` |
 | `list[*].{alias:source}` | Field selector with alias | `items[*].{id:commodityId}` |
 | `list[*].{alias:_.parent}` | Field selector referencing parent | `items[*].{parentId:_.orderId}` |
+
+**Wildcard traversal into Dictionary/JObject**: After `[*]`, subsequent path segments drill into Dictionary keys and JObject properties on each item. Dictionary-like values are preserved intact (not flattened) so multi-hop paths work: `items[*].customValues.chapter_en` extracts the `chapter_en` key from each item's `customValues` dictionary. This also works with nested dictionaries (`items[*].meta.locale.name`) and JObject items from JSON payloads.
+
+**JArray primitive unwrapping**: When `GetPropertyValue` encounters a JArray where every element is a JValue (primitive), it automatically unwraps the array into a `List<object>` of plain .NET values. This ensures downstream iteration (e.g., `select()`, `zip()`, `foreach`) works with primitives rather than JValue wrappers.

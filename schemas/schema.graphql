@@ -5420,6 +5420,8 @@ type charge {
   salesTax: salesTax
   tariff: Any
   customValues: MapOfObject
+  createdUser: user!
+  updatedUser: user!
 }
 
 type city {
@@ -5451,6 +5453,7 @@ type commodity {
     @cost(weight: "10")
   getCommodityAttachments(filter: String): [AttachmentGqlDto]
     @cost(weight: "10")
+  getWeightTotal(weightUnit: String): Decimal @cost(weight: "10")
   changeHistory(
     startDate: DateTime
     endDate: DateTime
@@ -5515,6 +5518,10 @@ type commodity {
   allTagNames: [String!]! @cost(weight: "10")
   "Gets only the tags directly assigned to this commodity"
   directTagNames: [String!]! @cost(weight: "10")
+  lastTrackingEvent(
+    eventDefinitionName: String
+    orderBy: String
+  ): trackingEvent @cost(weight: "10")
 }
 
 type commodityStatus {

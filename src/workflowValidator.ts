@@ -1,5 +1,5 @@
 /**
- * Workflow validator for CargoXplorer YAML workflow files
+ * Workflow validator for CXTMS YAML workflow files
  */
 
 import Ajv, { ErrorObject, ValidateFunction } from 'ajv';

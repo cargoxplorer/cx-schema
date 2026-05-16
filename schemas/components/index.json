@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Component Schemas Index",
-  "description": "Index of all available CargoXplorer component schemas",
+  "description": "Index of all available CXTMS component schemas",
   "type": "object",
   "definitions": {
     "appComponent": {

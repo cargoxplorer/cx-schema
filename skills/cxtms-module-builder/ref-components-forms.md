@@ -179,6 +179,26 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `valueQuery` | `{name, path, params}` | Single-value lookup query ref |
 | `variant` | `string` | Select variant |
 
+**Google Places autocomplete:** `autocomplete-googleplaces` uses the organization-level Google Maps API key from `apps.google.googleMapsApiKey`. Do not put API keys in module YAML. Configure `searchQuery.params` and `valueQuery.params` only:
+
+```yaml
+- component: field
+  name: pickupAddress
+  props:
+    type: autocomplete-googleplaces
+    label: { en-US: "Pickup address" }
+    options:
+      itemLabelTemplate: "{{ description }}"
+      searchQuery:
+        params:
+          input: "{{ search }}"
+          types: ["address"]
+          language: "en-US"
+      valueQuery:
+        params:
+          fields: ["name", "address_components", "formatted_address", "geometry", "place_id"]
+```
+
 **Events:**
 | Event | Description |
 |-------|-------------|
