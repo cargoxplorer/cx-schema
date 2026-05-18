@@ -911,6 +911,11 @@ type CreatePortPayload {
   query: Query!
 }
 
+type CreateTerminalPayload {
+  terminal: terminal
+  query: Query!
+}
+
 type CreatePostalCodePayload {
   postalCode: postalCode
   query: Query!
@@ -1274,6 +1279,11 @@ type DeletePaymentTermPayload {
 }
 
 type DeletePortPayload {
+  deleteResult: DeleteResult
+  query: Query!
+}
+
+type DeleteTerminalPayload {
   deleteResult: DeleteResult
   query: Query!
 }
@@ -1883,6 +1893,9 @@ type Mutation {
   createPort(input: CreatePortInput!): CreatePortPayload! @cost(weight: "10")
   updatePort(input: UpdatePortInput!): UpdatePortPayload! @cost(weight: "10")
   deletePort(input: DeletePortInput!): DeletePortPayload! @cost(weight: "10")
+  createTerminal(input: CreateTerminalInput!): CreateTerminalPayload! @cost(weight: "10")
+  updateTerminal(input: UpdateTerminalInput!): UpdateTerminalPayload! @cost(weight: "10")
+  deleteTerminal(input: DeleteTerminalInput!): DeleteTerminalPayload! @cost(weight: "10")
   importPorts(input: ImportPortsInput!): ImportPortsPayload! @cost(weight: "10")
   createPaymentTerm(input: CreatePaymentTermInput!): CreatePaymentTermPayload!
     @cost(weight: "10")
@@ -2547,6 +2560,15 @@ type PortsCollectionSegment {
 }
 
 "A segment of a collection."
+type TerminalsCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [terminal!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+"A segment of a collection."
 type PostalCodesCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
@@ -2746,6 +2768,23 @@ type Query {
     orderBy: String
     search: String
   ): TrackingEventsCollectionSegment
+    @listSize(
+      assumedSize: 10000
+      slicingArguments: ["take"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["items"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  terminal(organizationId: Int!, terminalId: Int!): terminal @cost(weight: "10")
+  terminals(
+    skip: Int
+    take: Int
+    organizationId: Int!
+    filter: String
+    search: String
+    orderBy: String
+  ): TerminalsCollectionSegment
     @listSize(
       assumedSize: 10000
       slicingArguments: ["take"]
@@ -4906,6 +4945,11 @@ type UpdatePortPayload {
   query: Query!
 }
 
+type UpdateTerminalPayload {
+  terminal: terminal
+  query: Query!
+}
+
 type UpdatePostalCodePayload {
   postalCode: postalCode
   query: Query!
@@ -6507,6 +6551,24 @@ type port {
   createdUser: user!
 }
 
+type terminal {
+  terminalId: Int!
+  organizationId: Int!
+  code: String
+  name: String!
+  portId: String
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+  port: port
+  organization: organization
+  updatedUser: user!
+  createdUser: user!
+}
+
 type postalCode {
   id: Int!
   accuracy: AccuracyTypes
@@ -8051,6 +8113,18 @@ input CreatePortInput {
   values: CreatePortCommandValuesInput!
 }
 
+input CreateTerminalCommandValuesInput {
+  name: String!
+  code: String
+  portId: String
+  customValues: MapOfObject
+}
+
+input CreateTerminalInput {
+  organizationId: Int!
+  values: CreateTerminalCommandValuesInput!
+}
+
 input CreatePostalCodeCommandValuesInput {
   accuracy: AccuracyTypes
   code: String!
@@ -8604,6 +8678,11 @@ input DeletePortInput {
   organizationId: Int!
   portId: String!
   countryCode: String!
+}
+
+input DeleteTerminalInput {
+  organizationId: Int!
+  terminalId: Int!
 }
 
 input DeletePostalCodeInput {
@@ -10100,6 +10179,12 @@ input UpdatePortInput {
   organizationId: Int!
   portId: String!
   countryCode: String!
+  values: MapOfObject
+}
+
+input UpdateTerminalInput {
+  organizationId: Int!
+  terminalId: Int!
   values: MapOfObject
 }
 

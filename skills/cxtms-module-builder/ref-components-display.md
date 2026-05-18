@@ -169,6 +169,10 @@ Typography text display with template interpolation.
 | `type` | `h1-h6 \| p \| span \| block` | `span` | HTML element / MUI variant |
 | `color` | `string` | `text` | MUI color |
 | `options` | `object` | — | Additional MUI Typography props |
+| `label` | `string \| localized \| template` | — | Optional label rendered with the text |
+| `labelPosition` | `top \| left` | `top` | Label placement |
+| `labelColor` | `string` | `text.secondary` | MUI color for label |
+| `labelWidth` | `string \| number` | `auto` | Minimum label width when `labelPosition: left` |
 | `stopPropagation` | `boolean` | — | Stop click propagation |
 
 **Events:** `onClick`
@@ -184,6 +188,9 @@ Typography text display with template interpolation.
 - component: text
   name: statusLabel
   props:
+    label: { en-US: "Last updated" }
+    labelPosition: left
+    labelWidth: 8rem
     value: "{{ format lastModified LLL }}"
     type: span
     color: text.secondary

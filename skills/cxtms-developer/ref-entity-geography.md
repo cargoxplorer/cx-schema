@@ -6,11 +6,12 @@
 - City
 - PostalCode
 - Port
+- Terminal
 - Vessel
 - CustomCode
 - ModeOfTransportation
 
-Country, State, City, PostalCode, Port, Vessel, CustomCode, ModeOfTransportation.
+Country, State, City, PostalCode, Port, Terminal, Vessel, CustomCode, ModeOfTransportation.
 
 ## Country
 
@@ -107,6 +108,28 @@ String-based PK (e.g., UN/LOCODE).
 | `customValues` | `Dictionary` | jsonb |
 
 **Navigation:** `country`, `state`
+
+---
+
+## Terminal
+
+Organization-scoped terminal / operating location. Optional Port linkage. Soft deleted.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `terminalId` | `int` | PK |
+| `organizationId` | `int` | Required scope |
+| `name` | `string` | Required |
+| `code` | `string?` | Optional; unique within organization when present |
+| `portId` | `string?` | Optional FK to Port (`organizationId` + `portId`) |
+| `customValues` | `Dictionary` | jsonb, searchable |
+| `isDeleted` | `bool` | Soft delete flag; default queries filter deleted rows |
+
+**Navigation:** `organization`, `port`, `createdUser`, `updatedUser`
+
+**GraphQL:** `terminal(organizationId, terminalId)`, `terminals(organizationId, filter, search, orderBy)`, `createTerminal`, `updateTerminal`, `deleteTerminal`.
+
+**Search:** `name`, `code`, and `customValues`.
 
 ---
 
