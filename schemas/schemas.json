@@ -116,6 +116,22 @@
                 "type": "boolean",
                 "description": "Whether column is hidden"
               },
+              "isVisible": {
+                "type": "boolean",
+                "description": "Whether column is visible"
+              },
+              "path": {
+                "type": "string",
+                "description": "GraphQL/data path for this column when different from name"
+              },
+              "exportPath": {
+                "type": "string",
+                "description": "Export field key; overrides path and name when building DataGrid export headers and mappings"
+              },
+              "exportTemplate": {
+                "type": "string",
+                "description": "Template expression for export-only formatted value; exposed in DataGrid context store exportTemplates"
+              },
               "enableEdit": {
                 "type": "boolean",
                 "description": "Enables inline cell editing for this column"

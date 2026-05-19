@@ -75,6 +75,8 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `name` | `string` | Field name |
 | `label` | `ILocalizeString` | Column header |
 | `isHidden` | `boolean` | Hidden column |
+| `exportPath` | `string` | Export field key; overrides `path`/`name` when building export config |
+| `exportTemplate` | `string` | Template expression for export-only formatted value; exposed at `store.<gridName>.exportTemplates` |
 | `showAs` | `{component, props}` | Custom cell renderer |
 | `width` | `number` | Column width |
 | `sticky` | `left \| right` | Pin column |
