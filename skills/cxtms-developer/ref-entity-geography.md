@@ -6,11 +6,12 @@
 - City
 - PostalCode
 - Port
+- Terminal
 - Vessel
 - CustomCode
 - ModeOfTransportation
 
-Country, State, City, PostalCode, Port, Vessel, CustomCode, ModeOfTransportation.
+Country, State, City, PostalCode, Port, Terminal, Vessel, CustomCode, ModeOfTransportation.
 
 ## Country
 
@@ -107,6 +108,28 @@ String-based PK (e.g., UN/LOCODE).
 | `customValues` | `Dictionary` | jsonb |
 
 **Navigation:** `country`, `state`
+
+---
+
+## Terminal
+
+Organization-scoped terminal/facility record. Codes are unique only among active terminals in the same organization.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `terminalId` | `int` | PK |
+| `organizationId` | `int` | Tenant scope |
+| `name` | `string` | Required display name |
+| `code` | `string?` | Unique per organization when not null and `isDeleted=false` |
+| `portId` | `string?` | Optional FK to Port (`organizationId` + `portId`) |
+| `customValues` | `Dictionary` | jsonb; searchable |
+| `isDeleted` | `bool` | Soft delete flag; default false |
+| `created` / `createdBy` | `DateTime` / `string` | Audit fields |
+| `lastModified` / `lastModifiedBy` | `DateTime` / `string` | Audit fields |
+
+**Navigation:** `port`, `organization`, `createdUser`, `updatedUser`.
+
+**Queries:** `terminals(organizationId, filter, search, orderBy)` and `terminal(organizationId, terminalId)`.
 
 ---
 
