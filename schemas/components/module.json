@@ -133,6 +133,38 @@
         "required": ["name", "roles"]
       }
     },
+    "defaultData": {
+      "type": "array",
+      "description": "Default data imports loaded with the module. Supported entities include reference/master data such as Terminal; Terminal rows match by Name unless keys are provided.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "type": "string",
+            "description": "Entity type to import, e.g. Currency, PaymentTerm, Terminal"
+          },
+          "keys": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Field names used to match existing records"
+          },
+          "overwrite": {
+            "type": "boolean",
+            "description": "Update existing matching records instead of skipping them"
+          },
+          "data": {
+            "type": "array",
+            "description": "Rows to import",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "required": ["entity", "data"],
+        "additionalProperties": true
+      }
+    },
     "configurations": {
       "type": "array",
       "description": "Organization configuration definitions",

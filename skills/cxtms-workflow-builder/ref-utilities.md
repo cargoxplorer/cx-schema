@@ -297,10 +297,18 @@ Exports data to file format.
   inputs:
     data: "{{ Data?.GetOrders?.result?.items? }}"
     format: "csv"
+    headers: ["orderNumber", "firstTrackingNumber"]
+    columnMappings:
+      orderNumber: "Order #"
+      firstTrackingNumber: "First Tracking #"
+    exportTemplates:
+      firstTrackingNumber: "shipments?[0]?.trackingNumber?"
   outputs:
     - name: file
       mapping: "file?"
 ```
+
+**Computed export columns:** `exportTemplates` is an optional map of output header name → NCalc expression. Expressions are evaluated against each original row before the export record is written. Use null-safe paths for nested/collection data, e.g. `oceanShipments?[0]?.trackingNumber?`. `columnMappings` controls display labels; `exportTemplates` controls values.
 
 ## Import@1
 
