@@ -5,10 +5,12 @@
 - Operators (comparison, logical, arithmetic, ternary, membership)
 - Iterator variables (`[each.*]` and `[item.*]`)
 - Collection functions (any, all, count, sum, first, last, distinct, select, zip, groupBy, join, sort, etc.)
-- String functions (isNullOrEmpty, length, lower, upper, replace, format, base64, coalesce, etc.)
-- Date functions (now, parseDate, addDays, formatDate, dateFromUnix, etc.)
+- String functions (isNullOrEmpty, length, lower, upper, replace, format, base64, fromJson, regex, coalesce, etc.)
+- Date functions (now, parseDate, addDays, addHours, dateDiff, formatDate, dateFromUnix, dateToUtc, toLocalTime)
 - Math functions (Abs, Ceiling, Floor, Round, Min, Max, etc.)
 - Domain functions (convertWeight, convertDimension)
+- Variable resolution details
+- Pitfalls (empty string null trap)
 
 For template expressions `{{ path }}` used in step inputs, see [ref-expressions-template.md](ref-expressions-template.md).
 
@@ -85,6 +87,8 @@ Functions use two iterator variable names:
 | `trim([value])` | Trim whitespace. Returns `""` for null |
 | `format('{0}-{1}', [prefix], [id])` | String.Format style. Variadic args. Returns null if format is null |
 | `base64([value])` / `fromBase64([encoded])` | Base64 encode/decode. Handles string, byte[], JToken |
+| `fromJson([str])` | Parse JSON string to Dictionary or JArray. Returns `null` for null input |
+| `regex([str], 'pattern')` | Regex match. Returns match result |
 | `bool([value])` | Convert to boolean: null->`false`, empty string->`false`, "true"/"false"->parsed, non-zero number->`true`, any object->`true` |
 | `transliterate([value])` | Unicode to ASCII (Unidecode). Returns `""` for null |
 | `transliterateUa([value])` | Ukrainian-specific transliteration. Returns `""` for null |
@@ -101,6 +105,7 @@ Functions use two iterator variable names:
 | `now('yyyy-MM-dd', 'en-US')` | Formatted current time as string |
 | `addDays([date], 30)` | Add days (decimal, can be negative). Accepts DateTime, DateTimeOffset, string |
 | `addHours([date], 2)` | Add hours (decimal, can be negative). Same type handling |
+| `dateDiff([start], [end], 'unit')` | Difference between two dates in specified unit |
 | `formatDate([date], 'dd/MM/yyyy')` | Format date using InvariantCulture (culture optional). Returns `null` for null or unparseable input. Accepts `DateTime`, `DateTimeOffset`, or string (including `DateTimeOffset`-shaped strings from `toLocalTime`) |
 | `formatDate([date], 'dd/MM/yyyy', 'en-US')` | Format date with explicit culture |
 | `dateFromUnix([unixTime])` | Unix timestamp (seconds) -> `DateTimeOffset`. Accepts int, long, decimal, string |
@@ -135,3 +140,31 @@ Custom: `ceiling([value])` -- same as `Ceiling` but handles type conversion to d
 |----------|-------------|
 | `convertWeight([weight], 'Kg', 'Lb')` | Weight unit conversion. Returns `decimal` rounded to 5 places |
 | `convertDimension([length], 'Cm', 'In')` | Dimension unit conversion. Returns `decimal` rounded to 3 places |
+
+---
+
+## Variable Resolution Details
+
+- `[variableName]` → workflow variable dictionary lookup via `GetPropertyValue()`
+- `[order.status]` → dot-path traversal through nested dictionaries/reflection
+- Without `?` → throws `InvalidOperationException` on missing path
+- With `?` → returns null instead of throwing
+- Empty string → null conversion (see Pitfalls below)
+- `FormatException` → retries with numeric string conversion (`"42"` → `42m`)
+
+## Pitfalls
+
+### Empty String Null Trap
+
+The NCalc engine silently converts `""` (empty string) to `null` **before** evaluating expressions. This happens in `EvaluateParameter` — it uses `string.IsNullOrEmpty()` (not `IsNullOrWhiteSpace`), so whitespace-only strings like `" "` pass through as-is.
+
+**Consequence**: `[myVar] != ''` is **always true** when the variable is empty, because the empty string becomes `null` and `null != ''` evaluates to `true`.
+
+**Rule**: Never compare against empty string. Always use `isNullOrEmpty()` instead:
+```yaml
+# WRONG — always true when myVar is empty
+expression: "[myVar] != ''"
+
+# CORRECT
+expression: "isNullOrEmpty([myVar]) = false"
+```
