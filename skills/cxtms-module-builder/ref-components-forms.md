@@ -295,6 +295,8 @@ Dynamic array/list editor for repeating field groups. Supports add/remove/reorde
 | `defaultItem` | `any` | — | Template for new items |
 | `layout` | `list \| grid \| accordion` | `list` | Layout mode |
 | `cols` | `number` | `1` | Grid columns |
+| `groupCols` | `number \| {xs,sm,md,lg,xl}` | `1` | Group columns when `groupMode` is true |
+| `groupSpacing` | `number` | `0` | Spacing between group columns |
 | `groupMode` | `boolean` | `false` | Enable grouping |
 | `groupBy` | `string` | — | Field path to group by |
 | `groups` | `{key, label, icon?}[]` | — | Group definitions |
@@ -337,6 +339,33 @@ props:
       - component: field
         name: unitPrice
         props: { type: number, label: { en-US: "Unit Price" } }
+```
+
+Grouped collections can render groups in multiple columns. Use a fixed `groupCols` count or responsive breakpoint counts; each count is converted to Material UI's 12-column grid.
+
+```yaml
+component: field-collection
+name: businessHours
+props:
+  fieldName: businessHours
+  groupMode: true
+  groupBy: dayOfWeek
+  groupCols: { xs: 1, md: 2, lg: 4 }
+  groupSpacing: 2
+  groups:
+    - { key: 1, label: { en-US: Monday } }
+    - { key: 2, label: { en-US: Tuesday } }
+  layout: accordion
+  itemTemplate:
+    component: layout
+    props: { cols: 2 }
+    children:
+      - component: field
+        name: startTime
+        props: { type: time, label: { en-US: Start } }
+      - component: field
+        name: endTime
+        props: { type: time, label: { en-US: End } }
 ```
 
 ---

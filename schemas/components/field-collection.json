@@ -281,6 +281,30 @@
           "description": "Number of columns for grid layout",
           "x-example": 2
         },
+        "groupCols": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "xs": { "type": "integer", "minimum": 1, "maximum": 12 },
+                "sm": { "type": "integer", "minimum": 1, "maximum": 12 },
+                "md": { "type": "integer", "minimum": 1, "maximum": 12 },
+                "lg": { "type": "integer", "minimum": 1, "maximum": 12 },
+                "xl": { "type": "integer", "minimum": 1, "maximum": 12 }
+              },
+              "minProperties": 1
+            }
+          ],
+          "default": 1,
+          "description": "Number of group columns when groupMode is enabled. Accepts a fixed count or responsive breakpoint counts; each count is converted to Material UI grid width (12 / count).",
+          "x-example": { "xs": 1, "md": 2, "lg": 4 }
+        },
         "spacing": {
           "type": "integer",
           "minimum": 0,
@@ -288,6 +312,14 @@
           "default": 2,
           "description": "Spacing between items (Material-UI spacing units)",
           "x-example": 3
+        },
+        "groupSpacing": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 0,
+          "description": "Spacing between group columns when groupMode is enabled (Material-UI spacing units)",
+          "x-example": 2
         },
         "showIndex": {
           "type": "boolean",
@@ -332,6 +364,8 @@
           { "key": 0, "label": "Sunday" }
         ],
         "layout": "accordion",
+        "groupCols": { "xs": 1, "md": 2, "lg": 4 },
+        "groupSpacing": 2,
         "defaultItem": {
           "startTime": "09:00:00",
           "endTime": "17:00:00"
@@ -404,6 +438,8 @@
           { "key": "in_progress", "label": { "en-US": "In Progress" }, "icon": "spinner" },
           { "key": "done", "label": { "en-US": "Done" }, "icon": "check-circle" }
         ],
+        "groupCols": { "xs": 1, "md": 3 },
+        "groupSpacing": 2,
         "groupTemplate": {
           "component": "layout",
           "props": { "className": "group-header bg-gray-100 p-2 rounded" },
