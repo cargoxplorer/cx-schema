@@ -191,10 +191,25 @@ events:                                     # Workflow-level event handlers
 For template expressions and value directives: see [ref-expressions-template.md](skills/cxtms-workflow-builder/ref-expressions-template.md)
 For NCalc conditions and functions: see [ref-expressions-ncalc.md](skills/cxtms-workflow-builder/ref-expressions-ncalc.md)
 
-**`{{ path }}`** — in step inputs. Single `{{ }}` returns raw object. Multiple returns string interpolation.
-**`[variable]`** — in conditions and `expression:` directives. NCalc syntax.
-**Value directives**: `expression`, `coalesce`, `foreach`, `switch`, `extends`, `$raw`
-**38 custom functions** + NCalc built-ins. Key ones: `isNullOrEmpty()`, `any()`, `all()`, `count()`, `sum()`, `first()`, `last()`, `contains()`, `join()`, `split()`, `format()`, `now()`, `addDays()`, `formatDate()`, `if()`, `groupBy()`, `concat()`, `distinct()`
+**`{{ path }}`** — in step inputs. Single `{{ }}` returns raw object. Multiple returns string interpolation. Supports sub-expressions `(variableName)` inside filter brackets for dynamic matching.
+**`[variable]`** — in conditions and `expression:` directives. NCalc syntax. **Warning**: empty strings are silently converted to `null` — always use `isNullOrEmpty()` instead of comparing to `''`. See [ref-expressions-ncalc.md](skills/cxtms-workflow-builder/ref-expressions-ncalc.md) Pitfalls section.
+**Value directives**: `expression`, `coalesce`, `foreach`, `switch`, `extends`, `$raw`, `$eval`, `resolve`, `decrypt`/`encrypt`
+**Type converters** (prefix in `{{ }}`): `int`, `decimal`, `bool`, `boolOrFalse`, `boolOrTrue`, `datetime`, `string`, `emptyIfNull`, `nullIfEmpty`, `luceneString`, `transliterate`, `transliterateUa`, `fromJson`, `toJson`, `trim`, `toLocalTime`
+**51 custom functions** + NCalc built-ins. Key ones: `isNullOrEmpty()`, `any()`, `all()`, `count()`, `sum()`, `first()`, `last()`, `contains()`, `join()`, `split()`, `format()`, `now()`, `addDays()`, `addHours()`, `dateDiff()`, `formatDate()`, `if()`, `groupBy()`, `concat()`, `distinct()`, `select()`, `zip()`, `regex()`, `fromJson()`
+
+### Resolution Pipeline
+
+Variables resolve through a 6-stage pipeline:
+1. **Declaration** — `variables:` section sets static/computed/expression values
+2. **Step input resolution** — `inputs:` values resolved per step
+3. **Template resolution** — `{{ }}` expressions parsed by `TemplatedVariableParser` (type converters, sub-expressions, property paths)
+4. **NCalc evaluation** — `conditions` and `expression:` directives evaluated by `ExpressionEvaluatorNCalc`
+5. **foreach scoping** — `item` and `index` variables injected per iteration
+6. **Output mapping** — step results stored as `ActivityName.StepName.outputKey`
+
+### Runtime Boundary
+
+Workflow `{{ }}` (server-side `TemplatedVariableParser`) and app module `{{ }}` (client-side custom template engine) are **different runtimes** with different syntax and capabilities. Workflow expressions support type converters, value directives, and NCalc conditions. App module expressions support their own operations: `eval`, `format`, `formatTz`, `hasPermission`, `isNullOrEmpty`, `any`, `isEqual`/`isEquals`, `moreThan`, `lessThan`, `dateDiff`, `daysBetween`, `daysUntil`, `daysAgo`, `isDateBefore`, `isDateAfter`, `round`, `trim`, `parse`, `startsWith`, `endsWith`, `includes`/`contains`, `isTrue`, `localStorage`, `fromConfig`, `encodeURIComponent`.
 
 ### Null-Safe Operator `?` — USE BY DEFAULT
 
