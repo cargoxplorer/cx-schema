@@ -8848,6 +8848,8 @@ input ImportCommodityTypesInput {
 input ImportContactsInput {
   organizationId: Int!
   fileUploadUrl: String!
+  contactType: ContactType
+  columnMappings: MapOfString
 }
 
 input ImportCountriesInput {
