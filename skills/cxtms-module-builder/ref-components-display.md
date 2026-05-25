@@ -53,6 +53,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `highlightNew` | `boolean` | `true` | Highlight newly added rows |
 | `highlightUpdated` | `boolean` | `true` | Highlight rows with updated values |
 | `highlightForRefreshes` | `number` | `1` | Per-row TTL — refresh cycles a highlight persists |
+| `defaultExpandedRows` | `boolean` | `false` | Pre-expand parent rows once on first load when `childViews` exist; refreshes preserve user collapse/expand choices |
 | `onRowClick` | `action[]` | — | Default row click action |
 | `onDataLoad` | `action[]` | — | Action after data loads |
 | `items` | `any` | — | Static data (instead of query) |
@@ -74,10 +75,13 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 |------|------|-------------|
 | `name` | `string` | Field name |
 | `label` | `ILocalizeString` | Column header |
-| `isHidden` | `boolean` | Hidden column |
+| `isHidden` | `boolean \| template` | Hidden column; also excluded from export when truthy |
+| `isVisible` | `boolean \| template` | Inverse visibility flag; excluded from export when false |
 | `showAs` | `{component, props}` | Custom cell renderer |
 | `width` | `number` | Column width |
 | `sticky` | `left \| right` | Pin column |
+| `exportPath` | `string` | Export key/path override; top-level or `props.exportPath` |
+| `exportTemplate` | `string` | Template used to format export values; top-level or `props.exportTemplate` |
 
 ```yaml
 component: dataGrid
@@ -108,6 +112,10 @@ props:
           label: { en-US: "Order #" }
         - name: customerName
           label: { en-US: "Customer" }
+          exportPath: customer.displayName
+        - name: totalAmount
+          label: { en-US: "Total" }
+          exportTemplate: "{{ formatCurrency totalAmount currencyCode }}"
         - name: status
           label: { en-US: "Status" }
           showAs:
@@ -143,6 +151,7 @@ props:
     enableColumns: true
     enableFilter: true
     defaultView: all
+    defaultExpandedRows: true
     onRowClick:
       - navigate: "orders/{{ id }}"
   toolbar:
