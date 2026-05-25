@@ -72,12 +72,18 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 **Column definition:**
 | Prop | Type | Description |
 |------|------|-------------|
-| `name` | `string` | Field name |
+| `name` | `string` | Field name or resolver expression |
 | `label` | `ILocalizeString` | Column header |
-| `isHidden` | `boolean` | Hidden column |
-| `showAs` | `{component, props}` | Custom cell renderer |
+| `isHidden` | `boolean` | Available in picker but hidden by default |
+| `showAs` | `{component, props, queries}` | Custom cell renderer |
 | `width` | `number` | Column width |
 | `sticky` | `left \| right` | Pin column |
+| `enableEdit` | `boolean` | Enable inline editing (requires `editor`) |
+| `editor` | `{component, props}` | Editor component (required with `enableEdit`) |
+| `onEdit` | `action[]` | Action on edit commit. Variables: `changedValues`, `value`, `index`, + row data |
+| `exportPath` | `string` | CSV export key. Fallback: `exportPath ?? path ?? name` |
+| `path` | `string` | Data path for column value. Fallback for `exportPath` |
+| `excludeFromQuery` | `boolean` | Exclude from GraphQL query and CSV export |
 
 ```yaml
 component: dataGrid
@@ -154,6 +160,122 @@ props:
           - label: { en-US: "Export" }
             onClick:
               - notification: { message: { en-US: "Exporting..." }, type: success }
+```
+
+### Entity Fields & Column Visibility
+
+When `rootEntityName` is set in datagrid options, the component fetches entity field definitions via GraphQL at runtime. Entity fields become "available columns" in the column picker — they are **not visible by default**. To make an entity field visible by default, add it to a view's `columns` array.
+
+**Entity field properties** (in `entities[].fields[]`):
+
+| Property | Location | Effect |
+|----------|----------|--------|
+| `allowOrderBy: false` | `props` | Disables sorting |
+| `allowFilter: false` | `props` | Hides from filter picker |
+| `allowSelect: false` | `props` | Hides from column picker entirely |
+| `isInactive: true` | top-level | Marks field as inactive |
+| `isCustomField: true` | top-level | Marks as custom field |
+
+**Visibility rules:**
+
+- `isHidden` is only valid on view columns, not entity field definitions. Entity fields always appear in the picker.
+- View column `name` must exactly match entity field `name`. If they differ (e.g., using a GraphQL alias prefix), the datagrid treats them as two separate columns — one always visible from the view, one hidden in the picker from the entity field.
+- Saved database views override YAML definitions. User customizations take priority. If a user has saved a view, YAML visibility changes have no effect until the saved view is deleted.
+
+**Correct pattern** (one column, visible by default, in picker):
+
+```yaml
+entities:
+  - name: MyEntity
+    fields:
+      - name: 'getTerminal(idPropertyName:"terminalId").name'
+        displayName: { en-US: Terminal }
+        fieldType: text
+        props:
+          allowFilter: false
+
+views:
+  - name: all
+    columns:
+      - name: 'getTerminal(idPropertyName:"terminalId").name'  # matches entity field exactly
+        label: { en-US: Terminal }
+```
+
+### Inline Cell Editing
+
+**Both `enableEdit: true` AND `editor` are required** for inline editing to activate.
+
+Example with built-in field editor:
+
+```yaml
+columns:
+  - name: trackingNumber
+    enableEdit: true
+    editor: { component: field }
+    onEdit:
+      - mutation:
+          variables:
+            trackingNumber: "{{ changedValues }}"
+```
+
+Example with select-async editor — use `{{ value }}` in `onEdit`:
+
+```yaml
+columns:
+  - name: customValues.returnLocation
+    enableEdit: true
+    editor:
+      component: Terminals/Select
+    onEdit:
+      - mutation:
+          variables:
+            input:
+              values:
+                customValues:
+                  returnLocationId: "{{ number value }}"
+```
+
+### Sorting Resolver Columns
+
+Resolver columns (e.g., `getTerminal(idPropertyName:"terminalId").name`) cannot be sorted by default — the backend rejects them as invalid entity properties. Use `orderByProperty` in column `props` to override the sort field:
+
+```yaml
+- name: 'getTerminal(idPropertyName:"terminalId").name'
+  label: { en-US: Terminal }
+  props:
+    orderByProperty: "customValues.terminalId->terminal.name"
+```
+
+Join syntax format: `customValues.{idPropertyName}->{entityAlias}.{property}`
+
+Single-level property access only (`terminal.name` works, `contact.address.city` does not).
+
+Registered join entities: `contact`, `order`, `modeOfTransportation`, `country`, `terminal`.
+
+Alternative: disable sorting with `allowOrderBy: false` in column props.
+
+### CSV Export
+
+`exportPath` controls the column key used for CSV export. Fallback chain: `exportPath ?? path ?? name`.
+
+For resolver columns, `exportPath` must use the GraphQL response key **without arguments**:
+
+```yaml
+# Correct — GraphQL response uses "getTerminal" as the key
+- name: 'getTerminal(idPropertyName:"terminalId").name'
+  exportPath: "getTerminal.name"
+  label: { en-US: Terminal }
+
+# Wrong — response key does not include arguments, CSV values will be empty
+- name: 'getTerminal(idPropertyName:"terminalId").name'
+  exportPath: 'getTerminal(idPropertyName:"terminalId").name'
+```
+
+For aliased resolver fields, use the alias as the response key:
+
+```yaml
+- name: 'returnLocation : getTerminal(idPropertyName:"returnLocationId").name'
+  exportPath: "returnLocation.name"
 ```
 
 ---

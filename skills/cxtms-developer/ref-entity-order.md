@@ -99,6 +99,7 @@ These are virtual fields that filter `orderEntities` by type:
 | `accountingSummary` | `AccountingSummary` | |
 | `getContact(idPropertyName)` | `Contact` | Resolve contact from `customValues[idPropertyName]` |
 | `getPort(idPropertyName)` | `Port` | Resolve port from `customValues[idPropertyName]` |
+| `getTerminal(idPropertyName)` | `Terminal` | Resolve terminal from `customValues[idPropertyName]` |
 | `getVessel(idPropertyName)` | `Vessel` | Resolve vessel from `customValues[idPropertyName]` |
 | `getCountry(idPropertyName)` | `Country` | Resolve country from `customValues[idPropertyName]` |
 | `getRoute(idPropertyName)` | `Route` | Resolve route from `customValues[idPropertyName]` |
