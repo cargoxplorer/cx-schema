@@ -179,6 +179,18 @@ inputs:
 
 **Known system customValues keys:**
 - `modeOfTransportationId` / `modeOfTransportationIdDescription` — transport mode
+- `terminalId` — terminal reference; sortable/filterable with `customValues.terminalId->terminal.name`
+- `returnLocationId` — terminal/return-location reference; sortable/filterable with `customValues.returnLocationId->terminal.name`
+
+**Join expression pattern** — Order queries can sort and filter by properties of entities referenced from `customValues` using `customValues.key->entity.property`. Supported aliases include `contact`, `order`, `modeOfTransportation`, `country`, and `terminal`.
+
+```graphql
+orders(
+  organizationId: 1
+  orderBy: "customValues.terminalId->terminal.name"
+  filter: "customValues.returnLocationId->terminal.name:Chicago*"
+) { items { orderId orderNumber } }
+```
 
 **Resolver pattern** — Many GraphQL fields resolve entities from customValues IDs:
 `getContact(idPropertyName)` reads `customValues[idPropertyName]` as a contact ID and returns the full Contact object. Same pattern for ports, vessels, countries, routes, etc.
