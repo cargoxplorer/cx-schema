@@ -47,6 +47,16 @@ Field names as used in workflow expressions: `{{ entity.name }}`, `{{ entity.cus
 
 When an organization user's profile first/last name changes, linked contact profile names can be regenerated from trimmed `contactFirstName` + `contactLastName` so `name` remains in sync with the person display name.
 
+### Import behavior
+
+Contact CSV/import handling protects division scoping:
+
+- `DivisionId` values are accepted only when they belong to the target organization. Foreign, stale, or unparsable division IDs are removed from the import row.
+- For existing contacts, an invalid `DivisionId` is ignored so the current division is not overwritten.
+- For new contacts, if no valid division remains, the contact is created in the importing user's division when available.
+- Nested `division.divisionName` input is resolved to an organization division and converted to `DivisionId`; the nested `division` object is not persisted.
+- Empty strings are stripped from add/update fields so blank CSV cells do not clear existing values or break enum/numeric conversions.
+
 ## Navigation Properties
 
 | Field | Type | Notes |

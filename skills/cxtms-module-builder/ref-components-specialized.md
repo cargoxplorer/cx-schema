@@ -453,8 +453,13 @@ OAuth2 authorization flow button. Opens popup for auth, exchanges code for token
 | `scopes` | `string[]` | Requested scopes |
 | `additionalParams` | `Record<string, string>` | Extra auth URL params |
 | `additionalHeaders` | `object` | Extra token request headers |
+| `oauthWorkflowId` | `string` | Optional workflow ID for server-side token exchange through `executeWorkflow` |
 | `label` | `ILocalizeString` | Button label (default: `Authorize`) |
 | `className` | `string` | Button CSS class |
+
+**Callback route:** configure OAuth providers with `/oauth2/callback`. The app redirects that stable URL to `/{locale}/oauth2/callback` and preserves the query string.
+
+**Workflow exchange:** when `oauthWorkflowId` is set, the callback passes `organizationId` inside `ExecuteWorkflowInput` together with `credentials`, `tokenUrl`, and `headers`. The `organizationId` is saved before opening the popup because the callback popup starts with a fresh Redux store.
 
 **Events:** `onToken` — fires with `{ token }` when OAuth completes.
 
@@ -467,6 +472,7 @@ props:
   clientSecret: "{{ quickbooksClientSecret }}"
   authorizationUrl: "https://appcenter.intuit.com/connect/oauth2"
   tokenUrl: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
+  oauthWorkflowId: "workflow-uuid-for-token-exchange" # optional
   scopes:
     - com.intuit.quickbooks.accounting
   onToken:
