@@ -127,6 +127,35 @@
               "onEdit": {
                 "$ref": "#/definitions/actionsList",
                 "description": "Action array executed sequentially when the cell value changes. Receives changedValues and value variables."
+              },
+              "path": {
+                "type": "string",
+                "description": "Data path for the column value"
+              },
+              "exportPath": {
+                "type": "string",
+                "description": "Field path to use in export headers instead of path/name"
+              },
+              "exportTemplate": {
+                "type": "string",
+                "description": "Template used by export tooling for this column"
+              },
+              "excludeFromQuery": {
+                "type": "boolean",
+                "description": "Exclude this column from GraphQL query and export configuration"
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "allowOrderBy": { "type": "boolean" },
+                  "allowFilter": { "type": "boolean" },
+                  "allowSelect": { "type": "boolean" },
+                  "filterByProperty": {
+                    "type": "string",
+                    "description": "Property path used for filtering instead of the displayed column name"
+                  }
+                },
+                "additionalProperties": true
               }
             }
           }
@@ -149,6 +178,10 @@
         "enableResize": {
           "type": "boolean",
           "description": "Enable drag-to-resize columns for this view. Overrides the grid-level enableResize option."
+        },
+        "includeEntityKeysInExport": {
+          "type": "boolean",
+          "description": "Whether missing entity key columns should be forced into export headers for this view"
         }
       },
       "required": ["name"]
@@ -172,6 +205,10 @@
           "items": {
             "type": "string"
           }
+        },
+        "includeEntityKeysInExport": {
+          "type": "boolean",
+          "description": "Default export behavior: when true or omitted, missing entityKeys are prepended to export headers so ID-first imports can update existing rows"
         },
         "navigationType": {
           "type": "string",
@@ -351,6 +388,11 @@
             "showAs": { "$ref": "#/definitions/component" },
             "allowOrderBy": { "type": "boolean" },
             "allowFilter": { "type": "boolean" },
+            "allowSelect": { "type": "boolean" },
+            "filterByProperty": {
+              "type": "string",
+              "description": "Property path used for filtering instead of the displayed field name"
+            },
             "filter": {
               "type": "object",
               "description": "Field-level filter selector configuration",

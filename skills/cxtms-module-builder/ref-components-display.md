@@ -38,6 +38,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `query` | `string` | — | **Required.** GraphQL entity name |
 | `rootEntityName` | `string` | — | **Required.** Entity name for dynamic grid |
 | `entityKeys` | `string[]` | — | **Required.** Primary key fields |
+| `includeEntityKeysInExport` | `boolean` | `true` | Force missing entity keys into export headers for ID-first re-import |
 | `navigationType` | `navigate \| dialog \| store` | — | **Required.** Row click behavior |
 | `enableDynamicGrid` | `boolean` | — | Enable dynamic columns |
 | `enableViews` | `boolean` | — | Show view selector |
@@ -68,6 +69,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `onRowClick` | `action[]` | Per-view row click |
 | `enableSelect` | `Single \| Multiple` | Per-view selection |
 | `childViews` | `object` | Expandable child views |
+| `includeEntityKeysInExport` | `boolean` | View-level override for forcing entity keys into exports |
 
 **Column definition:**
 | Prop | Type | Description |
@@ -82,6 +84,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `editor` | `{component, props}` | Editor component (required with `enableEdit`) |
 | `onEdit` | `action[]` | Action on edit commit. Variables: `changedValues`, `value`, `index`, + row data |
 | `exportPath` | `string` | CSV export key. Fallback: `exportPath ?? path ?? name` |
+| `exportTemplate` | `string` | Optional template exposed for export tooling |
 | `path` | `string` | Data path for column value. Fallback for `exportPath` |
 | `excludeFromQuery` | `boolean` | Exclude from GraphQL query and CSV export |
 
@@ -172,7 +175,8 @@ When `rootEntityName` is set in datagrid options, the component fetches entity f
 |----------|----------|--------|
 | `allowOrderBy: false` | `props` | Disables sorting |
 | `allowFilter: false` | `props` | Hides from filter picker |
-| `allowSelect: false` | `props` | Hides from column picker entirely |
+| `allowSelect: false` | `props` | Hides from standard column picker; filter picker still uses `allowFilter` |
+| `filterByProperty` | `props` | Filter against a different field/path than the display column; nested filter paths honor parent `filterByProperty` values |
 | `isInactive: true` | top-level | Marks field as inactive |
 | `isCustomField: true` | top-level | Marks as custom field |
 
@@ -199,6 +203,22 @@ views:
     columns:
       - name: 'getTerminal(idPropertyName:"terminalId").name'  # matches entity field exactly
         label: { en-US: Terminal }
+```
+
+### Export + Re-import Keys
+
+DataGrid export configuration now prepends missing `options.entityKeys` by default. This is intentional: import tasks can match by primary key first, so users can export a grid, edit business-key columns, and re-import without creating duplicate records.
+
+Disable key injection only for clean/template exports:
+
+```yaml
+props:
+  options:
+    entityKeys: [contactAddressId]
+    includeEntityKeysInExport: false
+  views:
+    - name: publicTemplate
+      includeEntityKeysInExport: false
 ```
 
 ### Inline Cell Editing

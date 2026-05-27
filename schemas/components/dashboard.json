@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dashboard Component",
+  "type": "object",
+  "properties": {
+    "component": { "type": "string", "const": "dashboard" },
+    "name": { "type": "string", "description": "Unique dashboard name; used in saved layout setting keys" },
+    "inputs": { "type": "object" },
+    "props": {
+      "type": "object",
+      "properties": {
+        "toolbar": {
+          "type": "array",
+          "description": "Header controls whose values are shared with dashboard widgets",
+          "items": { "$ref": "../schemas.json#/definitions/component" }
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "rows": { "type": "number", "default": 12 },
+            "columns": { "type": "number", "default": 12 },
+            "gridGap": { "type": "number", "default": 8 },
+            "responsive": { "type": "boolean", "default": false },
+            "allowEdit": { "type": "boolean", "default": false },
+            "showGridLines": { "type": "boolean", "default": true },
+            "autoSave": { "type": "boolean", "default": false, "description": "Persist layout changes to UserSettings automatically" },
+            "title": { "type": "string" },
+            "minHeight": { "oneOf": [{ "type": "string" }, { "type": "number" }] },
+            "maxHeight": { "oneOf": [{ "type": "string" }, { "type": "number" }] },
+            "height": { "oneOf": [{ "type": "string" }, { "type": "number" }] }
+          },
+          "additionalProperties": true
+        },
+        "isHidden": { "$ref": "../schemas.json#/definitions/templateExpression" }
+      },
+      "additionalProperties": true
+    },
+    "children": {
+      "type": "array",
+      "description": "Dashboard widgets",
+      "items": { "$ref": "../schemas.json#/definitions/component" }
+    }
+  },
+  "required": ["component", "name"],
+  "additionalProperties": false
+}

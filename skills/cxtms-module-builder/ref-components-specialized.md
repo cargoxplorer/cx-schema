@@ -177,17 +177,17 @@ CSS Grid-based dashboard with draggable/resizable widgets.
 | `options.gridGap` | `number` | `16` | Gap between cells (px) |
 | `options.allowEdit` | `boolean` | `false` | Enable edit mode (drag/resize/add/remove) |
 | `options.showGridLines` | `boolean` | `true` | Grid background in edit mode |
-| `options.autoSave` | `boolean` | `false` | Auto-save layout |
+| `options.autoSave` | `boolean` | `false` | Auto-save layout to UserSettings (`tms:dashboards:{name}:layout`) |
 | `options.title` | `string` | — | Dashboard title |
 | `options.height` | `string` | — | Container height |
 
-**Children:** `dashboard-widget` components only.
+**Children:** `dashboard-widget` components only. Saved layouts merge sparse YAML-widget overrides, removed-widget markers, and user-added widget entries back onto YAML defaults.
 
 ---
 
 ## dashboard-widget
 
-Positioned widget card inside a dashboard. Supports drag-to-move and resize in edit mode.
+Positioned widget card inside a dashboard. Supports drag-to-move and resize in edit mode; the final drag/resize position is what gets persisted.
 
 **Props (under `options`):**
 | Prop | Type | Default | Description |

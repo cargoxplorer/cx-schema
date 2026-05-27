@@ -58,6 +58,12 @@
     "datasource": {
       "$ref": "datasource.json"
     },
+    "dashboard": {
+      "$ref": "dashboard.json"
+    },
+    "dashboard-widget": {
+      "$ref": "dashboard-widget.json"
+    },
     "calendar": {
       "$ref": "calendar.json"
     },

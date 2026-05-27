@@ -156,7 +156,30 @@ Imports order data from an external feed. Supports create and upsert (match-by-f
 | `ContactAddress/Create` | Create address |
 | `ContactAddress/Update` | Update address |
 | `ContactAddress/Delete` | Delete address |
-| `ContactAddress/Import` | Bulk import addresses |
+| `ContactAddress/Import` | Bulk import addresses; ID-first upsert when `ContactAddressId` is present |
+
+
+### ContactAddress/Import@1
+
+Bulk imports contact addresses for one `organizationId` + `contactId` from file/stream/import data. The import reads rows as dictionaries, so column mappings and aliases are supported.
+
+```yaml
+- task: "ContactAddress/Import@1"
+  name: ImportContactAddresses
+  inputs:
+    organizationId: "{{ int inputs.organizationId }}"
+    contactId: "{{ int inputs.contactId }}"
+    fileUrl: "{{ inputs.fileUrl }}"
+    fileType: "Csv"
+    matchByFields: [AddressLine, AddressLine2, CityName, CountryCode, PostalCode, StateCode]
+    columnMappings:
+      City: CityName
+  outputs:
+    - name: result
+      mapping: "result?"
+```
+
+**Behavior:** rows with `ContactAddressId` match existing addresses by ID first; otherwise `matchByFields` is used. New rows default to `AddressType.Other`. `City` aliases to `CityName`; `StateCode` is used directly or `StateName` is resolved. `Longitude` + `Latitude` set location. Rows missing country or state context are skipped.
 
 ## Contact Payment Method
 
