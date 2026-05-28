@@ -173,27 +173,37 @@ When `rootEntityName` is set in datagrid options, the component fetches entity f
 | `allowOrderBy: false` | `props` | Disables sorting |
 | `allowFilter: false` | `props` | Hides from filter picker |
 | `allowSelect: false` | `props` | Hides from column picker entirely |
+| `filterByProperty` | `props` | Server-side filter path (may differ from display path) |
 | `isInactive: true` | top-level | Marks field as inactive |
 | `isCustomField: true` | top-level | Marks as custom field |
 | `priority: <int>` | top-level | Resolves duplicate field definitions across app modules; highest active priority wins |
 
 **Visibility rules:**
 
-- `isHidden` is only valid on view columns, not entity field definitions. Entity fields always appear in the picker.
+- Do **not** use `fieldType: select` for new entity fields. It is a legacy pattern that requires `props.showAs` to appear in the column picker and causes rendering conflicts on editable columns (see pitfalls below). Use the appropriate non-select fieldType instead (`text`, `number`, `date`, `enhanced-rangedatetime`, `checkbox`, etc.). All non-select types appear in the picker without needing `showAs`.
+- `fieldType: Entity` is filtered out of the column picker entirely by the runtime — do not use it.
+- `isHidden` is only valid on view columns, not entity field definitions.
 - View column `name` must exactly match entity field `name`. If they differ (e.g., using a GraphQL alias prefix), the datagrid treats them as two separate columns — one always visible from the view, one hidden in the picker from the entity field.
 - Saved database views override YAML definitions. User customizations take priority. If a user has saved a view, YAML visibility changes have no effect until the saved view is deleted.
 
-**Correct pattern** (one column, visible by default, in picker):
+**Correct pattern** (resolver column, sortable, filterable, in picker):
 
 ```yaml
 entities:
   - name: MyEntity
+    entityKind: Order
     fields:
       - name: 'getTerminal(idPropertyName:"terminalId").name'
         displayName: { en-US: Terminal }
+        description: { en-US: Terminal }
         fieldType: text
+        isInactive: false
+        isCustomField: true
         props:
-          allowFilter: false
+          orderByProperty: "customValues.terminalId->terminal.name"
+          filterByProperty: "customValues.terminalId"
+          filter:
+            component: Terminals/Select
 
 views:
   - name: all
@@ -234,6 +244,60 @@ columns:
               values:
                 customValues:
                   returnLocationId: "{{ number value }}"
+```
+
+### Entity Field Pitfalls
+
+**Pitfall 1 — `fieldType: select` is legacy (do not use for new fields)**
+
+`fieldType: select` requires `props.showAs` to appear in the column picker — without it, the column is invisible. Non-select types always appear.
+
+When editing existing modules that use `fieldType: select` with inline editing: `showAs` changes how EditableCell renders in display mode. The cell goes through ComponentRender template evaluation instead of raw value display. This produces different visual output than the original grid column definition. Be aware of this dual behavior when maintaining legacy `select` fields.
+
+**Pitfall 2 — Entity field `onEdit` must match grid column `onEdit` verbatim**
+
+When a user re-adds an editable column from the picker, the entity field's `onEdit` replaces the grid column's `onEdit` entirely. If they differ (different mutation, different variable names, different `onSuccess`), the re-added column saves differently. Always copy `onEdit` from the grid view column definition into the entity field definition verbatim.
+
+**Pitfall 3 — Edit properties go inside `props` in entity fields**
+
+Unlike grid view columns where `enableEdit`, `editor`, and `onEdit` are top-level, entity field definitions must place them inside `props`. The runtime automatically promotes them to top-level when building available columns.
+
+**Example — entity field with inline editing:**
+
+```yaml
+entities:
+  - name: MyEntity
+    entityKind: Order
+    fields:
+      - name: 'getTerminal(idPropertyName:"terminalId").name'
+        displayName: { en-US: Terminal }
+        description: { en-US: Terminal }
+        fieldType: text
+        isInactive: false
+        isCustomField: true
+        props:
+          enableEdit: true                   # inside props, not top-level
+          editor:
+            component: Terminals/Select
+          onEdit:                            # must match grid column onEdit exactly
+            - mutation:
+                command: |
+                  mutation UpdateOrderMutation($input: UpdateOrderInput!) {
+                    updateOrder(input: $input) { order { orderId } }
+                  }
+                variables:
+                  input:
+                    organizationId: "{{number organizationId}}"
+                    orderId: "{{number orderId}}"
+                    values:
+                      customValues:
+                        terminalId: "{{ number value }}"
+                onSuccess:
+                  - refresh: orders
+          orderByProperty: "customValues.terminalId->terminal.name"
+          filterByProperty: "customValues.terminalId"
+          filter:
+            component: Terminals/Select
 ```
 
 ### Sorting Resolver Columns
