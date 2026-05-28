@@ -146,6 +146,7 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `textarea` | Multi-line text with `rows` prop |
 | `checkbox` | Boolean checkbox |
 | `radio` | Radio button (use `value` prop) |
+| `toggle` | Segmented toggle button group. Supports single-select, multi-select, icons, disabled items, `enforceValue`, and `defaultValue`. |
 | `date` | Date picker |
 | `datetime` | Date + time picker |
 | `rangedatetime` | Date range picker |
@@ -209,6 +210,21 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `onKeyPress` | Fires on keypress (data: `key`, `keyCode`) |
 | `onSelectValue` | Fires on select-async value selection |
 | `onEditClick` | Fires when edit icon clicked. Supported on text and select-async fields. Passes current form values (with optional `valueFieldName`) to the action context |
+
+```yaml
+# Toggle button field
+- component: field
+  name: priority
+  props:
+    type: toggle
+    label: { en-US: "Priority" }
+    enforceValue: true
+    defaultValue: medium
+    items:
+      - { value: low, label: Low }
+      - { value: medium, label: Medium }
+      - { value: high, label: High }
+```
 
 ```yaml
 # Text field

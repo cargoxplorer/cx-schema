@@ -80,6 +80,7 @@ When an organization user's profile first/last name changes, linked contact prof
 | `getContactAddressByType(addressType)` | `[ContactAddress]` | Filter by "Billing", "Shipping", "Other" |
 | `getFirstContactAddressByType(addressType)` | `ContactAddress` | First match |
 | `getContactAttachments(filter, orderBy)` | `[Attachment]` | |
+| `getContactAddresses(filter, orderBy)` | `[ContactAddress]` | Contact-scoped address resolver with server-side Lucene filtering and sorting |
 | `getCustomValuesAttachment(filter)` | `Attachment` | From customValues `attachmentId` key |
 | `availableCredit` | `[AvailableCreditByCurrency]` | Carrier/Customer only |
 | `changeHistory(startDate, endDate, maxResults)` | `[ChangeHistory]` | Audit trail |

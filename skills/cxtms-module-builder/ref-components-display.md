@@ -56,6 +56,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `onRowClick` | `action[]` | — | Default row click action |
 | `onDataLoad` | `action[]` | — | Action after data loads |
 | `items` | `any` | — | Static data (instead of query) |
+| `includeEntityKeysInExport` | `boolean` | `true` | Force `entityKeys`/primary keys into exports even when hidden, preserving ID-first re-import matching. Set `false` for id-less templates or cross-space copies. |
 
 **View definition:**
 | Prop | Type | Description |
@@ -67,6 +68,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `orderBy` | `{name, direction}[]` | Default sort |
 | `onRowClick` | `action[]` | Per-view row click |
 | `enableSelect` | `Single \| Multiple` | Per-view selection |
+| `includeEntityKeysInExport` | `boolean` | Per-view override for exporting entity keys |
 | `childViews` | `object` | Expandable child views |
 
 **Column definition:**
@@ -149,6 +151,7 @@ props:
     enableColumns: true
     enableFilter: true
     defaultView: all
+    includeEntityKeysInExport: true
     onRowClick:
       - navigate: "orders/{{ id }}"
   toolbar:

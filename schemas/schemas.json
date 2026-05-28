@@ -149,6 +149,10 @@
         "enableResize": {
           "type": "boolean",
           "description": "Enable drag-to-resize columns for this view. Overrides the grid-level enableResize option."
+        },
+        "includeEntityKeysInExport": {
+          "type": "boolean",
+          "description": "Include the grid entityKeys/primary keys in exports for this view. Defaults to the grid option, then true."
         }
       },
       "required": ["name"]
@@ -205,6 +209,10 @@
         "defaultView": {
           "type": "string",
           "description": "Default view name"
+        },
+        "includeEntityKeysInExport": {
+          "type": "boolean",
+          "description": "Include entityKeys/primary keys in exports even when hidden, so re-import can match existing rows. Defaults to true."
         },
         "onRowClick": {
           "oneOf": [

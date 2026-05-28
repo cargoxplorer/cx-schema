@@ -410,3 +410,26 @@ GraphQL error messages reveal valid field/type names:
 
 - `npx cxtms schema <name>` — shows workflow/module JSON schema fields (not GraphQL)
 - Entity reference files (`ref-entity-*.md`) — document common fields, computed properties, and enums
+
+
+## Contact Nested Address Resolver
+
+Contacts expose `getContactAddresses(filter, orderBy)` for loading only the addresses needed by a selection set. Prefer this resolver over raw `contactAddresses` when the UI/workflow needs server-side filtering or deterministic sorting.
+
+```graphql
+query {
+  contacts(organizationId: 1, filter: "contactId:123") {
+    items {
+      contactId
+      name
+      getContactAddresses(filter: "addressType:Shipping", orderBy: "cityName") {
+        contactAddressId
+        addressType
+        cityName
+        stateCode
+        countryCode
+      }
+    }
+  }
+}
+```
