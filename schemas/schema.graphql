@@ -5896,6 +5896,7 @@ type entityField {
   lastModifiedBy: String!
   name: String
   organizationId: Int!
+  priority: Int!
   updatedUser: user!
   createdUser: user!
 }

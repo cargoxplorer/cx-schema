@@ -344,6 +344,11 @@
         "fieldType": { "type": "string" },
         "isCustomField": { "type": "boolean", "description": "Whether this is a custom field" },
         "isInactive": { "type": "boolean" },
+        "priority": {
+          "type": "integer",
+          "default": 0,
+          "description": "Module-level field override precedence; highest active priority wins for duplicate entity field names"
+        },
         "props": {
           "type": "object",
           "description": "Additional field properties",

@@ -28,7 +28,9 @@ orders(
 Entity-specific extras:
 - `orders` — `includeDraft: Boolean` (default false)
 
-Available root queries: `orders`, `contacts`, `commodities`, `accountingTransactions`, `jobs`, and others.
+Available root queries: `orders`, `contacts`, `commodities`, `accountingTransactions`, `jobs`, `entityFields`, and others.
+
+`entityFields` returns field metadata. When `entityName` is supplied, the API filters out inactive fields and duplicate field names resolve to the active definition with the highest `priority`.
 
 ## Filter Syntax (Lucene Query)
 

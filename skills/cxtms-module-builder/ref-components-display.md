@@ -175,6 +175,7 @@ When `rootEntityName` is set in datagrid options, the component fetches entity f
 | `allowSelect: false` | `props` | Hides from column picker entirely |
 | `isInactive: true` | top-level | Marks field as inactive |
 | `isCustomField: true` | top-level | Marks as custom field |
+| `priority: <int>` | top-level | Resolves duplicate field definitions across app modules; highest active priority wins |
 
 **Visibility rules:**
 

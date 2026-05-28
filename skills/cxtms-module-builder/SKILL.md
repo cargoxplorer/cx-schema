@@ -224,6 +224,7 @@ entities:
         fieldType: text | number | date | boolean | ...
         displayName: { en-US: "..." }
         isCustomField: false
+        priority: 0              # Optional override precedence; highest active duplicate field wins
         props:
           allowOrderBy: true
           allowFilter: true
