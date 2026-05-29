@@ -388,3 +388,8 @@ props:
 ```
 
 **How extensions target slots:** Other modules register extension components using `appComponent` with `targetSlot` and optional `order` to control rendering position within the slot. See `appComponent.json` schema for details.
+
+
+## dashboard persistence
+
+Editable dashboard layout persistence is scoped by dashboard name, organization, and current user. Reads, resets, and cancel-edit restores must include the current user so one user never loads or deletes another user's saved layout.

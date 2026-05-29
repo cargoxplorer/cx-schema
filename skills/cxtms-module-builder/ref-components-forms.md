@@ -146,6 +146,7 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `textarea` | Multi-line text with `rows` prop |
 | `checkbox` | Boolean checkbox |
 | `radio` | Radio button (use `value` prop) |
+| `toggle` | Toggle button group. `allowMultiple: true` gives array values; MUI props live under `options`. |
 | `date` | Date picker |
 | `datetime` | Date + time picker |
 | `rangedatetime` | Date range picker |
@@ -229,6 +230,23 @@ Polymorphic form field — renders different input types based on `type` prop.
     items:
       - { label: "Active", value: "active" }
       - { label: "Inactive", value: "inactive" }
+
+# Toggle field
+- component: field
+  name: priority
+  props:
+    type: toggle
+    label: { en-US: "Priority" }
+    allowMultiple: false
+    enforceValue: true
+    defaultValue: normal
+    options:
+      size: small
+      color: primary
+      orientation: horizontal
+    items:
+      - { label: "Normal", value: normal }
+      - { label: "High", value: high }
 
 # Async select with search
 - component: field

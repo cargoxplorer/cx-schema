@@ -20,6 +20,7 @@
         { "$ref": "./autocomplete-googleplaces.json" },
         { "$ref": "./checkbox.json" },
         { "$ref": "./radio.json" },
+        { "$ref": "./toggle.json" },
         { "$ref": "./textarea.json" },
         { "$ref": "./attachment.json" }
       ]
@@ -47,6 +48,7 @@
     },
     "checkbox": { "description": "Checkbox input field", "schema": "./checkbox.json" },
     "radio": { "description": "Radio button group field", "schema": "./radio.json" },
+    "toggle": { "description": "Toggle button group field", "schema": "./toggle.json" },
     "textarea": { "description": "Multi-line text input field", "schema": "./textarea.json" },
     "attachment": { "description": "Attachment picker/uploader field (images or files)", "schema": "./attachment.json" }
   }

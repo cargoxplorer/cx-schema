@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Toggle Field Type",
+  "description": "Schema for toggle button group field type",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "toggle"
+    },
+    "label": {
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "../schemas.json#/definitions/localized" }
+      ],
+      "description": "Field label"
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required"
+    },
+    "disabled": {
+      "oneOf": [{ "type": "boolean" }, { "type": "string" }],
+      "description": "Whether field is disabled"
+    },
+    "allowMultiple": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable multi-select mode. When true the value is an array."
+    },
+    "exclusive": {
+      "type": "boolean",
+      "description": "Legacy single-select flag. Prefer allowMultiple; allowMultiple takes precedence."
+    },
+    "enforceValue": {
+      "type": "boolean",
+      "default": false,
+      "description": "In single-select mode, prevent deselecting the current value."
+    },
+    "defaultValue": {
+      "oneOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }],
+      "description": "Initial selected value."
+    },
+    "items": {
+      "type": "array",
+      "description": "Toggle button options",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "oneOf": [
+              { "type": "string" },
+              { "$ref": "../schemas.json#/definitions/localized" }
+            ]
+          },
+          "value": {
+            "oneOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }]
+          },
+          "icon": { "type": "string" },
+          "disabled": { "type": "boolean" }
+        },
+        "required": ["label", "value"],
+        "additionalProperties": true
+      }
+    },
+    "options": {
+      "type": "object",
+      "description": "Props passed to the underlying MUI ToggleButtonGroup",
+      "properties": {
+        "size": { "type": "string", "enum": ["small", "medium", "large"] },
+        "color": { "type": "string", "enum": ["standard", "primary", "secondary", "error", "info", "success", "warning"] },
+        "orientation": { "type": "string", "enum": ["horizontal", "vertical"] }
+      },
+      "additionalProperties": true
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
+  },
+  "required": ["type", "items"],
+  "additionalProperties": true
+}

@@ -103,6 +103,7 @@ When an organization user's profile first/last name changes, linked contact prof
 | `Store` | 13 | |
 | `ContactUser` | 14 | User associated with contact |
 | `USPPI` | 15 | US Principal Party in Interest |
+| `Port` | 16 | Port contact/location reference |
 
 ## ContactAddress Sub-Entity
 
@@ -117,6 +118,7 @@ When an organization user's profile first/last name changes, linked contact prof
 | `stateCode` | `string?` | FK to State |
 | `postalCode` | `string?` | |
 | `isInactive` | `bool?` | |
+| `name` | `string?` | Optional label for the address/location (max 200 chars) |
 | `latitude` | `double?` | From Location.Y (GraphQL resolved) |
 | `longitude` | `double?` | From Location.X (GraphQL resolved) |
 | `customValues` | `Dictionary` | Own customValues (separate from Contact) |
@@ -124,6 +126,8 @@ When an organization user's profile first/last name changes, linked contact prof
 | `state` | `State` | Navigation |
 
 GraphQL resolver: `formattedAddress(outputFormat, addressFormat, lang, multiline)` — formatted string.
+
+Module default-data imports support `entity: "contact"` with `keys` for natural-key matching and `overwrite` for update-vs-skip behavior. Use `ContactType: Port` for port/location contacts when appropriate.
 
 ## Other Related Enums
 

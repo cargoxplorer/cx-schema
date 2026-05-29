@@ -133,6 +133,24 @@ orderBy: "-lastTrackingEvent[eventDefinition.eventName:Departed].eventDate"
 - Only `.eventDate` is supported as the sub-path. The expression resolves to `COALESCE(winner.EventDate, winner.Created)`, so null `EventDate` values fall back to `Created`.
 - Works on both `orders` and `commodities` top-level queries.
 
+## Order Custom-Value Resolvers
+
+Orders expose `getContactAddress(idPropertyName: String!)` to resolve a contact-address id stored in `customValues` into a `contactAddress` object. The lookup is organization-scoped and returns null/empty when the custom-value key is missing.
+
+```graphql
+orders(organizationId: 1, take: 1) {
+  items {
+    orderId
+    getContactAddress(idPropertyName: "pickupContactAddressId") {
+      contactAddressId
+      name
+      addressLine
+      cityName
+    }
+  }
+}
+```
+
 ## Pagination
 
 ```graphql
