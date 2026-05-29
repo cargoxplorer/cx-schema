@@ -101,6 +101,9 @@
       "$ref": "number.json"
     },
     {
+      "$ref": "organization-config.json"
+    },
+    {
       "$ref": "order-tracking-event.json"
     },
     {

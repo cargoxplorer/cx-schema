@@ -149,6 +149,10 @@
         "enableResize": {
           "type": "boolean",
           "description": "Enable drag-to-resize columns for this view. Overrides the grid-level enableResize option."
+        },
+        "includeEntityKeysInExport": {
+          "type": "boolean",
+          "description": "Force entity key/primary key fields into exports so re-import can match rows by ID. Defaults to true."
         }
       },
       "required": ["name"]
