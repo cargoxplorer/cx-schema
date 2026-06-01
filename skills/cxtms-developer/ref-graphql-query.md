@@ -28,6 +28,8 @@ orders(
 Entity-specific extras:
 - `orders` — `includeDraft: Boolean` (default false)
 
+Order quick search (`orders.search` and `orderGroupBy.search`) matches order number, bill-to, carriers, tracking numbers, order entities, commodity text/tracking numbers, and InventoryItem values linked through order commodities or child/container commodities. Inventory item matches include `sku`, `productName`, `description`, `modelNumber`, and JSON `customValues` such as color or size.
+
 Available root queries: `orders`, `contacts`, `commodities`, `accountingTransactions`, `jobs`, and others.
 
 ## Filter Syntax (Lucene Query)

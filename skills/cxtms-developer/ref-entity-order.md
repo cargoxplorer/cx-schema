@@ -50,6 +50,10 @@ Field names as used in workflow expressions: `{{ entity.orderId }}`, `{{ entity.
 | `createdUser` | `User` | `.firstName`, `.lastName`, `.email` |
 | `updatedUser` | `User` | |
 
+## Search Behavior
+
+Order GraphQL quick search (`orders(search:)` and `orderGroupBy(search:)`) matches core order fields plus related commodity and inventory item fields. InventoryItem data linked from an order commodity, including child/container commodities, is searchable by `sku`, `productName`, `description`, `modelNumber`, and JSON `customValues`. Use this for warehouse-backed order lookup by SKU, item name, model number, color, size, or similar item attributes.
+
 ## Collection Properties
 
 | Field | Type | Notes |
