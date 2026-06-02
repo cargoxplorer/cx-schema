@@ -30,17 +30,17 @@ Executes internal GraphQL queries against the CX backend. The query runs via Med
 
 The query result is a dictionary. The `mapping` path extracts from the result. Output stored at `ActivityName.GetOrder.order`.
 
-GraphQL `filter` and `orderBy` strings support custom-value join expressions, including terminal references registered by the backend:
+GraphQL `filter` and `orderBy` strings support custom-value join expressions, including terminal and contact-address references registered by the backend:
 
 ```graphql
 orders(
   organizationId: $organizationId
-  orderBy: "customValues.terminalId->terminal.name"
-  filter: "customValues.returnLocationId->terminal.name:Chicago*"
+  orderBy: "customValues.deliveryLocationId->contactAddress.name"
+  filter: "customValues.returnLocationId->contactAddress.name:Chicago*"
 ) { items { orderId orderNumber } }
 ```
 
-Supported join aliases include `contact`, `order`, `modeOfTransportation`, `country`, and `terminal`.
+Supported join aliases include `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, and `contactAddress`.
 
 **Notes**:
 - `organizationId` is always available as a system variable
