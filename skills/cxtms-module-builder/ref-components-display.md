@@ -27,6 +27,8 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `toolbar` | `component[]` | Header toolbar components |
 | `dotsMenu` | `{items[]}` | Three-dot menu per row |
 | `dotsMenu.items[]` | `{label, icon, onClick, permission, isHidden, disabled}` | Menu item |
+
+**Row-aware dots menu expressions:** `dotsMenu.items[].disabled` and `isHidden` are evaluated with component props plus the current row data. Reference row fields directly, e.g. `disabled: "{{ eval status !== 'Ready' || isLocked }}"`.
 | `views` | `ITableViewProps[]` | View definitions |
 | `enableSelect` | `Single \| Multiple` | Row selection mode |
 | `isInDialog` | `boolean` | Optimize for dialog (10 rows) |

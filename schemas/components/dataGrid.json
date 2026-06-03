@@ -68,6 +68,21 @@
                   },
                   "onClick": {
                     "$ref": "../schemas.json#/definitions/actionsList"
+                  },
+                  "permission": {
+                    "type": "string",
+                    "description": "Permission required to show/enable the menu item"
+                  },
+                  "isHidden": {
+                    "$ref": "../schemas.json#/definitions/templateExpression",
+                    "description": "Template expression evaluated with component props and row data"
+                  },
+                  "disabled": {
+                    "oneOf": [
+                      { "type": "boolean" },
+                      { "$ref": "../schemas.json#/definitions/templateExpression" }
+                    ],
+                    "description": "Boolean or template expression evaluated with component props and row data"
                   }
                 }
               }
