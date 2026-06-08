@@ -208,7 +208,7 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `onFocus` | Fires on focus |
 | `onKeyPress` | Fires on keypress (data: `key`, `keyCode`) |
 | `onSelectValue` | Fires on select-async value selection |
-| `onEditClick` | Fires when edit icon clicked. Supported on text and select-async fields. Passes current form values (with optional `valueFieldName`) to the action context |
+| `onEditClick` | Fires when edit icon clicked. Supported on `select-async` and `autocomplete-async` fields when a single value is set. Passes current form values (with optional `valueFieldName`) to the action context |
 
 ```yaml
 # Text field
