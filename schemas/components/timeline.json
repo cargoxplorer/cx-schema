@@ -18,26 +18,32 @@
     "props": {
       "type": "object",
       "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["normal", "tracking"],
+          "default": "normal",
+          "description": "Timeline behavior. Tracking mode joins events to milestone definitions and hides date-range navigation."
+        },
         "orientation": {
           "type": "string",
           "enum": ["horizontal", "vertical"],
           "default": "horizontal",
-          "description": "Timeline axis direction"
+          "description": "Timeline axis direction. Tracking mode renders vertically."
         },
         "view": {
           "type": "string",
           "enum": ["day", "week", "month", "year"],
-          "default": "day",
-          "description": "Zoom level controlling granularity and visible window"
+          "default": "week",
+          "description": "Zoom level controlling granularity and visible window in normal mode"
         },
         "startDate": {
           "$ref": "../schemas.json#/definitions/templateExpression",
-          "description": "Initial lower bound for the visible date range (ISO or expression)",
+          "description": "Initial lower bound for the visible date range in normal mode (ISO or expression)",
           "x-example": "{{ today() }}"
         },
         "endDate": {
           "$ref": "../schemas.json#/definitions/templateExpression",
-          "description": "Initial upper bound for the visible date range",
+          "description": "Initial upper bound for the visible date range in normal mode",
           "x-example": "{{ addDays today 7 }}"
         },
         "defaultDate": {
@@ -52,87 +58,182 @@
             "height": {
               "oneOf": [
                 { "type": "number", "description": "Height in pixels" },
-                { "type": "string", "description": "CSS size (e.g., '400px', '50vh')" }
+                { "type": "string", "description": "CSS size (e.g., '400px', '50vh', 'auto')" }
               ],
-              "default": "400px",
+              "default": 400,
               "description": "Timeline container height"
+            },
+            "showTodayMarker": {
+              "type": "boolean",
+              "default": true,
+              "description": "Show a marker for today's date in normal mode"
+            },
+            "enableZoom": {
+              "type": "boolean",
+              "default": true,
+              "description": "Show day/week/month/year view switcher in normal mode"
+            },
+            "enableNavigation": {
+              "type": "boolean",
+              "default": true,
+              "description": "Show previous/next/today navigation in normal mode"
+            },
+            "alternateSides": {
+              "type": "boolean",
+              "default": true,
+              "description": "Alternate events left/right in vertical mode"
+            },
+            "showTwoColumns": {
+              "type": "boolean",
+              "default": true,
+              "description": "Show date/status content opposite the main event content in vertical mode"
+            },
+            "dateFormat": {
+              "type": "string",
+              "default": "MMM DD",
+              "description": "Moment.js date format"
+            },
+            "timeFormat": {
+              "type": "string",
+              "default": "h:mm A",
+              "description": "Moment.js time format"
+            },
+            "extraEvents": {
+              "type": "string",
+              "enum": ["show", "hide"],
+              "default": "hide",
+              "description": "Whether tracking mode shows events whose mapped key does not match a milestone"
             }
-          }
+          },
+          "additionalProperties": true
         },
         "eventTemplate": {
           "$ref": "../schemas.json#/definitions/component",
-          "description": "Component used to render each event; receives 'item' bound to mapped fields"
+          "description": "Component used to render each event in normal mode; receives 'item' bound to mapped fields"
         },
         "eventSources": {
           "type": "array",
-          "description": "Data providers executed for the current visible range",
-          "items": {
-            "type": "object",
-            "properties": {
-              "query": {
-                "type": "object",
-                "description": "GraphQL source executed when the visible range changes",
-                "properties": {
-                  "command": {
-                    "type": "string",
-                    "description": "GraphQL document string"
-                  },
-                  "variables": {
-                    "type": "object",
-                    "description": "Variables for the GraphQL command (template expressions supported)",
-                    "additionalProperties": true
-                  }
-                },
-                "required": ["command"]
-              },
-              "path": {
-                "type": "string",
-                "description": "Dot path to the array of items in the result (e.g., 'orders.items')"
-              },
-              "mapping": {
-                "type": "object",
-                "description": "Maps source fields to timeline event fields",
-                "properties": {
-                  "date": { "type": "string", "description": "ISO date/time for the event" },
-                  "title": { "type": "string", "description": "Display title" },
-                  "id": {
-                    "oneOf": [{ "type": "string" }, { "type": "number" }],
-                    "description": "Stable identifier"
-                  },
-                  "endDate": { "type": "string", "description": "ISO end date/time for ranged spans" },
-                  "description": { "type": "string" },
-                  "backgroundColor": { "type": "string" },
-                  "textColor": { "type": "string" },
-                  "icon": { "type": "string" },
-                  "iconColor": { "type": "string" },
-                  "iconSize": { "oneOf": [{ "type": "string" }, { "type": "number" }] }
-                },
-                "required": ["date", "title"],
-                "additionalProperties": true,
-                "x-example": {
-                  "id": "{{ item.orderId }}",
-                  "date": "{{ item.orderDate }}",
-                  "endDate": "{{ item.orderEnd }}",
-                  "title": "{{ item.orderNumber }}",
-                  "description": "Order created on {{ item.orderDate }}",
-                  "icon": "package"
-                }
-              }
-            },
-            "required": ["query", "path", "mapping"]
-          }
+          "description": "Data providers executed for the current visible range or tracking milestone source",
+          "items": { "$ref": "#/definitions/eventSource" }
+        },
+        "milestones": {
+          "type": "array",
+          "description": "Tracking mode milestone definitions matched against mapped event key values",
+          "items": { "$ref": "#/definitions/milestone" }
         },
         "isHidden": {
           "$ref": "../schemas.json#/definitions/templateExpression",
           "description": "Boolean expression for conditional rendering"
         }
-      }
+      },
+      "additionalProperties": true
     },
     "children": {
       "$ref": "../schemas.json#/definitions/componentChildren"
     }
   },
   "required": ["component", "props"],
+  "definitions": {
+    "eventSource": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "object",
+          "description": "GraphQL source executed for timeline events",
+          "properties": {
+            "command": {
+              "type": "string",
+              "description": "GraphQL document string"
+            },
+            "variables": {
+              "type": "object",
+              "description": "Variables for the GraphQL command (template expressions supported)",
+              "additionalProperties": true
+            },
+            "path": {
+              "type": "string",
+              "description": "Dot path to the array of items in the GraphQL result (e.g., 'data.events.items' or 'order.trackingEvents')"
+            },
+            "mapping": {
+              "$ref": "#/definitions/eventMapping"
+            }
+          },
+          "required": ["command"],
+          "additionalProperties": true
+        },
+        "events": {
+          "description": "Static event array or template expression fallback/primary source"
+        },
+        "color": { "type": "string", "description": "Legacy source color" },
+        "backgroundColor": { "type": "string", "description": "Default background color for events from this source" },
+        "textColor": { "type": "string", "description": "Default text color for events from this source" },
+        "borderColor": { "type": "string", "description": "Default border color for outlined dots" }
+      },
+      "anyOf": [
+        { "required": ["query"] },
+        { "required": ["events"] }
+      ],
+      "additionalProperties": true
+    },
+    "eventMapping": {
+      "type": "object",
+      "description": "Maps source fields to timeline event fields. Tracking mode uses key for milestone matching.",
+      "properties": {
+        "key": { "type": "string", "description": "Tracking milestone match key" },
+        "id": {
+          "oneOf": [{ "type": "string" }, { "type": "number" }],
+          "description": "Stable identifier"
+        },
+        "date": { "type": "string", "description": "ISO date/time for the event. Required for completed/extra events." },
+        "endDate": { "type": "string", "description": "ISO end date/time for ranged spans" },
+        "title": { "type": "string", "description": "Display title" },
+        "description": { "type": "string" },
+        "includeInTracking": { "description": "Boolean value used by tracking filtering" },
+        "isInactive": { "description": "Boolean value used by tracking filtering" },
+        "status": { "type": "string", "enum": ["completed", "pending", "extra"] },
+        "backgroundColor": { "type": "string" },
+        "textColor": { "type": "string" },
+        "borderColor": { "type": "string" },
+        "icon": { "type": "string" },
+        "iconColor": { "type": "string" },
+        "iconSize": { "oneOf": [{ "type": "string" }, { "type": "number" }] }
+      },
+      "additionalProperties": true,
+      "x-example": {
+        "key": "{{ item.eventDefinition.eventName }}",
+        "id": "{{ item.trackingEventId }}",
+        "date": "{{ item.eventDate }}",
+        "title": "{{ item.eventDefinition.eventName }}",
+        "description": "{{ item.description }}"
+      }
+    },
+    "milestone": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Match key compared to mapped event key"
+        },
+        "label": {
+          "description": "Localized display label. Falls back to key.",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "object", "additionalProperties": { "type": "string" } }
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Description shown for pending milestones or fallback for completed milestones"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon name rendered inside the milestone dot"
+        }
+      },
+      "required": ["key"],
+      "additionalProperties": true
+    }
+  },
   "x-examples": [
     {
       "component": "timeline",
@@ -151,20 +252,57 @@
         "eventSources": [
           {
             "query": {
-              "command": "query GetOrders($organizationId: Int!, $filter: String) { orders(organizationId: $organizationId, take: 500, filter: $filter) { items { orderId orderDate orderNumber } } }",
+              "command": "query GetOrders($organizationId: Int!, $filter: String) { orders(organizationId: $organizationId, take: 500, filter: $filter) { items { orderId orderDate orderNumber includeInTracking isInactive } } }",
               "variables": {
                 "organizationId": "{{ number organizationId }}",
                 "filter": "orderDate:[{{startDate}} TO {{endDate}}]"
+              },
+              "path": "data.orders.items",
+              "mapping": {
+                "id": "{{ item.orderId }}",
+                "date": "{{ item.orderDate }}",
+                "title": "{{ item.orderNumber }}",
+                "description": "Order created on {{ item.orderDate }}"
               }
-            },
-            "path": "orders.items",
-            "mapping": {
-              "id": "{{ item.orderId }}",
-              "date": "{{ item.orderDate }}",
-              "title": "{{ item.orderNumber }}",
-              "description": "Order created on {{ item.orderDate }}"
             }
           }
+        ]
+      }
+    },
+    {
+      "component": "timeline",
+      "name": "orderTracking",
+      "props": {
+        "mode": "tracking",
+        "orientation": "vertical",
+        "options": {
+          "showTwoColumns": true,
+          "alternateSides": false,
+          "extraEvents": "hide"
+        },
+        "eventSources": [
+          {
+            "query": {
+              "command": "query($organizationId: Int!, $orderId: Int!) { order(organizationId: $organizationId, orderId: $orderId) { trackingEvents { trackingEventId eventDate description includeInTracking isInactive eventDefinition { eventName } } } }",
+              "variables": {
+                "organizationId": "{{ number organizationId }}",
+                "orderId": "{{ number orderId }}"
+              },
+              "path": "order.trackingEvents",
+              "mapping": {
+                "key": "{{ item.eventDefinition.eventName }}",
+                "id": "{{ item.trackingEventId }}",
+                "date": "{{ item.eventDate }}",
+                "title": "{{ item.eventDefinition.eventName }}",
+                "description": "{{ item.description }}"
+              }
+            }
+          }
+        ],
+        "milestones": [
+          { "key": "Shipment Created", "label": { "en-US": "Shipment Created" } },
+          { "key": "In Transit", "label": { "en-US": "In Transit" }, "icon": "truck" },
+          { "key": "Delivered", "label": { "en-US": "Delivered" }, "icon": "check-circle" }
         ]
       }
     }

@@ -280,22 +280,35 @@ Data-driven widget that delegates to sub-components by type.
 
 ## timeline
 
-MUI Lab Timeline for displaying events chronologically. Horizontal or vertical orientation.
+MUI Lab Timeline for chronological events or milestone-based tracking progress.
+
+**Modes:**
+- `normal` (default): date-range timeline with day/week/month/year view controls.
+- `tracking`: vertical milestone timeline. Events are matched to `milestones[].key` through mapped event `key`; matched milestones are `completed`, unmatched milestones are `pending`, and unmatched events can be shown as `extra`.
 
 **Props:**
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `orientation` | `horizontal \| vertical` | `horizontal` | Layout mode |
-| `view` | `day \| week \| month \| year` | `week` | Time view |
-| `startDate` / `endDate` | `string` | — | Initial date range |
-| `eventSources` | `EventSource[]` | — | Same pattern as calendar |
-| `eventTemplate` | `ComponentProps` | — | Custom event template |
-| `options.height` | `string \| number` | `400` | Component height |
-| `options.showTodayMarker` | `boolean` | `true` | Today marker |
-| `options.enableZoom` | `boolean` | `true` | View switcher |
-| `options.enableNavigation` | `boolean` | `true` | Prev/next/today buttons |
-| `options.alternating` | `boolean` | `true` | Alternate sides (vertical) |
-| `options.dateFormat` | `string` | `MMM DD` | Date format |
+| `mode` | `normal \| tracking` | `normal` | Timeline behavior |
+| `orientation` | `horizontal \| vertical` | `horizontal` | Layout mode; tracking renders vertical |
+| `view` | `day \| week \| month \| year` | `week` | Time view for normal mode |
+| `startDate` / `endDate` | `string` | current week | Initial date range for normal mode |
+| `eventSources` | `EventSource[]` | — | GraphQL/static event sources |
+| `eventTemplate` | `ComponentProps` | — | Custom event template for normal mode |
+| `milestones` | `Milestone[]` | `[]` | Tracking milestones |
+| `options.height` | `string \| number` | `400`/`auto` | Component height |
+| `options.showTodayMarker` | `boolean` | `true` | Today marker in normal mode |
+| `options.enableZoom` | `boolean` | `true` | View switcher in normal mode |
+| `options.enableNavigation` | `boolean` | `true` | Prev/next/today buttons in normal mode |
+| `options.alternateSides` | `boolean` | `true` | Alternate sides in vertical mode |
+| `options.showTwoColumns` | `boolean` | `true` | Show date/status opposite event content in vertical mode |
+| `options.dateFormat` | `string` | `MMM DD` | Moment date format |
+| `options.timeFormat` | `string` | `h:mm A` | Moment time format |
+| `options.extraEvents` | `show \| hide` | `hide` | Show events that do not match a milestone in tracking mode |
+
+**EventSource:** `query.command`, `query.variables`, `query.path`, and `query.mapping` live under the `query` object. Mapping supports `id`, `key`, `date`, `title`, `description`, colors, icons, and additional fields. Tracking sources should map `key`, and the component filters to events with `includeInTracking: true` and `isInactive: false`.
+
+**Milestone:** `{ key, label?, description?, icon? }`. `label` can be localized (`{ en-US: "Delivered" }`).
 
 **Events:** `onEventClick` (data: `event`)
 
@@ -307,12 +320,17 @@ props:
   view: month
   options:
     enableNavigation: true
-    alternating: true
+    alternateSides: true
+    showTwoColumns: true
   eventSources:
     - query:
-        command: "query($id: Int!) { orderHistory(orderId: $id) { id title date type } }"
+        command: "query($id: Int!) { orderHistory(orderId: $id) { id title date type includeInTracking isInactive } }"
         variables: { id: "{{ number orderId }}" }
-        path: orderHistory
+        path: data.orderHistory
+        mapping:
+          id: "{{ item.id }}"
+          date: "{{ item.date }}"
+          title: "{{ item.title }}"
   eventTemplate:
     component: card
     name: eventCard
@@ -327,6 +345,52 @@ props:
       - dialog:
           component: Orders/EventDetail
           props: { eventId: "{{ event.id }}" }
+```
+
+```yaml
+component: timeline
+name: orderTracking
+props:
+  mode: tracking
+  orientation: vertical
+  options:
+    showTwoColumns: true
+    alternateSides: false
+    extraEvents: hide
+  eventSources:
+    - query:
+        command: >
+          query($organizationId: Int!, $orderId: Int!) {
+            order(organizationId: $organizationId, orderId: $orderId) {
+              trackingEvents {
+                trackingEventId
+                eventDate
+                description
+                includeInTracking
+                isInactive
+                eventDefinition { eventName }
+              }
+            }
+          }
+        variables:
+          organizationId: "{{ number organizationId }}"
+          orderId: "{{ number orderId }}"
+        path: order.trackingEvents
+        mapping:
+          key: "{{ item.eventDefinition.eventName }}"
+          id: "{{ item.trackingEventId }}"
+          date: "{{ item.eventDate }}"
+          title: "{{ item.eventDefinition.eventName }}"
+          description: "{{ item.description }}"
+  milestones:
+    - key: Shipment Created
+      label: { en-US: Shipment Created }
+    - key: In Transit
+      label: { en-US: In Transit }
+      icon: truck
+    - key: Delivered
+      label: { en-US: Delivered }
+      icon: check-circle
 ```
 
 ---
