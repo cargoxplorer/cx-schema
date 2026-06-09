@@ -127,6 +127,22 @@
               "onEdit": {
                 "$ref": "#/definitions/actionsList",
                 "description": "Action array executed sequentially when the cell value changes. Receives changedValues and value variables."
+              },
+              "subQueries": {
+                "type": "array",
+                "description": "Additional GraphQL field paths to include in the query without rendering them as columns",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "exportPath": {
+                "type": "string",
+                "description": "Property path used when exporting this column"
+              },
+              "props": {
+                "type": "object",
+                "description": "Column behavior options such as orderByProperty, allowOrderBy, allowFilter, and filterByProperty",
+                "additionalProperties": true
               }
             }
           }
@@ -149,6 +165,15 @@
         "enableResize": {
           "type": "boolean",
           "description": "Enable drag-to-resize columns for this view. Overrides the grid-level enableResize option."
+        },
+        "pageSize": {
+          "type": "number",
+          "description": "Rows per page for this view"
+        },
+        "paginationPosition": {
+          "type": "string",
+          "enum": ["top", "bottom"],
+          "description": "Render pagination controls above or below the grid rows. Defaults to bottom."
         }
       },
       "required": ["name"]
