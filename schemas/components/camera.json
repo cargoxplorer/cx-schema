@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Camera Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "camera"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name identifier for the camera instance"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "number",
+          "description": "Viewport width in pixels"
+        },
+        "height": {
+          "type": "number",
+          "description": "Viewport height in pixels"
+        },
+        "facing": {
+          "type": "string",
+          "enum": ["front", "back"],
+          "default": "back",
+          "description": "Which camera to use"
+        },
+        "mode": {
+          "type": "string",
+          "description": "Camera mode. Currently only 'picture' is supported; other values fall back to picture mode.",
+          "default": "picture"
+        },
+        "enableTorch": {
+          "type": "boolean",
+          "description": "Enable the device flashlight/torch during streaming"
+        },
+        "zoom": {
+          "type": "number",
+          "description": "Initial zoom factor (device capabilities determine actual range)"
+        },
+        "autofocus": {
+          "type": "string",
+          "enum": ["on", "off"],
+          "description": "Controls autofocus. Omit to let the browser decide."
+        },
+        "mirror": {
+          "type": "boolean",
+          "description": "Horizontally flip the video preview. Defaults to true for front camera, false for back."
+        },
+        "picture": {
+          "type": "object",
+          "description": "Capture format and quality settings",
+          "properties": {
+            "quality": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "JPEG/WebP quality from 0 to 1"
+            },
+            "format": {
+              "type": "string",
+              "enum": ["jpeg", "png", "webp"],
+              "default": "jpeg",
+              "description": "Output image format"
+            },
+            "base64": {
+              "type": "boolean",
+              "description": "If true, onCapture receives a base64 string; otherwise a Blob"
+            }
+          }
+        },
+        "onCapture": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions fired after a successful capture. Receives { data: string|Blob, width: number, height: number }"
+        },
+        "onClose": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions fired when the camera stream stops"
+        },
+        "onReady": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions fired once the camera is initialized and streaming. Receives { facing, mode: 'picture' }"
+        },
+        "onPermissionDenied": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions fired when camera permission is denied. Receives { permission: 'camera' }"
+        },
+        "onError": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions fired on camera errors. Receives { message: string, code: string }"
+        }
+      }
+    }
+  },
+  "required": ["component"],
+  "x-examples": [
+    {
+      "component": "camera",
+      "props": {
+        "width": 1024,
+        "height": 768,
+        "facing": "back",
+        "onCapture": [
+          {
+            "fileUpload": {
+              "file": "{{ result.data }}",
+              "name": "capture",
+              "onSuccess": [
+                { "setStore": { "imageUrl": "{{ result.url }}" } }
+              ]
+            }
+          }
+        ],
+        "onClose": [
+          { "navigateBackOrClose": { "result": "camera_closed" } }
+        ]
+      }
+    },
+    {
+      "component": "camera",
+      "props": {
+        "facing": "front",
+        "mirror": true,
+        "picture": {
+          "format": "jpeg",
+          "quality": 0.85,
+          "base64": true
+        },
+        "onCapture": [
+          { "setStore": { "selfieData": "{{ result.data }}" } }
+        ],
+        "onPermissionDenied": [
+          {
+            "notification": {
+              "message": "Camera access is required to take photos.",
+              "variant": "warning"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
