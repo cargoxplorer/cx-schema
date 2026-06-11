@@ -135,6 +135,10 @@
           "type": "string",
           "description": "Filter expression for this view"
         },
+        "search": {
+          "type": "string",
+          "description": "Default search term seeded once when the grid first loads this view. Supports template expressions; URL search parameters and user input take precedence."
+        },
         "childViews": {
           "type": "array",
           "description": "Nested child views",

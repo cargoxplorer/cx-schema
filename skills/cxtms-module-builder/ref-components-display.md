@@ -64,6 +64,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `displayName` | `ILocalizeString` | View label |
 | `columns` | `IColumn[]` | Column definitions |
 | `filter` | `string` | View-level filter |
+| `search` | `string` | Default search term seeded once on initial load; supports `{{ }}` templates; URL/user search wins |
 | `orderBy` | `{name, direction}[]` | Default sort |
 | `onRowClick` | `action[]` | Per-view row click |
 | `enableSelect` | `Single \| Multiple` | Per-view selection |
@@ -130,6 +131,7 @@ props:
     - name: active
       displayName: { en-US: "Active" }
       filter: "status:Active"
+      search: "{{ inputs.customerName }}"
       columns:
         - name: id
           isHidden: true
