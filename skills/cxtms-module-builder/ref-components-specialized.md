@@ -422,7 +422,7 @@ CSS Grid-based timeline with swim lanes, drill-down, and virtual scrolling.
 | Variable | Type | Description |
 |----------|------|-------------|
 | `dataSources` | `Record<string, TimelineEvent[]>` | Per-source events filtered to the column, keyed by `query.name` |
-| `column` | `ColumnDefinition` | Column metadata (`id`, `label`, `date`, `startDate`, `endDate`) |
+| `column` | `ColumnDefinition` | Column metadata (`id`, `label`, `date`, `startDate`, `endDate`, `startDateLocal`, `endDateLocal`) |
 | `columnIndex` | `number` | Zero-based column index |
 | `totalCount` | `number` | Total event count for the column across all sources |
 
@@ -430,13 +430,15 @@ CSS Grid-based timeline with swim lanes, drill-down, and virtual scrolling.
 | Event | Data | Description |
 |-------|------|-------------|
 | `onEventClick` | `item, view` | Event clicked |
-| `onCellClick` | `column, row, date, view` | Empty cell clicked |
+| `onCellClick` | `column, row, date, view` | Cell clicked; `column.startDate`/`endDate` are UTC ISO strings and `column.startDateLocal`/`endDateLocal` are local wall-clock `YYYY-MM-DDTHH:mm:ss` strings |
 | `onViewChange` | `previousView, newView, startDate, endDate` | View changed |
 | `onNavigate` | `direction, view, startDate, endDate` | Navigation |
 | `onEventsLoaded` | `events, eventCount, view, dataRange` | Data loaded |
 | `onLoad` | `view, startDate, endDate, options` | Initial mount |
 
 **Column drill-down:** Click column header: year->month, month->week, week->day.
+
+**Cell click date fields:** In `onCellClick`, prefer `column.startDateLocal` / `column.endDateLocal` when passing the clicked calendar range to local-day queries or dialogs. `column.startDate` / `column.endDate` remain UTC ISO instants for absolute timestamp use cases.
 
 ```yaml
 component: timeline-grid

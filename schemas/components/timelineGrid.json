@@ -252,6 +252,10 @@
         "onItemResize": { "$ref": "../schemas.json#/definitions/actionsList" },
         "onItemReassign": { "$ref": "../schemas.json#/definitions/actionsList" },
         "onRangeChange": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onCellClick": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Cell click handler. Context includes column, row, date, view; column exposes UTC startDate/endDate and local wall-clock startDateLocal/endDateLocal."
+        },
         "onEmptySlotClick": { "$ref": "../schemas.json#/definitions/actionsList" },
         "onLoading": { "$ref": "../schemas.json#/definitions/actionsList" }
       }
@@ -263,7 +267,7 @@
   "required": ["component", "props", "rowSources", "itemSources"],
   "x-examples": [
     {
-      "component": "timelineGrid",
+      "component": "timeline-grid",
       "name": "vehicleScheduler",
       "props": {
         "view": "day",
