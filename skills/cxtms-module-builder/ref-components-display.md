@@ -38,7 +38,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `query` | `string` | — | **Required.** GraphQL entity name |
 | `rootEntityName` | `string` | — | **Required.** Entity name for dynamic grid |
 | `entityKeys` | `string[]` | — | **Required.** Primary key fields |
-| `includeEntityKeysInExport` | `boolean` | `true` | Force missing entity keys into export headers for ID-first re-import |
+| `includeEntityKeysInExport` | `boolean` | `true` | Force `entityKeys`/primary keys into exports even when hidden, preserving ID-first re-import matching. Set `false` for id-less templates or cross-space copies. |
 | `navigationType` | `navigate \| dialog \| store` | — | **Required.** Row click behavior |
 | `enableDynamicGrid` | `boolean` | — | Enable dynamic columns |
 | `enableViews` | `boolean` | — | Show view selector |
@@ -69,8 +69,8 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `orderBy` | `{name, direction}[]` | Default sort |
 | `onRowClick` | `action[]` | Per-view row click |
 | `enableSelect` | `Single \| Multiple` | Per-view selection |
+| `includeEntityKeysInExport` | `boolean` | Per-view override for exporting entity keys |
 | `childViews` | `object` | Expandable child views |
-| `includeEntityKeysInExport` | `boolean` | View-level override for forcing entity keys into exports |
 
 **Column definition:**
 | Prop | Type | Description |
@@ -159,6 +159,7 @@ props:
     enableFilter: true
     defaultView: all
     defaultExpandedRows: true
+    includeEntityKeysInExport: true
     onRowClick:
       - navigate: "orders/{{ id }}"
   toolbar:
@@ -186,6 +187,7 @@ When `rootEntityName` is set in datagrid options, the component fetches entity f
 | `filterByProperty` | `props` | Filter against a different field/path than the display column; nested filter paths honor parent `filterByProperty` values |
 | `isInactive: true` | top-level | Marks field as inactive |
 | `isCustomField: true` | top-level | Marks as custom field |
+| `priority: <int>` | top-level | Resolves duplicate field definitions across app modules; highest active priority wins |
 
 **Visibility rules:**
 

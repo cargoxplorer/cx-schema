@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Toggle Button Field Type",
+  "description": "Segmented toggle button group field for single-select or multi-select choices",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "toggle" },
+    "label": {
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "../schemas.json#/definitions/localized" }
+      ],
+      "description": "Field label"
+    },
+    "items": {
+      "type": "array",
+      "description": "Toggle options",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": { "oneOf": [{ "type": "string" }, { "type": "number" }] },
+          "label": { "type": "string" },
+          "icon": { "type": "string", "description": "Optional icon name" },
+          "disabled": { "type": "boolean", "description": "Disable this option" }
+        },
+        "required": ["value", "label"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "exclusive": {
+      "type": "boolean",
+      "description": "Single-select mode when true; multi-select array values when false",
+      "default": true
+    },
+    "size": {
+      "type": "string",
+      "enum": ["small", "medium", "large"],
+      "default": "medium"
+    },
+    "color": {
+      "type": "string",
+      "enum": ["standard", "primary", "secondary", "error", "info", "success", "warning"],
+      "default": "primary"
+    },
+    "orientation": {
+      "type": "string",
+      "enum": ["horizontal", "vertical"],
+      "default": "horizontal"
+    },
+    "enforceValue": {
+      "type": "boolean",
+      "description": "In exclusive mode, prevent deselecting the selected value",
+      "default": false
+    },
+    "defaultValue": {
+      "oneOf": [{ "type": "string" }, { "type": "number" }],
+      "description": "Initial selected value"
+    },
+    "required": { "type": "boolean" },
+    "disabled": { "type": "boolean" },
+    "onChange": { "$ref": "../schemas.json#/definitions/actionsList" },
+    "onBlur": { "$ref": "../schemas.json#/definitions/actionsList" },
+    "onFocus": { "$ref": "../schemas.json#/definitions/actionsList" }
+  },
+  "required": ["type", "items"]
+}

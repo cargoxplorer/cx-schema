@@ -46,6 +46,7 @@
             "autocomplete-googleplaces",
             "checkbox",
             "radio",
+            "toggle",
             "textarea",
             "attachment",
             "secret",
@@ -177,7 +178,7 @@
         },
         "items": {
           "type": "array",
-          "description": "Static options for select fields",
+          "description": "Static options for select, radio, and toggle fields",
           "items": {
             "type": "object",
             "properties": {

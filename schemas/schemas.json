@@ -220,7 +220,7 @@
         },
         "includeEntityKeysInExport": {
           "type": "boolean",
-          "description": "Whether missing entity key columns should be forced into export headers for this view"
+          "description": "Include the grid entityKeys/primary keys in exports for this view. Defaults to the grid option, then true."
         }
       },
       "required": ["name"]
@@ -424,6 +424,11 @@
         "fieldType": { "type": "string" },
         "isCustomField": { "type": "boolean", "description": "Whether this is a custom field" },
         "isInactive": { "type": "boolean" },
+        "priority": {
+          "type": "integer",
+          "default": 0,
+          "description": "Module-level field override precedence; highest active priority wins for duplicate entity field names"
+        },
         "props": {
           "type": "object",
           "description": "Additional field properties",

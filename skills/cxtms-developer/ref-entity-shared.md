@@ -1,6 +1,7 @@
 # Shared Entity Reference
 
 ## Contents
+- EntityField
 - Tag
 - Attachment
 - Division
@@ -11,7 +12,26 @@
 - NoteThread
 - Note
 
-Tag, Attachment, Division, EquipmentType, Equipment, EquipmentStatus, PackageType, Note/NoteThread.
+EntityField, Tag, Attachment, Division, EquipmentType, Equipment, EquipmentStatus, PackageType, Note/NoteThread.
+
+## EntityField
+
+App-module field metadata used by grids, forms, filters, and entity extensions.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `entityFieldId` | `int` | PK |
+| `organizationId` | `int` | |
+| `entityTypeId` | `int` | FK to EntityType |
+| `name` | `string?` | Field name / path |
+| `fieldDefinition` | `Dictionary` | Original module field definition |
+| `isCustomField` | `bool` | True for custom field definitions |
+| `isInactive` | `bool` | Inactive fields are excluded when resolving fields for an `entityName` |
+| `priority` | `int` | Override precedence; if multiple active module fields have the same entity/name, highest priority wins |
+
+**GraphQL:** `entityFields(organizationId, entityName, filter, search, orderBy)` exposes `priority`. Supplying `entityName` applies inactive filtering and priority-based duplicate resolution.
+
+---
 
 ## Tag
 
