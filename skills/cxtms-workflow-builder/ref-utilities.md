@@ -380,7 +380,7 @@ Groups a collection of dictionaries by one or more fields. Produces `{ key, valu
 
 ## Import Tasks
 
-Import tasks handle bulk data ingestion. All support `file://` URLs for chaining with UnzipFile.
+Import tasks handle bulk data ingestion. All support `file://` URLs for chaining with UnzipFile. Dictionary-based imports skip empty cell values instead of overwriting existing data with blanks. Accounting Account, Accounting Item, Currency, Payment Term, and Sales Tax imports match by primary key first when an ID is present, then by configured key fields; matched rows are skipped unless `updateIfExists` is true.
 
 ### Order/Import@1
 

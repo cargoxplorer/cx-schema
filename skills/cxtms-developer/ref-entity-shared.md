@@ -224,3 +224,9 @@ Encrypted key-value store for sensitive configuration (API keys, tokens, credent
 
 **GraphQL mutations:** `setSecret(organizationId, secretName, secretValue)`, `deleteSecret(organizationId, secretName)`.
 **Org scoping:** Commands validate user org membership; qualified name `org/{orgId}/{name}` is built by the command handler.
+
+---
+
+## EntityKind enum
+
+Known entity-kind values include `Order`, `Contact`, `OrderEntity`, `AccountingTransaction`, `Calendar`, `CalendarEvent`, `CalendarAvailabilityBlock`, `Other`, and `AuditChangeEntry`. Use `AuditChangeEntry` for audit-history result rows/change-log entries rather than a primary business entity.
