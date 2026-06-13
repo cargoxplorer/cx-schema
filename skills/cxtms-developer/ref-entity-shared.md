@@ -222,8 +222,8 @@ Encrypted key-value store for sensitive configuration (API keys, tokens, credent
 **Table:** `secrets` (snake_case columns)
 **Provider:** `PostgresSecretManager` (default) or `AzureKeyVault` via `SecretManager:Provider` config.
 
-**GraphQL mutations:** `setSecret(organizationId, secretName, secretValue)`, `deleteSecret(organizationId, secretName)`.
-**Org scoping:** Commands validate user org membership; qualified name `org/{orgId}/{name}` is built by the command handler.
+**GraphQL mutations:** org-scoped secrets use input-wrapper mutations: `setSecret(input: { organizationId, secretName, secretValue }) { setSecretResult { secretName } }` and `deleteSecret(input: { organizationId, secretName }) { boolean }`.
+**Org scoping:** Commands validate user org membership; qualified name `org/{orgId}/{name}` is built by the command handler. Module `secret` fields must pass the current organization ID in the mutation input.
 
 ---
 

@@ -47,7 +47,13 @@
             "checkbox",
             "radio",
             "textarea",
-            "attachment"
+            "attachment",
+            "secret",
+            "file",
+            "hidden",
+            "quill",
+            "object",
+            "yaml"
           ],
           "description": "Field input type",
           "x-example": "select-async"
@@ -61,6 +67,10 @@
           "type": "boolean",
           "description": "Whether field is disabled",
           "x-example": false
+        },
+        "secretPath": {
+          "type": "string",
+          "description": "Template expression for the secret name used by secret fields, e.g. integrations/{{ id }}/apiKey"
         },
         "options": {
           "type": "object",

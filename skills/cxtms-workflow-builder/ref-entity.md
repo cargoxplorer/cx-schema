@@ -149,6 +149,9 @@ Imports order data from an external feed. Supports create and upsert (match-by-f
 | `Contact/Update` | Update contact |
 | `Contact/Delete` | Delete contact |
 
+
+**Contact import behavior:** backend contact imports validate `DivisionId` against the target organization. Invalid division IDs are ignored; new contacts default to the importing user's division when no valid division is provided. Nested `division.divisionName` can be supplied and is resolved to an organization division before import.
+
 ## Contact Address
 
 | Task | Description |
