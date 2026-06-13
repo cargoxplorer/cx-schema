@@ -186,15 +186,16 @@ inputs:
 **Known system customValues keys:**
 - `modeOfTransportationId` / `modeOfTransportationIdDescription` — transport mode
 - `terminalId` — terminal reference; sortable/filterable with `customValues.terminalId->terminal.name`
-- `returnLocationId` — terminal/return-location reference; sortable/filterable with `customValues.returnLocationId->terminal.name`
+- `deliveryLocationId` — contact-address reference; sortable/filterable with `customValues.deliveryLocationId->contactAddress.name`
+- `returnLocationId` — terminal or contact-address return-location reference; sortable/filterable with `customValues.returnLocationId->terminal.name` or `customValues.returnLocationId->contactAddress.name`
 
-**Join expression pattern** — Order queries can sort and filter by properties of entities referenced from `customValues` using `customValues.key->entity.property`. Supported aliases include `contact`, `order`, `modeOfTransportation`, `country`, and `terminal`.
+**Join expression pattern** — Order queries can sort and filter by properties of entities referenced from `customValues` using `customValues.key->entity.property`. Supported aliases include `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, and `contactAddress`.
 
 ```graphql
 orders(
   organizationId: 1
-  orderBy: "customValues.terminalId->terminal.name"
-  filter: "customValues.returnLocationId->terminal.name:Chicago*"
+  orderBy: "customValues.deliveryLocationId->contactAddress.name"
+  filter: "customValues.returnLocationId->contactAddress.name:Chicago*"
 ) { items { orderId orderNumber } }
 ```
 

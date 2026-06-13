@@ -43,6 +43,8 @@ MUI Button with icon, label, loading state, and action dispatch.
 
 **Events:** `onClick` — dispatches action chain with loading spinner while executing.
 
+**Theme note:** MUI toggle button groups use the primary color by default, and medium toggle buttons are fixed at 39px height to align segmented controls with neighboring inputs.
+
 ```yaml
 # Primary submit button
 - component: button

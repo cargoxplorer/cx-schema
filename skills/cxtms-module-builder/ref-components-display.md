@@ -342,7 +342,9 @@ Join syntax format: `customValues.{idPropertyName}->{entityAlias}.{property}`
 
 Single-level property access only (`terminal.name` works, `contact.address.city` does not).
 
-Registered join entities: `contact`, `order`, `modeOfTransportation`, `country`, `terminal`.
+Registered join entities: `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, `contactAddress`.
+
+Contact-address custom values can use the same override pattern, for example `customValues.deliveryLocationId->contactAddress.name` or `customValues.returnLocationId->contactAddress.name`.
 
 Alternative: disable sorting with `allowOrderBy: false` in column props.
 
