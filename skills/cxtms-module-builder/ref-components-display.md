@@ -53,6 +53,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `highlightNew` | `boolean` | `true` | Highlight newly added rows |
 | `highlightUpdated` | `boolean` | `true` | Highlight rows with updated values |
 | `highlightForRefreshes` | `number` | `1` | Per-row TTL — refresh cycles a highlight persists |
+| `defaultExpandedRows` | `boolean` | `false` | Pre-expand parent rows once on first load when `childViews` exist; refreshes preserve user collapse/expand choices |
 | `onRowClick` | `action[]` | — | Default row click action |
 | `onDataLoad` | `action[]` | — | Action after data loads |
 | `items` | `any` | — | Static data (instead of query) |
@@ -74,15 +75,16 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 |------|------|-------------|
 | `name` | `string` | Field name or resolver expression |
 | `label` | `ILocalizeString` | Column header |
-| `isHidden` | `boolean` | Available in picker but hidden by default |
+| `isHidden` | `boolean \| template` | Available in picker but hidden by default; also excluded from export when truthy |
+| `isVisible` | `boolean \| template` | Inverse visibility flag; excluded from export when false |
 | `showAs` | `{component, props, queries}` | Custom cell renderer |
 | `width` | `number` | Column width |
 | `sticky` | `left \| right` | Pin column |
 | `enableEdit` | `boolean` | Enable inline editing (requires `editor`) |
 | `editor` | `{component, props}` | Editor component (required with `enableEdit`) |
 | `onEdit` | `action[]` | Action on edit commit. Variables: `changedValues`, `value`, `index`, + row data |
-| `exportPath` | `string` | CSV export key. Fallback: `exportPath ?? path ?? name` |
-| `exportTemplate` | `string` | Template expression for export-only formatted value; exposed at `store.<gridName>.exportTemplates` |
+| `exportPath` | `string` | Export key/path override (top-level or `props.exportPath`). Fallback: `exportPath ?? path ?? name` |
+| `exportTemplate` | `string` | Template expression for export-only formatted value (top-level or `props.exportTemplate`); exposed at `store.<gridName>.exportTemplates` |
 | `path` | `string` | Data path for column value. Fallback for `exportPath` |
 | `excludeFromQuery` | `boolean` | Exclude from GraphQL query and CSV export |
 
@@ -115,6 +117,10 @@ props:
           label: { en-US: "Order #" }
         - name: customerName
           label: { en-US: "Customer" }
+          exportPath: customer.displayName
+        - name: totalAmount
+          label: { en-US: "Total" }
+          exportTemplate: "{{ formatCurrency totalAmount currencyCode }}"
         - name: status
           label: { en-US: "Status" }
           showAs:
@@ -150,6 +156,7 @@ props:
     enableColumns: true
     enableFilter: true
     defaultView: all
+    defaultExpandedRows: true
     onRowClick:
       - navigate: "orders/{{ id }}"
   toolbar:

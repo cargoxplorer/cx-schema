@@ -113,8 +113,31 @@
                 "description": "Custom component for column rendering"
               },
               "isHidden": {
-                "type": "boolean",
-                "description": "Whether column is hidden"
+                "oneOf": [
+                  { "type": "boolean" },
+                  { "$ref": "#/definitions/templateExpression" }
+                ],
+                "description": "Whether column is hidden; true excludes it from rendering/export"
+              },
+              "isVisible": {
+                "oneOf": [
+                  { "type": "boolean" },
+                  { "$ref": "#/definitions/templateExpression" }
+                ],
+                "description": "Whether column is visible; false excludes it from rendering/export"
+              },
+              "props": {
+                "type": "object",
+                "description": "Column component/export props",
+                "additionalProperties": true
+              },
+              "exportPath": {
+                "type": "string",
+                "description": "Export key/path override for this column"
+              },
+              "exportTemplate": {
+                "type": "string",
+                "description": "Template used to format this column during export"
               },
               "isVisible": {
                 "type": "boolean",
@@ -221,6 +244,10 @@
         "defaultView": {
           "type": "string",
           "description": "Default view name"
+        },
+        "defaultExpandedRows": {
+          "type": "boolean",
+          "description": "Pre-expand parent rows on first load when childViews are configured; preserves user collapse/expand choices on refresh"
         },
         "onRowClick": {
           "oneOf": [
