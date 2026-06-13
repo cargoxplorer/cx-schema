@@ -61,6 +61,8 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `onDataLoad` | `action[]` | — | Action after data loads |
 | `items` | `any` | — | Static data (instead of query) |
 
+**Pagination display:** when `totalCount` is `0`, DataGrid shows `Showing 0 to 0 of 0 entries` instead of starting at row `1`.
+
 **View definition:**
 | Prop | Type | Description |
 |------|------|-------------|
