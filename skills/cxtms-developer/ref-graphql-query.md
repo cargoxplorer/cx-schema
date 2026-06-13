@@ -108,6 +108,37 @@ filter: "NOT customValues.returnLocationId->terminal.terminalId:NULL"
 filter: "children[category:CatA].name:test"
 ```
 
+## Mutations
+
+### `importContacts`
+
+Bulk import contacts from an uploaded CSV, JSON, or XLSX file.
+
+```graphql
+mutation ImportContacts($input: ImportContactsInput!) {
+  importContacts(input: $input) {
+    added
+    updated
+    errors
+  }
+}
+```
+
+`ImportContactsInput` fields:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `organizationId` | `Int!` | Tenant scope |
+| `fileUploadUrl` | `String!` | Uploaded file URL/path |
+| `contactType` | `ContactType` | Optional default for new rows; row-level `ContactType` wins |
+| `columnMappings` | `MapOfString` | Map internal field paths to inbound column headers |
+
+Behavior notes:
+- Matches existing contacts by `ContactId` first.
+- Ignores primary key fields during patching.
+- Skips nulls and empty strings on updates so blank cells do not clear existing values.
+- Resolves nested `division.divisionName` / `Division.DivisionName` to `DivisionId` when possible.
+
 ## OrderBy Syntax
 
 ```

@@ -136,6 +136,33 @@ GraphQL resolver: `formattedAddress(outputFormat, addressFormat, lang, multiline
 | `ContactStatusStage` | Active=0, Inactive=1 |
 | `PaymentType` | Card=1, AccountCredit=2, Cash=3, Check=4, BankTransfer=5, Other=7 |
 
+## Contact Import
+
+GraphQL `importContacts` accepts CSV, JSON, or XLSX uploads and imports rows as dynamic contact field dictionaries.
+
+Important rules:
+- Existing contacts match by `ContactId`; otherwise a new contact is created.
+- `ContactId` and `OrganizationId` are primary key fields and are filtered out before create/update field application.
+- Empty strings and nulls are skipped on updates; blank spreadsheet cells do not erase existing values.
+- New contacts require `Name`; rows without a non-empty name are skipped.
+- `ContactType` can come from the row, from the mutation-level `contactType` default, or finally defaults to `Contact`.
+- Nested division objects can set the primary division by name: `division.divisionName` resolves to `divisionId` within the same organization.
+
+Example mutation input:
+
+```json
+{
+  "organizationId": 1,
+  "fileUploadUrl": "uploads/imports/contacts.xlsx",
+  "contactType": "Customer",
+  "columnMappings": {
+    "Name": "Company Name",
+    "EmailAddress": "Email",
+    "Division.DivisionName": "Division"
+  }
+}
+```
+
 ## CustomValues
 
 `Dictionary<string, object?>` stored as PostgreSQL `jsonb`. Access in workflows:
