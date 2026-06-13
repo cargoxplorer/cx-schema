@@ -88,10 +88,17 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
     entity:
       customer: "{{ inputs.customerId }}"
       status: "Draft"
+    values:
+      commodities:
+        - description: "{{ inputs.description }}"
+          pieces: "{{ inputs.pieces }}"
+          billToContactId: "{{ inputs.customerId }}"
   outputs:
     - name: order
       mapping: "order"
 ```
+
+For `Order/Create@1`, nested `values.commodities[*].billToContactId` is supported and is applied to the created commodity. Use it for multi-customer consolidations so downstream charge filtering can match commodity freight to the correct bill-to contact.
 
 ```yaml
 - task: "Order/Update@2"
