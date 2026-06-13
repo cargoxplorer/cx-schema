@@ -81,7 +81,7 @@ Milestone/tracking event on an order or commodity.
 
 | Field | Returns | Notes |
 |-------|---------|-------|
-| `businessDays(path: String!)` | `int?` | Business days from the date at `path` to today, using the org's business calendar. `path` is a dot-separated property path on the tracking event (e.g. `"eventDate"`, `"customValues.scheduledAt"`). Returns `null` if path doesn't resolve or value isn't a parseable date. |
+| `businessDays(path: String!, contactId?: Int)` | `int?` | Business days from the date at `path` to today, using the org business calendar. Optional `contactId` scopes availability blocks to org-wide plus matching contact blocks. Returns `null` if path does not resolve or value is not parseable. |
 
 ---
 

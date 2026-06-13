@@ -333,6 +333,7 @@ type CalendarAvailabilityBlockGqlDto {
   isAvailable: Boolean!
   description: String
   customValues: MapOfObject
+  contactId: Int
   created: DateTime!
   lastModified: DateTime!
   createdBy: String!
@@ -5566,6 +5567,13 @@ type commodity {
     eventDefinitionName: String
     orderBy: String
   ): trackingEvent @cost(weight: "10")
+  lastTrackingEventBusinessDays(
+    path: String!
+    contactId: Int
+    contactIdPropertyName: String
+    eventDefinitionName: String
+    orderBy: String
+  ): Int @cost(weight: "10")
 }
 
 type commodityStatus {
@@ -6196,6 +6204,7 @@ type order {
     eventDefinitionName: String
     orderBy: String
   ): trackingEvent @cost(weight: "10")
+  businessDays(path: String!, contactId: Int): Int @cost(weight: "10")
   getRoute(idPropertyName: String!): route @cost(weight: "10")
   getRelatedOrderByProperty(idPropertyName: String): order @cost(weight: "10")
   outgoingLinks: [linkedOrders] @cost(weight: "10")
@@ -6806,6 +6815,7 @@ type trackingEvent {
   sendEmail: Boolean!
   updatedUser: user!
   createdUser: user!
+  businessDays(path: String!, contactId: Int): Int @cost(weight: "10")
 }
 
 type user {
@@ -7403,6 +7413,7 @@ input CreateCalendarAvailabilityBlockCommandValuesInput {
   isAvailable: Boolean!
   description: String
   customValues: MapOfObject
+  contactId: Int
   recurrenceRule: CalendarAvailabilityRecurrenceRuleDtoInput
 }
 

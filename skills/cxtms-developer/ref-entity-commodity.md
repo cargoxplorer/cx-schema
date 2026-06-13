@@ -251,3 +251,7 @@ aggregations:
     parameter: "eventCode"
     expression: "any([Commodity.CommodityEvents], [each.TrackingEvent.EventDefinition.EventCode] = [eventCode])"
 ```
+
+### Last tracking event business days
+
+`lastTrackingEventBusinessDays(path, contactId?, contactIdPropertyName?, eventDefinitionName?, orderBy?)` returns an `int?` business-day count for the commodity's last tracking event. Use `contactIdPropertyName: "carrierId"` when each grid row stores its carrier in `Commodity.CustomValues.carrierId`; the resolver reads the row value server-side and filters business calendar availability blocks to org-wide plus that contact.
