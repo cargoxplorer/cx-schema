@@ -71,6 +71,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `columns` | `IColumn[]` | Column definitions |
 | `filter` | `string` | View-level filter |
 | `orderBy` | `{name, direction}[]` | Default sort |
+| `paginationPosition` | `top \| bottom` | Place pagination controls above or below rows (`bottom` default) |
 | `onRowClick` | `action[]` | Per-view row click |
 | `enableSelect` | `Single \| Multiple` | Per-view selection |
 | `includeEntityKeysInExport` | `boolean` | Per-view override for exporting entity keys |
@@ -92,6 +93,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `exportPath` | `string` | Export key/path override (top-level or `props.exportPath`). Fallback: `exportPath ?? path ?? name` |
 | `exportTemplate` | `string` | Template expression for export-only formatted value (top-level or `props.exportTemplate`); exposed at `store.<gridName>.exportTemplates` |
 | `path` | `string` | Data path for column value. Fallback for `exportPath` |
+| `subQueries` | `string[]` | Extra GraphQL field paths to fetch without displaying them as columns |
 | `excludeFromQuery` | `boolean` | Exclude from GraphQL query and CSV export |
 
 ```yaml
@@ -116,11 +118,14 @@ props:
   views:
     - name: all
       displayName: { en-US: "All Orders" }
+      paginationPosition: top
       columns:
         - name: id
           isHidden: true
         - name: orderNumber
           label: { en-US: "Order #" }
+          subQueries:
+            - customer.name
         - name: customerName
           label: { en-US: "Customer" }
           exportPath: customer.displayName
@@ -351,6 +356,22 @@ Registered join entities: `contact`, `order`, `modeOfTransportation`, `country`,
 Contact-address custom values can use the same override pattern, for example `customValues.deliveryLocationId->contactAddress.name` or `customValues.returnLocationId->contactAddress.name`.
 
 Alternative: disable sorting with `allowOrderBy: false` in column props.
+
+### Hidden Query Dependencies
+
+Use column-level `subQueries` when a column renderer, action, conditional style, or export needs related GraphQL fields that should not appear as visible columns. The runtime appends these paths to the query selection and preserves them when users add the column in view settings.
+
+```yaml
+- name: orderNumber
+  label: { en-US: Order # }
+  subQueries:
+    - customer.name
+    - customer.primaryContact.email
+  showAs:
+    component: text
+    props:
+      value: "{{ orderNumber }} — {{ customer.name }}"
+```
 
 ### CSV Export
 

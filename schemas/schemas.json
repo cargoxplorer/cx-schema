@@ -126,23 +126,6 @@
                 ],
                 "description": "Whether column is visible; false excludes it from rendering/export"
               },
-              "props": {
-                "type": "object",
-                "description": "Column component/export props",
-                "additionalProperties": true
-              },
-              "exportPath": {
-                "type": "string",
-                "description": "Export key/path override for this column"
-              },
-              "exportTemplate": {
-                "type": "string",
-                "description": "Template used to format this column during export"
-              },
-              "isVisible": {
-                "type": "boolean",
-                "description": "Whether column is visible"
-              },
               "path": {
                 "type": "string",
                 "description": "GraphQL/data path for this column when different from name"
@@ -167,28 +150,28 @@
                 "$ref": "#/definitions/actionsList",
                 "description": "Action array executed sequentially when the cell value changes. Receives changedValues and value variables."
               },
-              "path": {
-                "type": "string",
-                "description": "Data path for the column value"
-              },
-              "exportPath": {
-                "type": "string",
-                "description": "Field path to use in export headers instead of path/name"
-              },
-              "exportTemplate": {
-                "type": "string",
-                "description": "Template used by export tooling for this column"
-              },
               "excludeFromQuery": {
                 "type": "boolean",
                 "description": "Exclude this column from GraphQL query and export configuration"
               },
+              "subQueries": {
+                "type": "array",
+                "description": "Additional GraphQL field paths to include in the query without rendering them as columns",
+                "items": {
+                  "type": "string"
+                }
+              },
               "props": {
                 "type": "object",
+                "description": "Column behavior/export options such as orderByProperty, allowOrderBy, allowFilter, allowSelect, and filterByProperty",
                 "properties": {
                   "allowOrderBy": { "type": "boolean" },
                   "allowFilter": { "type": "boolean" },
                   "allowSelect": { "type": "boolean" },
+                  "orderByProperty": {
+                    "type": "string",
+                    "description": "Property path used for ordering instead of the displayed column name"
+                  },
                   "filterByProperty": {
                     "type": "string",
                     "description": "Property path used for filtering instead of the displayed column name"
@@ -221,6 +204,15 @@
         "includeEntityKeysInExport": {
           "type": "boolean",
           "description": "Include the grid entityKeys/primary keys in exports for this view so re-import can match rows by ID. Defaults to the grid option, then true."
+        },
+        "pageSize": {
+          "type": "number",
+          "description": "Rows per page for this view"
+        },
+        "paginationPosition": {
+          "type": "string",
+          "enum": ["top", "bottom"],
+          "description": "Render pagination controls above or below the grid rows. Defaults to bottom."
         }
       },
       "required": ["name"]
