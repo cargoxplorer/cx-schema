@@ -30,6 +30,17 @@ Entity-specific extras:
 
 Available root queries: `orders`, `contacts`, `commodities`, `accountingTransactions`, `jobs`, and others.
 
+## App Module Metadata Visibility
+
+GraphQL metadata queries hide rows attached to soft-deleted app modules:
+
+- `appComponents` / `appComponent` require the parent `AppModule.IsDeleted != true`
+- `appRoutes` and public route queries require the parent module to be active
+- `appPermissions` require the parent module to be active
+- `entityFields` exclude fields whose `EntityType.AppModule` is deleted
+
+Do not add extra client-side `isDeleted` filters for these metadata screens unless the UI also needs to expose deleted-module diagnostics.
+
 ## Filter Syntax (Lucene Query)
 
 Filters use **Lucene Query syntax** (not OData, not NCalc).

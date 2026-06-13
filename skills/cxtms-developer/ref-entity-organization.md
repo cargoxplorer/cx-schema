@@ -19,7 +19,7 @@ Core tenant entity. Each organization represents a company/tenant in the system.
 | `uniqueId` | `Guid` | Immutable external identifier |
 | `slug` | `string?` | URL-friendly identifier for Public API routes (lowercase, hyphenated) |
 | `isDeleted` | `bool` | Soft delete |
-| `customValues` | `Dictionary?` | jsonb, merged on update |
+| `customValues` | `Dictionary?` | jsonb, merged on update; incoming keys overwrite existing keys while unrelated keys are preserved |
 | `created` / `lastModified` | `DateTime` | Audit fields (from `AuditableEntity`) |
 | `createdBy` / `lastModifiedBy` | `string` | Audit fields |
 
@@ -37,5 +37,5 @@ Used by `PublicApiOrganizationResolver` to resolve org by slug or GUID in Public
 
 - `ChangeSlug(string?)` — trims and lowercases
 - `ChangeCompanyName(string)`, `ChangeAddressLine(string?)`, etc.
-- `ChangeCustomValues(Dictionary?)` — merges into existing values
+- `ChangeCustomValues(Dictionary?)` — initializes `CustomValues` when needed, merges incoming values into the existing dictionary, and overwrites matching keys without dropping unrelated keys
 - `DeleteOrganization()` — sets `IsDeleted = true`
