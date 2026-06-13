@@ -39,6 +39,10 @@
       "type": "object",
       "description": "Contact address operation inputs",
       "properties": {
+        "organizationId": {
+          "type": "string",
+          "description": "Organization/tenant ID for scoped operations and imports"
+        },
         "contactId": {
           "type": "string",
           "description": "Parent contact ID"
@@ -46,6 +50,27 @@
         "addressId": {
           "type": "string",
           "description": "Address ID (for update/delete)"
+        },
+        "fileUrl": {
+          "type": "string",
+          "description": "URL for import source file"
+        },
+        "fileType": {
+          "type": "string",
+          "description": "Import file type, such as Csv or Excel"
+        },
+        "stream": {
+          "description": "Import stream payload"
+        },
+        "matchByFields": {
+          "type": "array",
+          "description": "Business-key fields used after ID-first ContactAddressId matching",
+          "items": { "type": "string" }
+        },
+        "columnMappings": {
+          "type": "object",
+          "description": "Import column-to-field mappings",
+          "additionalProperties": { "type": "string" }
         },
         "entity": {
           "type": "object",

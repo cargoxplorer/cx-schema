@@ -135,6 +135,8 @@ Contact CSV/import handling protects division scoping:
 
 GraphQL resolver: `formattedAddress(outputFormat, addressFormat, lang, multiline)` — formatted string.
 
+**ContactAddress import notes:** `ContactAddress/Import@1` can update by `ContactAddressId` first, then falls back to business-key matching. Export grids should include `contactAddressId`/entity keys when data is intended for re-import. Import aliases `City` to `cityName`, resolves `StateName` to `stateCode`, and accepts `Longitude`/`Latitude` for `location`.
+
 ## Other Related Enums
 
 | Enum | Values |
