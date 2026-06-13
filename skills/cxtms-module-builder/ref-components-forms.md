@@ -363,7 +363,7 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `textarea` | Multi-line text with `rows` prop |
 | `checkbox` | Boolean checkbox |
 | `radio` | Radio button (use `value` prop) |
-| `toggle` | Segmented toggle button group. Supports single-select, multi-select, icons, disabled items, `enforceValue`, and `defaultValue`. |
+| `toggle` | Segmented toggle button group. `allowMultiple: true` gives array values; MUI props (size, color, orientation) live under `options`. Supports icons, disabled items, `enforceValue`, and `defaultValue`. |
 | `date` | Date picker |
 | `datetime` | Date + time picker |
 | `rangedatetime` | Date range picker |
@@ -429,21 +429,6 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `onEditClick` | Fires when edit icon clicked. Supported on text and select-async fields. Passes current form values (with optional `valueFieldName`) to the action context |
 
 ```yaml
-# Toggle button field
-- component: field
-  name: priority
-  props:
-    type: toggle
-    label: { en-US: "Priority" }
-    enforceValue: true
-    defaultValue: medium
-    items:
-      - { value: low, label: Low }
-      - { value: medium, label: Medium }
-      - { value: high, label: High }
-```
-
-```yaml
 # Text field
 - component: field
   name: companyName
@@ -462,6 +447,23 @@ Polymorphic form field — renders different input types based on `type` prop.
     items:
       - { label: "Active", value: "active" }
       - { label: "Inactive", value: "inactive" }
+
+# Toggle field
+- component: field
+  name: priority
+  props:
+    type: toggle
+    label: { en-US: "Priority" }
+    allowMultiple: false
+    enforceValue: true
+    defaultValue: normal
+    options:
+      size: small
+      color: primary
+      orientation: horizontal
+    items:
+      - { label: "Normal", value: normal }
+      - { label: "High", value: high }
 
 # Async select with search
 - component: field

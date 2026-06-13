@@ -114,6 +114,7 @@ Contact CSV/import handling protects division scoping:
 | `Store` | 13 | |
 | `ContactUser` | 14 | User associated with contact |
 | `USPPI` | 15 | US Principal Party in Interest |
+| `Port` | 16 | Port contact/location reference |
 
 ## ContactAddress Sub-Entity
 
@@ -128,6 +129,7 @@ Contact CSV/import handling protects division scoping:
 | `stateCode` | `string?` | FK to State |
 | `postalCode` | `string?` | |
 | `isInactive` | `bool?` | |
+| `name` | `string?` | Optional label for the address/location (max 200 chars) |
 | `latitude` | `double?` | From Location.Y (GraphQL resolved) |
 | `longitude` | `double?` | From Location.X (GraphQL resolved) |
 | `customValues` | `Dictionary` | Own customValues (separate from Contact) |
@@ -137,6 +139,8 @@ Contact CSV/import handling protects division scoping:
 GraphQL resolver: `formattedAddress(outputFormat, addressFormat, lang, multiline)` — formatted string.
 
 **ContactAddress import notes:** `ContactAddress/Import@1` can update by `ContactAddressId` first, then falls back to business-key matching. Export grids should include `contactAddressId`/entity keys when data is intended for re-import. Import aliases `City` to `cityName`, resolves `StateName` to `stateCode`, and accepts `Longitude`/`Latitude` for `location`.
+
+Module default-data imports support `entity: "contact"` with `keys` for natural-key matching and `overwrite` for update-vs-skip behavior. Use `ContactType: Port` for port/location contacts when appropriate.
 
 ## Other Related Enums
 

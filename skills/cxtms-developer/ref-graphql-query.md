@@ -195,6 +195,23 @@ Commodities expose `getContact(idPropertyName: String!)` to resolve a contact ID
 }
 ```
 
+## Order Custom-Value Resolvers
+
+Orders expose `getContactAddress(idPropertyName: String!)` to resolve a contact-address id stored in `customValues` into a `contactAddress` object. The lookup is organization-scoped and returns null/empty when the custom-value key is missing.
+
+```graphql
+orders(organizationId: 1, take: 1) {
+  items {
+    orderId
+    getContactAddress(idPropertyName: "pickupContactAddressId") {
+      contactAddressId
+      name
+      addressLine
+      cityName
+    }
+  }
+}
+```
 
 ## Pagination
 

@@ -149,8 +149,29 @@ Imports order data from an external feed. Supports create and upsert (match-by-f
 | `Contact/Update` | Update contact |
 | `Contact/Delete` | Delete contact |
 
-
 **Contact import behavior:** backend contact imports validate `DivisionId` against the target organization. Invalid division IDs are ignored; new contacts default to the importing user's division when no valid division is provided. Nested `division.divisionName` can be supplied and is resolved to an organization division before import.
+
+## OrganizationConfig
+
+| Task | Description |
+|------|-------------|
+| `OrganizationConfig/Update@1` | Update an existing organization configuration record with dynamic values |
+
+```yaml
+- task: "OrganizationConfig/Update@1"
+  name: UpdateOrgConfig
+  inputs:
+    organizationId: "{{ int inputs.organizationId }}"
+    organizationConfigId: "{{ int vars.config.organizationConfigId }}"
+    organizationConfig:
+      values:
+        enabled: true
+  outputs:
+    - name: result
+      mapping: "result?"
+```
+
+**Inputs:** `organizationId` (int, required), `organizationConfigId` (int, required), `organizationConfig` (object, required dynamic values). Returns an empty object on success. Query by config name first if you do not already have the ID.
 
 ## Contact Address
 

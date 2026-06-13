@@ -220,7 +220,7 @@
         },
         "includeEntityKeysInExport": {
           "type": "boolean",
-          "description": "Include the grid entityKeys/primary keys in exports for this view. Defaults to the grid option, then true."
+          "description": "Include the grid entityKeys/primary keys in exports for this view so re-import can match rows by ID. Defaults to the grid option, then true."
         }
       },
       "required": ["name"]

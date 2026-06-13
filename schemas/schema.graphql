@@ -5700,6 +5700,7 @@ type contactAddress {
     translit: Boolean = false
   ): String @cost(weight: "10")
   contactAddressId: Int!
+  name: String
   isInactive: Boolean
   addressLine: String!
   addressLine2: String
@@ -6158,6 +6159,7 @@ type noteThread {
 type order {
   getContact(idPropertyName: String!): contact @cost(weight: "10")
   getTerminal(idPropertyName: String!): terminal @cost(weight: "10")
+  getContactAddress(idPropertyName: String!): contactAddress @cost(weight: "10")
   getPort(idPropertyName: String!): port @cost(weight: "10")
   getCustomCode(idPropertyName: String!): customCode @cost(weight: "10")
   getVessel(idPropertyName: String!): vessel @cost(weight: "10")
@@ -11963,6 +11965,7 @@ enum ContactType {
   Store
   ContactUser
   USPPI
+  Port
 }
 
 enum CustomCodeTypes {

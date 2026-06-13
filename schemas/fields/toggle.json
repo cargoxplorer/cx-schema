@@ -1,10 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Toggle Button Field Type",
-  "description": "Segmented toggle button group field for single-select or multi-select choices",
+  "title": "Toggle Field Type",
+  "description": "Schema for toggle button group field type",
   "type": "object",
   "properties": {
-    "type": { "type": "string", "const": "toggle" },
+    "type": {
+      "type": "string",
+      "const": "toggle"
+    },
     "label": {
       "oneOf": [
         { "type": "string" },
@@ -12,56 +15,77 @@
       ],
       "description": "Field label"
     },
-    "items": {
-      "type": "array",
-      "description": "Toggle options",
-      "items": {
-        "type": "object",
-        "properties": {
-          "value": { "oneOf": [{ "type": "string" }, { "type": "number" }] },
-          "label": { "type": "string" },
-          "icon": { "type": "string", "description": "Optional icon name" },
-          "disabled": { "type": "boolean", "description": "Disable this option" }
-        },
-        "required": ["value", "label"],
-        "additionalProperties": false
-      },
-      "minItems": 1
+    "required": {
+      "type": "boolean",
+      "description": "Whether field is required"
+    },
+    "disabled": {
+      "oneOf": [{ "type": "boolean" }, { "type": "string" }],
+      "description": "Whether field is disabled"
+    },
+    "allowMultiple": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable multi-select mode. When true the value is an array."
     },
     "exclusive": {
       "type": "boolean",
-      "description": "Single-select mode when true; multi-select array values when false",
-      "default": true
-    },
-    "size": {
-      "type": "string",
-      "enum": ["small", "medium", "large"],
-      "default": "medium"
-    },
-    "color": {
-      "type": "string",
-      "enum": ["standard", "primary", "secondary", "error", "info", "success", "warning"],
-      "default": "primary"
-    },
-    "orientation": {
-      "type": "string",
-      "enum": ["horizontal", "vertical"],
-      "default": "horizontal"
+      "description": "Legacy single-select flag. Prefer allowMultiple; allowMultiple takes precedence."
     },
     "enforceValue": {
       "type": "boolean",
-      "description": "In exclusive mode, prevent deselecting the selected value",
-      "default": false
+      "default": false,
+      "description": "In single-select mode, prevent deselecting the current value."
     },
     "defaultValue": {
-      "oneOf": [{ "type": "string" }, { "type": "number" }],
-      "description": "Initial selected value"
+      "oneOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }],
+      "description": "Initial selected value."
     },
-    "required": { "type": "boolean" },
-    "disabled": { "type": "boolean" },
-    "onChange": { "$ref": "../schemas.json#/definitions/actionsList" },
-    "onBlur": { "$ref": "../schemas.json#/definitions/actionsList" },
-    "onFocus": { "$ref": "../schemas.json#/definitions/actionsList" }
+    "items": {
+      "type": "array",
+      "description": "Toggle button options",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "oneOf": [
+              { "type": "string" },
+              { "$ref": "../schemas.json#/definitions/localized" }
+            ]
+          },
+          "value": {
+            "oneOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }]
+          },
+          "icon": { "type": "string" },
+          "disabled": { "type": "boolean" }
+        },
+        "required": ["label", "value"],
+        "additionalProperties": true
+      }
+    },
+    "options": {
+      "type": "object",
+      "description": "Props passed to the underlying MUI ToggleButtonGroup",
+      "properties": {
+        "size": { "type": "string", "enum": ["small", "medium", "large"] },
+        "color": { "type": "string", "enum": ["standard", "primary", "secondary", "error", "info", "success", "warning"] },
+        "orientation": { "type": "string", "enum": ["horizontal", "vertical"] }
+      },
+      "additionalProperties": true
+    },
+    "onChange": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field value changes"
+    },
+    "onBlur": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field loses focus"
+    },
+    "onFocus": {
+      "$ref": "../schemas.json#/definitions/actionsList",
+      "description": "Actions to execute when field gains focus"
+    }
   },
-  "required": ["type", "items"]
+  "required": ["type", "items"],
+  "additionalProperties": true
 }

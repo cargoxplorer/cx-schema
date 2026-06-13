@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Organization Config Tasks",
+  "description": "Organization configuration workflow operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "OrganizationConfig/Update@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "expression"
+        ]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "OrganizationConfig update inputs",
+      "properties": {
+        "organizationId": {
+          "oneOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Organization ID"
+        },
+        "organizationConfigId": {
+          "oneOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "OrganizationConfig ID to update"
+        },
+        "organizationConfig": {
+          "type": "object",
+          "description": "Dynamic OrganizationConfig values to update",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "organizationId",
+        "organizationConfigId",
+        "organizationConfig"
+      ],
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "mapping"
+        ]
+      }
+    }
+  },
+  "required": [
+    "task"
+  ],
+  "additionalProperties": true
+}

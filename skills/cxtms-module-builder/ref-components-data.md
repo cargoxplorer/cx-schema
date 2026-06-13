@@ -7,6 +7,28 @@
 - Datasource component
 - Script component
 
+## dataGrid export identity keys
+
+DataGrid table views support `includeEntityKeysInExport` on each view. It defaults to `true` and forces entity key/primary key fields into exports so rows can be matched by ID on re-import. Set it to `false` only when exports must omit internal IDs.
+
+```yaml
+component: dataGrid
+name: contactsGrid
+props:
+  options:
+    query: contacts
+    rootEntityName: Contact
+    entityKeys: [contactId]
+  views:
+    - name: allContacts
+      includeEntityKeysInExport: true
+      columns:
+        - name: name
+        - name: emailAddress
+```
+
+---
+
 ## collection
 
 Iterates over data items and renders children as templates. Supports drag-and-drop reordering.
