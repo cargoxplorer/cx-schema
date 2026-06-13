@@ -6156,6 +6156,7 @@ type noteThread {
 
 type order {
   getContact(idPropertyName: String!): contact @cost(weight: "10")
+  getTerminal(idPropertyName: String!): terminal @cost(weight: "10")
   getPort(idPropertyName: String!): port @cost(weight: "10")
   getCustomCode(idPropertyName: String!): customCode @cost(weight: "10")
   getVessel(idPropertyName: String!): vessel @cost(weight: "10")

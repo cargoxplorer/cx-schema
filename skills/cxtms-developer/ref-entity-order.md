@@ -98,6 +98,7 @@ These are virtual fields that filter `orderEntities` by type:
 | `commoditySummary` | `CommoditySummary` | `.totalWeight`, `.totalPieces`, `.totalQuantity`, `.totalVolume` |
 | `accountingSummary` | `AccountingSummary` | |
 | `getContact(idPropertyName)` | `Contact` | Resolve contact from `customValues[idPropertyName]` |
+| `getTerminal(idPropertyName)` | `Terminal` | Resolve terminal from int `customValues[idPropertyName]` |
 | `getPort(idPropertyName)` | `Port` | Resolve port from `customValues[idPropertyName]` |
 | `getTerminal(idPropertyName)` | `Terminal` | Resolve terminal from `customValues[idPropertyName]` |
 | `getVessel(idPropertyName)` | `Vessel` | Resolve vessel from `customValues[idPropertyName]` |
@@ -194,4 +195,4 @@ orders(
 ```
 
 **Resolver pattern** — Many GraphQL fields resolve entities from customValues IDs:
-`getContact(idPropertyName)` reads `customValues[idPropertyName]` as a contact ID and returns the full Contact object. Same pattern for ports, vessels, countries, routes, etc.
+`getContact(idPropertyName)` reads `customValues[idPropertyName]` as a contact ID and returns the full Contact object. `getTerminal(idPropertyName)` uses the same pattern for terminal IDs. Same pattern for ports, vessels, countries, routes, etc.

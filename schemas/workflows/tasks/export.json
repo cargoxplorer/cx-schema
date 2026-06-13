@@ -48,6 +48,27 @@
           "type": "string",
           "description": "Output file name"
         },
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional ordered list of flattened field/header paths to include"
+        },
+        "columnMappings": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Optional map of field/header path to output display label"
+        },
+        "exportTemplates": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Optional map of output header name to NCalc expression evaluated against each original row"
+        },
         "columns": {
           "type": "array",
           "items": {
