@@ -82,6 +82,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `editor` | `{component, props}` | Editor component (required with `enableEdit`) |
 | `onEdit` | `action[]` | Action on edit commit. Variables: `changedValues`, `value`, `index`, + row data |
 | `exportPath` | `string` | CSV export key. Fallback: `exportPath ?? path ?? name` |
+| `exportTemplate` | `string` | Template expression for export-only formatted value; exposed at `store.<gridName>.exportTemplates` |
 | `path` | `string` | Data path for column value. Fallback for `exportPath` |
 | `excludeFromQuery` | `boolean` | Exclude from GraphQL query and CSV export |
 

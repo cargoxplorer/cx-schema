@@ -113,17 +113,19 @@ String-based PK (e.g., UN/LOCODE).
 
 ## Terminal
 
-Organization-scoped terminal / operating location. Optional Port linkage. Soft deleted.
+Organization-scoped terminal / operating location (facility record). Optional Port linkage. Soft deleted; codes are unique only among active terminals in the same organization.
 
 | Field | Type | Notes |
 |-------|------|-------|
 | `terminalId` | `int` | PK |
-| `organizationId` | `int` | Required scope |
-| `name` | `string` | Required |
-| `code` | `string?` | Optional; unique within organization when present |
+| `organizationId` | `int` | Required; tenant scope |
+| `name` | `string` | Required display name |
+| `code` | `string?` | Optional; unique per organization when not null and `isDeleted=false` |
 | `portId` | `string?` | Optional FK to Port (`organizationId` + `portId`) |
-| `customValues` | `Dictionary` | jsonb, searchable |
-| `isDeleted` | `bool` | Soft delete flag; default queries filter deleted rows |
+| `customValues` | `Dictionary` | jsonb; searchable |
+| `isDeleted` | `bool` | Soft delete flag; default false; default queries filter deleted rows |
+| `created` / `createdBy` | `DateTime` / `string` | Audit fields |
+| `lastModified` / `lastModifiedBy` | `DateTime` / `string` | Audit fields |
 
 **Navigation:** `organization`, `port`, `createdUser`, `updatedUser`
 

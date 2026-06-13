@@ -133,6 +133,25 @@ orderBy: "-lastTrackingEvent[eventDefinition.eventName:Departed].eventDate"
 - Only `.eventDate` is supported as the sub-path. The expression resolves to `COALESCE(winner.EventDate, winner.Created)`, so null `EventDate` values fall back to `Created`.
 - Works on both `orders` and `commodities` top-level queries.
 
+### Commodity `getContact` resolver
+
+Commodities expose `getContact(idPropertyName: String!)` to resolve a contact ID stored in `customValues`. The lookup is scoped to the commodity organization and returns `null` when the custom value is missing or not a valid integer contact ID.
+
+```graphql
+{
+  commodities(organizationId: 1, take: 1) {
+    items {
+      commodityId
+      getContact(idPropertyName: "shipperContactId") {
+        contactId
+        name
+      }
+    }
+  }
+}
+```
+
+
 ## Pagination
 
 ```graphql
@@ -213,6 +232,21 @@ Query audit changes directly without fetching the entity first:
 Arguments: `organizationId: Int!`, `filter: String`, `search: String`, `take: Int`, `skip: Int`, `orderBy: String`
 
 Filter fields: `entityName`, `primaryKey`, `userId`, `state`
+
+### Root-level: `auditEntityHistory` grid query filters
+
+The paged audit-history query accepts DataGrid/Lucene filter strings:
+
+- `entityName:"Order*"` — normalized to the entity path segment; quotes, trailing `*`, and trailing `~` are stripped.
+- `primaryKey:"123"` — narrows the S3 path to one entity key.
+- `timestamp:["2026-05-01T00:00:00Z" TO "NOW"]` — filters parsed audit file timestamps. ISO timestamps and date-math bounds (`NOW-7DAYS`, `NOW/DAY+1DAY`) are supported.
+- `user.fullName:"Jane*"` — resolves users by full name, first/last name, username, or email and filters by persisted `userId`.
+
+Sorting supports `timestamp` and `-timestamp`; descending timestamp is the default.
+
+### Entity fields lookup
+
+`entityFields(organizationId, entityName, filter, search, orderBy)` matches `entityName` with case-insensitive SQL `ILIKE`, so exact names and `ILIKE` patterns are both accepted. `search` matches field names by substring.
 
 ### Root-level: `auditChangeSummaries` query
 

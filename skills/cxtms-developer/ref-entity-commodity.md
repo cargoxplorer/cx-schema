@@ -122,6 +122,7 @@ Field names as used in workflow expressions: `{{ entity.description }}`, `{{ ent
 | `getWeightTotal(weightUnit)` | `decimal?` | Total weight converted to requested unit; defaults to commodity `weightUnit` when omitted |
 | `lastTrackingEvent(eventDefinitionName, orderBy?)` | `TrackingEvent` | Most recent (or earliest) tracking event, resolved via batched DataLoader. `orderBy` is **honoured**: omit or prefix with `-` for DESC (latest event: `COALESCE(EventDate, Created) DESC, TrackingEventId DESC`); no prefix for ASC (earliest event: same columns ASC). Default is DESC. |
 | `changeHistory(startDate, endDate, maxResults)` | `[ChangeHistory]` | Audit trail |
+| `getContact(idPropertyName)` | `Contact` | Resolves a contact ID stored in `customValues[idPropertyName]` within the same organization; returns null when no valid ID exists |
 
 ## Container/Child Pattern (Self-Referencing)
 
@@ -210,6 +211,17 @@ inputs:
   commodity:
     CustomValues.lotNumber: "LOT-001"
     CustomValues.hazmat: true
+```
+
+Resolve custom-value contact references:
+
+```graphql
+getCommodities(organizationId: 1, take: 1) {
+  items {
+    commodityId
+    getContact(idPropertyName: "shipperContactId") { contactId name }
+  }
+}
 ```
 
 **Entities with own customValues:**
