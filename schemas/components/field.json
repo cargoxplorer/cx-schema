@@ -173,7 +173,10 @@
             }
           }
         },
-        "onEditClick": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onEditClick": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute when the edit icon is clicked. Rendered for text, select-async, and autocomplete-async fields when a single value is set."
+        },
         "onOptionTagClick": {
           "$ref": "../schemas.json#/definitions/actionsList",
           "description": "Actions to execute when clicking on an option tag/chip in the dropdown"
