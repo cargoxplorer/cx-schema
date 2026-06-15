@@ -401,7 +401,7 @@ Reusable select components (e.g., `Countries/Select`, `Ports/Select`) follow thi
                 entity(...) { entityId name }
               }
             variables: { entityId: "{{number entityId}}" }
-      onEditClick:                           # Edit action on selected item
+      onEditClick:                           # Edit action on selected item (also supported on text fields)
         - dialog:
             component: { layout: { component: layout, children: [{ component: Entity/UpdateEntity }] } }
 ```
