@@ -14,6 +14,7 @@
 - Order sub-entity tasks (OrderCommodity, OrderCharge, OrderDocument, OrderTrackingEvent, OrderEntity)
 - Inventory tasks (InventoryItem Create, Update, Delete)
 - Other entity tasks (Movement, Country, Cities, Rate, TrackingEvent/Import)
+- Dispatch route generation tasks
 - Notification tasks (Create)
 - Note tasks (Create, Update, Delete, Import, Export, RenameThread)
 - AccountingTransaction/ApplyCredit task
@@ -45,6 +46,36 @@ Imports postal codes (CSV, JSON, Excel). Supports upsert via `matchByFields`.
 **Inputs:** `organizationId` (int, required), `fileUrl` (string?), `fileType` (FileType?), `stream` (Stream?), `postalCodes` (List?), `matchByFields` (string[]?)
 **Outputs:** `result.success`, `result.added`, `result.updated`, `result.errors`, `result.totalProcessed`, `result.hasErrors`
 Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions and returns them in `result.errors`.
+
+## Dispatch Routes
+
+| Task | Description |
+|------|-------------|
+| `DispatchRoutes/Generate@1` | Generate daily draft dispatch routes from enabled templates |
+
+### DispatchRoutes/Generate@1
+
+Creates draft dispatch routes for enabled templates whose `daysOfWeek` contains the requested route date. Idempotent per template/date: existing generated routes are skipped.
+
+```yaml
+- task: "DispatchRoutes/Generate@1"
+  name: GenerateDispatchRoutes
+  inputs:
+    organizationId: "{{ inputs.organizationId }}"
+    dispatchRouteStatusId: "{{ inputs.dispatchRouteStatusId }}"
+    routeDate: "{{ inputs.routeDate }}"
+  outputs:
+    - name: createdCount
+      mapping: "createdCount"
+    - name: skippedCount
+      mapping: "skippedCount"
+    - name: createdRouteIds
+      mapping: "createdRouteIds"
+```
+
+**Inputs:** `organizationId` (string, required), `dispatchRouteStatusId` (string, required), `routeDate` (string?, `yyyy-MM-dd`, defaults to today UTC), `dispatchRouteTemplateId` (string?, generate one template only).
+
+**Outputs:** `createdCount`, `skippedCount`, `createdRouteIds`. Generated routes copy template name, route type, division, and stops; driver/equipment assignment happens after generation.
 
 ## Generic Entity Change
 

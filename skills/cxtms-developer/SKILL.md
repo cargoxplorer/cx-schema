@@ -39,6 +39,7 @@ Use `--feature <feature_name>` with `cx-cli create` to automatically place files
 
 !cat skills/cxtms-developer/ref-entity-order-sub.md
 !cat skills/cxtms-developer/ref-entity-job.md
+!cat skills/cxtms-developer/ref-entity-dispatch-routing.md
 
 ### Pricing & Accounting Lookups
 
@@ -66,6 +67,7 @@ Use `--feature <feature_name>` with `cx-cli create` to automatically place files
 | **Primary** | Order, Contact, Commodity, AccountingTransaction | ref-entity-order/contact/commodity/accounting.md |
 | **Order sub** | OrderEntity, TrackingEvent, EventDefinition, LinkedOrder, OrderDocument | ref-entity-order-sub.md |
 | **Job** | Job, JobOrder, JobStatus | ref-entity-job.md |
+| **Dispatch routing** | DispatchRouteStatus, DispatchRouteTemplate, DispatchRoute, stops | ref-entity-dispatch-routing.md |
 | **Pricing** | Rate, Lane, Discount, AccountingItem, AccountingAccount, PaymentTerm | ref-entity-rate.md |
 | **Shared** | Tag, Attachment, Division, EquipmentType, Equipment, EquipmentStatus, PackageType, Note/NoteThread | ref-entity-shared.md |
 | **Geography** | Country, State, City, Port, Vessel, CustomCode, ModeOfTransportation | ref-entity-geography.md |
@@ -90,7 +92,7 @@ Most entities have `customValues` — a `Dictionary<string, object?>` stored as 
 
 **Sub-entities**: OrderEntity, OrderCommodity, ContactAddress, ContactPaymentMethod, CommodityType, CommodityTag, OrderTag, LinkedOrder, InventoryItemTag
 
-**Lookup entities**: Job, JobStatus, Tag, Attachment, EventDefinition, Rate, Lane, Discount, AccountingItem, Port, Country, State, City, ModeOfTransportation
+**Lookup entities**: Job, JobStatus, DispatchRouteStatus, DispatchRouteTemplate, DispatchRoute, DispatchRouteStop, DispatchRouteTemplateStop, Tag, Attachment, EventDefinition, Rate, Lane, Discount, AccountingItem, Port, Country, State, City, ModeOfTransportation
 
 **Fleet**: Equipment (replace semantics — null clears, non-null full-replaces)
 

@@ -41,6 +41,9 @@
       "$ref": "csv.json"
     },
     {
+      "$ref": "dispatch-routes.json"
+    },
+    {
       "$ref": "document-render.json"
     },
     {
