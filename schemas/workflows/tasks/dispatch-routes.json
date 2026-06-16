@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dispatch Route Tasks",
+  "description": "Dispatch route workflow operations",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": ["DispatchRoutes/Generate@1"],
+      "description": "Task type identifier"
+    },
+    "name": { "type": "string", "description": "Step name identifier" },
+    "description": { "type": "string", "description": "Step description" },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": { "expression": { "type": "string" } },
+        "required": ["expression"]
+      }
+    },
+    "continueOnError": { "type": "boolean" },
+    "inputs": {
+      "type": "object",
+      "description": "Dispatch route generation inputs",
+      "properties": {
+        "organizationId": { "type": "string", "description": "Organization ID" },
+        "dispatchRouteStatusId": { "type": "string", "description": "Status assigned to generated routes" },
+        "routeDate": { "type": "string", "description": "Route date in yyyy-MM-dd format; defaults to today UTC when omitted" },
+        "dispatchRouteTemplateId": { "type": "string", "description": "Optional template ID; omit to generate all matching templates" }
+      },
+      "required": ["organizationId", "dispatchRouteStatusId"],
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "description": "Task outputs",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task", "name", "inputs"],
+  "additionalProperties": true,
+  "x-example": {
+    "task": "DispatchRoutes/Generate@1",
+    "name": "GenerateDispatchRoutes",
+    "inputs": {
+      "organizationId": "{{ inputs.organizationId }}",
+      "dispatchRouteStatusId": "{{ inputs.dispatchRouteStatusId }}",
+      "routeDate": "{{ inputs.routeDate }}"
+    },
+    "outputs": [
+      { "name": "createdCount", "mapping": "createdCount" },
+      { "name": "skippedCount", "mapping": "skippedCount" },
+      { "name": "createdRouteIds", "mapping": "createdRouteIds" }
+    ]
+  }
+}

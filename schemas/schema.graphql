@@ -1789,7 +1789,201 @@ type ModeOfTransportationsCollectionSegment {
   totalCount: Int! @cost(weight: "10")
 }
 
+
+"A segment of dispatch route statuses."
+type DispatchRouteStatusesCollectionSegment {
+  pageInfo: CollectionSegmentInfo!
+  items: [dispatchRouteStatus!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+"A segment of dispatch route templates."
+type DispatchRouteTemplatesCollectionSegment {
+  pageInfo: CollectionSegmentInfo!
+  items: [dispatchRouteTemplate!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+"A segment of dispatch routes."
+type DispatchRoutesCollectionSegment {
+  pageInfo: CollectionSegmentInfo!
+  items: [dispatchRoute!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+type dispatchRouteStatus {
+  dispatchRouteStatusId: Int!
+  organizationId: Int!
+  statusName: String!
+  statusDescription: String
+  statusStage: StatusStage!
+  routeType: DispatchRouteType
+  priority: Int!
+  color: String
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+}
+
+type dispatchRouteTemplate {
+  dispatchRouteTemplateId: Int!
+  organizationId: Int!
+  name: String!
+  routeType: DispatchRouteType!
+  daysOfWeek: [DayOfWeek!]!
+  divisionId: Int
+  division: division
+  equipmentTypeId: Int
+  equipmentType: equipmentType
+  enabled: Boolean!
+  stops: [dispatchRouteTemplateStop!]
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+}
+
+type dispatchRouteTemplateStop {
+  dispatchRouteTemplateStopId: Int!
+  dispatchRouteTemplateId: Int!
+  stopContactId: Int!
+  stopContact: contact
+  contactAddressId: Int
+  contactAddress: contactAddress
+  stopType: DispatchRouteType!
+  sequence: Int!
+  estimatedServiceMinutes: Int
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+}
+
+type dispatchRoute {
+  dispatchRouteId: Int!
+  organizationId: Int!
+  name: String!
+  routeType: DispatchRouteType!
+  routeDate: Date!
+  dispatchRouteTemplateId: Int
+  divisionId: Int
+  division: division
+  driverContactId: Int
+  driverContact: contact
+  equipmentId: Int
+  equipment: equipment
+  dispatchRouteStatusId: Int!
+  dispatchRouteStatus: dispatchRouteStatus
+  isDraft: Boolean!
+  isInactive: Boolean!
+  collapsedIntoDispatchRouteId: Int
+  stops: [dispatchRouteStop!]
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+}
+
+type dispatchRouteStop {
+  dispatchRouteStopId: Int!
+  dispatchRouteId: Int!
+  stopContactId: Int!
+  stopContact: contact
+  contactAddressId: Int
+  contactAddress: contactAddress
+  stopType: DispatchRouteType!
+  plannedSequence: Int!
+  actualSequence: Int
+  estimatedServiceMinutes: Int
+  actualArrivalTime: DateTime
+  actualCompletionTime: DateTime
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+}
+
+type GenerateDispatchRoutesResultGqlDto {
+  createdCount: Int!
+  skippedCount: Int!
+  createdRouteIds: [Int!]!
+}
+
+type GenerateDispatchRoutesPayload {
+  generateDispatchRoutesResult: GenerateDispatchRoutesResultGqlDto
+  query: Query!
+}
+
+type CreateDispatchRouteStatusPayload { dispatchRouteStatus: dispatchRouteStatus query: Query! }
+type UpdateDispatchRouteStatusPayload { dispatchRouteStatus: dispatchRouteStatus query: Query! }
+type DeleteDispatchRouteStatusPayload { deleteResult: DeleteResult query: Query! }
+type CreateDispatchRouteTemplatePayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
+type UpdateDispatchRouteTemplatePayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
+type DeleteDispatchRouteTemplatePayload { deleteResult: DeleteResult query: Query! }
+type AddDispatchRouteTemplateStopPayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
+type UpdateDispatchRouteTemplateStopPayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
+type RemoveDispatchRouteTemplateStopPayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
+type ReorderDispatchRouteTemplateStopPayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
+type CreateDispatchRoutePayload { dispatchRoute: dispatchRoute query: Query! }
+type UpdateDispatchRoutePayload { dispatchRoute: dispatchRoute query: Query! }
+type ActivateDispatchRoutePayload { dispatchRoute: dispatchRoute query: Query! }
+type DeleteDispatchRoutePayload { deleteResult: DeleteResult query: Query! }
+type AddDispatchRouteStopPayload { dispatchRoute: dispatchRoute query: Query! }
+type UpdateDispatchRouteStopPayload { dispatchRoute: dispatchRoute query: Query! }
+type RemoveDispatchRouteStopPayload { dispatchRoute: dispatchRoute query: Query! }
+type ReorderDispatchRouteStopPayload { dispatchRoute: dispatchRoute query: Query! }
+
+input CreateDispatchRouteStatusInput { organizationId: Int! values: MapOfObject! }
+input UpdateDispatchRouteStatusInput { organizationId: Int! dispatchRouteStatusId: Int! values: MapOfObject! }
+input DeleteDispatchRouteStatusInput { organizationId: Int! dispatchRouteStatusId: Int! }
+input CreateDispatchRouteTemplateInput { organizationId: Int! values: MapOfObject! }
+input UpdateDispatchRouteTemplateInput { organizationId: Int! dispatchRouteTemplateId: Int! values: MapOfObject! }
+input DeleteDispatchRouteTemplateInput { organizationId: Int! dispatchRouteTemplateId: Int! }
+input AddDispatchRouteTemplateStopInput { organizationId: Int! dispatchRouteTemplateId: Int! values: MapOfObject! }
+input UpdateDispatchRouteTemplateStopInput { organizationId: Int! dispatchRouteTemplateId: Int! dispatchRouteTemplateStopId: Int! values: MapOfObject! }
+input RemoveDispatchRouteTemplateStopInput { organizationId: Int! dispatchRouteTemplateId: Int! dispatchRouteTemplateStopId: Int! }
+input ReorderDispatchRouteTemplateStopInput { organizationId: Int! dispatchRouteTemplateId: Int! dispatchRouteTemplateStopId: Int! newSequence: Int! }
+input CreateDispatchRouteInput { organizationId: Int! values: MapOfObject! }
+input UpdateDispatchRouteInput { organizationId: Int! dispatchRouteId: Int! values: MapOfObject! }
+input ActivateDispatchRouteInput { organizationId: Int! dispatchRouteId: Int! }
+input DeleteDispatchRouteInput { organizationId: Int! dispatchRouteId: Int! }
+input AddDispatchRouteStopInput { organizationId: Int! dispatchRouteId: Int! values: MapOfObject! }
+input UpdateDispatchRouteStopInput { organizationId: Int! dispatchRouteId: Int! dispatchRouteStopId: Int! values: MapOfObject! }
+input RemoveDispatchRouteStopInput { organizationId: Int! dispatchRouteId: Int! dispatchRouteStopId: Int! }
+input ReorderDispatchRouteStopInput { organizationId: Int! dispatchRouteId: Int! dispatchRouteStopId: Int! newSequence: Int! }
+input GenerateDispatchRoutesInput { organizationId: Int! values: MapOfObject! }
+
 type Mutation {
+  createDispatchRouteStatus(input: CreateDispatchRouteStatusInput!): CreateDispatchRouteStatusPayload! @cost(weight: "10")
+  updateDispatchRouteStatus(input: UpdateDispatchRouteStatusInput!): UpdateDispatchRouteStatusPayload! @cost(weight: "10")
+  deleteDispatchRouteStatus(input: DeleteDispatchRouteStatusInput!): DeleteDispatchRouteStatusPayload! @cost(weight: "10")
+  createDispatchRouteTemplate(input: CreateDispatchRouteTemplateInput!): CreateDispatchRouteTemplatePayload! @cost(weight: "10")
+  updateDispatchRouteTemplate(input: UpdateDispatchRouteTemplateInput!): UpdateDispatchRouteTemplatePayload! @cost(weight: "10")
+  deleteDispatchRouteTemplate(input: DeleteDispatchRouteTemplateInput!): DeleteDispatchRouteTemplatePayload! @cost(weight: "10")
+  addDispatchRouteTemplateStop(input: AddDispatchRouteTemplateStopInput!): AddDispatchRouteTemplateStopPayload! @cost(weight: "10")
+  updateDispatchRouteTemplateStop(input: UpdateDispatchRouteTemplateStopInput!): UpdateDispatchRouteTemplateStopPayload! @cost(weight: "10")
+  removeDispatchRouteTemplateStop(input: RemoveDispatchRouteTemplateStopInput!): RemoveDispatchRouteTemplateStopPayload! @cost(weight: "10")
+  reorderDispatchRouteTemplateStop(input: ReorderDispatchRouteTemplateStopInput!): ReorderDispatchRouteTemplateStopPayload! @cost(weight: "10")
+  createDispatchRoute(input: CreateDispatchRouteInput!): CreateDispatchRoutePayload! @cost(weight: "10")
+  updateDispatchRoute(input: UpdateDispatchRouteInput!): UpdateDispatchRoutePayload! @cost(weight: "10")
+  activateDispatchRoute(input: ActivateDispatchRouteInput!): ActivateDispatchRoutePayload! @cost(weight: "10")
+  deleteDispatchRoute(input: DeleteDispatchRouteInput!): DeleteDispatchRoutePayload! @cost(weight: "10")
+  addDispatchRouteStop(input: AddDispatchRouteStopInput!): AddDispatchRouteStopPayload! @cost(weight: "10")
+  updateDispatchRouteStop(input: UpdateDispatchRouteStopInput!): UpdateDispatchRouteStopPayload! @cost(weight: "10")
+  removeDispatchRouteStop(input: RemoveDispatchRouteStopInput!): RemoveDispatchRouteStopPayload! @cost(weight: "10")
+  reorderDispatchRouteStop(input: ReorderDispatchRouteStopInput!): ReorderDispatchRouteStopPayload! @cost(weight: "10")
+  generateDispatchRoutes(input: GenerateDispatchRoutesInput!): GenerateDispatchRoutesPayload! @cost(weight: "10")
   createWorkflow(input: CreateWorkflowInput!): CreateWorkflowPayload!
     @cost(weight: "10")
   updateWorkflow(input: UpdateWorkflowInput!): UpdateWorkflowPayload!
@@ -2593,6 +2787,12 @@ type PublishAppManifestPayload {
 }
 
 type Query {
+  dispatchRouteStatus(organizationId: Int!, dispatchRouteStatusId: Int!): dispatchRouteStatus @cost(weight: "10")
+  dispatchRouteStatuses(skip: Int, take: Int, organizationId: Int!, filter: String, search: String, orderBy: String): DispatchRouteStatusesCollectionSegment @cost(weight: "10")
+  dispatchRouteTemplate(organizationId: Int!, dispatchRouteTemplateId: Int!): dispatchRouteTemplate @cost(weight: "10")
+  dispatchRouteTemplates(skip: Int, take: Int, organizationId: Int!, filter: String, search: String, orderBy: String): DispatchRouteTemplatesCollectionSegment @cost(weight: "10")
+  dispatchRoute(organizationId: Int!, dispatchRouteId: Int!): dispatchRoute @cost(weight: "10")
+  dispatchRoutes(skip: Int, take: Int, organizationId: Int!, filter: String, search: String, orderBy: String): DispatchRoutesCollectionSegment @cost(weight: "10")
   workflow(organizationId: Int!, workflowId: UUID!): workflow
     @cost(weight: "10")
   workflows(
@@ -12222,6 +12422,23 @@ enum ServiceType {
   DoorToPort
   PortToPort
 }
+
+enum DispatchRouteType {
+  Delivery
+  Pickup
+}
+
+enum DayOfWeek {
+  Sunday
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+}
+
+scalar Date
 
 enum StatusStage {
   Pending
