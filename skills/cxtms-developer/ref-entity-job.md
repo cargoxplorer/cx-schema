@@ -36,9 +36,13 @@ Job groups related orders and accounting transactions.
 | `accountingTransactions` | `[AccountingTransaction]` | Via JobAccountingTransaction join |
 | `commodities` | `[Commodity]` | Direct FK |
 
-### GraphQL Computed
+### GraphQL Child Resolvers
 
-- `getJobOrders(filter)` — orders via JobOrder join
+| Field | Type | Notes |
+|-------|------|-------|
+| `getJobOrders(filter)` | `[Order]` | Orders via JobOrder join |
+| `getJobOrder(filter)` | `Order?` | Single order via JobOrder join (UseFirstOrDefault + projection) |
+| `getJobCommodity(filter)` | `Commodity?` | Single commodity linked to job (by JobId) |
 
 ---
 

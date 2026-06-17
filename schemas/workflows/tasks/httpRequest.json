@@ -40,6 +40,10 @@
           "type": "string",
           "description": "Request URL"
         },
+        "params": {
+          "type": "object",
+          "description": "URL query parameters. Keys and values are automatically URL-encoded and appended to the URL. Use when query string parameters come from workflow variables."
+        },
         "method": {
           "type": "string",
           "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],

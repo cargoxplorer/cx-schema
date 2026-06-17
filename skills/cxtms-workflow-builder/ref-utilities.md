@@ -155,6 +155,9 @@ Performs HTTP requests to external APIs.
   inputs:
     url: "{{ apiBaseUrl }}/api/v1/orders"
     method: POST
+    params:
+      status: "active"
+      limit: 10
     contentType: "application/json"
     headers:
       - name: "Authorization"
@@ -165,6 +168,8 @@ Performs HTTP requests to external APIs.
     - name: result
       mapping: "response?.body?"
 ```
+
+**`params`** (optional): Dictionary of URL query parameters. Keys and values are automatically URL-encoded and appended to the URL. Use when the query string comes from workflow variables rather than being hardcoded in the URL.
 
 **Response structure**: The task returns a `Dictionary<string, object>` (case-insensitive) with key `response`. The response contains `StatusCode`, `Headers`, and `Body` (PascalCase in C#, but access is case-insensitive). Use `response?.body?` to get the parsed body. You can drill deeper: `response?.body?.output?`, `response?.body?.items?[0]?`.
 
