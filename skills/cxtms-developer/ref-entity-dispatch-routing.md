@@ -44,12 +44,12 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 |-------|------|-------|
 | `dispatchRouteTemplateStopId` | `int` | PK |
 | `dispatchRouteTemplateId` | `int` | Parent template |
-| `stopContactId` | `int` | Store/location contact |
+| `stopContactId` | `int?` | Store/location contact (nullable; use with or without `contactAddressId`) |
 | `contactAddressId` | `int?` | Optional stop address |
 | `stopType` | `DispatchRouteType` | Defaults to template route type when omitted |
 | `sequence` | `int` | 1-based order |
 | `estimatedServiceMinutes` | `int?` | Planned service time |
-| `customValues` | `Dictionary` | jsonb |
+| `customValues` | `Dictionary` | jsonb (use for ad-hoc address when not using a contact) |
 
 ## DispatchRoute
 
@@ -77,7 +77,7 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 |-------|------|-------|
 | `dispatchRouteStopId` | `int` | PK |
 | `dispatchRouteId` | `int` | Parent route |
-| `stopContactId` | `int` | Store/location contact |
+| `stopContactId` | `int?` | Store/location contact (nullable; use with or without `contactAddressId`) |
 | `contactAddressId` | `int?` | Optional stop address |
 | `stopType` | `DispatchRouteType` | Defaults to route route type when omitted |
 | `plannedSequence` | `int` | Planned 1-based order |
@@ -85,7 +85,7 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 | `estimatedServiceMinutes` | `int?` | Planned service time |
 | `actualArrivalTime` | `DateTime?` | Actual arrival timestamp |
 | `actualCompletionTime` | `DateTime?` | Actual completion timestamp |
-| `customValues` | `Dictionary` | jsonb |
+| `customValues` | `Dictionary` | jsonb (use for ad-hoc address when not using a contact) |
 
 ## GraphQL Notes
 
