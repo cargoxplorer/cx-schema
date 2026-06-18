@@ -91,5 +91,5 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 
 - Queries: `dispatchRouteStatus`, `dispatchRouteStatuses`, `dispatchRouteTemplate`, `dispatchRouteTemplates`, `dispatchRoute`, `dispatchRoutes`.
 - Mutations use `input: { organizationId, values }` and return payload fields named `dispatchRouteStatus`, `dispatchRouteTemplate`, `dispatchRoute`, or `generateDispatchRoutesResult`.
-- Create accepts nested stops; update is scalar-only. Use dedicated stop add/update/remove/reorder mutations for stops.
+- Create accepts nested stops. Dynamic route/template updates can replace the full `stops` array: existing stops with IDs are sparse-updated, new stops are inserted, omitted existing stops are soft-deleted, and sequence/plannedSequence is reassigned from array order. Dedicated stop add/update/remove/reorder mutations remain available for targeted edits.
 - Route generation is idempotent per template/date and creates draft routes.

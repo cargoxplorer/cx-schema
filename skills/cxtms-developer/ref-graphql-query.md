@@ -99,11 +99,12 @@ filter: "customValues.fieldName:NULL"
 
 ### CustomValue join expressions
 
-When a custom value stores a foreign key to a supported entity, use `customValues.key->entity.property` to filter by a property on the joined row. Supported join aliases include `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, and `contactAddress`.
+When a custom value stores a foreign key to a supported entity, use `customValues.key->entity.property` to filter by a property on the joined row. Supported join aliases include `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, `contactAddress`, and `port`.
 
 ```
 filter: "customValues.carrierId->contact.name:Acme*"
 filter: "customValues.terminalId->terminal.name:Chicago*"
+filter: "customValues.portId->port.name:Los Angeles*"
 filter: "customValues.deliveryLocationId->contactAddress.name:Warehouse*"
 filter: "NOT customValues.returnLocationId->contactAddress.contactAddressId:NULL"
 ```
@@ -160,6 +161,8 @@ Join expressions are also valid in `orderBy`, including terminal and contact-add
 orderBy: "customValues.terminalId->terminal.name"
 orderBy: "-customValues.returnLocationId->terminal.name"
 orderBy: "customValues.deliveryLocationId->contactAddress.name"
+orderBy: "customValues.portId->port.name"
+orderBy: "orderSummary.totalPieces"
 ```
 
 ### `lastTrackingEvent` synthetic sort path (Order / Commodity)

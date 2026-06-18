@@ -40,6 +40,7 @@ Field names as used in workflow expressions: `{{ entity.orderId }}`, `{{ entity.
 | Field | Type | Notes |
 |-------|------|-------|
 | `orderStatus` | `OrderStatus` | `.statusName`, `.statusStage` |
+| `orderSummary` | `OrderSummaryView` | One-to-one summary view; supports nested sort paths like `orderSummary.totalPieces` |
 | `division` | `Division` | `.name` |
 | `equipmentType` | `EquipmentType` | |
 | `billToContact` | `Contact` | Full contact object |
@@ -189,13 +190,18 @@ inputs:
 - `deliveryLocationId` — contact-address reference; sortable/filterable with `customValues.deliveryLocationId->contactAddress.name`
 - `returnLocationId` — terminal or contact-address return-location reference; sortable/filterable with `customValues.returnLocationId->terminal.name` or `customValues.returnLocationId->contactAddress.name`
 
-**Join expression pattern** — Order queries can sort and filter by properties of entities referenced from `customValues` using `customValues.key->entity.property`. Supported aliases include `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, and `contactAddress`.
+**Join expression pattern** — Order queries can sort and filter by properties of entities referenced from `customValues` using `customValues.key->entity.property`. Supported aliases include `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, `contactAddress`, and `port`.
 
 ```graphql
 orders(
   organizationId: 1
   orderBy: "customValues.deliveryLocationId->contactAddress.name"
   filter: "customValues.returnLocationId->contactAddress.name:Chicago*"
+) { items { orderId orderNumber } }
+
+orders(
+  organizationId: 1
+  orderBy: "customValues.portId->port.name"
 ) { items { orderId orderNumber } }
 ```
 
