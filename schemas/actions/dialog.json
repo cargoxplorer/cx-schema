@@ -8,7 +8,7 @@
       "properties": {
         "name": { "type": "string", "description": "Dialog identifier" },
         "props": { "type": "object", "description": "Props to pass to dialog" },
-        "component": { "$ref": "../schemas.json#/definitions/component" },
+        "component": { "$ref": "../schemas.json#/definitions/componentDefinition" },
         "onClose": { "$ref": "../schemas.json#/definitions/actionsList" }
       },
       "x-examples": [

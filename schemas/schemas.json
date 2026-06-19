@@ -52,8 +52,8 @@
           "description": "Component type identifier"
         },
         "name": {
-          "type": "string",
-          "description": "Component name identifier"
+          "type": ["string", "null"],
+          "description": "Component name identifier (null/absent: renderer keys by index)"
         },
         "props": {
           "type": ["object", "null"],
@@ -78,6 +78,23 @@
       "items": {
         "$ref": "#/definitions/component"
       }
+    },
+
+    "componentDefinition": {
+      "description": "A component reference (e.g. dialog.component): either a component name (string, resolved by AppComponent) or an inline definition whose 'layout' property holds a component tree (rendered via MainLayoutComponent). cx-app uses object{layout} (~90%) and string (~10%); never a bare component.",
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "layout": { "$ref": "#/definitions/component" },
+            "props": { "type": "object", "additionalProperties": true },
+            "variables": { "type": "object" }
+          },
+          "additionalProperties": true
+        }
+      ]
     },
 
     "dataGridView": {
@@ -299,7 +316,7 @@
                       "additionalProperties": true
                     },
                     "component": {
-                      "$ref": "#/definitions/component"
+                      "$ref": "#/definitions/componentDefinition"
                     },
                     "onClose": {
                       "$ref": "#/definitions/actionsList"
