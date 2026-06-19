@@ -2,26 +2,73 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "All Actions",
   "type": "object",
-  "oneOf": [
-    { "$ref": "navigate.json" },
-    { "$ref": "navigateBack.json" },
-    { "$ref": "navigateBackOrClose.json" },
-    { "$ref": "refresh.json" },
-    { "$ref": "notification.json" },
-    { "$ref": "confirm.json" },
-    { "$ref": "mutation.json" },
-    { "$ref": "query.json" },
-    { "$ref": "setFields.json" },
-    { "$ref": "setStore.json" },
-    { "$ref": "validateForm.json" },
-    { "$ref": "dialog.json" },
-    { "$ref": "workflow.json" },
-    { "$ref": "fileDownload.json" },
-    { "$ref": "forEach.json" },
-    { "$ref": "if.json" },
-    { "$ref": "consoleLog.json" },
-    { "$ref": "openBarcodeScanner.json" },
-    { "$ref": "resetDirtyState.json" },
-    { "$ref": "clipboard.json" }
-  ]
+  "properties": {
+    "navigate": {
+      "$ref": "navigate.json#/properties/navigate"
+    },
+    "navigateBack": {
+      "$ref": "navigateBack.json#/properties/navigateBack"
+    },
+    "navigateBackOrClose": {
+      "$ref": "navigateBackOrClose.json#/properties/navigateBackOrClose"
+    },
+    "refresh": {
+      "$ref": "refresh.json#/properties/refresh"
+    },
+    "notification": {
+      "$ref": "notification.json#/properties/notification"
+    },
+    "confirm": {
+      "$ref": "confirm.json#/properties/confirm"
+    },
+    "mutation": {
+      "$ref": "mutation.json#/properties/mutation"
+    },
+    "query": {
+      "$ref": "query.json#/properties/query"
+    },
+    "setFields": {
+      "$ref": "setFields.json#/properties/setFields"
+    },
+    "setStore": {
+      "$ref": "setStore.json#/properties/setStore"
+    },
+    "validateForm": {
+      "$ref": "validateForm.json#/properties/validateForm"
+    },
+    "dialog": {
+      "$ref": "dialog.json#/properties/dialog"
+    },
+    "workflow": {
+      "$ref": "workflow.json#/properties/workflow"
+    },
+    "fileDownload": {
+      "$ref": "fileDownload.json#/properties/fileDownload"
+    },
+    "forEach": {
+      "$ref": "forEach.json#/properties/forEach"
+    },
+    "if": {
+      "$ref": "if.json#/properties/if"
+    },
+    "then": {
+      "$ref": "if.json#/properties/then"
+    },
+    "else": {
+      "$ref": "if.json#/properties/else"
+    },
+    "consoleLog": {
+      "$ref": "consoleLog.json#/properties/consoleLog"
+    },
+    "openBarcodeScanner": {
+      "$ref": "openBarcodeScanner.json#/properties/openBarcodeScanner"
+    },
+    "resetDirtyState": {
+      "$ref": "resetDirtyState.json#/properties/resetDirtyState"
+    },
+    "clipboard": {
+      "$ref": "clipboard.json#/properties/clipboard"
+    }
+  },
+  "additionalProperties": true
 }
