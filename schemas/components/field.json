@@ -76,7 +76,8 @@
             "phone",
             "quill",
             "object",
-            "yaml"
+            "yaml",
+            "display"
           ],
           "description": "Field input type",
           "x-example": "select-async"
@@ -261,10 +262,16 @@
           "description": "Actions to execute when clicking on an option tag/chip in the dropdown"
         },
         "items": {
-          "type": "array",
+          "type": [
+            "array",
+            "null"
+          ],
           "description": "Static options for select, radio, and toggle fields",
           "items": {
-            "type": "object",
+            "type": [
+              "object",
+              "string"
+            ],
             "properties": {
               "label": {
                 "type": "string"
@@ -308,7 +315,7 @@
           }
         },
         "onChange": {
-          "$ref": "../schemas.json#/definitions/actionsList"
+          "$ref": "../schemas.json#/definitions/triggerActions"
         },
         "onBlur": {
           "$ref": "../schemas.json#/definitions/actionsList"

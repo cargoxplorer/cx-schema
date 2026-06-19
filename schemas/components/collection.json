@@ -18,7 +18,8 @@
           "type": [
             "string",
             "array",
-            "null"
+            "null",
+            "object"
           ],
           "description": "Template expression for items array"
         },

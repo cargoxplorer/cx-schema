@@ -6,12 +6,37 @@
     "notification": {
       "type": "object",
       "properties": {
-        "message": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
-        "type": { "type": "string", "enum": ["success", "error", "warning", "info"] }
+        "message": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "../schemas.json#/definitions/localized"
+            }
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "success",
+            "error",
+            "warning",
+            "info",
+            "danger"
+          ]
+        }
       },
       "x-examples": [
-        { "message": { "en-US": "Selected Route Legs were added to the Route successfully" }, "type": "success" },
-        { "message": "Scanner closed" }
+        {
+          "message": {
+            "en-US": "Selected Route Legs were added to the Route successfully"
+          },
+          "type": "success"
+        },
+        {
+          "message": "Scanner closed"
+        }
       ]
     }
   },
