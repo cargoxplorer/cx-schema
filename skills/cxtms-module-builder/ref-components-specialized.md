@@ -306,7 +306,7 @@ MUI Lab Timeline for chronological events or milestone-based tracking progress.
 | `options.timeFormat` | `string` | `h:mm A` | Moment time format |
 | `options.extraEvents` | `show \| hide` | `hide` | Show events that do not match a milestone in tracking mode |
 
-**EventSource:** `query.command`, `query.variables`, `query.path`, and `query.mapping` live under the `query` object. Mapping supports `id`, `key`, `date`, `title`, `description`, colors, icons, and additional fields. Tracking sources should map `key`, and the component filters to events with `includeInTracking: true` and `isInactive: false`.
+**EventSource:** `query.command`, `query.variables`, `query.path`, and `query.mapping` live under the `query` object. Mapping supports `id`, `key`, `date`, `title`, `description`, colors, icons, and additional fields. Tracking sources should map `key`. The component does not filter mapped events by `includeInTracking` or `isInactive`; apply those filters in the GraphQL query or source mapping when needed.
 
 **Milestone:** `{ key, label?, description?, icon? }`. `label` can be localized (`{ en-US: "Delivered" }`).
 

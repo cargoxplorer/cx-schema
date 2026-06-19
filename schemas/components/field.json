@@ -33,6 +33,7 @@
           "enum": [
             "text",
             "number",
+            "number-select",
             "email",
             "password",
             "tel",
@@ -69,6 +70,9 @@
           "description": "Whether field is disabled",
           "x-example": false
         },
+        "min": { "type": "number", "description": "Minimum value for numeric field types" },
+        "max": { "type": "number", "description": "Maximum value for numeric field types" },
+        "step": { "type": "number", "description": "Step increment for number-select arrow controls" },
         "secretPath": {
           "type": "string",
           "description": "Template expression for the secret name used by secret fields, e.g. integrations/{{ id }}/apiKey"
