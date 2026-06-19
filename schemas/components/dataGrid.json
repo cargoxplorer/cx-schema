@@ -8,11 +8,17 @@
       "const": "dataGrid"
     },
     "name": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Unique name identifier for the dataGrid"
     },
     "inputs": {
-      "type": ["array", "null"],
+      "type": [
+        "array",
+        "null"
+      ],
       "description": "Input parameters for the dataGrid (array of input defs; null/absent means none)"
     },
     "props": {
@@ -36,22 +42,49 @@
           "x-example": [
             {
               "name": "allStates",
-              "displayName": { "en-US": "All States" },
+              "displayName": {
+                "en-US": "All States"
+              },
               "columns": [
-                { "name": "stateCode", "label": { "en-US": "State code" } },
-                { "name": "name", "label": { "en-US": "State Name" } },
-                { "name": "countryCode", "label": { "en-US": "Country code" } },
+                {
+                  "name": "stateCode",
+                  "label": {
+                    "en-US": "State code"
+                  }
+                },
+                {
+                  "name": "name",
+                  "label": {
+                    "en-US": "State Name"
+                  }
+                },
+                {
+                  "name": "countryCode",
+                  "label": {
+                    "en-US": "Country code"
+                  }
+                },
                 {
                   "name": "created",
-                  "label": { "en-US": "Created" },
-                  "showAs": { "component": "text", "props": { "value": "{{ format created L }}" } }
+                  "label": {
+                    "en-US": "Created"
+                  },
+                  "showAs": {
+                    "component": "text",
+                    "props": {
+                      "value": "{{ format created L }}"
+                    }
+                  }
                 }
               ]
             }
           ]
         },
         "dotsMenu": {
-          "type": "object",
+          "type": [
+            "object",
+            "null"
+          ],
           "description": "Dots menu configuration for row-level actions",
           "properties": {
             "items": {
@@ -60,7 +93,14 @@
                 "type": "object",
                 "properties": {
                   "label": {
-                    "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "$ref": "../schemas.json#/definitions/localized"
+                      }
+                    ]
                   },
                   "icon": {
                     "type": "string",
@@ -95,14 +135,19 @@
             {
               "query": "states",
               "rootEntityName": "State",
-              "entityKeys": ["countryCode", "stateCode"],
+              "entityKeys": [
+                "countryCode",
+                "stateCode"
+              ],
               "enableDynamicGrid": true,
               "defaultView": "allStates"
             },
             {
               "query": "allOrderCommodities",
               "rootEntityName": "OrderCommodity",
-              "entityKeys": ["commodityId"],
+              "entityKeys": [
+                "commodityId"
+              ],
               "navigationType": "store",
               "enableDynamicGrid": true,
               "enableViews": false,
@@ -113,7 +158,10 @@
           ]
         },
         "toolbar": {
-          "type": ["array", "null"],
+          "type": [
+            "array",
+            "null"
+          ],
           "description": "Toolbar components",
           "items": {
             "$ref": "../schemas.json#/definitions/component"
@@ -124,11 +172,17 @@
           "description": "Boolean expression for conditional rendering"
         }
       },
-      "required": ["options"]
+      "required": [
+        "options"
+      ]
     },
     "children": {
       "$ref": "../schemas.json#/definitions/componentChildren"
     }
   },
-  "required": ["component", "name", "props"]
+  "required": [
+    "component",
+    "name",
+    "props"
+  ]
 }

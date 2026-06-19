@@ -15,7 +15,11 @@
       "type": "object",
       "properties": {
         "items": {
-          "type": "string",
+          "type": [
+            "string",
+            "array",
+            "null"
+          ],
           "description": "Template expression for items array"
         },
         "itemName": {
@@ -28,7 +32,10 @@
         },
         "orientation": {
           "type": "string",
-          "enum": ["horizontal", "vertical"],
+          "enum": [
+            "horizontal",
+            "vertical"
+          ],
           "description": "Layout orientation"
         },
         "containerTag": {
@@ -44,11 +51,17 @@
           "description": "CSS classes for child elements"
         }
       },
-      "required": ["items", "itemName"]
+      "required": [
+        "items",
+        "itemName"
+      ]
     },
     "children": {
       "$ref": "../schemas.json#/definitions/componentChildren"
     }
   },
-  "required": ["component", "props"]
+  "required": [
+    "component",
+    "props"
+  ]
 }

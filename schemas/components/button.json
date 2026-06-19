@@ -15,7 +15,14 @@
       "type": "object",
       "properties": {
         "label": {
-          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "../schemas.json#/definitions/localized"
+            }
+          ]
         },
         "icon": {
           "type": "string",
@@ -27,12 +34,19 @@
           "additionalProperties": true
         },
         "options": {
-          "type": "object",
+          "type": [
+            "object",
+            "null"
+          ],
           "description": "Button options. these are the same as the button component attributes ",
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["submit", "reset", "button"]
+              "enum": [
+                "submit",
+                "reset",
+                "button"
+              ]
             },
             "variant": {
               "type": "string",
@@ -55,7 +69,10 @@
               "description": "Button variant style"
             },
             "disabled": {
-              "type": ["boolean", "string"],
+              "type": [
+                "boolean",
+                "string"
+              ],
               "description": "Disable the button"
             }
           },
@@ -70,21 +87,39 @@
       }
     }
   },
-  "required": ["component"],
+  "required": [
+    "component"
+  ],
   "x-examples": [
     {
       "component": "button",
       "name": "openDialog",
       "props": {
-        "label": { "en-US": "New Order" },
+        "label": {
+          "en-US": "New Order"
+        },
         "icon": "plus",
-        "options": { "variant": "primary", "type": "button" },
+        "options": {
+          "variant": "primary",
+          "type": "button"
+        },
         "onClick": [
           {
             "dialog": {
               "name": "createOrder",
-              "props": { "title": { "en-US": "Create Order" } },
-              "component": { "component": "layout", "children": [{ "component": "Orders/CreateOrder" }] }
+              "props": {
+                "title": {
+                  "en-US": "Create Order"
+                }
+              },
+              "component": {
+                "component": "layout",
+                "children": [
+                  {
+                    "component": "Orders/CreateOrder"
+                  }
+                ]
+              }
             }
           }
         ]
@@ -95,21 +130,31 @@
       "name": "submitFormBtn",
       "props": {
         "label": "Save",
-        "options": { "type": "submit", "variant": "success", "disabled": false }
+        "options": {
+          "type": "submit",
+          "variant": "success",
+          "disabled": false
+        }
       }
     },
     {
       "component": "button",
       "name": "export",
       "props": {
-        "label": { "en-US": "Export" },
+        "label": {
+          "en-US": "Export"
+        },
         "icon": "download",
-        "options": { "variant": "outline-primary" },
+        "options": {
+          "variant": "outline-primary"
+        },
         "onClick": [
           {
             "workflow": {
               "workflowId": "24f504ad-2ca3-4432-b2a4-c540c48fee31",
-              "inputs": { "exportName": "orders" }
+              "inputs": {
+                "exportName": "orders"
+              }
             }
           }
         ]
@@ -120,8 +165,17 @@
       "name": "back",
       "props": {
         "label": "Back",
-        "options": { "type": "button", "variant": "secondary" },
-        "onClick": [{ "navigateBack": { "fallback": "/home" } }],
+        "options": {
+          "type": "button",
+          "variant": "secondary"
+        },
+        "onClick": [
+          {
+            "navigateBack": {
+              "fallback": "/home"
+            }
+          }
+        ],
         "isHidden": "{{ eval !canGoBack }}"
       }
     }

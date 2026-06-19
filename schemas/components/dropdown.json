@@ -15,7 +15,14 @@
       "type": "object",
       "properties": {
         "label": {
-          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "../schemas.json#/definitions/localized"
+            }
+          ]
         },
         "icon": {
           "type": "string",
@@ -26,20 +33,37 @@
           "properties": {
             "variant": {
               "type": "string",
-              "enum": ["primary", "secondary", "outline-primary", "outline-secondary"],
+              "enum": [
+                "primary",
+                "secondary",
+                "outline-primary",
+                "outline-secondary",
+                "warning",
+                "danger"
+              ],
               "description": "Dropdown variant style"
             }
           },
           "additionalProperties": true
         },
         "items": {
-          "type": ["array", "null"],
+          "type": [
+            "array",
+            "null"
+          ],
           "description": "Dropdown menu items",
           "items": {
             "type": "object",
             "properties": {
               "label": {
-                "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "../schemas.json#/definitions/localized"
+                  }
+                ]
               },
               "onClick": {
                 "$ref": "../schemas.json#/definitions/triggerActions"
@@ -53,5 +77,7 @@
       }
     }
   },
-  "required": ["component"]
+  "required": [
+    "component"
+  ]
 }

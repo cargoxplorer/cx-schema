@@ -13,34 +13,56 @@
       "x-example": "countryForm"
     },
     "inputs": {
-      "type": ["array", "null"],
+      "type": [
+        "array",
+        "null"
+      ],
       "description": "Input parameters for the form (array of input defs; null/absent means none — the frontend reads inputs as an array)",
       "additionalProperties": true,
       "x-example": {}
     },
     "props": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "additionalProperties": true,
       "properties": {
         "title": {
-          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "../schemas.json#/definitions/localized"
+            }
+          ],
           "x-example": {
             "en-US": "Country"
           }
         },
         "cols": {
-          "type": ["integer", "null"],
+          "type": [
+            "integer",
+            "null"
+          ],
           "description": "Number of columns for form layout",
           "x-example": 2
         },
         "orientation": {
           "type": "string",
-          "enum": ["horizontal", "vertical"],
+          "enum": [
+            "horizontal",
+            "vertical"
+          ],
           "description": "Form layout orientation",
           "x-example": "vertical"
         },
         "initialValues": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "description": "Initial form values",
           "properties": {
             "fromQuery": {
@@ -57,14 +79,20 @@
                   "x-example": "country"
                 }
               },
-              "required": ["name", "path"],
+              "required": [
+                "name",
+                "path"
+              ],
               "x-example": {
                 "name": "getCountry",
                 "path": "country"
               }
             },
             "append": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "description": "Additional values to append",
               "additionalProperties": true,
               "x-example": {
@@ -99,29 +127,47 @@
                     "additionalProperties": true
                   }
                 },
-                "required": ["command"]
+                "required": [
+                  "command"
+                ]
               }
             },
-            "required": ["name", "query"]
+            "required": [
+              "name",
+              "query"
+            ]
           }
         },
         "validationSchema": {
-          "type": "object",
+          "type": [
+            "object",
+            "null"
+          ],
           "description": "Form-level validation schema",
           "additionalProperties": {
             "type": "object",
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["string", "number", "boolean", "array", "object"]
+                "enum": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "array",
+                  "object"
+                ]
               },
               "required": {
                 "oneOf": [
-                  { "type": "boolean" },
+                  {
+                    "type": "boolean"
+                  },
                   {
                     "type": "object",
                     "properties": {
-                      "message": { "type": "string" }
+                      "message": {
+                        "type": "string"
+                      }
                     }
                   }
                 ]
@@ -129,15 +175,23 @@
               "min": {
                 "type": "object",
                 "properties": {
-                  "length": { "type": "number" },
-                  "message": { "type": "string" }
+                  "length": {
+                    "type": "number"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
                 }
               },
               "max": {
                 "type": "object",
                 "properties": {
-                  "length": { "type": "number" },
-                  "message": { "type": "string" }
+                  "length": {
+                    "type": "number"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
                 }
               },
               "nullable": {
@@ -194,10 +248,18 @@
           },
           "x-example": {
             "enabled": true,
-            "title": { "en-US": "Unsaved Changes" },
-            "message": { "en-US": "You have unsaved changes. Are you sure you want to leave?" },
-            "confirmLabel": { "en-US": "Leave" },
-            "cancelLabel": { "en-US": "Stay" }
+            "title": {
+              "en-US": "Unsaved Changes"
+            },
+            "message": {
+              "en-US": "You have unsaved changes. Are you sure you want to leave?"
+            },
+            "confirmLabel": {
+              "en-US": "Leave"
+            },
+            "cancelLabel": {
+              "en-US": "Stay"
+            }
           }
         },
         "preventDefault": {
@@ -229,5 +291,8 @@
       "$ref": "../schemas.json#/definitions/componentChildren"
     }
   },
-  "required": ["component", "name"]
+  "required": [
+    "component",
+    "name"
+  ]
 }
