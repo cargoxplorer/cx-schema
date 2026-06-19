@@ -33,12 +33,8 @@
     },
 
     "triggerActions": {
-      "description": "Action trigger (onClick/onChange): an action array, a single action object, or null. The frontend's action() accepts all three.",
-      "oneOf": [
-        { "$ref": "#/definitions/actionsList" },
-        { "type": "object", "additionalProperties": true },
-        { "type": "null" }
-      ]
+      "description": "Action trigger (onClick/onChange): an action array, a single action object, or null. Type-union (not oneOf) to avoid cascading errors when an array's items fail validation. The frontend's action() accepts all three shapes.",
+      "type": ["array", "object", "null"]
     },
 
     "localized": {
