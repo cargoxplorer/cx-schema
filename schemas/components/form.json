@@ -13,8 +13,8 @@
       "x-example": "countryForm"
     },
     "inputs": {
-      "type": "object",
-      "description": "Input parameters for the form",
+      "type": ["array", "null"],
+      "description": "Input parameters for the form (array of input defs; null/absent means none — the frontend reads inputs as an array)",
       "additionalProperties": true,
       "x-example": {}
     },

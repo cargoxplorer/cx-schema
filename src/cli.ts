@@ -112,6 +112,7 @@ interface CLIOptions {
   listSchemas: boolean;
   listTasks: boolean;
   quiet: boolean;
+  schemaEnforcement: false | 'warn' | 'error';
   report?: string;
   reportFormat: ReportFormat;
   createType?: 'module' | 'workflow';
@@ -228,6 +229,7 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('-s, --schemas <path>')}    Path to schemas directory
   ${chalk.green('--verbose')}               Show detailed output with schema paths
   ${chalk.green('--quiet')}                 Only show errors, suppress other output
+  ${chalk.green('--schema-enforcement <mode>')}  Enforce component/field schemas: ${chalk.cyan('warn')} or ${chalk.cyan('error')} ${chalk.gray('(default: off)')}
   ${chalk.green('-r, --report <file>')}     Generate report to file (html, md, or json)
   ${chalk.green('--report-format <fmt>')}   Report format: ${chalk.cyan('html')}, ${chalk.cyan('markdown')}, or ${chalk.cyan('json')} ${chalk.gray('(default: auto from extension)')}
   ${chalk.green('--template <name>')}       Template variant for create command (e.g., ${chalk.cyan('basic')})
@@ -4014,6 +4016,7 @@ function parseArgs(args: string[]): ParsedArgs {
     listSchemas: false,
     listTasks: false,
     quiet: false,
+    schemaEnforcement: false,
     reportFormat: 'json'
   };
 
@@ -4053,6 +4056,16 @@ function parseArgs(args: string[]): ParsedArgs {
       options.verbose = true;
     } else if (arg === '--quiet' || arg === '-q') {
       options.quiet = true;
+    } else if (arg === '--schema-enforcement' || arg.startsWith('--schema-enforcement=')) {
+      const seArg = arg.startsWith('--schema-enforcement=')
+        ? arg.slice('--schema-enforcement='.length)
+        : args[++i];
+      if (seArg === 'warn' || seArg === 'error') {
+        options.schemaEnforcement = seArg;
+      } else {
+        console.error(chalk.red(`Invalid --schema-enforcement value: ${seArg}. Use: warn or error`));
+        process.exit(2);
+      }
     } else if (arg === '--json') {
       options.format = 'json';
     } else if (arg === '--report' || arg === '-r') {
@@ -4972,11 +4985,15 @@ async function validateFile(
   // Create appropriate validator
   if (fileType === 'workflow') {
     const validator = new WorkflowValidator({
-      schemasPath: path.join(schemasPath, 'workflows')
+      schemasPath: path.join(schemasPath, 'workflows'),
+      schemaEnforcement: options.schemaEnforcement
     });
     return validator.validateWorkflow(filePath);
   } else {
-    const validator = new ModuleValidator({ schemasPath });
+    const validator = new ModuleValidator({
+      schemasPath,
+      schemaEnforcement: options.schemaEnforcement
+    });
     return validator.validateModule(filePath);
   }
 }

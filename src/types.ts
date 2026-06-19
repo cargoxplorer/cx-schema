@@ -59,6 +59,7 @@ export interface ValidatorOptions {
   schemasPath?: string;
   strictMode?: boolean;
   includeWarnings?: boolean;
+  schemaEnforcement?: false | 'warn' | 'error';
 }
 
 /**

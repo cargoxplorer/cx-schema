@@ -69,12 +69,12 @@
         }
       },
       "required": ["component"],
-      "additionalProperties": false
+      "additionalProperties": true
     },
 
     "componentChildren": {
-      "type": "array",
-      "description": "Array of child components",
+      "type": ["array", "null"],
+      "description": "Array of child components; null/absent means no children (frontend is null-safe)",
       "items": {
         "$ref": "#/definitions/component"
       }

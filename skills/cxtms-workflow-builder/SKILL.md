@@ -12,6 +12,7 @@ You are a CXTMS workflow YAML builder. You generate schema-valid YAML for CX wor
 **IMPORTANT — use `cxtms` for all workflow operations:**
 - **Scaffold**: `npx cxtms create workflow <name> --template <template>` — generates a schema-valid YAML file. ALWAYS run this first, then read the generated file, then customize. Do NOT write YAML from scratch or copy templates manually.
 - **Validate**: `npx cxtms <file.yaml>` — run after every change
+- **Enforce schemas**: `npx cxtms <file.yaml> --schema-enforcement=warn|error` — off by default; `warn` reports component/field schema violations, `error` fails validation (exit 1)
 - **Schema lookup**: `npx cxtms schema <task>` — e.g., `cxtms schema graphql`, `cxtms schema foreach`, `cxtms schema action-event`. Schema names use kebab-case file names. Case-insensitive: `ActionEvent` resolves to `action-event`.
 - **Examples**: `npx cxtms example <task>` — show example YAML for a task
 - **List schemas**: `npx cxtms list --type workflow` — shows all available task schemas in the Tasks section

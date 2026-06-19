@@ -30,8 +30,13 @@
         },
         "orientation": {
           "type": "string",
-          "enum": ["horizontal", "vertical"],
-          "description": "Layout orientation"
+          "enum": ["horizontal", "vertical", "flex"],
+          "description": "Layout orientation. 'flex' renders children in a flex container."
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["row", "column"],
+          "description": "Flex direction (used with orientation: flex)"
         },
         "toolbar": {
           "type": "array",
@@ -39,12 +44,55 @@
           "items": {
             "$ref": "../schemas.json#/definitions/component"
           }
-        }
+        },
+        "columns": {
+          "type": ["integer", "object"],
+          "description": "Responsive 12-col grid: integer or per-breakpoint map (xs/sm/md/lg/xl)"
+        },
+        "spacing": {
+          "description": "Grid spacing (number, string, or per-breakpoint map)"
+        },
+        "columnSpacing": { "description": "Column spacing" },
+        "rowSpacing": { "description": "Row spacing" },
+        "containerTag": {
+          "type": "string",
+          "enum": ["grid", "box"],
+          "description": "Container element"
+        },
+        "containerSx": { "description": "MUI sx applied to the container" },
+        "itemDefaults": {
+          "type": "object",
+          "description": "Default size/offset/order/sx applied to each child"
+        },
+        "className": { "type": "string", "description": "Container CSS class" },
+        "childClassName": { "type": "string", "description": "CSS class applied to each child" },
+        "id": { "type": "string" },
+        "isVisible": { "type": "boolean" },
+        "isHidden": { "type": "boolean" },
+        "options": { "type": "object" },
+        "justifyContent": {
+          "type": "string",
+          "enum": ["flex-start", "flex-end", "center", "space-between", "space-around", "space-evenly"]
+        },
+        "alignItems": {
+          "type": "string",
+          "enum": ["flex-start", "flex-end", "center", "stretch", "baseline"]
+        },
+        "margin": { "type": ["number", "string"] },
+        "marginTop": { "type": ["number", "string"] },
+        "marginBottom": { "type": ["number", "string"] },
+        "marginLeft": { "type": ["number", "string"] },
+        "marginRight": { "type": ["number", "string"] },
+        "padding": { "type": ["number", "string"] },
+        "paddingTop": { "type": ["number", "string"] },
+        "paddingBottom": { "type": ["number", "string"] },
+        "paddingLeft": { "type": ["number", "string"] },
+        "paddingRight": { "type": ["number", "string"] }
       }
     },
     "inputs": {
-      "type": "array",
-      "description": "Layout input parameters",
+      "type": ["array", "null"],
+      "description": "Layout input parameters; null/absent means no inputs (the frontend treats null and absent identically via optional chaining)",
       "items": {
         "type": "object",
         "properties": {

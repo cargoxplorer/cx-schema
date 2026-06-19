@@ -18,6 +18,7 @@ import {
 
 export class WorkflowValidator {
   private ajv: Ajv;
+  private ajvEnforced: Ajv;
   private schemas: Map<string, SchemaEntry>;
   private schemasDir: string;
   private options: Required<WorkflowValidatorOptions>;
@@ -28,6 +29,7 @@ export class WorkflowValidator {
       schemasPath: this.schemasDir,
       strictMode: options.strictMode ?? true,
       includeWarnings: options.includeWarnings ?? true,
+      schemaEnforcement: options.schemaEnforcement ?? false,
       validateTasks: options.validateTasks ?? true,
       validateExpressions: options.validateExpressions ?? false
     };
@@ -49,6 +51,18 @@ export class WorkflowValidator {
 
     // Register schemas with Ajv
     this.registerSchemas();
+
+    // Enforced instance: schemas registered under their file:// URI so that
+    // relative $ref resolve. Used only when schemaEnforcement is 'warn' or 'error'.
+    this.ajvEnforced = new Ajv({
+      strict: false,
+      allErrors: true,
+      verbose: true,
+      validateFormats: true,
+      allowUnionTypes: true
+    });
+    addFormats(this.ajvEnforced);
+    this.registerSchemasEnforced();
   }
 
   /**
@@ -146,6 +160,55 @@ export class WorkflowValidator {
   }
 
   /**
+   * Register schemas under their file:// URI so cross-file $ref resolve.
+   */
+  private registerSchemasEnforced(): void {
+    for (const [key, entry] of this.schemas.entries()) {
+      try {
+        const schemaWithId = { ...entry.schema, $id: entry.uri };
+        this.ajvEnforced.addSchema(schemaWithId, entry.uri);
+      } catch (error) {
+        console.error(`Error registering enforced schema ${key}:`, error);
+      }
+    }
+  }
+
+  /**
+   * Convert Ajv errors to warning entries (no schemaPath).
+   */
+  private addAjvWarnings(
+    ajvErrors: ErrorObject[] | null | undefined,
+    basePath: string,
+    warnings: ValidationWarning[]
+  ): void {
+    if (!ajvErrors) return;
+    for (const error of ajvErrors) {
+      warnings.push({
+        type: 'schema_violation',
+        path: `${basePath}${error.instancePath}`,
+        message: this.schemaMessage(error)
+      });
+    }
+  }
+
+  /**
+   * Build a human-readable schema message, enriched with the offending property
+   * name (additionalProperties) or allowed values (enum) when Ajv carries them
+   * in error.params.
+   */
+  private schemaMessage(error: ErrorObject): string {
+    const base = error.message || 'Schema validation failed';
+    const p = error.params as any;
+    if (p && p.additionalProperty) {
+      return `${base} (property: ${p.additionalProperty})`;
+    }
+    if (p && Array.isArray(p.allowedValues)) {
+      return `${base} (allowed: ${p.allowedValues.join(', ')})`;
+    }
+    return base;
+  }
+
+  /**
    * Validate a YAML workflow file
    */
   async validateWorkflow(filePath: string): Promise<ValidationResult> {
@@ -186,9 +249,32 @@ export class WorkflowValidator {
       this.validateVariables(workflowData, errors);
 
       // Validate against main workflow schema
-      const validate = this.ajv.getSchema('workflow.json');
-      if (validate && !validate(workflowData)) {
-        this.addAjvErrors(validate.errors, '', errors);
+      const enforce = this.options.schemaEnforcement;
+      if (enforce === 'warn' || enforce === 'error') {
+        const wfEntry = this.schemas.get('workflow.json');
+        try {
+          const validate = wfEntry ? this.ajvEnforced.getSchema(wfEntry.uri) : undefined;
+          if (validate && !validate(workflowData)) {
+            if (enforce === 'error') {
+              this.addAjvErrors(validate.errors, '', errors, true);
+            } else {
+              this.addAjvWarnings(validate.errors, '', warnings);
+            }
+          }
+        } catch (error: any) {
+          const msg = `Schema enforcement skipped for workflow.json: ${error.message}`;
+          if (enforce === 'error') {
+            errors.push({ type: 'schema_compile_error', path: '', message: msg });
+          } else {
+            warnings.push({ type: 'schema_compile_error', path: '', message: msg });
+          }
+        }
+      } else {
+        // Off path: unchanged (byte-for-byte).
+        const validate = this.ajv.getSchema('workflow.json');
+        if (validate && !validate(workflowData)) {
+          this.addAjvErrors(validate.errors, '', errors);
+        }
       }
 
       const isFlowWorkflow = workflowData.workflow?.workflowType === 'Flow';
@@ -812,7 +898,8 @@ export class WorkflowValidator {
   private addAjvErrors(
     ajvErrors: ErrorObject[] | null | undefined,
     basePath: string,
-    errors: ValidationError[]
+    errors: ValidationError[],
+    enrich = false
   ): void {
     if (!ajvErrors) return;
 
@@ -821,7 +908,7 @@ export class WorkflowValidator {
       errors.push({
         type: 'schema_violation',
         path: errorPath || '/',
-        message: error.message || 'Schema validation failed',
+        message: enrich ? this.schemaMessage(error) : (error.message || 'Schema validation failed'),
         schemaPath: error.schemaPath
       });
     }

@@ -13,6 +13,7 @@ You are a CXTMS module YAML builder. You generate schema-valid YAML for CX app m
 - **Scaffold**: `npx cxtms create module <name> --template <template>` — generates a schema-valid YAML file. ALWAYS run this first, then read the generated file, then customize. Do NOT write YAML from scratch or copy templates manually.
 - **Scaffold with fields**: `npx cxtms create module <name> --template <template> --options '<json>'`
 - **Validate**: `npx cxtms <file.yaml>` — run after every change
+- **Enforce schemas**: `npx cxtms <file.yaml> --schema-enforcement=warn|error` — off by default; `warn` reports component/field schema violations, `error` fails validation (exit 1)
 - **Schema lookup**: `npx cxtms schema <component>` — e.g., `cxtms schema form`, `cxtms schema dataGrid`
 - **Examples**: `npx cxtms example <component>` — show example YAML
 - **List schemas**: `npx cxtms list`

@@ -138,6 +138,7 @@ features/             # Feature-scoped modules and workflows
 | `npx cxtms create module <name> --feature <f>` | Place under features/<f>/modules/ |
 | `npx cxtms <file.yaml>` | Validate a YAML file |
 | `npx cxtms <file.yaml> --verbose` | Validate with detailed errors |
+| `npx cxtms <file.yaml> --schema-enforcement=warn\|error` | Enforce component/field schemas (off by default; `warn` reports, `error` fails) |
 | `npx cxtms schema <name>` | Show JSON schema for a component or task |
 | `npx cxtms example <name>` | Show example YAML |
 | `npx cxtms list` | List all available schemas |

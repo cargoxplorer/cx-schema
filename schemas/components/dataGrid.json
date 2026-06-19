@@ -12,8 +12,8 @@
       "description": "Unique name identifier for the dataGrid"
     },
     "inputs": {
-      "type": "object",
-      "description": "Input parameters for the dataGrid"
+      "type": ["array", "null"],
+      "description": "Input parameters for the dataGrid (array of input defs; null/absent means none)"
     },
     "props": {
       "type": "object",

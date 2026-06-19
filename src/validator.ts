@@ -23,6 +23,7 @@ import {
 
 export class ModuleValidator {
   private ajv: Ajv;
+  private ajvEnforced: Ajv;
   private schemas: Map<string, SchemaEntry>;
   private schemasDir: string;
   private options: Required<ValidatorOptions>;
@@ -32,7 +33,8 @@ export class ModuleValidator {
     this.options = {
       schemasPath: this.schemasDir,
       strictMode: options.strictMode ?? true,
-      includeWarnings: options.includeWarnings ?? true
+      includeWarnings: options.includeWarnings ?? true,
+      schemaEnforcement: options.schemaEnforcement ?? false
     };
 
     // Initialize Ajv with Draft 7 support
@@ -52,6 +54,19 @@ export class ModuleValidator {
 
     // Register schemas with Ajv
     this.registerSchemas();
+
+    // Enforced instance: schemas registered under their file:// URI so that
+    // relative $ref (e.g. "../schemas.json#/definitions/localized") resolve.
+    // Used only when schemaEnforcement is 'warn' or 'error'.
+    this.ajvEnforced = new Ajv({
+      strict: false,
+      allErrors: true,
+      verbose: true,
+      validateFormats: true,
+      allowUnionTypes: true
+    });
+    addFormats(this.ajvEnforced);
+    this.registerSchemasEnforced();
   }
 
   /**
@@ -65,6 +80,21 @@ export class ModuleValidator {
         this.ajv.addSchema(entry.schema, schemaId);
       } catch (error) {
         console.error(`Error adding schema ${key}:`, error);
+      }
+    }
+  }
+
+  /**
+   * Register schemas under their file:// URI so cross-file $ref resolve.
+   * Used by the enforced instance for schemaEnforcement 'warn'/'error'.
+   */
+  private registerSchemasEnforced(): void {
+    for (const [key, entry] of this.schemas.entries()) {
+      try {
+        const schemaWithId = { ...entry.schema, $id: entry.uri };
+        this.ajvEnforced.addSchema(schemaWithId, entry.uri);
+      } catch (error) {
+        console.error(`Error registering enforced schema ${key}:`, error);
       }
     }
   }
@@ -307,15 +337,41 @@ export class ModuleValidator {
       return;
     }
 
-    // Try to validate against specific component schema
+    // Validate against the specific component schema.
     const schemaKey = `components/${componentType}.json`;
-    if (this.schemas.has(schemaKey)) {
+    const entry = this.schemas.get(schemaKey);
+    const enforce = this.options.schemaEnforcement;
+
+    if (enforce === 'warn' || enforce === 'error') {
+      // Enforced path: URI-keyed instance resolves cross-file $ref.
+      if (entry) {
+        try {
+          const validate = this.ajvEnforced.getSchema(entry.uri);
+          if (validate && !validate(component)) {
+            if (enforce === 'error') {
+              this.addAjvErrors(validate.errors, componentPath, errors, true);
+            } else {
+              this.addAjvWarnings(validate.errors, componentPath, warnings);
+            }
+          }
+        } catch (error: any) {
+          // Surface compile failures instead of swallowing them.
+          const msg = `Schema enforcement skipped for ${schemaKey}: ${error.message}`;
+          if (enforce === 'error') {
+            errors.push({ type: 'schema_compile_error', path: componentPath, message: msg });
+          } else {
+            warnings.push({ type: 'schema_compile_error', path: componentPath, message: msg });
+          }
+        }
+      }
+    } else if (entry) {
+      // Off path: unchanged from original behavior (byte-for-byte).
       try {
         const validate = this.ajv.getSchema(schemaKey);
         if (validate && !validate(component)) {
           this.addAjvErrors(validate.errors, componentPath, errors);
         }
-      } catch (error: any) {
+      } catch (error) {
         // Schema not found or validation error
       }
     }
@@ -375,7 +431,8 @@ export class ModuleValidator {
   private addAjvErrors(
     ajvErrors: ErrorObject[] | null | undefined,
     basePath: string,
-    errors: ValidationError[]
+    errors: ValidationError[],
+    enrich = false
   ): void {
     if (!ajvErrors) return;
 
@@ -384,10 +441,47 @@ export class ModuleValidator {
       errors.push({
         type: 'schema_violation',
         path: errorPath,
-        message: error.message || 'Schema validation failed',
+        message: enrich ? this.schemaMessage(error) : (error.message || 'Schema validation failed'),
         schemaPath: error.schemaPath
       });
     }
+  }
+
+  /**
+   * Convert Ajv errors to warning entries (no schemaPath). Always enriched —
+   * addAjvWarnings is only called from the enforced (warn) path.
+   */
+  private addAjvWarnings(
+    ajvErrors: ErrorObject[] | null | undefined,
+    basePath: string,
+    warnings: ValidationWarning[]
+  ): void {
+    if (!ajvErrors) return;
+    for (const error of ajvErrors) {
+      warnings.push({
+        type: 'schema_violation',
+        path: `${basePath}${error.instancePath}`,
+        message: this.schemaMessage(error)
+      });
+    }
+  }
+
+  /**
+   * Build a human-readable schema message, enriched with the offending property
+   * name (additionalProperties) or allowed values (enum) when Ajv carries them
+   * in error.params. Without this, "must NOT have additional properties" gives
+   * no clue which property, and enum errors omit the allowed values.
+   */
+  private schemaMessage(error: ErrorObject): string {
+    const base = error.message || 'Schema validation failed';
+    const p = error.params as any;
+    if (p && p.additionalProperty) {
+      return `${base} (property: ${p.additionalProperty})`;
+    }
+    if (p && Array.isArray(p.allowedValues)) {
+      return `${base} (allowed: ${p.allowedValues.join(', ')})`;
+    }
+    return base;
   }
 
   /**
