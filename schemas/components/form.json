@@ -223,8 +223,7 @@
         "onError": {
           "$ref": "../schemas.json#/definitions/actionsList"
         }
-      },
-      "required": ["validationSchema"]
+      }
     },
     "children": {
       "$ref": "../schemas.json#/definitions/componentChildren"

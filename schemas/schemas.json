@@ -56,8 +56,8 @@
           "description": "Component name identifier"
         },
         "props": {
-          "type": "object",
-          "description": "Component properties",
+          "type": ["object", "null"],
+          "description": "Component properties (null/absent means no props; renderers guard via props?.props || {})",
           "additionalProperties": true
         },
         "children": {
@@ -315,13 +315,7 @@
         "query",
         "rootEntityName",
         "entityKeys",
-        "navigationType",
         "enableDynamicGrid",
-        "enableViews",
-        "enableSearch",
-        "enablePagination",
-        "enableColumns",
-        "enableFilter",
         "defaultView",
         "onRowClick"
       ]
