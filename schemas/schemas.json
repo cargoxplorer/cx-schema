@@ -338,12 +338,7 @@
         }
       },
       "required": [
-        "query",
-        "rootEntityName",
-        "entityKeys",
-        "enableDynamicGrid",
-        "defaultView",
-        "onRowClick"
+        "entityKeys"
       ]
     },
 

@@ -212,7 +212,7 @@
           "description": "Define available groups. When groupMode is enabled, items are organized into these groups based on the groupBy field value. Each group gets its own add button when allowAdd is true.",
           "items": {
             "type": "object",
-            "required": ["key", "label"],
+            "required": ["key"],
             "properties": {
               "key": {
                 "type": ["string", "number"],
