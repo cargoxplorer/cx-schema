@@ -357,6 +357,7 @@ Polymorphic form field — renders different input types based on `type` prop.
 |------|-------------|
 | `text` | Standard text input. `multiple: true` → multi-value tags |
 | `number` | Numeric input |
+| `number-select` | Numeric input with up/down controls and long-press repeat; supports `min`, `max`, `step`, and `options.decimalScale` / `fixedDecimalScale` / `allowNegative` |
 | `email` | Email input |
 | `password` | Password input |
 | `tel` / `phone` | Phone number with country selector |
@@ -437,6 +438,19 @@ Polymorphic form field — renders different input types based on `type` prop.
     label: { en-US: "Company Name" }
     required: true
     placeholder: "Enter company name"
+
+
+# Number select with arrow controls
+- component: field
+  name: pieces
+  props:
+    type: number-select
+    label: { en-US: "Pieces" }
+    min: 0
+    max: 999
+    step: 1
+    options:
+      decimalScale: 0
 
 # Select field
 - component: field

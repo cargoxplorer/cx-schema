@@ -7,6 +7,7 @@
       "oneOf": [
         { "$ref": "./text.json" },
         { "$ref": "./number.json" },
+        { "$ref": "./number-select.json" },
         { "$ref": "./email.json" },
         { "$ref": "./password.json" },
         { "$ref": "./tel.json" },
@@ -29,6 +30,7 @@
   "fieldTypes": {
     "text": { "description": "Basic text input field", "schema": "./text.json" },
     "number": { "description": "Numeric input field with validation", "schema": "./number.json" },
+    "number-select": { "description": "Numeric input field with increment/decrement controls", "schema": "./number-select.json" },
     "email": { "description": "Email input field with validation", "schema": "./email.json" },
     "password": { "description": "Password input field with security features", "schema": "./password.json" },
     "tel": { "description": "Telephone number input field", "schema": "./tel.json" },
