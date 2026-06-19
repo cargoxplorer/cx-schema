@@ -6,6 +6,7 @@ import Ajv, { ErrorObject, ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import * as fs from 'fs';
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 import YAML from 'yaml';
 import {
   ValidationResult,
@@ -77,7 +78,7 @@ export class WorkflowValidator {
       const schema = JSON.parse(fs.readFileSync(mainSchemaPath, 'utf-8'));
       schemas.set('workflow.json', {
         schema,
-        uri: `file:///${mainSchemaPath.replace(/\\/g, '/')}`
+        uri: pathToFileURL(mainSchemaPath).href
       });
     }
 
@@ -89,7 +90,7 @@ export class WorkflowValidator {
         const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
         schemas.set(schemaFile, {
           schema,
-          uri: `file:///${schemaPath.replace(/\\/g, '/')}`
+          uri: pathToFileURL(schemaPath).href
         });
       }
     }
@@ -137,7 +138,7 @@ export class WorkflowValidator {
           const key = `${relativePath}/${file}`;
           schemas.set(key, {
             schema,
-            uri: `file:///${filePath.replace(/\\/g, '/')}`
+            uri: pathToFileURL(filePath).href
           });
         } catch (error) {
           console.error(`Error loading schema ${filePath}:`, error);

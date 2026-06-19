@@ -4,6 +4,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 import { SchemaEntry } from '../types';
 
 /**
@@ -18,7 +19,7 @@ export function loadSchemas(schemasDir: string): Map<string, SchemaEntry> {
     const schema = JSON.parse(fs.readFileSync(mainSchemaPath, 'utf-8'));
     schemas.set('schemas.json', {
       schema,
-      uri: `file:///${mainSchemaPath.replace(/\\/g, '/')}`
+      uri: pathToFileURL(mainSchemaPath).href
     });
   }
 
@@ -57,7 +58,7 @@ function loadSchemasFromDir(
         const key = `${relativePath}/${file}`;
         schemas.set(key, {
           schema,
-          uri: `file:///${filePath.replace(/\\/g, '/')}`
+          uri: pathToFileURL(filePath).href
         });
       } catch (error) {
         console.error(`Error loading schema ${filePath}:`, error);
