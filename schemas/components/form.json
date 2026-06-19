@@ -20,7 +20,7 @@
     },
     "props": {
       "type": ["object", "null"],
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "title": {
           "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
@@ -29,7 +29,7 @@
           }
         },
         "cols": {
-          "type": "integer",
+          "type": ["integer", "null"],
           "description": "Number of columns for form layout",
           "x-example": 2
         },
@@ -40,7 +40,7 @@
           "x-example": "vertical"
         },
         "initialValues": {
-          "type": "object",
+          "type": ["object", "null"],
           "description": "Initial form values",
           "properties": {
             "fromQuery": {
@@ -64,7 +64,7 @@
               }
             },
             "append": {
-              "type": "object",
+              "type": ["object", "null"],
               "description": "Additional values to append",
               "additionalProperties": true,
               "x-example": {

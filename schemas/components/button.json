@@ -44,12 +44,18 @@
                 "danger",
                 "success",
                 "warning",
-                "info"
+                "info",
+                "default",
+                "outline-danger",
+                "outlined",
+                "white",
+                "link",
+                "text"
               ],
               "description": "Button variant style"
             },
             "disabled": {
-              "type": "boolean",
+              "type": ["boolean", "string"],
               "description": "Disable the button"
             }
           },

@@ -25,7 +25,7 @@
           "$ref": "../schemas.json#/definitions/permissions"
         },
         "cols": {
-          "type": "integer",
+          "type": ["integer", "null"],
           "description": "Number of columns"
         },
         "orientation": {

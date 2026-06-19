@@ -8,7 +8,7 @@
       "const": "dataGrid"
     },
     "name": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Unique name identifier for the dataGrid"
     },
     "inputs": {

@@ -16,7 +16,7 @@
       "type": "object",
       "properties": {
         "label": {
-          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }, { "type": "null" }],
           "x-example": {
             "en-US": "Country Code"
           }
@@ -82,7 +82,7 @@
           "description": "Template expression for the secret name used by secret fields, e.g. integrations/{{ id }}/apiKey"
         },
         "options": {
-          "type": "object",
+          "type": ["object", "null"],
           "description": "Field options for select types",
           "properties": {
             "variant": { "type": "string" },
