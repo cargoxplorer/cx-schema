@@ -19,7 +19,7 @@
       "x-example": {}
     },
     "props": {
-      "type": "object",
+      "type": ["object", "null"],
       "additionalProperties": false,
       "properties": {
         "title": {

@@ -12,7 +12,7 @@
       "description": "Layout name identifier"
     },
     "props": {
-      "type": "object",
+      "type": ["object", "null"],
       "properties": {
         "title": {
           "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]

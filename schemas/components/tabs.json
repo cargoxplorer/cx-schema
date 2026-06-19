@@ -12,7 +12,7 @@
       "description": "Tabs name identifier"
     },
     "props": {
-      "type": "object",
+      "type": ["object", "null"],
       "properties": {
         "toolbar": {
           "type": "array",

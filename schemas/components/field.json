@@ -70,8 +70,8 @@
           "x-example": true
         },
         "disabled": {
-          "type": "boolean",
-          "description": "Whether field is disabled",
+          "type": ["boolean", "string"],
+          "description": "Whether field is disabled (string = template expression; renderer uses parseTemplate)",
           "x-example": false
         },
         "min": { "type": "number", "description": "Minimum value for numeric field types" },
