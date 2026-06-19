@@ -33,7 +33,7 @@
           "additionalProperties": true
         },
         "items": {
-          "type": "array",
+          "type": ["array", "null"],
           "description": "Dropdown menu items",
           "items": {
             "type": "object",
@@ -42,7 +42,7 @@
                 "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
               },
               "onClick": {
-                "$ref": "../schemas.json#/definitions/actionsList"
+                "$ref": "../schemas.json#/definitions/triggerActions"
               },
               "isHidden": {
                 "$ref": "../schemas.json#/definitions/templateExpression"

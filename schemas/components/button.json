@@ -56,7 +56,7 @@
           "additionalProperties": true
         },
         "onClick": {
-          "$ref": "../schemas.json#/definitions/actionsList"
+          "$ref": "../schemas.json#/definitions/triggerActions"
         },
         "isHidden": {
           "$ref": "../schemas.json#/definitions/templateExpression"

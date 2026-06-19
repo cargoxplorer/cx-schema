@@ -67,8 +67,8 @@
         "className": { "type": "string", "description": "Container CSS class" },
         "childClassName": { "type": "string", "description": "CSS class applied to each child" },
         "id": { "type": "string" },
-        "isVisible": { "type": "boolean" },
-        "isHidden": { "type": "boolean" },
+        "isVisible": { "type": ["boolean", "string"] },
+        "isHidden": { "type": ["boolean", "string"] },
         "options": { "type": "object" },
         "justifyContent": {
           "type": "string",

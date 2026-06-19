@@ -32,6 +32,15 @@
       "items": { "$ref": "actions/all.json" }
     },
 
+    "triggerActions": {
+      "description": "Action trigger (onClick/onChange): an action array, a single action object, or null. The frontend's action() accepts all three.",
+      "oneOf": [
+        { "$ref": "#/definitions/actionsList" },
+        { "type": "object", "additionalProperties": true },
+        { "type": "null" }
+      ]
+    },
+
     "localized": {
       "type": "object",
       "description": "Localized text object",
