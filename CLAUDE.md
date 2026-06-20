@@ -53,7 +53,7 @@ Single-file CLI (~2200 lines) handling all commands: `validate`, `create`, `extr
 ### Validators
 
 - **`ModuleValidator`** (`src/validator.ts`) — validates UI module YAML (components, routes, entities, permissions). Recursively walks `children` arrays. Schemas in `schemas/components/`, `schemas/fields/`, `schemas/actions/`.
-- **`WorkflowValidator`** (`src/workflowValidator.ts`) — validates workflow YAML (activities, steps, triggers, schedules). Validates each task type against its schema. Schemas in `schemas/workflows/` with subdirectories `tasks/`, `flow/`, `common/`.
+- **`WorkflowValidator`** (`src/workflowValidator.ts`) — validates workflow YAML (activities, steps, triggers, schedules). Validates each task type against its schema. Schemas in `schemas/workflows/` with subdirectories `tasks/`, `flow/`, `common/`. Under `--schema-enforcement=warn|error` it additionally runs a **required-input presence check**: each task's required author-provided input keys (from `schemas/workflows/task-required-inputs.json`) must be present in `step.inputs`. System-injected variables (organizationId, currentEmployeeId, etc.) are excluded; unknown/control-flow tasks are skipped.
 
 Both use Ajv (Draft 7) and are exported from `src/index.ts` as the library API.
 
@@ -70,10 +70,13 @@ schemas/
     ├── activity.json, input.json, output.json, variable.json, trigger.json, schedule.json
     ├── tasks/*.json                # Task-type schemas (foreach, switch, graphql, order, etc.)
     ├── flow/*.json                 # Flow state machine schemas (entity, state, transition, aggregation)
-    └── common/*.json               # Shared definitions (condition, expression, mapping)
+    ├── common/*.json               # Shared definitions (condition, expression, mapping)
+    └── task-required-inputs.json   # Per-task required input keys (generated; see scripts/)
 ```
 
 **Dual copies**: `schemas/` is the source of truth. `.cx-schema/` is a gitignored local copy created by `postinstall.js` for consuming projects. When editing schemas, update `schemas/` — the `.cx-schema/` copy must be synced manually during development (or just `cp schemas/... .cx-schema/...`).
+
+**Regenerating the required-input catalog**: `schemas/workflows/task-required-inputs.json` is generated from the backend task handlers (`TMS.Workflows`) by `scripts/generate-task-required-inputs.js`. Re-run it when backend task inputs change: `node scripts/generate-task-required-inputs.js --backend ../trt-express-backend` (defaults to the sibling `trt-express-backend` checkout).
 
 ### Workflow Templates
 
@@ -138,7 +141,7 @@ features/             # Feature-scoped modules and workflows
 | `npx cxtms create module <name> --feature <f>` | Place under features/<f>/modules/ |
 | `npx cxtms <file.yaml>` | Validate a YAML file |
 | `npx cxtms <file.yaml> --verbose` | Validate with detailed errors |
-| `npx cxtms <file.yaml> --schema-enforcement=warn\|error` | Enforce component/field schemas (off by default; `warn` reports, `error` fails) |
+| `npx cxtms <file.yaml> --schema-enforcement=warn\|error` | Enforce schemas: component/field schemas (modules) and, for workflows, top-level `workflow.json` + required-task-input presence (off by default; `warn` reports, `error` fails) |
 | `npx cxtms schema <name>` | Show JSON schema for a component or task |
 | `npx cxtms example <name>` | Show example YAML |
 | `npx cxtms list` | List all available schemas |

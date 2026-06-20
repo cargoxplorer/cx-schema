@@ -1,0 +1,371 @@
+{
+  "Absolute/Charge": [
+    "amsKey",
+    "baseUrl",
+    "transactionType"
+  ],
+  "AccountingTransaction/ApplyCreditToInvoices": [
+    "contactId"
+  ],
+  "ActionEvent/Create": [
+    "action"
+  ],
+  "AppManifest/Create": [
+    "appManifest"
+  ],
+  "AppManifest/Update": [
+    "appManifest",
+    "appManifestId"
+  ],
+  "AppModule/Create": [
+    "appModule"
+  ],
+  "AppModule/Delete": [
+    "appModuleId"
+  ],
+  "AppModule/Update": [
+    "appModule"
+  ],
+  "Attachment/PdfThumbnail": [
+    "url"
+  ],
+  "Attachment/Thumbnail": [
+    "url"
+  ],
+  "Attachment/Update": [
+    "attachmentId"
+  ],
+  "Authentication/OAuth2": [
+    "tokenUrl"
+  ],
+  "Caching/GetCache": [
+    "key"
+  ],
+  "Charge/Calculate": [
+    "applyToContactId",
+    "currencyId"
+  ],
+  "Charge/Create": [
+    "charge"
+  ],
+  "Charge/Delete": [
+    "chargeId"
+  ],
+  "Charge/DynamicUpdate": [
+    "chargeId"
+  ],
+  "Charge/Update": [
+    "charge",
+    "chargeId"
+  ],
+  "Commodity/Split": [
+    "commodityId",
+    "options"
+  ],
+  "Commodity/Unpack": [
+    "commodityId",
+    "options"
+  ],
+  "Commodity/Update": [
+    "commodityId"
+  ],
+  "CommodityTrackingNumber/Create": [
+    "trackingNumber"
+  ],
+  "CommodityTrackingNumber/Delete": [
+    "orderId"
+  ],
+  "CommodityTrackingNumber/Update": [
+    "commodityTrackingNumberId"
+  ],
+  "Contact/Create": [
+    "contact"
+  ],
+  "Contact/Delete": [
+    "contactId"
+  ],
+  "Contact/Update": [
+    "contactId"
+  ],
+  "ContactAddress/Create": [
+    "contactAddress"
+  ],
+  "ContactAddress/Delete": [
+    "contactAddressId"
+  ],
+  "ContactAddress/Update": [
+    "contactAddressId"
+  ],
+  "ContactPaymentMethod/Create": [
+    "contactId",
+    "paymentProvider"
+  ],
+  "ContactPaymentMethod/SendChargedAmount": [
+    "cardNumber",
+    "cardType",
+    "code",
+    "contactId",
+    "expDate",
+    "holderName"
+  ],
+  "ContactPaymentMethod/Update": [
+    "contactPaymentMethodId"
+  ],
+  "ContactPaymentMethod/VerifyChargedAmount": [
+    "contactPaymentMethodId",
+    "sendChargedAmount",
+    "username",
+    "verifyChargedAmount"
+  ],
+  "Country/Create": [
+    "country"
+  ],
+  "Country/Delete": [
+    "countryCode"
+  ],
+  "Country/Update": [
+    "countryCode"
+  ],
+  "Discount/Update": [
+    "discountId"
+  ],
+  "DispatchRoutes/Generate": [
+    "dispatchRouteStatusId"
+  ],
+  "Document/Send": [
+    "attachments",
+    "body",
+    "recipients",
+    "subject"
+  ],
+  "EDIFACT/Parse": [
+    "edifactData"
+  ],
+  "Email/Send": [
+    "body",
+    "subject"
+  ],
+  "Email/VerifyCode": [
+    "verificationCode"
+  ],
+  "EventDefinitions/Create": [
+    "eventName"
+  ],
+  "FileTransfer/Connect": [
+    "authentication",
+    "host",
+    "username"
+  ],
+  "InventoryItem/Create": [
+    "inventoryItem"
+  ],
+  "InventoryItem/Delete": [
+    "inventoryItemId"
+  ],
+  "InventoryItem/Update": [
+    "inventoryItemId"
+  ],
+  "Job/Assign": [
+    "jobId"
+  ],
+  "Job/Create": [
+    "job"
+  ],
+  "Job/Delete": [
+    "jobId"
+  ],
+  "Job/Unassign": [
+    "jobId"
+  ],
+  "Job/Update": [
+    "jobId"
+  ],
+  "Movement/Create": [
+    "destinationLocationCode",
+    "divisionId",
+    "movementType",
+    "trackingNumber"
+  ],
+  "Note/Create": [
+    "note"
+  ],
+  "Note/Delete": [
+    "noteId"
+  ],
+  "Note/Update": [
+    "note",
+    "noteId"
+  ],
+  "NoteThread/Rename": [
+    "currentThreadName",
+    "newThreadName"
+  ],
+  "Notification/Create": [
+    "notification"
+  ],
+  "NovaPoshta/CreateIEW": [
+    "apiUrl",
+    "carrierTrackingNumberKey",
+    "forwardingAgentAddressIdKey",
+    "login",
+    "orderId",
+    "password",
+    "payerCounterpartyAccount",
+    "payerCounterpartyType",
+    "payerType",
+    "paymentServiceKey",
+    "paymentType",
+    "warehouseRefKey"
+  ],
+  "NovaPoshta/getWarehouses": [
+    "apiUrl",
+    "login",
+    "parameters",
+    "password"
+  ],
+  "NovaPoshta/IEWCancel": [
+    "apiUrl",
+    "carrierName",
+    "login",
+    "orderId",
+    "password"
+  ],
+  "NovaPoshta/Manifest": [
+    "apiUrl",
+    "carrierName",
+    "login",
+    "orderId",
+    "password"
+  ],
+  "NovaPoshta/Tracking": [
+    "apiUrl",
+    "carrierName",
+    "defaultEventName",
+    "login",
+    "orderFilter",
+    "password"
+  ],
+  "Order/Copy": [
+    "orderId"
+  ],
+  "Order/Create": [
+    "order"
+  ],
+  "Order/Delete": [
+    "orderId"
+  ],
+  "Order/GenerateTrackingNumber": [
+    "orderId",
+    "values"
+  ],
+  "Order/Get": [
+    "orderId"
+  ],
+  "Order/GetCargoMovementByPalletQuery": [
+    "cargoMovementByPalletQuery"
+  ],
+  "Order/Purge": [
+    "jobId"
+  ],
+  "Order/Split": [
+    "options",
+    "orderId"
+  ],
+  "OrderCharge/Create": [
+    "chargeId",
+    "orderId"
+  ],
+  "OrderCommodity/Create": [
+    "commodityId",
+    "orderId"
+  ],
+  "OrderCommodity/Delete": [
+    "commodityId",
+    "orderId"
+  ],
+  "OrderCommodity/Update": [
+    "commodityId",
+    "orderId"
+  ],
+  "OrderEntity/ChangeCustomValue": [
+    "key",
+    "orderId"
+  ],
+  "OrderTrackingEvent/Create": [
+    "eventDefinitionName",
+    "orderId"
+  ],
+  "OrganizationConfig/Update": [
+    "organizationConfigId"
+  ],
+  "Payment/Create": [
+    "accountingAccountId",
+    "accountingTransactionId",
+    "amount",
+    "contactId",
+    "divisionId"
+  ],
+  "Query/GraphQL": [
+    "query"
+  ],
+  "Quote/Get": [
+    "order"
+  ],
+  "SequenceNumber/Get": [
+    "sequenceName"
+  ],
+  "StructuredFile/Parse": [
+    "config",
+    "fileData"
+  ],
+  "Transmission/Create": [
+    "transmission"
+  ],
+  "Transmission/Delete": [
+    "transmissionId"
+  ],
+  "Transmission/Update": [
+    "transmissionId"
+  ],
+  "User/Create": [
+    "user"
+  ],
+  "User/Delete": [
+    "userId"
+  ],
+  "User/GetEmailVerificationCode": [
+    "userId"
+  ],
+  "User/GetResetPasswordToken": [
+    "userName"
+  ],
+  "User/Update": [
+    "user",
+    "userId"
+  ],
+  "Utilities/CsvParse": [
+    "url"
+  ],
+  "Utilities/Error": [
+    "message"
+  ],
+  "Utilities/Export": [
+    "fileType",
+    "name"
+  ],
+  "Utilities/MoveFile": [
+    "destinationKey"
+  ],
+  "Utilities/Template": [
+    "template"
+  ],
+  "Workflow/Create": [
+    "workflow"
+  ],
+  "Workflow/Update": [
+    "workflow"
+  ],
+  "X12/Parse": [
+    "ediData"
+  ]
+}

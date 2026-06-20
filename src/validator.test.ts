@@ -202,6 +202,156 @@ describe('schemaEnforcement workflow invalid input', () => {
   });
 });
 
+// Required-input presence check (schemas/workflows/task-required-inputs.json).
+// Email/Send requires author-provided inputs: subject, body. (organizationId is
+// system-injected and excluded from the catalog upstream.)
+const EMAIL_SEND_MISSING_BODY = `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+activities:
+  - name: send
+    steps:
+      - task: Email/Send@1
+        name: email
+        inputs:
+          subject: hello
+inputs: []
+outputs: []
+`;
+
+const EMAIL_SEND_COMPLETE = `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+activities:
+  - name: send
+    steps:
+      - task: Email/Send@1
+        name: email
+        inputs:
+          subject: hello
+          body: world
+inputs: []
+outputs: []
+`;
+
+describe('schemaEnforcement required-input presence check', () => {
+  it('error mode flags a task missing a required input', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-missing.yaml', EMAIL_SEND_MISSING_BODY);
+    const res = await v.validateWorkflow(file);
+    expect(res.isValid).toBe(false);
+    const missing = res.errors.filter(
+      e => /missing required input 'body'/.test(e.message)
+    );
+    expect(missing.length).toBe(1);
+    expect(missing[0].path).toMatch(/inputs\.body$/);
+  });
+
+  it('warn mode flags a missing required input as a warning but stays valid', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'warn' });
+    const file = writeFixture('wf-missing.yaml', EMAIL_SEND_MISSING_BODY);
+    const res = await v.validateWorkflow(file);
+    expect(res.isValid).toBe(true);
+    const w = res.warnings.filter(x => /missing required input 'body'/.test(x.message));
+    expect(w.length).toBe(1);
+  });
+
+  it('off mode does NOT flag a missing required input (baseline unchanged)', async () => {
+    const v = new WorkflowValidator({});
+    const file = writeFixture('wf-missing.yaml', EMAIL_SEND_MISSING_BODY);
+    const res = await v.validateWorkflow(file);
+    expect(res.errors.filter(e => /missing required input/.test(e.message))).toHaveLength(0);
+    expect(res.warnings.filter(w => /missing required input/.test(w.message))).toHaveLength(0);
+  });
+
+  it('passes when all required inputs are present', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-complete.yaml', EMAIL_SEND_COMPLETE);
+    const res = await v.validateWorkflow(file);
+    expect(res.errors.filter(e => /missing required input/.test(e.message))).toHaveLength(0);
+  });
+
+  it('skips unknown tasks (no false positive)', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-unknown.yaml', `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+activities:
+  - name: send
+    steps:
+      - task: Does/NotExist@1
+        name: x
+        inputs: {}
+inputs: []
+outputs: []
+`);
+    const res = await v.validateWorkflow(file);
+    expect(res.errors.filter(e => /missing required input/.test(e.message))).toHaveLength(0);
+  });
+
+  it('matches task name case-insensitively and strips @version', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-case.yaml', `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+activities:
+  - name: send
+    steps:
+      - task: email/send@1
+        name: x
+        inputs:
+          subject: hi
+inputs: []
+outputs: []
+`);
+    const res = await v.validateWorkflow(file);
+    const missing = res.errors.filter(e => /missing required input 'body'/.test(e.message));
+    expect(missing.length).toBe(1);
+  });
+
+  it('skips control-flow tasks; still checks nested steps', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-foreach.yaml', `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+activities:
+  - name: loop
+    steps:
+      - task: foreach
+        name: each
+        inputs: {}
+        steps:
+          - task: Email/Send@1
+            name: email
+            inputs:
+              subject: hi
+inputs: []
+outputs: []
+`);
+    const res = await v.validateWorkflow(file);
+    // foreach itself is not in the catalog -> not flagged
+    expect(res.errors.filter(e => /foreach/.test(e.path))).toHaveLength(0);
+    // nested Email/Send is still validated -> body missing
+    const nested = res.errors.filter(e => /missing required input 'body'/.test(e.message));
+    expect(nested.length).toBe(1);
+  });
+});
+
 import { execFileSync } from 'child_process';
 
 const DIST_CLI = path.resolve(__dirname, '../dist/cli.js');

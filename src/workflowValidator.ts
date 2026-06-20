@@ -23,6 +23,9 @@ export class WorkflowValidator {
   private schemas: Map<string, SchemaEntry>;
   private schemasDir: string;
   private options: Required<WorkflowValidatorOptions>;
+  // Per-task required author-input keys (generated from backend handlers).
+  // Keyed by lowercased base task name (version stripped).
+  private requiredInputs: Map<string, string[]>;
 
   constructor(options: WorkflowValidatorOptions = {}) {
     this.schemasDir = options.schemasPath || path.join(__dirname, '../schemas/workflows');
@@ -64,6 +67,9 @@ export class WorkflowValidator {
     });
     addFormats(this.ajvEnforced);
     this.registerSchemasEnforced();
+
+    // Per-task required-input catalog (generated from backend handlers).
+    this.requiredInputs = this.loadRequiredInputs();
   }
 
   /**
@@ -172,6 +178,29 @@ export class WorkflowValidator {
         console.error(`Error registering enforced schema ${key}:`, error);
       }
     }
+  }
+
+  /**
+   * Load the per-task required-input catalog (generated from backend task
+   * handlers via scripts/generate-task-required-inputs.js). Keyed by lowercased
+   * base task name (version stripped). System-injected variables are already
+   * excluded upstream. Missing/unreadable file => empty map (check is skipped).
+   */
+  private loadRequiredInputs(): Map<string, string[]> {
+    const map = new Map<string, string[]>();
+    const catalogPath = path.join(this.schemasDir, 'task-required-inputs.json');
+    if (!fs.existsSync(catalogPath)) return map;
+    try {
+      const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf-8'));
+      for (const [taskName, keys] of Object.entries(catalog)) {
+        if (Array.isArray(keys)) {
+          map.set(taskName.toLowerCase(), keys as string[]);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading task-required-inputs.json:', error);
+    }
+    return map;
   }
 
   /**
@@ -579,8 +608,48 @@ export class WorkflowValidator {
       return;
     }
 
+    // Required-input presence check (schemaEnforcement warn/error only).
+    this.validateRequiredInputs(step, stepPath, errors, warnings);
+
     // Validate nested structures (foreach, switch, while)
     this.validateNestedSteps(step, stepPath, errors, warnings);
+  }
+
+  /**
+   * Presence check: for tasks in the required-input catalog, confirm each
+   * required author-provided input key is present in step.inputs. System-
+   * injected variables (organizationId, workflowId, ...) are already excluded
+   * from the catalog. Only runs under schemaEnforcement 'warn'/'error'.
+   * Unknown tasks and control-flow tasks (foreach/switch/while) are absent
+   * from the catalog and are silently skipped.
+   */
+  private validateRequiredInputs(
+    step: any,
+    stepPath: string,
+    errors: ValidationError[],
+    warnings: ValidationWarning[]
+  ): void {
+    const enforce = this.options.schemaEnforcement;
+    if (enforce !== 'warn' && enforce !== 'error') return;
+    if (!step.task || typeof step.task !== 'string') return;
+
+    const baseName = step.task.split('@')[0].toLowerCase();
+    const required = this.requiredInputs.get(baseName);
+    if (!required || required.length === 0) return;
+
+    const inputs =
+      step.inputs && typeof step.inputs === 'object' ? (step.inputs as object) : null;
+    for (const key of required) {
+      if (!inputs || !(key in inputs)) {
+        const message = `Task '${step.task.split('@')[0]}' is missing required input '${key}'`;
+        const entryPath = `${stepPath}.inputs.${key}`;
+        if (enforce === 'error') {
+          errors.push({ type: 'schema_violation', path: entryPath, message });
+        } else {
+          warnings.push({ type: 'schema_violation', path: entryPath, message });
+        }
+      }
+    }
   }
 
   /**
