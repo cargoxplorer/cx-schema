@@ -53,8 +53,7 @@
         }
       },
       "required": [
-        "items",
-        "itemName"
+        "items"
       ]
     },
     "children": {
