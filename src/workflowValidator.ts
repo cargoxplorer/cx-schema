@@ -282,21 +282,20 @@ export class WorkflowValidator {
       let workflowData: YAMLWorkflow;
       let locationMap: YAMLLocationMap | undefined;
 
-      try {
-        const doc = YAML.parseDocument(content);
-        workflowData = doc.toJS() as YAMLWorkflow;
-        locationMap = buildLocationMap(content);
-      } catch (yamlError: any) {
+      const doc = YAML.parseDocument(content);
+      if (doc.errors.length > 0) {
+        const firstError = doc.errors[0];
+        const linePos = firstError.linePos?.[0];
         errors.push({
           type: 'yaml_syntax_error',
           path: filePath,
-          message: `YAML syntax error: ${yamlError.message}`,
-          location: yamlError.linePos && typeof yamlError.linePos === 'object'
-            ? { line: yamlError.linePos[0].line, column: yamlError.linePos[0].col }
-            : undefined
+          message: `YAML syntax error: ${firstError.message}`,
+          location: linePos ? { line: linePos.line, column: linePos.col } : undefined
         });
         return this.createResult(filePath, errors, warnings);
       }
+      workflowData = doc.toJS() as YAMLWorkflow;
+      locationMap = buildLocationMap(content);
 
       // Validate workflow structure
       this.validateWorkflowStructure(workflowData, errors, warnings, filePath, locationMap);

@@ -133,21 +133,20 @@ export class ModuleValidator {
       let moduleData: YAMLModule;
       let locationMap: YAMLLocationMap | undefined;
 
-      try {
-        const doc = YAML.parseDocument(content);
-        moduleData = doc.toJS() as YAMLModule;
-        locationMap = buildLocationMap(content);
-      } catch (yamlError: any) {
+      const doc = YAML.parseDocument(content);
+      if (doc.errors.length > 0) {
+        const firstError = doc.errors[0];
+        const linePos = firstError.linePos?.[0];
         errors.push({
           type: 'yaml_syntax_error',
           path: filePath,
-          message: `YAML syntax error: ${yamlError.message}`,
-          location: yamlError.linePos && typeof yamlError.linePos === 'object'
-            ? { line: yamlError.linePos[0].line, column: yamlError.linePos[0].col }
-            : undefined
+          message: `YAML syntax error: ${firstError.message}`,
+          location: linePos ? { line: linePos.line, column: linePos.col } : undefined
         });
         return this.createResult(filePath, errors, warnings);
       }
+      moduleData = doc.toJS() as YAMLModule;
+      locationMap = buildLocationMap(content);
 
       // Validate module structure
       this.validateModuleStructure(moduleData, errors, warnings, filePath, locationMap);
