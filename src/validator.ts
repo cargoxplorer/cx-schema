@@ -7,6 +7,7 @@ import addFormats from 'ajv-formats';
 import * as fs from 'fs';
 import * as path from 'path';
 import YAML from 'yaml';
+import { buildLocationMap, YAMLLocationMap } from './yamlLocationResolver';
 import {
   ValidationResult,
   ValidationError,
@@ -130,39 +131,45 @@ export class ModuleValidator {
       // Read and parse YAML
       const content = fs.readFileSync(filePath, 'utf-8');
       let moduleData: YAMLModule;
+      let locationMap: YAMLLocationMap | undefined;
 
       try {
-        moduleData = YAML.parse(content) as YAMLModule;
+        const doc = YAML.parseDocument(content);
+        moduleData = doc.toJS() as YAMLModule;
+        locationMap = buildLocationMap(content);
       } catch (yamlError: any) {
         errors.push({
           type: 'yaml_syntax_error',
           path: filePath,
-          message: `YAML syntax error: ${yamlError.message}`
+          message: `YAML syntax error: ${yamlError.message}`,
+          location: yamlError.linePos && typeof yamlError.linePos === 'object'
+            ? { line: yamlError.linePos[0].line, column: yamlError.linePos[0].col }
+            : undefined
         });
         return this.createResult(filePath, errors, warnings);
       }
 
       // Validate module structure
-      this.validateModuleStructure(moduleData, errors, warnings, filePath);
+      this.validateModuleStructure(moduleData, errors, warnings, filePath, locationMap);
 
       // Validate components
       if (moduleData.components && Array.isArray(moduleData.components)) {
-        this.validateComponents(moduleData.components, errors, warnings);
+        this.validateComponents(moduleData.components, errors, warnings, locationMap);
       }
 
       // Validate routes
       if (moduleData.routes && Array.isArray(moduleData.routes)) {
-        this.validateRoutes(moduleData.routes, errors, warnings);
+        this.validateRoutes(moduleData.routes, errors, warnings, locationMap);
       }
 
       // Validate entities
       if (moduleData.entities && Array.isArray(moduleData.entities)) {
-        this.validateEntities(moduleData.entities, errors, warnings);
+        this.validateEntities(moduleData.entities, errors, warnings, locationMap);
       }
 
       // Validate configurations
       if (moduleData.configurations && Array.isArray(moduleData.configurations)) {
-        this.validateConfigurations(moduleData.configurations, errors, warnings);
+        this.validateConfigurations(moduleData.configurations, errors, warnings, locationMap);
       }
 
       return this.createResult(filePath, errors, warnings);
@@ -184,20 +191,38 @@ export class ModuleValidator {
   }
 
   /**
+   * Resolve a source location for an error/warning path.
+   * Returns undefined if no map is available or the path is not registered.
+   */
+  private resolveLocation(
+    locationMap: YAMLLocationMap | undefined,
+    path: string
+  ): { line: number; column: number } | undefined {
+    if (!locationMap) return undefined;
+    try {
+      return locationMap.lookup(path);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
    * Validate top-level module structure
    */
   private validateModuleStructure(
     moduleData: YAMLModule,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    filePath?: string
+    filePath?: string,
+    locationMap?: YAMLLocationMap
   ): void {
     // Check required top-level properties
     if (!moduleData.module) {
       errors.push({
         type: 'missing_property',
         path: 'module',
-        message: 'Missing required property: module'
+        message: 'Missing required property: module',
+        location: this.resolveLocation(locationMap, 'module')
       });
       return;
     }
@@ -206,7 +231,8 @@ export class ModuleValidator {
       errors.push({
         type: 'missing_property',
         path: 'components',
-        message: 'Missing required property: components'
+        message: 'Missing required property: components',
+        location: this.resolveLocation(locationMap, 'components')
       });
     }
 
@@ -216,7 +242,8 @@ export class ModuleValidator {
       errors.push({
         type: 'missing_property',
         path: 'module.name',
-        message: 'Missing required property: module.name'
+        message: 'Missing required property: module.name',
+        location: this.resolveLocation(locationMap, 'module.name')
       });
     }
 
@@ -224,7 +251,8 @@ export class ModuleValidator {
       errors.push({
         type: 'missing_property',
         path: 'module.appModuleId',
-        message: 'Missing required property: module.appModuleId'
+        message: 'Missing required property: module.appModuleId',
+        location: this.resolveLocation(locationMap, 'module.appModuleId')
       });
     }
 
@@ -232,7 +260,8 @@ export class ModuleValidator {
       errors.push({
         type: 'missing_property',
         path: 'module.displayName',
-        message: 'Missing required property: module.displayName'
+        message: 'Missing required property: module.displayName',
+        location: this.resolveLocation(locationMap, 'module.displayName')
       });
     }
 
@@ -241,7 +270,8 @@ export class ModuleValidator {
       warnings.push({
         type: 'deprecated_property',
         path: 'module.fileName',
-        message: 'Use "filePath" instead of "fileName" in module section'
+        message: 'Use "filePath" instead of "fileName" in module section',
+        location: this.resolveLocation(locationMap, 'module.fileName')
       });
     }
 
@@ -253,7 +283,8 @@ export class ModuleValidator {
         warnings.push({
           type: 'file_path_mismatch',
           path: 'module.filePath',
-          message: `Declared filePath "${normalizedDeclared}" does not match actual file path "${normalizedActual}"`
+          message: `Declared filePath "${normalizedDeclared}" does not match actual file path "${normalizedActual}"`,
+          location: this.resolveLocation(locationMap, 'module.filePath')
         });
       }
     }
@@ -265,11 +296,12 @@ export class ModuleValidator {
   private validateComponents(
     components: any[],
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     components.forEach((component, index) => {
       const componentPath = `components[${index}]`;
-      this.validateComponent(component, componentPath, errors, warnings);
+      this.validateComponent(component, componentPath, errors, warnings, locationMap);
     });
   }
 
@@ -280,13 +312,15 @@ export class ModuleValidator {
     component: any,
     componentPath: string,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     if (!component || typeof component !== 'object') {
       errors.push({
         type: 'invalid_component',
         path: componentPath,
-        message: 'Component must be an object'
+        message: 'Component must be an object',
+        location: this.resolveLocation(locationMap, componentPath)
       });
       return;
     }
@@ -296,7 +330,8 @@ export class ModuleValidator {
       errors.push({
         type: 'missing_property',
         path: `${componentPath}.name`,
-        message: 'Component must have a name property'
+        message: 'Component must have a name property',
+        location: this.resolveLocation(locationMap, `${componentPath}.name`)
       });
     }
 
@@ -306,12 +341,13 @@ export class ModuleValidator {
         component.layout,
         `${componentPath}.layout`,
         errors,
-        warnings
+        warnings,
+        locationMap
       );
     }
 
     // Check for deprecated properties
-    this.checkDeprecatedProperties(component, componentPath, warnings);
+    this.checkDeprecatedProperties(component, componentPath, warnings, locationMap);
   }
 
   /**
@@ -321,7 +357,8 @@ export class ModuleValidator {
     component: any,
     componentPath: string,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     if (!component || typeof component !== 'object') {
       return;
@@ -332,7 +369,8 @@ export class ModuleValidator {
       errors.push({
         type: 'missing_property',
         path: `${componentPath}.component`,
-        message: 'Component must have a component type'
+        message: 'Component must have a component type',
+        location: this.resolveLocation(locationMap, `${componentPath}.component`)
       });
       return;
     }
@@ -349,18 +387,28 @@ export class ModuleValidator {
           const validate = this.ajvEnforced.getSchema(entry.uri);
           if (validate && !validate(component)) {
             if (enforce === 'error') {
-              this.addAjvErrors(validate.errors, componentPath, errors, true);
+              this.addAjvErrors(validate.errors, componentPath, errors, true, locationMap);
             } else {
-              this.addAjvWarnings(validate.errors, componentPath, warnings);
+              this.addAjvWarnings(validate.errors, componentPath, warnings, locationMap);
             }
           }
         } catch (error: any) {
           // Surface compile failures instead of swallowing them.
           const msg = `Schema enforcement skipped for ${schemaKey}: ${error.message}`;
           if (enforce === 'error') {
-            errors.push({ type: 'schema_compile_error', path: componentPath, message: msg });
+            errors.push({
+              type: 'schema_compile_error',
+              path: componentPath,
+              message: msg,
+              location: this.resolveLocation(locationMap, componentPath)
+            });
           } else {
-            warnings.push({ type: 'schema_compile_error', path: componentPath, message: msg });
+            warnings.push({
+              type: 'schema_compile_error',
+              path: componentPath,
+              message: msg,
+              location: this.resolveLocation(locationMap, componentPath)
+            });
           }
         }
       }
@@ -369,7 +417,7 @@ export class ModuleValidator {
       try {
         const validate = this.ajv.getSchema(schemaKey);
         if (validate && !validate(component)) {
-          this.addAjvErrors(validate.errors, componentPath, errors);
+          this.addAjvErrors(validate.errors, componentPath, errors, false, locationMap);
         }
       } catch (error) {
         // Schema not found or validation error
@@ -383,7 +431,8 @@ export class ModuleValidator {
           child,
           `${componentPath}.children[${index}]`,
           errors,
-          warnings
+          warnings,
+          locationMap
         );
       });
     }
@@ -394,7 +443,8 @@ export class ModuleValidator {
         component.props,
         `${componentPath}.props`,
         errors,
-        warnings
+        warnings,
+        locationMap
       );
     }
   }
@@ -406,7 +456,8 @@ export class ModuleValidator {
     props: any,
     propsPath: string,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     if (!props || typeof props !== 'object') {
       return;
@@ -419,7 +470,8 @@ export class ModuleValidator {
           value,
           `${propsPath}.${key}`,
           errors,
-          warnings
+          warnings,
+          locationMap
         );
       }
     }
@@ -432,7 +484,8 @@ export class ModuleValidator {
     ajvErrors: ErrorObject[] | null | undefined,
     basePath: string,
     errors: ValidationError[],
-    enrich = false
+    enrich = false,
+    locationMap?: YAMLLocationMap
   ): void {
     if (!ajvErrors) return;
 
@@ -442,7 +495,8 @@ export class ModuleValidator {
         type: 'schema_violation',
         path: errorPath,
         message: enrich ? this.schemaMessage(error) : (error.message || 'Schema validation failed'),
-        schemaPath: error.schemaPath
+        schemaPath: error.schemaPath,
+        location: this.resolveLocation(locationMap, errorPath)
       });
     }
   }
@@ -454,14 +508,17 @@ export class ModuleValidator {
   private addAjvWarnings(
     ajvErrors: ErrorObject[] | null | undefined,
     basePath: string,
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     if (!ajvErrors) return;
     for (const error of ajvErrors) {
+      const warningPath = `${basePath}${error.instancePath}`;
       warnings.push({
         type: 'schema_violation',
-        path: `${basePath}${error.instancePath}`,
-        message: this.schemaMessage(error)
+        path: warningPath,
+        message: this.schemaMessage(error),
+        location: this.resolveLocation(locationMap, warningPath)
       });
     }
   }
@@ -490,7 +547,8 @@ export class ModuleValidator {
   private validateRoutes(
     routes: any[],
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     routes.forEach((route, index) => {
       const routePath = `routes[${index}]`;
@@ -498,14 +556,16 @@ export class ModuleValidator {
         errors.push({
           type: 'missing_property',
           path: `${routePath}.path`,
-          message: 'Route must have a path property'
+          message: 'Route must have a path property',
+          location: this.resolveLocation(locationMap, `${routePath}.path`)
         });
       }
       if (!route.component) {
         errors.push({
           type: 'missing_property',
           path: `${routePath}.component`,
-          message: 'Route must have a component property'
+          message: 'Route must have a component property',
+          location: this.resolveLocation(locationMap, `${routePath}.component`)
         });
       }
     });
@@ -517,7 +577,8 @@ export class ModuleValidator {
   private validateEntities(
     entities: any[],
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     entities.forEach((entity, index) => {
       const entityPath = `entities[${index}]`;
@@ -525,7 +586,8 @@ export class ModuleValidator {
         errors.push({
           type: 'missing_property',
           path: `${entityPath}.name`,
-          message: 'Entity must have a name property'
+          message: 'Entity must have a name property',
+          location: this.resolveLocation(locationMap, `${entityPath}.name`)
         });
       }
     });
@@ -537,7 +599,8 @@ export class ModuleValidator {
   private validateConfigurations(
     configurations: any[],
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     configurations.forEach((config, index) => {
       const configPath = `configurations[${index}]`;
@@ -545,14 +608,16 @@ export class ModuleValidator {
         errors.push({
           type: 'missing_property',
           path: `${configPath}.configName`,
-          message: 'Configuration must have a configName property'
+          message: 'Configuration must have a configName property',
+          location: this.resolveLocation(locationMap, `${configPath}.configName`)
         });
       }
       if (!config.component) {
         errors.push({
           type: 'missing_property',
           path: `${configPath}.component`,
-          message: 'Configuration must have a component property'
+          message: 'Configuration must have a component property',
+          location: this.resolveLocation(locationMap, `${configPath}.component`)
         });
       }
     });
@@ -564,7 +629,8 @@ export class ModuleValidator {
   private checkDeprecatedProperties(
     obj: any,
     path: string,
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     const deprecations: Record<string, string> = {
       key: 'Use "name" instead of "key"',
@@ -576,7 +642,8 @@ export class ModuleValidator {
         warnings.push({
           type: 'deprecated_property',
           path: `${path}.${oldProp}`,
-          message
+          message,
+          location: this.resolveLocation(locationMap, `${path}.${oldProp}`)
         });
       }
     }
