@@ -131,11 +131,11 @@
           "description": "View identifier"
         },
         "displayName": {
-          "$ref": "#/definitions/localized",
-          "type": [
-            "string",
-            "object"
-          ]
+          "oneOf": [
+            { "type": "string" },
+            { "$ref": "#/definitions/localized" }
+          ],
+          "description": "Display name for the view"
         },
         "enableSelect": {
           "type": "string",

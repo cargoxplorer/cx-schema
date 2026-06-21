@@ -79,13 +79,12 @@
                 },
                 "path": {
                   "type": "string",
-                  "description": "Path to data in query result",
+                  "description": "Path to data in query result (optional; uses whole result if omitted)",
                   "x-example": "country"
                 }
               },
               "required": [
-                "name",
-                "path"
+                "name"
               ],
               "x-example": {
                 "name": "getCountry",
