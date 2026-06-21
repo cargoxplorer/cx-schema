@@ -11,6 +11,7 @@ export interface ValidationError {
   message: string;
   schemaPath?: string;
   example?: any;
+  location?: { line: number; column: number };
 }
 
 /**
@@ -20,6 +21,7 @@ export interface ValidationWarning {
   type: string;
   path: string;
   message: string;
+  location?: { line: number; column: number };
 }
 
 /**
