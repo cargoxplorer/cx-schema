@@ -18,7 +18,7 @@ export interface YAMLLocationMap {
   lookup(path: string): SourceLocation | undefined;
 }
 
-function normalizePath(path: string): string {
+export function normalizePath(path: string): string {
   // Accept JSON pointers (/foo/bar), dot-notation (foo.bar), and bracket notation (foo[0].bar)
   if (path.startsWith('/')) {
     path = path.slice(1);

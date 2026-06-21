@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import YAML from 'yaml';
-import { buildLocationMap, YAMLLocationMap } from './yamlLocationResolver';
+import { buildLocationMap, normalizePath, YAMLLocationMap } from './yamlLocationResolver';
 import {
   ValidationResult,
   ValidationError,
@@ -232,7 +232,7 @@ export class WorkflowValidator {
   ): void {
     if (!ajvErrors) return;
     for (const error of ajvErrors) {
-      const warningPath = `${basePath}${error.instancePath}`;
+      const warningPath = normalizePath(`${basePath}${error.instancePath}`);
       warnings.push({
         type: 'schema_violation',
         path: warningPath,
@@ -1069,8 +1069,8 @@ export class WorkflowValidator {
     if (!ajvErrors) return;
 
     for (const error of ajvErrors) {
-      const errorPath = basePath ? `${basePath}${error.instancePath}` : error.instancePath.slice(1);
-      const finalPath = errorPath || '/';
+      const rawPath = basePath ? `${basePath}${error.instancePath}` : error.instancePath.slice(1);
+      const finalPath = rawPath ? normalizePath(rawPath) : '';
       errors.push({
         type: 'schema_violation',
         path: finalPath,

@@ -7,7 +7,7 @@ import addFormats from 'ajv-formats';
 import * as fs from 'fs';
 import * as path from 'path';
 import YAML from 'yaml';
-import { buildLocationMap, YAMLLocationMap } from './yamlLocationResolver';
+import { buildLocationMap, normalizePath, YAMLLocationMap } from './yamlLocationResolver';
 import {
   ValidationResult,
   ValidationError,
@@ -412,7 +412,8 @@ export class ModuleValidator {
         }
       }
     } else if (entry) {
-      // Off path: unchanged from original behavior (byte-for-byte).
+      // Off path: pre-existing Ajv validation still runs against the legacy Ajv
+      // instance; only the optional location field is added.
       try {
         const validate = this.ajv.getSchema(schemaKey);
         if (validate && !validate(component)) {
@@ -489,7 +490,7 @@ export class ModuleValidator {
     if (!ajvErrors) return;
 
     for (const error of ajvErrors) {
-      const errorPath = `${basePath}${error.instancePath}`;
+      const errorPath = normalizePath(`${basePath}${error.instancePath}`);
       errors.push({
         type: 'schema_violation',
         path: errorPath,
@@ -512,7 +513,7 @@ export class ModuleValidator {
   ): void {
     if (!ajvErrors) return;
     for (const error of ajvErrors) {
-      const warningPath = `${basePath}${error.instancePath}`;
+      const warningPath = normalizePath(`${basePath}${error.instancePath}`);
       warnings.push({
         type: 'schema_violation',
         path: warningPath,
