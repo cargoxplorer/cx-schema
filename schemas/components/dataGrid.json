@@ -107,7 +107,7 @@
                     "description": "Icon name for the menu item"
                   },
                   "onClick": {
-                    "$ref": "../schemas.json#/definitions/actionsList"
+                    "$ref": "../schemas.json#/definitions/triggerActions"
                   },
                   "permission": {
                     "type": "string",

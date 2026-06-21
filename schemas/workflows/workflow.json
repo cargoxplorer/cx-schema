@@ -66,10 +66,10 @@
           "description": "Tags for categorization and filtering"
         },
         "workflowType": {
-          "$comment": "Schema is intentionally stricter than the backend: TMS.Workflows treats WorkflowType as a free-form string with no validation, and WorkflowRunner/TaskExecutor dispatch purely by step task name (not by workflowType). Only 'Document' (controller returns file output), 'Flow' (state-machine structural validation), and 'PublicApi' (REST endpoint + extra validation) trigger type-specific behavior. Any other value is an inert label and the workflow runs identically to one without a workflowType (Process). The enum enforces the canonical set to catch typos and non-standard labels, but workflows using non-enum values still execute correctly.",
+          "$comment": "TMS.Workflows treats WorkflowType as a free-form string; only Document, Flow, and PublicApi trigger type-specific behavior. Other values are inert labels that run as standard process workflows. The enum includes the canonical built-in types plus custom types currently used in CX apps.",
           "type": "string",
-          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi"],
-          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), or PublicApi (REST API endpoint). Omit for standard process workflows."
+          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi", "EmailTemplate", "Transaction"],
+          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), PublicApi (REST API endpoint), EmailTemplate, Transaction, or omit for standard process workflows."
         },
         "runAs": {
           "type": "string",

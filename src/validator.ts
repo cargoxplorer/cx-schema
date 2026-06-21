@@ -226,15 +226,6 @@ export class ModuleValidator {
       return;
     }
 
-    if (!moduleData.components) {
-      errors.push({
-        type: 'missing_property',
-        path: 'components',
-        message: 'Missing required property: components',
-        location: this.resolveLocation(locationMap, 'components')
-      });
-    }
-
     // Validate module metadata
     const module = moduleData.module;
     if (!module.name) {

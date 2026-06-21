@@ -157,7 +157,12 @@
                 "description": "Column field name"
               },
               "label": {
-                "$ref": "#/definitions/localized"
+                "oneOf": [
+                  { "type": "string" },
+                  { "$ref": "#/definitions/localized" },
+                  { "type": "null" }
+                ],
+                "description": "Column header label: plain string, localized object, or null to fall back to column name"
               },
               "showAs": {
                 "$ref": "#/definitions/component",

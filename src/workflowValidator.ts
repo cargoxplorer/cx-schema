@@ -304,6 +304,14 @@ export class WorkflowValidator {
       this.validateInputs(workflowData, errors, locationMap);
       this.validateVariables(workflowData, errors, locationMap);
 
+      // Collect workflow-level input names so required-task-input checks can
+      // treat them as provided (backend injects workflow inputs as activity vars).
+      const availableInputs = new Set<string>(
+        (workflowData.inputs || [])
+          .filter((input: any) => input && typeof input === 'object' && input.name)
+          .map((input: any) => input.name)
+      );
+
       // Validate against main workflow schema
       const enforce = this.options.schemaEnforcement;
       if (enforce === 'warn' || enforce === 'error') {
@@ -347,11 +355,11 @@ export class WorkflowValidator {
 
       if (isFlowWorkflow) {
         // Validate Flow-specific sections
-        this.validateFlowWorkflow(workflowData, errors, warnings, locationMap);
+        this.validateFlowWorkflow(workflowData, errors, warnings, locationMap, availableInputs);
       } else {
         // Validate activities recursively (standard workflows)
         if (workflowData.activities && Array.isArray(workflowData.activities)) {
-          this.validateActivities(workflowData.activities, 'activities', errors, warnings, locationMap);
+          this.validateActivities(workflowData.activities, 'activities', errors, warnings, locationMap, availableInputs);
         }
       }
 
@@ -362,7 +370,8 @@ export class WorkflowValidator {
         ['onWorkflowStarted', 'onWorkflowCompleted', 'onWorkflowExecuted', 'onWorkflowFailed'],
         errors,
         warnings,
-        locationMap
+        locationMap,
+        availableInputs
       );
 
       // Warn on deprecated onWorkflowExecuted
@@ -549,11 +558,12 @@ export class WorkflowValidator {
     basePath: string,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    locationMap?: YAMLLocationMap
+    locationMap?: YAMLLocationMap,
+    availableInputs?: Set<string>
   ): void {
     activities.forEach((activity, index) => {
       const activityPath = `${basePath}[${index}]`;
-      this.validateActivity(activity, activityPath, errors, warnings, locationMap);
+      this.validateActivity(activity, activityPath, errors, warnings, locationMap, availableInputs);
     });
   }
 
@@ -565,7 +575,8 @@ export class WorkflowValidator {
     activityPath: string,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    locationMap?: YAMLLocationMap
+    locationMap?: YAMLLocationMap,
+    availableInputs?: Set<string>
   ): void {
     if (!activity || typeof activity !== 'object') {
       errors.push({
@@ -600,7 +611,7 @@ export class WorkflowValidator {
     // Validate each step
     activity.steps.forEach((step: any, stepIndex: number) => {
       const stepPath = `${activityPath}.steps[${stepIndex}]`;
-      this.validateStep(step, stepPath, errors, warnings, locationMap);
+      this.validateStep(step, stepPath, errors, warnings, locationMap, availableInputs);
     });
 
     // Validate activity-level event handler steps
@@ -610,7 +621,8 @@ export class WorkflowValidator {
       ['onActivityStarted', 'onActivityCompleted', 'onActivityFailed'],
       errors,
       warnings,
-      locationMap
+      locationMap,
+      availableInputs
     );
   }
 
@@ -623,7 +635,8 @@ export class WorkflowValidator {
     eventNames: string[],
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    locationMap?: YAMLLocationMap
+    locationMap?: YAMLLocationMap,
+    availableInputs?: Set<string>
   ): void {
     if (!events || typeof events !== 'object' || Array.isArray(events)) return;
 
@@ -631,7 +644,7 @@ export class WorkflowValidator {
       const steps = events[eventName];
       if (steps && Array.isArray(steps)) {
         steps.forEach((step: any, index: number) => {
-          this.validateStep(step, `${basePath}.${eventName}[${index}]`, errors, warnings, locationMap);
+          this.validateStep(step, `${basePath}.${eventName}[${index}]`, errors, warnings, locationMap, availableInputs);
         });
       }
     }
@@ -645,7 +658,8 @@ export class WorkflowValidator {
     stepPath: string,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    locationMap?: YAMLLocationMap
+    locationMap?: YAMLLocationMap,
+    availableInputs?: Set<string>
   ): void {
     if (!step || typeof step !== 'object') {
       errors.push({
@@ -669,10 +683,10 @@ export class WorkflowValidator {
     }
 
     // Required-input presence check (schemaEnforcement warn/error only).
-    this.validateRequiredInputs(step, stepPath, errors, warnings, locationMap);
+    this.validateRequiredInputs(step, stepPath, errors, warnings, locationMap, availableInputs);
 
     // Validate nested structures (foreach, switch, while)
-    this.validateNestedSteps(step, stepPath, errors, warnings, locationMap);
+    this.validateNestedSteps(step, stepPath, errors, warnings, locationMap, availableInputs);
   }
 
   /**
@@ -688,7 +702,8 @@ export class WorkflowValidator {
     stepPath: string,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    locationMap?: YAMLLocationMap
+    locationMap?: YAMLLocationMap,
+    availableInputs?: Set<string>
   ): void {
     const enforce = this.options.schemaEnforcement;
     if (enforce !== 'warn' && enforce !== 'error') return;
@@ -701,7 +716,9 @@ export class WorkflowValidator {
     const inputs =
       step.inputs && typeof step.inputs === 'object' ? (step.inputs as object) : null;
     for (const key of required) {
-      if (!inputs || !(key in inputs)) {
+      const missingFromStep = !inputs || !(key in inputs);
+      const providedByWorkflow = availableInputs?.has(key) ?? false;
+      if (missingFromStep && !providedByWorkflow) {
         const message = `Task '${step.task.split('@')[0]}' is missing required input '${key}'`;
         const entryPath = `${stepPath}.inputs.${key}`;
         if (enforce === 'error') {
@@ -731,7 +748,8 @@ export class WorkflowValidator {
     stepPath: string,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    locationMap?: YAMLLocationMap
+    locationMap?: YAMLLocationMap,
+    availableInputs?: Set<string>
   ): void {
     const taskType = step.task;
 
@@ -739,7 +757,7 @@ export class WorkflowValidator {
     if (taskType === 'foreach') {
       if (step.steps && Array.isArray(step.steps)) {
         step.steps.forEach((nestedStep: any, index: number) => {
-          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings, locationMap);
+          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings, locationMap, availableInputs);
         });
       }
     }
@@ -755,7 +773,8 @@ export class WorkflowValidator {
                 `${stepPath}.cases[${caseIndex}].steps[${stepIndex}]`,
                 errors,
                 warnings,
-                locationMap
+                locationMap,
+                availableInputs
               );
             });
           }
@@ -772,7 +791,7 @@ export class WorkflowValidator {
     if (taskType === 'while') {
       if (step.steps && Array.isArray(step.steps)) {
         step.steps.forEach((nestedStep: any, index: number) => {
-          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings, locationMap);
+          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings, locationMap, availableInputs);
         });
       }
     }
@@ -785,11 +804,12 @@ export class WorkflowValidator {
     workflowData: YAMLWorkflow,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    locationMap?: YAMLLocationMap
+    locationMap?: YAMLLocationMap,
+    availableInputs?: Set<string>
   ): void {
     this.validateFlowEntity(workflowData, errors, locationMap);
-    const stateNames = this.validateFlowStates(workflowData, errors, warnings, locationMap);
-    this.validateFlowTransitions(workflowData, stateNames, errors, warnings, locationMap);
+    const stateNames = this.validateFlowStates(workflowData, errors, warnings, locationMap, availableInputs);
+    this.validateFlowTransitions(workflowData, stateNames, errors, warnings, locationMap, availableInputs);
     this.validateFlowAggregations(workflowData, errors, locationMap);
   }
 
@@ -821,7 +841,8 @@ export class WorkflowValidator {
     workflowData: YAMLWorkflow,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    locationMap?: YAMLLocationMap
+    locationMap?: YAMLLocationMap,
+    availableInputs?: Set<string>
   ): Set<string> {
     const stateNames = new Set<string>();
     const states = workflowData.states;
@@ -878,12 +899,12 @@ export class WorkflowValidator {
       // Validate onEnter/onExit steps
       if (state.onEnter && Array.isArray(state.onEnter)) {
         state.onEnter.forEach((step: any, stepIndex: number) => {
-          this.validateStep(step, `${statePath}.onEnter[${stepIndex}]`, errors, warnings, locationMap);
+          this.validateStep(step, `${statePath}.onEnter[${stepIndex}]`, errors, warnings, locationMap, availableInputs);
         });
       }
       if (state.onExit && Array.isArray(state.onExit)) {
         state.onExit.forEach((step: any, stepIndex: number) => {
-          this.validateStep(step, `${statePath}.onExit[${stepIndex}]`, errors, warnings, locationMap);
+          this.validateStep(step, `${statePath}.onExit[${stepIndex}]`, errors, warnings, locationMap, availableInputs);
         });
       }
     });
@@ -908,7 +929,8 @@ export class WorkflowValidator {
     stateNames: Set<string>,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    locationMap?: YAMLLocationMap
+    locationMap?: YAMLLocationMap,
+    availableInputs?: Set<string>
   ): void {
     const transitions = workflowData.transitions;
     if (!transitions || !Array.isArray(transitions)) return;
@@ -985,7 +1007,7 @@ export class WorkflowValidator {
       // Validate transition steps
       if (transition.steps && Array.isArray(transition.steps)) {
         transition.steps.forEach((step: any, stepIndex: number) => {
-          this.validateStep(step, `${transPath}.steps[${stepIndex}]`, errors, warnings, locationMap);
+          this.validateStep(step, `${transPath}.steps[${stepIndex}]`, errors, warnings, locationMap, availableInputs);
         });
       }
     });
