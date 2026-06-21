@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import YAML from 'yaml';
+import { buildLocationMap, YAMLLocationMap } from './yamlLocationResolver';
 import {
   ValidationResult,
   ValidationError,
@@ -57,7 +58,8 @@ export class WorkflowValidator {
     this.registerSchemas();
 
     // Enforced instance: schemas registered under their file:// URI so that
-    // relative $ref resolve. Used only when schemaEnforcement is 'warn' or 'error'.
+    // relative $ref (e.g. "../schemas.json#/definitions/localized") resolve.
+    // Used only when schemaEnforcement is 'warn' or 'error'.
     this.ajvEnforced = new Ajv({
       strict: false,
       allErrors: true,
@@ -204,19 +206,38 @@ export class WorkflowValidator {
   }
 
   /**
+   * Resolve a source location for an error/warning path.
+   * Returns undefined if no map is available or the path is not registered.
+   */
+  private resolveLocation(
+    locationMap: YAMLLocationMap | undefined,
+    path: string
+  ): { line: number; column: number } | undefined {
+    if (!locationMap) return undefined;
+    try {
+      return locationMap.lookup(path);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
    * Convert Ajv errors to warning entries (no schemaPath).
    */
   private addAjvWarnings(
     ajvErrors: ErrorObject[] | null | undefined,
     basePath: string,
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     if (!ajvErrors) return;
     for (const error of ajvErrors) {
+      const warningPath = `${basePath}${error.instancePath}`;
       warnings.push({
         type: 'schema_violation',
-        path: `${basePath}${error.instancePath}`,
-        message: this.schemaMessage(error)
+        path: warningPath,
+        message: this.schemaMessage(error),
+        location: this.resolveLocation(locationMap, warningPath)
       });
     }
   }
@@ -259,24 +280,30 @@ export class WorkflowValidator {
       // Read and parse YAML
       const content = fs.readFileSync(filePath, 'utf-8');
       let workflowData: YAMLWorkflow;
+      let locationMap: YAMLLocationMap | undefined;
 
       try {
-        workflowData = YAML.parse(content) as YAMLWorkflow;
+        const doc = YAML.parseDocument(content);
+        workflowData = doc.toJS() as YAMLWorkflow;
+        locationMap = buildLocationMap(content);
       } catch (yamlError: any) {
         errors.push({
           type: 'yaml_syntax_error',
           path: filePath,
-          message: `YAML syntax error: ${yamlError.message}`
+          message: `YAML syntax error: ${yamlError.message}`,
+          location: yamlError.linePos && typeof yamlError.linePos === 'object'
+            ? { line: yamlError.linePos[0].line, column: yamlError.linePos[0].col }
+            : undefined
         });
         return this.createResult(filePath, errors, warnings);
       }
 
       // Validate workflow structure
-      this.validateWorkflowStructure(workflowData, errors, warnings, filePath);
+      this.validateWorkflowStructure(workflowData, errors, warnings, filePath, locationMap);
 
       // Validate inputs and variables
-      this.validateInputs(workflowData, errors);
-      this.validateVariables(workflowData, errors);
+      this.validateInputs(workflowData, errors, locationMap);
+      this.validateVariables(workflowData, errors, locationMap);
 
       // Validate against main workflow schema
       const enforce = this.options.schemaEnforcement;
@@ -286,24 +313,34 @@ export class WorkflowValidator {
           const validate = wfEntry ? this.ajvEnforced.getSchema(wfEntry.uri) : undefined;
           if (validate && !validate(workflowData)) {
             if (enforce === 'error') {
-              this.addAjvErrors(validate.errors, '', errors, true);
+              this.addAjvErrors(validate.errors, '', errors, true, locationMap);
             } else {
-              this.addAjvWarnings(validate.errors, '', warnings);
+              this.addAjvWarnings(validate.errors, '', warnings, locationMap);
             }
           }
         } catch (error: any) {
           const msg = `Schema enforcement skipped for workflow.json: ${error.message}`;
           if (enforce === 'error') {
-            errors.push({ type: 'schema_compile_error', path: '', message: msg });
+            errors.push({
+              type: 'schema_compile_error',
+              path: '',
+              message: msg,
+              location: this.resolveLocation(locationMap, '')
+            });
           } else {
-            warnings.push({ type: 'schema_compile_error', path: '', message: msg });
+            warnings.push({
+              type: 'schema_compile_error',
+              path: '',
+              message: msg,
+              location: this.resolveLocation(locationMap, '')
+            });
           }
         }
       } else {
         // Off path: unchanged (byte-for-byte).
         const validate = this.ajv.getSchema('workflow.json');
         if (validate && !validate(workflowData)) {
-          this.addAjvErrors(validate.errors, '', errors);
+          this.addAjvErrors(validate.errors, '', errors, false, locationMap);
         }
       }
 
@@ -311,11 +348,11 @@ export class WorkflowValidator {
 
       if (isFlowWorkflow) {
         // Validate Flow-specific sections
-        this.validateFlowWorkflow(workflowData, errors, warnings);
+        this.validateFlowWorkflow(workflowData, errors, warnings, locationMap);
       } else {
         // Validate activities recursively (standard workflows)
         if (workflowData.activities && Array.isArray(workflowData.activities)) {
-          this.validateActivities(workflowData.activities, 'activities', errors, warnings);
+          this.validateActivities(workflowData.activities, 'activities', errors, warnings, locationMap);
         }
       }
 
@@ -325,7 +362,8 @@ export class WorkflowValidator {
         'events',
         ['onWorkflowStarted', 'onWorkflowCompleted', 'onWorkflowExecuted', 'onWorkflowFailed'],
         errors,
-        warnings
+        warnings,
+        locationMap
       );
 
       // Warn on deprecated onWorkflowExecuted
@@ -333,7 +371,8 @@ export class WorkflowValidator {
         warnings.push({
           type: 'deprecated_property',
           path: 'events.onWorkflowExecuted',
-          message: 'Use "onWorkflowCompleted" instead of "onWorkflowExecuted"'
+          message: 'Use "onWorkflowCompleted" instead of "onWorkflowExecuted"',
+          location: this.resolveLocation(locationMap, 'events.onWorkflowExecuted')
         });
       }
 
@@ -362,14 +401,16 @@ export class WorkflowValidator {
     workflowData: YAMLWorkflow,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    filePath?: string
+    filePath?: string,
+    locationMap?: YAMLLocationMap
   ): void {
     // Check required top-level properties
     if (!workflowData.workflow) {
       errors.push({
         type: 'missing_property',
         path: 'workflow',
-        message: 'Missing required property: workflow'
+        message: 'Missing required property: workflow',
+        location: this.resolveLocation(locationMap, 'workflow')
       });
       return;
     }
@@ -381,7 +422,8 @@ export class WorkflowValidator {
         errors.push({
           type: 'missing_property',
           path: 'entity',
-          message: 'Missing required property: entity (required for Flow workflows)'
+          message: 'Missing required property: entity (required for Flow workflows)',
+          location: this.resolveLocation(locationMap, 'entity')
         });
       }
     } else {
@@ -389,7 +431,8 @@ export class WorkflowValidator {
         errors.push({
           type: 'missing_property',
           path: 'activities',
-          message: 'Missing required property: activities'
+          message: 'Missing required property: activities',
+          location: this.resolveLocation(locationMap, 'activities')
         });
       }
     }
@@ -400,7 +443,8 @@ export class WorkflowValidator {
       errors.push({
         type: 'missing_property',
         path: 'workflow.workflowId',
-        message: 'Missing required property: workflow.workflowId'
+        message: 'Missing required property: workflow.workflowId',
+        location: this.resolveLocation(locationMap, 'workflow.workflowId')
       });
     }
 
@@ -408,19 +452,21 @@ export class WorkflowValidator {
       errors.push({
         type: 'missing_property',
         path: 'workflow.name',
-        message: 'Missing required property: workflow.name'
+        message: 'Missing required property: workflow.name',
+        location: this.resolveLocation(locationMap, 'workflow.name')
       });
     }
 
     // Check for deprecated properties
-    this.checkDeprecatedProperties(workflow, 'workflow', warnings);
+    this.checkDeprecatedProperties(workflow, 'workflow', warnings, locationMap);
 
     // filePath / fileName deprecation and validation
     if (workflow.fileName && !workflow.filePath) {
       warnings.push({
         type: 'deprecated_property',
         path: 'workflow.fileName',
-        message: 'Use "filePath" instead of "fileName" in workflow section'
+        message: 'Use "filePath" instead of "fileName" in workflow section',
+        location: this.resolveLocation(locationMap, 'workflow.fileName')
       });
     }
 
@@ -432,7 +478,8 @@ export class WorkflowValidator {
         warnings.push({
           type: 'file_path_mismatch',
           path: 'workflow.filePath',
-          message: `Declared filePath "${normalizedDeclared}" does not match actual file path "${normalizedActual}"`
+          message: `Declared filePath "${normalizedDeclared}" does not match actual file path "${normalizedActual}"`,
+          location: this.resolveLocation(locationMap, 'workflow.filePath')
         });
       }
     }
@@ -445,7 +492,8 @@ export class WorkflowValidator {
    */
   private validateInputs(
     workflowData: YAMLWorkflow,
-    errors: ValidationError[]
+    errors: ValidationError[],
+    locationMap?: YAMLLocationMap
   ): void {
     const inputs = workflowData.inputs;
     if (!inputs || !Array.isArray(inputs)) return;
@@ -460,7 +508,8 @@ export class WorkflowValidator {
           errors.push({
             type: 'schema_violation',
             path: `${inputPath}.${field}`,
-            message: `Invalid top-level property '${field}'. Move it inside 'props'`
+            message: `Invalid top-level property '${field}'. Move it inside 'props'`,
+            location: this.resolveLocation(locationMap, `${inputPath}.${field}`)
           });
         }
       }
@@ -473,7 +522,8 @@ export class WorkflowValidator {
    */
   private validateVariables(
     workflowData: YAMLWorkflow,
-    errors: ValidationError[]
+    errors: ValidationError[],
+    locationMap?: YAMLLocationMap
   ): void {
     const variables = workflowData.variables;
     if (!variables || !Array.isArray(variables)) return;
@@ -485,7 +535,8 @@ export class WorkflowValidator {
         errors.push({
           type: 'schema_violation',
           path: `${varPath}.type`,
-          message: `Invalid property 'type' on variable. Variables only support 'name', 'value', and 'fromConfig'`
+          message: `Invalid property 'type' on variable. Variables only support 'name', 'value', and 'fromConfig'`,
+          location: this.resolveLocation(locationMap, `${varPath}.type`)
         });
       }
     });
@@ -498,11 +549,12 @@ export class WorkflowValidator {
     activities: any[],
     basePath: string,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     activities.forEach((activity, index) => {
       const activityPath = `${basePath}[${index}]`;
-      this.validateActivity(activity, activityPath, errors, warnings);
+      this.validateActivity(activity, activityPath, errors, warnings, locationMap);
     });
   }
 
@@ -513,13 +565,15 @@ export class WorkflowValidator {
     activity: any,
     activityPath: string,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     if (!activity || typeof activity !== 'object') {
       errors.push({
         type: 'invalid_activity',
         path: activityPath,
-        message: 'Activity must be an object'
+        message: 'Activity must be an object',
+        location: this.resolveLocation(locationMap, activityPath)
       });
       return;
     }
@@ -529,7 +583,8 @@ export class WorkflowValidator {
       errors.push({
         type: 'missing_property',
         path: `${activityPath}.name`,
-        message: 'Activity must have a name property'
+        message: 'Activity must have a name property',
+        location: this.resolveLocation(locationMap, `${activityPath}.name`)
       });
     }
 
@@ -537,7 +592,8 @@ export class WorkflowValidator {
       errors.push({
         type: 'missing_property',
         path: `${activityPath}.steps`,
-        message: 'Activity must have a steps array'
+        message: 'Activity must have a steps array',
+        location: this.resolveLocation(locationMap, `${activityPath}.steps`)
       });
       return;
     }
@@ -545,7 +601,7 @@ export class WorkflowValidator {
     // Validate each step
     activity.steps.forEach((step: any, stepIndex: number) => {
       const stepPath = `${activityPath}.steps[${stepIndex}]`;
-      this.validateStep(step, stepPath, errors, warnings);
+      this.validateStep(step, stepPath, errors, warnings, locationMap);
     });
 
     // Validate activity-level event handler steps
@@ -554,7 +610,8 @@ export class WorkflowValidator {
       `${activityPath}.events`,
       ['onActivityStarted', 'onActivityCompleted', 'onActivityFailed'],
       errors,
-      warnings
+      warnings,
+      locationMap
     );
   }
 
@@ -566,7 +623,8 @@ export class WorkflowValidator {
     basePath: string,
     eventNames: string[],
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     if (!events || typeof events !== 'object' || Array.isArray(events)) return;
 
@@ -574,7 +632,7 @@ export class WorkflowValidator {
       const steps = events[eventName];
       if (steps && Array.isArray(steps)) {
         steps.forEach((step: any, index: number) => {
-          this.validateStep(step, `${basePath}.${eventName}[${index}]`, errors, warnings);
+          this.validateStep(step, `${basePath}.${eventName}[${index}]`, errors, warnings, locationMap);
         });
       }
     }
@@ -587,13 +645,15 @@ export class WorkflowValidator {
     step: any,
     stepPath: string,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     if (!step || typeof step !== 'object') {
       errors.push({
         type: 'schema_violation',
         path: stepPath,
-        message: 'Step must be an object'
+        message: 'Step must be an object',
+        location: this.resolveLocation(locationMap, stepPath)
       });
       return;
     }
@@ -603,16 +663,17 @@ export class WorkflowValidator {
       errors.push({
         type: 'missing_property',
         path: `${stepPath}.task`,
-        message: 'Step must have a task property'
+        message: 'Step must have a task property',
+        location: this.resolveLocation(locationMap, `${stepPath}.task`)
       });
       return;
     }
 
     // Required-input presence check (schemaEnforcement warn/error only).
-    this.validateRequiredInputs(step, stepPath, errors, warnings);
+    this.validateRequiredInputs(step, stepPath, errors, warnings, locationMap);
 
     // Validate nested structures (foreach, switch, while)
-    this.validateNestedSteps(step, stepPath, errors, warnings);
+    this.validateNestedSteps(step, stepPath, errors, warnings, locationMap);
   }
 
   /**
@@ -627,7 +688,8 @@ export class WorkflowValidator {
     step: any,
     stepPath: string,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     const enforce = this.options.schemaEnforcement;
     if (enforce !== 'warn' && enforce !== 'error') return;
@@ -644,9 +706,19 @@ export class WorkflowValidator {
         const message = `Task '${step.task.split('@')[0]}' is missing required input '${key}'`;
         const entryPath = `${stepPath}.inputs.${key}`;
         if (enforce === 'error') {
-          errors.push({ type: 'schema_violation', path: entryPath, message });
+          errors.push({
+            type: 'schema_violation',
+            path: entryPath,
+            message,
+            location: this.resolveLocation(locationMap, entryPath)
+          });
         } else {
-          warnings.push({ type: 'schema_violation', path: entryPath, message });
+          warnings.push({
+            type: 'schema_violation',
+            path: entryPath,
+            message,
+            location: this.resolveLocation(locationMap, entryPath)
+          });
         }
       }
     }
@@ -659,7 +731,8 @@ export class WorkflowValidator {
     step: any,
     stepPath: string,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     const taskType = step.task;
 
@@ -667,7 +740,7 @@ export class WorkflowValidator {
     if (taskType === 'foreach') {
       if (step.steps && Array.isArray(step.steps)) {
         step.steps.forEach((nestedStep: any, index: number) => {
-          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings);
+          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings, locationMap);
         });
       }
     }
@@ -682,7 +755,8 @@ export class WorkflowValidator {
                 nestedStep,
                 `${stepPath}.cases[${caseIndex}].steps[${stepIndex}]`,
                 errors,
-                warnings
+                warnings,
+                locationMap
               );
             });
           }
@@ -690,7 +764,7 @@ export class WorkflowValidator {
       }
       if (step.default && step.default.steps && Array.isArray(step.default.steps)) {
         step.default.steps.forEach((nestedStep: any, index: number) => {
-          this.validateStep(nestedStep, `${stepPath}.default.steps[${index}]`, errors, warnings);
+          this.validateStep(nestedStep, `${stepPath}.default.steps[${index}]`, errors, warnings, locationMap);
         });
       }
     }
@@ -699,7 +773,7 @@ export class WorkflowValidator {
     if (taskType === 'while') {
       if (step.steps && Array.isArray(step.steps)) {
         step.steps.forEach((nestedStep: any, index: number) => {
-          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings);
+          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings, locationMap);
         });
       }
     }
@@ -711,12 +785,13 @@ export class WorkflowValidator {
   private validateFlowWorkflow(
     workflowData: YAMLWorkflow,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
-    this.validateFlowEntity(workflowData, errors);
-    const stateNames = this.validateFlowStates(workflowData, errors, warnings);
-    this.validateFlowTransitions(workflowData, stateNames, errors, warnings);
-    this.validateFlowAggregations(workflowData, errors);
+    this.validateFlowEntity(workflowData, errors, locationMap);
+    const stateNames = this.validateFlowStates(workflowData, errors, warnings, locationMap);
+    this.validateFlowTransitions(workflowData, stateNames, errors, warnings, locationMap);
+    this.validateFlowAggregations(workflowData, errors, locationMap);
   }
 
   /**
@@ -724,7 +799,8 @@ export class WorkflowValidator {
    */
   private validateFlowEntity(
     workflowData: YAMLWorkflow,
-    errors: ValidationError[]
+    errors: ValidationError[],
+    locationMap?: YAMLLocationMap
   ): void {
     const entity = workflowData.entity;
     if (!entity) return;
@@ -733,7 +809,8 @@ export class WorkflowValidator {
       errors.push({
         type: 'missing_property',
         path: 'entity.name',
-        message: 'Entity name is required for Flow workflows'
+        message: 'Entity name is required for Flow workflows',
+        location: this.resolveLocation(locationMap, 'entity.name')
       });
     }
   }
@@ -744,7 +821,8 @@ export class WorkflowValidator {
   private validateFlowStates(
     workflowData: YAMLWorkflow,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): Set<string> {
     const stateNames = new Set<string>();
     const states = workflowData.states;
@@ -767,7 +845,8 @@ export class WorkflowValidator {
         errors.push({
           type: 'missing_property',
           path: `${statePath}.name`,
-          message: 'State name is required'
+          message: 'State name is required',
+          location: this.resolveLocation(locationMap, `${statePath}.name`)
         });
         return;
       }
@@ -780,7 +859,8 @@ export class WorkflowValidator {
         errors.push({
           type: 'schema_violation',
           path: `${statePath}.name`,
-          message: `Duplicate state name '${state.name}'`
+          message: `Duplicate state name '${state.name}'`,
+          location: this.resolveLocation(locationMap, `${statePath}.name`)
         });
       }
 
@@ -791,19 +871,20 @@ export class WorkflowValidator {
         errors.push({
           type: 'schema_violation',
           path: `${statePath}.parent`,
-          message: `Parent state '${state.parent}' not found`
+          message: `Parent state '${state.parent}' not found`,
+          location: this.resolveLocation(locationMap, `${statePath}.parent`)
         });
       }
 
       // Validate onEnter/onExit steps
       if (state.onEnter && Array.isArray(state.onEnter)) {
         state.onEnter.forEach((step: any, stepIndex: number) => {
-          this.validateStep(step, `${statePath}.onEnter[${stepIndex}]`, errors, warnings);
+          this.validateStep(step, `${statePath}.onEnter[${stepIndex}]`, errors, warnings, locationMap);
         });
       }
       if (state.onExit && Array.isArray(state.onExit)) {
         state.onExit.forEach((step: any, stepIndex: number) => {
-          this.validateStep(step, `${statePath}.onExit[${stepIndex}]`, errors, warnings);
+          this.validateStep(step, `${statePath}.onExit[${stepIndex}]`, errors, warnings, locationMap);
         });
       }
     });
@@ -812,7 +893,8 @@ export class WorkflowValidator {
       errors.push({
         type: 'schema_violation',
         path: 'states',
-        message: `Found ${initialStateCount} initial states. At most one state can be marked as initial.`
+        message: `Found ${initialStateCount} initial states. At most one state can be marked as initial.`,
+        location: this.resolveLocation(locationMap, 'states')
       });
     }
 
@@ -826,7 +908,8 @@ export class WorkflowValidator {
     workflowData: YAMLWorkflow,
     stateNames: Set<string>,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     const transitions = workflowData.transitions;
     if (!transitions || !Array.isArray(transitions)) return;
@@ -840,13 +923,15 @@ export class WorkflowValidator {
         errors.push({
           type: 'missing_property',
           path: `${transPath}.name`,
-          message: 'Transition name is required'
+          message: 'Transition name is required',
+          location: this.resolveLocation(locationMap, `${transPath}.name`)
         });
       } else if (transitionNames.has(transition.name.toLowerCase())) {
         errors.push({
           type: 'schema_violation',
           path: `${transPath}.name`,
-          message: `Duplicate transition name '${transition.name}'`
+          message: `Duplicate transition name '${transition.name}'`,
+          location: this.resolveLocation(locationMap, `${transPath}.name`)
         });
       } else {
         transitionNames.add(transition.name.toLowerCase());
@@ -860,7 +945,8 @@ export class WorkflowValidator {
             errors.push({
               type: 'schema_violation',
               path: `${transPath}.from`,
-              message: `Source state '${fromState}' not found in states`
+              message: `Source state '${fromState}' not found in states`,
+              location: this.resolveLocation(locationMap, `${transPath}.from`)
             });
           }
         }
@@ -871,7 +957,8 @@ export class WorkflowValidator {
         errors.push({
           type: 'schema_violation',
           path: `${transPath}.to`,
-          message: `Target state '${transition.to}' not found in states`
+          message: `Target state '${transition.to}' not found in states`,
+          location: this.resolveLocation(locationMap, `${transPath}.to`)
         });
       }
 
@@ -881,7 +968,8 @@ export class WorkflowValidator {
         errors.push({
           type: 'schema_violation',
           path: `${transPath}.trigger`,
-          message: `Invalid trigger '${transition.trigger}'. Valid triggers: ${validTriggers.join(', ')}`
+          message: `Invalid trigger '${transition.trigger}'. Valid triggers: ${validTriggers.join(', ')}`,
+          location: this.resolveLocation(locationMap, `${transPath}.trigger`)
         });
       }
 
@@ -890,14 +978,15 @@ export class WorkflowValidator {
         errors.push({
           type: 'missing_property',
           path: `${transPath}.eventName`,
-          message: "eventName is required when trigger is 'event'"
+          message: "eventName is required when trigger is 'event'",
+          location: this.resolveLocation(locationMap, `${transPath}.eventName`)
         });
       }
 
       // Validate transition steps
       if (transition.steps && Array.isArray(transition.steps)) {
         transition.steps.forEach((step: any, stepIndex: number) => {
-          this.validateStep(step, `${transPath}.steps[${stepIndex}]`, errors, warnings);
+          this.validateStep(step, `${transPath}.steps[${stepIndex}]`, errors, warnings, locationMap);
         });
       }
     });
@@ -908,7 +997,8 @@ export class WorkflowValidator {
    */
   private validateFlowAggregations(
     workflowData: YAMLWorkflow,
-    errors: ValidationError[]
+    errors: ValidationError[],
+    locationMap?: YAMLLocationMap
   ): void {
     const aggregations = workflowData.aggregations;
     if (!aggregations || !Array.isArray(aggregations)) return;
@@ -923,13 +1013,15 @@ export class WorkflowValidator {
         errors.push({
           type: 'missing_property',
           path: `${aggPath}.name`,
-          message: 'Aggregation name is required'
+          message: 'Aggregation name is required',
+          location: this.resolveLocation(locationMap, `${aggPath}.name`)
         });
       } else if (aggregationNames.has(aggregation.name.toLowerCase())) {
         errors.push({
           type: 'schema_violation',
           path: `${aggPath}.name`,
-          message: `Duplicate aggregation name '${aggregation.name}'`
+          message: `Duplicate aggregation name '${aggregation.name}'`,
+          location: this.resolveLocation(locationMap, `${aggPath}.name`)
         });
       } else {
         aggregationNames.add(aggregation.name.toLowerCase());
@@ -939,7 +1031,8 @@ export class WorkflowValidator {
         errors.push({
           type: 'missing_property',
           path: `${aggPath}.expression`,
-          message: 'Aggregation expression is required'
+          message: 'Aggregation expression is required',
+          location: this.resolveLocation(locationMap, `${aggPath}.expression`)
         });
       } else {
         const fnMatch = aggregation.expression.match(/^(\w+)\s*\(/);
@@ -948,14 +1041,16 @@ export class WorkflowValidator {
             errors.push({
               type: 'schema_violation',
               path: `${aggPath}.expression`,
-              message: `Invalid aggregation function '${fnMatch[1]}'. Valid functions: ${validFunctions.join(', ')}`
+              message: `Invalid aggregation function '${fnMatch[1]}'. Valid functions: ${validFunctions.join(', ')}`,
+              location: this.resolveLocation(locationMap, `${aggPath}.expression`)
             });
           }
         } else {
           errors.push({
             type: 'schema_violation',
             path: `${aggPath}.expression`,
-            message: 'Aggregation expression must start with a function call'
+            message: 'Aggregation expression must start with a function call',
+            location: this.resolveLocation(locationMap, `${aggPath}.expression`)
           });
         }
       }
@@ -969,17 +1064,20 @@ export class WorkflowValidator {
     ajvErrors: ErrorObject[] | null | undefined,
     basePath: string,
     errors: ValidationError[],
-    enrich = false
+    enrich = false,
+    locationMap?: YAMLLocationMap
   ): void {
     if (!ajvErrors) return;
 
     for (const error of ajvErrors) {
       const errorPath = basePath ? `${basePath}${error.instancePath}` : error.instancePath.slice(1);
+      const finalPath = errorPath || '/';
       errors.push({
         type: 'schema_violation',
-        path: errorPath || '/',
+        path: finalPath,
         message: enrich ? this.schemaMessage(error) : (error.message || 'Schema validation failed'),
-        schemaPath: error.schemaPath
+        schemaPath: error.schemaPath,
+        location: this.resolveLocation(locationMap, finalPath)
       });
     }
   }
@@ -990,7 +1088,8 @@ export class WorkflowValidator {
   private checkDeprecatedProperties(
     obj: any,
     path: string,
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    locationMap?: YAMLLocationMap
   ): void {
     const deprecations: Record<string, string> = {
       // Add deprecated workflow properties here as needed
@@ -1001,7 +1100,8 @@ export class WorkflowValidator {
         warnings.push({
           type: 'deprecated_property',
           path: `${path}.${oldProp}`,
-          message
+          message,
+          location: this.resolveLocation(locationMap, `${path}.${oldProp}`)
         });
       }
     }
