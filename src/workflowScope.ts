@@ -120,6 +120,75 @@ export function createGlobalScope(workflowData: any): ScopeContext {
         'customValues'
       ].forEach(name => globals.add(name));
     }
+
+    // OrderCommodity entity trigger injects order + commodity fields.
+    if (entityNames.has('ordercommodity')) {
+      [
+        'orderId',
+        'orderCommodityId',
+        'commodityId',
+        'orderNumber',
+        'orderTrackingNumber',
+        'orderOrganizationId',
+        'commodityDescription',
+        'commodityOrganizationId',
+        'commodityStatusId',
+        'commodityStatusName',
+        'commodityTypeId',
+        'commodityTypeDescription',
+        'commodityTypeCode',
+        'pieces',
+        'weight',
+        'weightTotal',
+        'weightUnit',
+        'length',
+        'width',
+        'height',
+        'dimensionsUnit',
+        'packageTypeId',
+        'packageTypeName',
+        'serialNumber',
+        'note',
+        'isDraft',
+        'created',
+        'createdBy',
+        'lastModified',
+        'lastModifiedBy',
+        'customValues'
+      ].forEach(name => globals.add(name));
+    }
+
+    // Commodity entity trigger injects commodity fields.
+    if (entityNames.has('commodity')) {
+      [
+        'commodityId',
+        'organizationId',
+        'description',
+        'note',
+        'serialNumber',
+        'commodityStatusId',
+        'commodityStatusName',
+        'commodityTypeId',
+        'commodityTypeCode',
+        'commodityTypeDescription',
+        'packageTypeId',
+        'packageTypeName',
+        'length',
+        'width',
+        'height',
+        'dimensionsUnit',
+        'weight',
+        'weightUnit',
+        'pieces',
+        'trackingNumber',
+        'isDraft',
+        'created',
+        'createdBy',
+        'lastModified',
+        'lastModifiedBy',
+        'customValues'
+      ].forEach(name => globals.add(name));
+    }
   }
 
   return { globals, loopVars: new Set<string>() };

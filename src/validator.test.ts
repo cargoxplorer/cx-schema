@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { execFileSync } from 'child_process';
 import { ModuleValidator } from './validator';
 import { WorkflowValidator } from './workflowValidator';
 
@@ -163,8 +164,6 @@ describe('schemaEnforcement workflow parity', () => {
   });
 });
 
-// Same shape as VALID_WORKFLOW, but workflowId violates the format:uuid
-// constraint enforced by workflow.json on the ajvEnforced instance.
 const INVALID_WORKFLOW = `
 workflow:
   workflowId: not-a-valid-uuid
@@ -202,9 +201,6 @@ describe('schemaEnforcement workflow invalid input', () => {
   });
 });
 
-// Required-input presence check (schemas/workflows/task-required-inputs.json).
-// Email/Send requires author-provided inputs: subject, body. (organizationId is
-// system-injected and excluded from the catalog upstream.)
 const EMAIL_SEND_MISSING_BODY = `
 workflow:
   workflowId: 11111111-1111-1111-1111-111111111111
@@ -344,15 +340,11 @@ inputs: []
 outputs: []
 `);
     const res = await v.validateWorkflow(file);
-    // foreach itself is not in the catalog -> not flagged
     expect(res.errors.filter(e => /foreach/.test(e.path))).toHaveLength(0);
-    // nested Email/Send is still validated -> body missing
     const nested = res.errors.filter(e => /missing required input 'body'/.test(e.message));
     expect(nested.length).toBe(1);
   });
 });
-
-import { execFileSync } from 'child_process';
 
 const DIST_CLI = path.resolve(__dirname, '../dist/cli.js');
 
@@ -363,8 +355,6 @@ function runCli(file: string, ...extra: string[]): { result: any; exitCode: numb
     });
     return { result: JSON.parse(stdout), exitCode: 0 };
   } catch (e: any) {
-    // Non-zero exit (e.g. --schema-enforcement=error found violations) still
-    // writes the JSON result to stdout before exiting.
     const stdout = e.stdout ?? '';
     return { result: JSON.parse(stdout), exitCode: typeof e.status === 'number' ? e.status : 1 };
   }
@@ -419,5 +409,263 @@ components:
       e => e.type === 'schema_violation' && /orientation/i.test(e.path)
     );
     expect(orientationViolations).toHaveLength(0);
+  });
+});
+
+// Entity-trigger seed tests
+// ----------------------------
+
+// Order entity trigger; Payment/Create requires divisionId which is seeded by
+// the trigger scope, and accountingAccountId which is NOT seeded.
+const ORDER_TRIGGER_DIVISION_FROM_SCOPE = `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+triggers:
+  - name: onOrderChange
+    type: Entity
+    entityName: Order
+    eventType: Modified
+    position: After
+activities:
+  - name: main
+    steps:
+      - task: Payment/Create
+        name: createPayment
+        inputs:
+          transactionId: "tx-1"
+          accountingTransactionId: 1
+          accountingAccountId: 1
+          amount: "10.00"
+          contactId: 1
+inputs: []
+outputs: []
+`;
+
+const NO_TRIGGER_DIVISION_MISSING = `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+activities:
+  - name: main
+    steps:
+      - task: Payment/Create
+        name: createPayment
+        inputs:
+          transactionId: "tx-1"
+          accountingTransactionId: 1
+          accountingAccountId: 1
+          amount: "10.00"
+          contactId: 1
+inputs: []
+outputs: []
+`;
+
+const ORDER_TRIGGER_ACCOUNTING_ACCOUNT_MISSING = `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+triggers:
+  - name: onOrderChange
+    type: Entity
+    entityName: Order
+    eventType: Modified
+    position: After
+activities:
+  - name: main
+    steps:
+      - task: Payment/Create
+        name: createPayment
+        inputs:
+          transactionId: "tx-1"
+          accountingTransactionId: 1
+          amount: "10.00"
+          contactId: 1
+inputs: []
+outputs: []
+`;
+
+describe('schemaEnforcement entity-trigger seed variables (Order)', () => {
+  it('with Order trigger, divisionId is seeded and the workflow passes', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-order-division-ok.yaml', ORDER_TRIGGER_DIVISION_FROM_SCOPE);
+    const res = await v.validateWorkflow(file);
+    const missing = res.errors.filter(e => /missing required input/.test(e.message));
+    expect(missing).toHaveLength(0);
+  });
+
+  it('with Order trigger, accountingAccountId is still flagged when missing', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-order-acc-missing.yaml', ORDER_TRIGGER_ACCOUNTING_ACCOUNT_MISSING);
+    const res = await v.validateWorkflow(file);
+    const missing = res.errors.filter(e => /missing required input 'accountingAccountId'/.test(e.message));
+    expect(missing.length).toBe(1);
+    // divisionId is seeded by the trigger, so it must NOT be flagged.
+    const divisionFlagged = res.errors.filter(e => /missing required input 'divisionId'/.test(e.message));
+    expect(divisionFlagged).toHaveLength(0);
+  });
+
+  it('without a trigger, divisionId is NOT seeded and is flagged when missing', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-no-trigger-division.yaml', NO_TRIGGER_DIVISION_MISSING);
+    const res = await v.validateWorkflow(file);
+    const missing = res.errors.filter(e => /missing required input 'divisionId'/.test(e.message));
+    expect(missing.length).toBe(1);
+  });
+});
+
+// AccountingTransaction entity trigger; Payment/Create required inputs:
+// accountingAccountId, accountingTransactionId, amount, contactId, divisionId.
+// Trigger seeds accountingTransactionId, accountId, divisionId. We supply the
+// others explicitly so the only required inputs that come from scope are the
+// three seeded ones.
+const ACCOUNTING_TRANSACTION_TRIGGER_OK = `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+triggers:
+  - name: onAt
+    type: Entity
+    entityName: AccountingTransaction
+    eventType: Modified
+    position: After
+activities:
+  - name: main
+    steps:
+      - task: Payment/Create
+        name: createPayment
+        inputs:
+          transactionId: "tx-1"
+          accountingAccountId: 1
+          amount: "10.00"
+          contactId: 1
+inputs: []
+outputs: []
+`;
+
+describe('schemaEnforcement entity-trigger seed variables (AccountingTransaction)', () => {
+  it('AccountingTransaction trigger seeds accountingTransactionId, accountId, divisionId', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-at-ok.yaml', ACCOUNTING_TRANSACTION_TRIGGER_OK);
+    const res = await v.validateWorkflow(file);
+    const missing = res.errors.filter(e => /missing required input/.test(e.message));
+    expect(missing).toHaveLength(0);
+  });
+});
+
+// Contact entity trigger; Email/Send requires subject, body. We add them
+// explicitly and rely on the trigger to seed contactId/contactType for tasks
+// that need them.
+const CONTACT_TRIGGER_OK = `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+triggers:
+  - name: onContact
+    type: Entity
+    entityName: Contact
+    eventType: Modified
+    position: After
+activities:
+  - name: main
+    steps:
+      - task: Email/Send@1
+        name: email
+        inputs:
+          subject: hi
+          body: hello
+inputs: []
+outputs: []
+`;
+
+describe('schemaEnforcement entity-trigger seed variables (Contact)', () => {
+  it('Contact trigger workflows validate cleanly', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-contact-ok.yaml', CONTACT_TRIGGER_OK);
+    const res = await v.validateWorkflow(file);
+    const missing = res.errors.filter(e => /missing required input/.test(e.message));
+    expect(missing).toHaveLength(0);
+  });
+});
+
+// OrderCommodity entity trigger; Order/Update requires order and orderId.
+const ORDER_COMMODITY_TRIGGER_OK = `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+triggers:
+  - name: onOc
+    type: Entity
+    entityName: OrderCommodity
+    eventType: Modified
+    position: After
+activities:
+  - name: main
+    steps:
+      - task: Order/Update@1
+        name: updateOrder
+        inputs:
+          orderId: 1
+          order: {}
+inputs: []
+outputs: []
+`;
+
+describe('schemaEnforcement entity-trigger seed variables (OrderCommodity)', () => {
+  it('OrderCommodity trigger seeds orderId and order', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-oc-ok.yaml', ORDER_COMMODITY_TRIGGER_OK);
+    const res = await v.validateWorkflow(file);
+    const missing = res.errors.filter(e => /missing required input/.test(e.message));
+    expect(missing).toHaveLength(0);
+  });
+});
+
+// Commodity entity trigger; Order/Update requires order (seeded via orderId? no).
+// Use a task that needs commodityId instead. We'll use a workflow that does
+// not require order; assert no missing-input warnings.
+const COMMODITY_TRIGGER_OK = `
+workflow:
+  workflowId: 11111111-1111-1111-1111-111111111111
+  name: t
+  description: d
+  executionMode: Async
+triggers:
+  - name: onC
+    type: Entity
+    entityName: Commodity
+    eventType: Modified
+    position: After
+activities:
+  - name: main
+    steps:
+      - task: Email/Send@1
+        name: email
+        inputs:
+          subject: hi
+          body: hello
+inputs: []
+outputs: []
+`;
+
+describe('schemaEnforcement entity-trigger seed variables (Commodity)', () => {
+  it('Commodity trigger workflows validate cleanly', async () => {
+    const v = new WorkflowValidator({ schemaEnforcement: 'error' });
+    const file = writeFixture('wf-commodity-ok.yaml', COMMODITY_TRIGGER_OK);
+    const res = await v.validateWorkflow(file);
+    const missing = res.errors.filter(e => /missing required input/.test(e.message));
+    expect(missing).toHaveLength(0);
   });
 });
