@@ -4646,7 +4646,7 @@ function printResultPretty(
 
   // Header
   console.log('\n' + chalk.bold.cyan('╔═══════════════════════════════════════════════════════════════════╗'));
-  console.log(chalk.bold.cyan('║') + chalk.bold.white('                  CX SCHEMA VALIDATION REPORT                     ') + chalk.bold.cyan('║'));
+  console.log(chalk.bold.cyan('║') + chalk.bold.white('                  CX SCHEMA VALIDATION REPORT                      ') + chalk.bold.cyan('║'));
   console.log(chalk.bold.cyan('╚═══════════════════════════════════════════════════════════════════╝\n'));
 
   // Summary
