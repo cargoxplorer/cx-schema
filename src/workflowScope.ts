@@ -42,6 +42,17 @@ export function createGlobalScope(workflowData: any): ScopeContext {
       'trackedEntity',
       'entityType'
     ].forEach(name => globals.add(name));
+
+    // Order and AccountingTransaction entity triggers also inject DivisionId.
+    // Variable lookup is case-insensitive, so it satisfies 'divisionId'.
+    const entityNames = new Set(
+      triggers
+        .filter((t: any) => t && t.type === 'Entity' && typeof t.entityName === 'string')
+        .map((t: any) => t.entityName.toLowerCase())
+    );
+    if (entityNames.has('order') || entityNames.has('accountingtransaction')) {
+      globals.add('divisionId');
+    }
   }
 
   return { globals, loopVars: new Set<string>() };
