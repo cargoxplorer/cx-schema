@@ -736,21 +736,24 @@ export class WorkflowValidator {
       const missingFromStep = !inputs || !(key in inputs);
       const providedByScope = available.has(key);
       if (missingFromStep && !providedByScope) {
-        const message = `Task '${step.task.split('@')[0]}' is missing required input '${key}'`;
+        const taskName = step.task.split('@')[0];
+        const message = `Task '${taskName}' is missing required input '${key}'`;
         const entryPath = `${stepPath}.inputs.${key}`;
+        const inputsPath = `${stepPath}.inputs`;
+        const location = this.resolveLocation(locationMap, entryPath) ?? this.resolveLocation(locationMap, inputsPath);
         if (enforce === 'error') {
           errors.push({
             type: 'missing_required_input',
             path: entryPath,
             message,
-            location: this.resolveLocation(locationMap, entryPath)
+            location
           });
         } else {
           warnings.push({
             type: 'missing_required_input',
             path: entryPath,
             message,
-            location: this.resolveLocation(locationMap, entryPath)
+            location
           });
         }
       }
