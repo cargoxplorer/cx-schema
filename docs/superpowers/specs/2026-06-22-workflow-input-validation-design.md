@@ -10,8 +10,6 @@ Extend the `WorkflowValidator` in `cx-schema` so that, when `--schema-enforcemen
 - directly in `step.inputs`, or
 - by an in-scope variable (global, activity, control-flow loop, or `SetVariable`).
 
-It should also emit lightweight warnings when a step input value, condition, or output mapping references a variable that is not known to be in scope.
-
 Validation without the flag must remain unchanged.
 
 ## 2. Background
@@ -23,7 +21,6 @@ What it does **not** do:
 - recognize variables introduced by `workflow.variables`, `activity.variables`, or `Utilities/SetVariable`
 - recognize loop variables inside `foreach` / `while`
 - track step outputs as available dotted paths (`ActivityName.StepName.outputName`)
-- warn when a value references an undefined variable root
 
 This design closes those gaps without attempting full template evaluation or branch-correctness proofs.
 
@@ -32,7 +29,6 @@ This design closes those gaps without attempting full template evaluation or bra
 In scope:
 
 - Required-key presence check extended to all known in-scope variable sources.
-- Basic reference scanning inside step input values, conditions, and output mappings.
 - Control-flow scope: `foreach` / `while` loop vars, `switch` cases not leaking branch-local vars.
 - Respects `--schema-enforcement=warn` vs `--schema-enforcement=error`.
 
@@ -51,9 +47,8 @@ Validation will carry a small immutable-ish context object through the walk:
 
 ```ts
 interface ScopeContext {
-  globals: Set<string>;       // top-level names known so far
-  nestedPaths: Set<string>;   // ActivityName.StepName.outputName paths
-  loopVars: Set<string>;      // item, index, iteration, etc.
+  globals: Set<string>;   // top-level names known so far
+  loopVars: Set<string>;  // item, index, iteration, etc.
 }
 ```
 
@@ -69,13 +64,14 @@ The following names are added to scope as validation walks the document:
 | `workflow.variables[*].name` | variable name | global |
 | activity `variables[*].name` | variable name | activity-local copy of globals |
 | `Utilities/SetVariable` `inputs.variables[*].name` | variable name | global (mutates the running scope) |
-| step `outputs[*].name` | `activityName.stepName.outputName` | nestedPaths |
 | `foreach` | `item` (or custom name) + `index` | loopVars for nested steps |
 | `while` | `iteration` | loopVars for nested steps |
 
 Trigger-specific globals (e.g., `entity`, `entityId`, `eventType`, `changes` for entity triggers) are seeded based on the workflow's declared trigger types.
 
 System-injected variables (`organizationId`, `workflowId`, `currentUserId`, …) are already excluded from the required-input catalog, so they do not need special handling for the presence check. They may be added to the scope for completeness.
+
+Ordinary task outputs are stored under `ActivityName.StepName.outputName` and are **not** treated as top-level globals for required-key checks.
 
 ### 4.3 Required-input check
 
@@ -89,32 +85,17 @@ if (!providedLocally && !providedByScope) {
 }
 ```
 
-`nestedPaths` is not used here because required keys are top-level input keys, not dotted paths.
-
-### 4.4 Reference scanning
-
-A lightweight scanner extracts root variable names from:
-
-- string templates: `{{foo.bar}}` → `foo`
-- NCalc conditions/expressions: `[foo] == 1` → `foo`
-- mapping object roots: `foreach`, `extends`, `switch.expression`, `coalesce` items, `resolve.filter`, `expression`
-
-For each referenced root `r`, if `r` is not in `ctx.globals || ctx.loopVars || ctx.nestedPaths`, emit an `undefined_variable_reference` warning/error.
-
-The scanner is intentionally shallow. It does not evaluate expressions or follow nested template resolution.
-
-### 4.5 Control-flow handling
+### 4.4 Control-flow handling
 
 - **`foreach` / `while`**: nested steps receive a scope copy with loop vars added. Variables set inside the loop body are merged back into the parent scope optimistically (matching the runtime, which writes loop outputs back to `activityVariables`).
 - **`switch`**: each case receives a copy of the pre-switch scope. Variables set inside a case are **not** merged into the post-switch scope, because only one case runs at runtime.
 - **Activity / workflow event handlers**: validated with the scope that exists at the point they would run (`onActivityStarted` before steps, `onActivityCompleted`/`onActivityFailed` after steps).
 
-### 4.6 Error reporting
+### 4.5 Error reporting
 
-Two new validation types:
+New validation type:
 
 - `missing_required_input` — required key not in `step.inputs` and not in scope.
-- `undefined_variable_reference` — referenced root not in scope.
 
 Severity is controlled by `schemaEnforcement`:
 
@@ -131,10 +112,9 @@ There is no automated test suite in `cx-schema`. Verification is manual:
 1. Create workflow YAMLs covering:
    - missing required input satisfied by workflow variable
    - missing required input satisfied by `SetVariable`
-   - undefined reference in a template
    - loop variable used inside and outside `foreach`
    - branch-local variable not leaking from `switch`
-   - output path reference (`ActivityName.StepName.outputName`)
+   - ordinary task outputs are not treated as top-level globals
 2. Run:
    - `npx cxtms <file.yaml>` — no new output
    - `npx cxtms <file.yaml> --schema-enforcement=warn` — expected warnings
@@ -146,14 +126,13 @@ There is no automated test suite in `cx-schema`. Verification is manual:
 | Option | Scope | Effort | Verdict |
 |---|---|---|---|
 | 1 — expand required-key presence only | globals + variables + SetVariable | 1–2 days | too limited |
-| 2 — track outputs/loops + basic reference lint (this design) | everything in §4 | 3–5 days | **selected** |
+| 2 — track variables + loops (this design) | everything in §4 | 3–5 days | **selected** |
 | 3 — branch-sensitive dataflow | definite/possible definitions per branch | 2–3 weeks | excessive false positives |
-| 4 — full value-level linter | deep parsing of all mapping objects | +1–1.5 weeks | overkill for first version |
+| 4 — full value-level linter | deep parsing of all mapping objects | +1–1.5 weeks | overkill for first version; can be added later |
 
 ## 7. Open questions
 
 - Should trigger-specific seed variables be inferred automatically from `workflow.triggers`, or should a fixed list be used? This design proposes inferring from declared triggers.
-- Should `undefined_variable_reference` be emitted for dotted paths that match `nestedPaths` but are referenced without the full prefix? This design keeps `nestedPaths` separate and only warns on exact root matches.
 
 ## 8. Files affected
 
