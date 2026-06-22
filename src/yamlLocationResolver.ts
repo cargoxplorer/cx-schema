@@ -18,6 +18,22 @@ export interface YAMLLocationMap {
   lookup(path: string): SourceLocation | undefined;
 }
 
+/**
+ * Resolve a source location for an error/warning path.
+ * Returns undefined if no map is available or the path is not registered.
+ */
+export function resolveLocation(
+  locationMap: YAMLLocationMap | undefined,
+  path: string
+): SourceLocation | undefined {
+  if (!locationMap) return undefined;
+  try {
+    return locationMap.lookup(path);
+  } catch {
+    return undefined;
+  }
+}
+
 export function normalizePath(path: string): string {
   // Accept JSON pointers (/foo/bar), dot-notation (foo.bar), and bracket notation (foo[0].bar)
   if (path.startsWith('/')) {

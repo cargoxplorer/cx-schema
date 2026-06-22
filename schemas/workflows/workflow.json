@@ -140,7 +140,7 @@
     },
     "activities": {
       "type": "array",
-      "description": "Workflow activities containing steps (required for standard workflows, not used in Flow workflows)",
+      "description": "Workflow activities containing steps (optional for standard workflows, required for PublicApi workflows, not used in Flow workflows)",
       "items": {
         "$ref": "activity.json"
       },
@@ -313,7 +313,7 @@
         }
       },
       "else": {
-        "required": ["workflow", "activities"]
+        "required": ["workflow"]
       }
     },
     {

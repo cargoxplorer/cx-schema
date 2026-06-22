@@ -2,12 +2,12 @@
  * Main module validator
  */
 
-import Ajv, { ErrorObject, ValidateFunction } from 'ajv';
+import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import * as fs from 'fs';
 import * as path from 'path';
 import YAML from 'yaml';
-import { buildLocationMap, normalizePath, YAMLLocationMap } from './yamlLocationResolver';
+import { buildLocationMap, resolveLocation, YAMLLocationMap } from './yamlLocationResolver';
 import {
   ValidationResult,
   ValidationError,
@@ -16,11 +16,9 @@ import {
   YAMLModule,
   SchemaEntry
 } from './types';
-import {
-  loadSchemas,
-  resolveSchemaRef,
-  extractExampleFromSchema
-} from './utils/schemaLoader';
+import { loadSchemas } from './utils/schemaLoader';
+import { normalizeFilePath } from './utils/pathUtils';
+import { addAjvErrors, addAjvWarnings } from './utils/validation';
 
 export class ModuleValidator {
   private ajv: Ajv;
@@ -183,29 +181,6 @@ export class ModuleValidator {
   }
 
   /**
-   * Normalize file path: forward slashes, strip leading ./
-   */
-  private normalizeFilePath(p: string): string {
-    return p.replace(/\\/g, '/').replace(/^\.\//, '');
-  }
-
-  /**
-   * Resolve a source location for an error/warning path.
-   * Returns undefined if no map is available or the path is not registered.
-   */
-  private resolveLocation(
-    locationMap: YAMLLocationMap | undefined,
-    path: string
-  ): { line: number; column: number } | undefined {
-    if (!locationMap) return undefined;
-    try {
-      return locationMap.lookup(path);
-    } catch {
-      return undefined;
-    }
-  }
-
-  /**
    * Validate top-level module structure
    */
   private validateModuleStructure(
@@ -221,7 +196,7 @@ export class ModuleValidator {
         type: 'missing_property',
         path: 'module',
         message: 'Missing required property: module',
-        location: this.resolveLocation(locationMap, 'module')
+        location: resolveLocation(locationMap, 'module')
       });
       return;
     }
@@ -233,7 +208,7 @@ export class ModuleValidator {
         type: 'missing_property',
         path: 'module.name',
         message: 'Missing required property: module.name',
-        location: this.resolveLocation(locationMap, 'module.name')
+        location: resolveLocation(locationMap, 'module.name')
       });
     }
 
@@ -242,7 +217,7 @@ export class ModuleValidator {
         type: 'missing_property',
         path: 'module.appModuleId',
         message: 'Missing required property: module.appModuleId',
-        location: this.resolveLocation(locationMap, 'module.appModuleId')
+        location: resolveLocation(locationMap, 'module.appModuleId')
       });
     }
 
@@ -251,7 +226,7 @@ export class ModuleValidator {
         type: 'missing_property',
         path: 'module.displayName',
         message: 'Missing required property: module.displayName',
-        location: this.resolveLocation(locationMap, 'module.displayName')
+        location: resolveLocation(locationMap, 'module.displayName')
       });
     }
 
@@ -261,20 +236,20 @@ export class ModuleValidator {
         type: 'deprecated_property',
         path: 'module.fileName',
         message: 'Use "filePath" instead of "fileName" in module section',
-        location: this.resolveLocation(locationMap, 'module.fileName')
+        location: resolveLocation(locationMap, 'module.fileName')
       });
     }
 
     const declaredPath = module.filePath ?? module.fileName;
     if (declaredPath && filePath) {
-      const normalizedActual = this.normalizeFilePath(filePath);
-      const normalizedDeclared = this.normalizeFilePath(declaredPath);
+      const normalizedActual = normalizeFilePath(filePath);
+      const normalizedDeclared = normalizeFilePath(declaredPath);
       if (!normalizedActual.endsWith(normalizedDeclared)) {
         warnings.push({
           type: 'file_path_mismatch',
           path: 'module.filePath',
           message: `Declared filePath "${normalizedDeclared}" does not match actual file path "${normalizedActual}"`,
-          location: this.resolveLocation(locationMap, 'module.filePath')
+          location: resolveLocation(locationMap, 'module.filePath')
         });
       }
     }
@@ -310,7 +285,7 @@ export class ModuleValidator {
         type: 'invalid_component',
         path: componentPath,
         message: 'Component must be an object',
-        location: this.resolveLocation(locationMap, componentPath)
+        location: resolveLocation(locationMap, componentPath)
       });
       return;
     }
@@ -321,7 +296,7 @@ export class ModuleValidator {
         type: 'missing_property',
         path: `${componentPath}.name`,
         message: 'Component must have a name property',
-        location: this.resolveLocation(locationMap, `${componentPath}.name`)
+        location: resolveLocation(locationMap, `${componentPath}.name`)
       });
     }
 
@@ -360,7 +335,7 @@ export class ModuleValidator {
         type: 'missing_property',
         path: `${componentPath}.component`,
         message: 'Component must have a component type',
-        location: this.resolveLocation(locationMap, `${componentPath}.component`)
+        location: resolveLocation(locationMap, `${componentPath}.component`)
       });
       return;
     }
@@ -377,9 +352,9 @@ export class ModuleValidator {
           const validate = this.ajvEnforced.getSchema(entry.uri);
           if (validate && !validate(component)) {
             if (enforce === 'error') {
-              this.addAjvErrors(validate.errors, componentPath, errors, true, locationMap);
+              addAjvErrors(validate.errors, componentPath, errors, true, locationMap);
             } else {
-              this.addAjvWarnings(validate.errors, componentPath, warnings, locationMap);
+              addAjvWarnings(validate.errors, componentPath, warnings, locationMap);
             }
           }
         } catch (error: any) {
@@ -390,14 +365,14 @@ export class ModuleValidator {
               type: 'schema_compile_error',
               path: componentPath,
               message: msg,
-              location: this.resolveLocation(locationMap, componentPath)
+              location: resolveLocation(locationMap, componentPath)
             });
           } else {
             warnings.push({
               type: 'schema_compile_error',
               path: componentPath,
               message: msg,
-              location: this.resolveLocation(locationMap, componentPath)
+              location: resolveLocation(locationMap, componentPath)
             });
           }
         }
@@ -408,7 +383,7 @@ export class ModuleValidator {
       try {
         const validate = this.ajv.getSchema(schemaKey);
         if (validate && !validate(component)) {
-          this.addAjvErrors(validate.errors, componentPath, errors, false, locationMap);
+          addAjvErrors(validate.errors, componentPath, errors, false, locationMap);
         }
       } catch (error) {
         // Schema not found or validation error
@@ -469,70 +444,6 @@ export class ModuleValidator {
   }
 
   /**
-   * Convert Ajv errors to our error format
-   */
-  private addAjvErrors(
-    ajvErrors: ErrorObject[] | null | undefined,
-    basePath: string,
-    errors: ValidationError[],
-    enrich = false,
-    locationMap?: YAMLLocationMap
-  ): void {
-    if (!ajvErrors) return;
-
-    for (const error of ajvErrors) {
-      const errorPath = normalizePath(`${basePath}${error.instancePath}`);
-      errors.push({
-        type: 'schema_violation',
-        path: errorPath,
-        message: enrich ? this.schemaMessage(error) : (error.message || 'Schema validation failed'),
-        schemaPath: error.schemaPath,
-        location: this.resolveLocation(locationMap, errorPath)
-      });
-    }
-  }
-
-  /**
-   * Convert Ajv errors to warning entries (no schemaPath). Always enriched —
-   * addAjvWarnings is only called from the enforced (warn) path.
-   */
-  private addAjvWarnings(
-    ajvErrors: ErrorObject[] | null | undefined,
-    basePath: string,
-    warnings: ValidationWarning[],
-    locationMap?: YAMLLocationMap
-  ): void {
-    if (!ajvErrors) return;
-    for (const error of ajvErrors) {
-      const warningPath = normalizePath(`${basePath}${error.instancePath}`);
-      warnings.push({
-        type: 'schema_violation',
-        path: warningPath,
-        message: this.schemaMessage(error),
-        location: this.resolveLocation(locationMap, warningPath)
-      });
-    }
-  }
-
-  /**
-   * Build a human-readable schema message, enriched with the offending property
-   * name (additionalProperties) or allowed values (enum) when Ajv carries them
-   * in error.params. Without this, "must NOT have additional properties" gives
-   * no clue which property, and enum errors omit the allowed values.
-   */
-  private schemaMessage(error: ErrorObject): string {
-    const base = error.message || 'Schema validation failed';
-    const p = error.params as any;
-    if (p && p.additionalProperty) {
-      return `${base} (property: ${p.additionalProperty})`;
-    }
-    if (p && Array.isArray(p.allowedValues)) {
-      return `${base} (allowed: ${p.allowedValues.join(', ')})`;
-    }
-    return base;
-  }
-
-  /**
    * Validate routes array
    */
   private validateRoutes(
@@ -548,7 +459,7 @@ export class ModuleValidator {
           type: 'missing_property',
           path: `${routePath}.path`,
           message: 'Route must have a path property',
-          location: this.resolveLocation(locationMap, `${routePath}.path`)
+          location: resolveLocation(locationMap, `${routePath}.path`)
         });
       }
       if (!route.component) {
@@ -556,7 +467,7 @@ export class ModuleValidator {
           type: 'missing_property',
           path: `${routePath}.component`,
           message: 'Route must have a component property',
-          location: this.resolveLocation(locationMap, `${routePath}.component`)
+          location: resolveLocation(locationMap, `${routePath}.component`)
         });
       }
     });
@@ -578,7 +489,7 @@ export class ModuleValidator {
           type: 'missing_property',
           path: `${entityPath}.name`,
           message: 'Entity must have a name property',
-          location: this.resolveLocation(locationMap, `${entityPath}.name`)
+          location: resolveLocation(locationMap, `${entityPath}.name`)
         });
       }
     });
@@ -600,7 +511,7 @@ export class ModuleValidator {
           type: 'missing_property',
           path: `${configPath}.configName`,
           message: 'Configuration must have a configName property',
-          location: this.resolveLocation(locationMap, `${configPath}.configName`)
+          location: resolveLocation(locationMap, `${configPath}.configName`)
         });
       }
       if (!config.component) {
@@ -608,7 +519,7 @@ export class ModuleValidator {
           type: 'missing_property',
           path: `${configPath}.component`,
           message: 'Configuration must have a component property',
-          location: this.resolveLocation(locationMap, `${configPath}.component`)
+          location: resolveLocation(locationMap, `${configPath}.component`)
         });
       }
     });
@@ -634,7 +545,7 @@ export class ModuleValidator {
           type: 'deprecated_property',
           path: `${path}.${oldProp}`,
           message,
-          location: this.resolveLocation(locationMap, `${path}.${oldProp}`)
+          location: resolveLocation(locationMap, `${path}.${oldProp}`)
         });
       }
     }
