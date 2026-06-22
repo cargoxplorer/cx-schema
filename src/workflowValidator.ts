@@ -17,6 +17,16 @@ import {
   YAMLWorkflow,
   SchemaEntry
 } from './types';
+import {
+  ScopeContext,
+  createGlobalScope,
+  addActivityVariables,
+  addSetVariableOutputs,
+  addLoopVariables,
+  copyScope,
+  mergeGlobals,
+  getAvailableNames
+} from './workflowScope';
 
 export class WorkflowValidator {
   private ajv: Ajv;
@@ -304,13 +314,8 @@ export class WorkflowValidator {
       this.validateInputs(workflowData, errors, locationMap);
       this.validateVariables(workflowData, errors, locationMap);
 
-      // Collect workflow-level input names so required-task-input checks can
-      // treat them as provided (backend injects workflow inputs as activity vars).
-      const availableInputs = new Set<string>(
-        (workflowData.inputs || [])
-          .filter((input: any) => input && typeof input === 'object' && input.name)
-          .map((input: any) => input.name)
-      );
+      // Build the initial variable scope for required-task-input checks.
+      const scope = createGlobalScope(workflowData);
 
       // Validate against main workflow schema
       const enforce = this.options.schemaEnforcement;
@@ -355,11 +360,11 @@ export class WorkflowValidator {
 
       if (isFlowWorkflow) {
         // Validate Flow-specific sections
-        this.validateFlowWorkflow(workflowData, errors, warnings, locationMap, availableInputs);
+        this.validateFlowWorkflow(workflowData, errors, warnings, locationMap, scope);
       } else {
         // Validate activities recursively (standard workflows)
         if (workflowData.activities && Array.isArray(workflowData.activities)) {
-          this.validateActivities(workflowData.activities, 'activities', errors, warnings, locationMap, availableInputs);
+          this.validateActivities(workflowData.activities, 'activities', errors, warnings, locationMap, scope);
         }
       }
 
@@ -371,7 +376,7 @@ export class WorkflowValidator {
         errors,
         warnings,
         locationMap,
-        availableInputs
+        scope
       );
 
       // Warn on deprecated onWorkflowExecuted
@@ -559,11 +564,11 @@ export class WorkflowValidator {
     errors: ValidationError[],
     warnings: ValidationWarning[],
     locationMap?: YAMLLocationMap,
-    availableInputs?: Set<string>
+    scope?: ScopeContext
   ): void {
     activities.forEach((activity, index) => {
       const activityPath = `${basePath}[${index}]`;
-      this.validateActivity(activity, activityPath, errors, warnings, locationMap, availableInputs);
+      this.validateActivity(activity, activityPath, errors, warnings, locationMap, scope);
     });
   }
 
@@ -576,7 +581,7 @@ export class WorkflowValidator {
     errors: ValidationError[],
     warnings: ValidationWarning[],
     locationMap?: YAMLLocationMap,
-    availableInputs?: Set<string>
+    scope?: ScopeContext
   ): void {
     if (!activity || typeof activity !== 'object') {
       errors.push({
@@ -608,10 +613,13 @@ export class WorkflowValidator {
       return;
     }
 
+    // Activity variables get their own copy of the global scope.
+    const activityScope = scope ? addActivityVariables(scope, activity) : undefined;
+
     // Validate each step
     activity.steps.forEach((step: any, stepIndex: number) => {
       const stepPath = `${activityPath}.steps[${stepIndex}]`;
-      this.validateStep(step, stepPath, errors, warnings, locationMap, availableInputs);
+      this.validateStep(step, stepPath, errors, warnings, locationMap, activityScope);
     });
 
     // Validate activity-level event handler steps
@@ -622,7 +630,7 @@ export class WorkflowValidator {
       errors,
       warnings,
       locationMap,
-      availableInputs
+      activityScope
     );
   }
 
@@ -636,7 +644,7 @@ export class WorkflowValidator {
     errors: ValidationError[],
     warnings: ValidationWarning[],
     locationMap?: YAMLLocationMap,
-    availableInputs?: Set<string>
+    scope?: ScopeContext
   ): void {
     if (!events || typeof events !== 'object' || Array.isArray(events)) return;
 
@@ -644,7 +652,7 @@ export class WorkflowValidator {
       const steps = events[eventName];
       if (steps && Array.isArray(steps)) {
         steps.forEach((step: any, index: number) => {
-          this.validateStep(step, `${basePath}.${eventName}[${index}]`, errors, warnings, locationMap, availableInputs);
+          this.validateStep(step, `${basePath}.${eventName}[${index}]`, errors, warnings, locationMap, scope);
         });
       }
     }
@@ -659,7 +667,7 @@ export class WorkflowValidator {
     errors: ValidationError[],
     warnings: ValidationWarning[],
     locationMap?: YAMLLocationMap,
-    availableInputs?: Set<string>
+    scope?: ScopeContext
   ): void {
     if (!step || typeof step !== 'object') {
       errors.push({
@@ -683,10 +691,18 @@ export class WorkflowValidator {
     }
 
     // Required-input presence check (schemaEnforcement warn/error only).
-    this.validateRequiredInputs(step, stepPath, errors, warnings, locationMap, availableInputs);
+    this.validateRequiredInputs(step, stepPath, errors, warnings, locationMap, scope);
+
+    // SetVariable writes back into the activity/global scope.
+    if (scope && typeof step.task === 'string' && step.task.split('@')[0].toLowerCase() === 'utilities/setvariable') {
+      addSetVariableOutputs(scope, step);
+    }
 
     // Validate nested structures (foreach, switch, while)
-    this.validateNestedSteps(step, stepPath, errors, warnings, locationMap, availableInputs);
+    const childScope = this.validateNestedSteps(step, stepPath, errors, warnings, locationMap, scope);
+    if (scope && childScope) {
+      mergeGlobals(scope, childScope);
+    }
   }
 
   /**
@@ -703,7 +719,7 @@ export class WorkflowValidator {
     errors: ValidationError[],
     warnings: ValidationWarning[],
     locationMap?: YAMLLocationMap,
-    availableInputs?: Set<string>
+    scope?: ScopeContext
   ): void {
     const enforce = this.options.schemaEnforcement;
     if (enforce !== 'warn' && enforce !== 'error') return;
@@ -715,22 +731,23 @@ export class WorkflowValidator {
 
     const inputs =
       step.inputs && typeof step.inputs === 'object' ? (step.inputs as object) : null;
+    const available = scope ? getAvailableNames(scope) : new Set<string>();
     for (const key of required) {
       const missingFromStep = !inputs || !(key in inputs);
-      const providedByWorkflow = availableInputs?.has(key) ?? false;
-      if (missingFromStep && !providedByWorkflow) {
+      const providedByScope = available.has(key);
+      if (missingFromStep && !providedByScope) {
         const message = `Task '${step.task.split('@')[0]}' is missing required input '${key}'`;
         const entryPath = `${stepPath}.inputs.${key}`;
         if (enforce === 'error') {
           errors.push({
-            type: 'schema_violation',
+            type: 'missing_required_input',
             path: entryPath,
             message,
             location: this.resolveLocation(locationMap, entryPath)
           });
         } else {
           warnings.push({
-            type: 'schema_violation',
+            type: 'missing_required_input',
             path: entryPath,
             message,
             location: this.resolveLocation(locationMap, entryPath)
@@ -749,23 +766,26 @@ export class WorkflowValidator {
     errors: ValidationError[],
     warnings: ValidationWarning[],
     locationMap?: YAMLLocationMap,
-    availableInputs?: Set<string>
-  ): void {
+    scope?: ScopeContext
+  ): ScopeContext | undefined {
     const taskType = step.task;
 
     // Handle foreach
     if (taskType === 'foreach') {
+      const childScope = scope ? addLoopVariables(scope, 'foreach', step) : undefined;
       if (step.steps && Array.isArray(step.steps)) {
         step.steps.forEach((nestedStep: any, index: number) => {
-          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings, locationMap, availableInputs);
+          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings, locationMap, childScope);
         });
       }
+      return childScope;
     }
 
-    // Handle switch
+    // Handle switch — cases do not leak into the post-switch scope.
     if (taskType === 'switch') {
       if (step.cases && Array.isArray(step.cases)) {
         step.cases.forEach((caseItem: any, caseIndex: number) => {
+          const caseScope = scope ? copyScope(scope) : undefined;
           if (caseItem.steps && Array.isArray(caseItem.steps)) {
             caseItem.steps.forEach((nestedStep: any, stepIndex: number) => {
               this.validateStep(
@@ -774,27 +794,33 @@ export class WorkflowValidator {
                 errors,
                 warnings,
                 locationMap,
-                availableInputs
+                caseScope
               );
             });
           }
         });
       }
       if (step.default && step.default.steps && Array.isArray(step.default.steps)) {
+        const defaultScope = scope ? copyScope(scope) : undefined;
         step.default.steps.forEach((nestedStep: any, index: number) => {
-          this.validateStep(nestedStep, `${stepPath}.default.steps[${index}]`, errors, warnings, locationMap);
+          this.validateStep(nestedStep, `${stepPath}.default.steps[${index}]`, errors, warnings, locationMap, defaultScope);
         });
       }
+      return undefined;
     }
 
     // Handle while
     if (taskType === 'while') {
+      const childScope = scope ? addLoopVariables(scope, 'while', step) : undefined;
       if (step.steps && Array.isArray(step.steps)) {
         step.steps.forEach((nestedStep: any, index: number) => {
-          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings, locationMap, availableInputs);
+          this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings, locationMap, childScope);
         });
       }
+      return childScope;
     }
+
+    return undefined;
   }
 
   /**
@@ -805,11 +831,11 @@ export class WorkflowValidator {
     errors: ValidationError[],
     warnings: ValidationWarning[],
     locationMap?: YAMLLocationMap,
-    availableInputs?: Set<string>
+    scope?: ScopeContext
   ): void {
     this.validateFlowEntity(workflowData, errors, locationMap);
-    const stateNames = this.validateFlowStates(workflowData, errors, warnings, locationMap, availableInputs);
-    this.validateFlowTransitions(workflowData, stateNames, errors, warnings, locationMap, availableInputs);
+    const stateNames = this.validateFlowStates(workflowData, errors, warnings, locationMap, scope);
+    this.validateFlowTransitions(workflowData, stateNames, errors, warnings, locationMap, scope);
     this.validateFlowAggregations(workflowData, errors, locationMap);
   }
 
@@ -842,7 +868,7 @@ export class WorkflowValidator {
     errors: ValidationError[],
     warnings: ValidationWarning[],
     locationMap?: YAMLLocationMap,
-    availableInputs?: Set<string>
+    scope?: ScopeContext
   ): Set<string> {
     const stateNames = new Set<string>();
     const states = workflowData.states;
@@ -899,12 +925,12 @@ export class WorkflowValidator {
       // Validate onEnter/onExit steps
       if (state.onEnter && Array.isArray(state.onEnter)) {
         state.onEnter.forEach((step: any, stepIndex: number) => {
-          this.validateStep(step, `${statePath}.onEnter[${stepIndex}]`, errors, warnings, locationMap, availableInputs);
+          this.validateStep(step, `${statePath}.onEnter[${stepIndex}]`, errors, warnings, locationMap, scope);
         });
       }
       if (state.onExit && Array.isArray(state.onExit)) {
         state.onExit.forEach((step: any, stepIndex: number) => {
-          this.validateStep(step, `${statePath}.onExit[${stepIndex}]`, errors, warnings, locationMap, availableInputs);
+          this.validateStep(step, `${statePath}.onExit[${stepIndex}]`, errors, warnings, locationMap, scope);
         });
       }
     });
@@ -930,7 +956,7 @@ export class WorkflowValidator {
     errors: ValidationError[],
     warnings: ValidationWarning[],
     locationMap?: YAMLLocationMap,
-    availableInputs?: Set<string>
+    scope?: ScopeContext
   ): void {
     const transitions = workflowData.transitions;
     if (!transitions || !Array.isArray(transitions)) return;
@@ -1007,7 +1033,7 @@ export class WorkflowValidator {
       // Validate transition steps
       if (transition.steps && Array.isArray(transition.steps)) {
         transition.steps.forEach((step: any, stepIndex: number) => {
-          this.validateStep(step, `${transPath}.steps[${stepIndex}]`, errors, warnings, locationMap, availableInputs);
+          this.validateStep(step, `${transPath}.steps[${stepIndex}]`, errors, warnings, locationMap, scope);
         });
       }
     });
