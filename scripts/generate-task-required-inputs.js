@@ -93,8 +93,9 @@ const SYSTEM_INJECTED_VARS = new Set([
 
 // taskContext.<Accessor>[<Type>]("key")  — captures accessor + key (type ignored).
 // Accessors: ToObject*, GetObject*, Get<Type>. The nullable variants end in "N".
+// Generic type arguments may contain nested angle brackets (e.g. Dictionary<string, object>).
 const INPUT_ACCESS_RE =
-  /taskContext\.(ToObject\w*|GetObject\w*|Get[A-Za-z0-9_]+)\s*(?:<[^>]*>)?\s*\(\s*"([^"]+)"\s*\)/g;
+  /taskContext\.(ToObject\w*|GetObject\w*|Get[A-Za-z0-9_]+)\s*(?:<[^<>]*(?:<[^<>]*>[^<>]*)*>)?\s*\(\s*"([^"]+)"\s*\)/g;
 
 const TASK_NAME_RE = /TaskName\s*=>\s*"([^"]+)"/;
 const VERSION_RE = /Version\s*=>\s*(\d+)/;

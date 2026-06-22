@@ -2,10 +2,15 @@
   "Absolute/Charge": [
     "amsKey",
     "baseUrl",
+    "card",
     "transactionType"
   ],
   "AccountingTransaction/ApplyCreditToInvoices": [
-    "contactId"
+    "contactId",
+    "invoiceApplications"
+  ],
+  "AccountingTransaction/Update": [
+    "accountingTransaction"
   ],
   "ActionEvent/Create": [
     "action"
@@ -27,21 +32,26 @@
     "appModule"
   ],
   "Attachment/PdfThumbnail": [
+    "options",
     "url"
   ],
   "Attachment/Thumbnail": [
+    "options",
     "url"
   ],
   "Attachment/Update": [
+    "attachment",
     "attachmentId"
   ],
   "Authentication/OAuth2": [
+    "credentials",
     "tokenUrl"
   ],
   "Caching/GetCache": [
     "key"
   ],
   "Charge/Calculate": [
+    "accountingItems",
     "applyToContactId",
     "currencyId"
   ],
@@ -52,11 +62,15 @@
     "chargeId"
   ],
   "Charge/DynamicUpdate": [
+    "charge",
     "chargeId"
   ],
   "Charge/Update": [
     "charge",
     "chargeId"
+  ],
+  "Cities/Import": [
+    "cities"
   ],
   "Commodity/Split": [
     "commodityId",
@@ -67,6 +81,7 @@
     "options"
   ],
   "Commodity/Update": [
+    "commodity",
     "commodityId"
   ],
   "CommodityTrackingNumber/Create": [
@@ -76,6 +91,7 @@
     "orderId"
   ],
   "CommodityTrackingNumber/Update": [
+    "commodityTrackingNumber",
     "commodityTrackingNumberId"
   ],
   "Contact/Create": [
@@ -85,6 +101,7 @@
     "contactId"
   ],
   "Contact/Update": [
+    "contact",
     "contactId"
   ],
   "ContactAddress/Create": [
@@ -94,9 +111,11 @@
     "contactAddressId"
   ],
   "ContactAddress/Update": [
+    "contactAddress",
     "contactAddressId"
   ],
   "ContactPaymentMethod/Create": [
+    "card",
     "contactId",
     "paymentProvider"
   ],
@@ -109,7 +128,8 @@
     "holderName"
   ],
   "ContactPaymentMethod/Update": [
-    "contactPaymentMethodId"
+    "contactPaymentMethodId",
+    "values"
   ],
   "ContactPaymentMethod/VerifyChargedAmount": [
     "contactPaymentMethodId",
@@ -124,13 +144,18 @@
     "countryCode"
   ],
   "Country/Update": [
+    "country",
     "countryCode"
   ],
   "Discount/Update": [
+    "discount",
     "discountId"
   ],
   "DispatchRoutes/Generate": [
     "dispatchRouteStatusId"
+  ],
+  "Document/Render": [
+    "data"
   ],
   "Document/Send": [
     "attachments",
@@ -163,6 +188,7 @@
     "inventoryItemId"
   ],
   "InventoryItem/Update": [
+    "inventoryItem",
     "inventoryItemId"
   ],
   "Job/Assign": [
@@ -178,9 +204,11 @@
     "jobId"
   ],
   "Job/Update": [
+    "job",
     "jobId"
   ],
   "Movement/Create": [
+    "commodityIds",
     "destinationLocationCode",
     "divisionId",
     "movementType",
@@ -237,6 +265,10 @@
     "orderId",
     "password"
   ],
+  "NovaPoshta/PrintLabel": [
+    "config",
+    "request"
+  ],
   "NovaPoshta/Tracking": [
     "apiUrl",
     "carrierName",
@@ -271,6 +303,9 @@
     "options",
     "orderId"
   ],
+  "Order/Update": [
+    "order"
+  ],
   "OrderCharge/Create": [
     "chargeId",
     "orderId"
@@ -285,6 +320,7 @@
   ],
   "OrderCommodity/Update": [
     "commodityId",
+    "customValues",
     "orderId"
   ],
   "OrderEntity/ChangeCustomValue": [
@@ -296,6 +332,7 @@
     "orderId"
   ],
   "OrganizationConfig/Update": [
+    "organizationConfig",
     "organizationConfigId"
   ],
   "Payment/Create": [
@@ -309,7 +346,11 @@
     "query"
   ],
   "Quote/Get": [
-    "order"
+    "order",
+    "routes"
+  ],
+  "Rate/Update": [
+    "rate"
   ],
   "SequenceNumber/Get": [
     "sequenceName"
@@ -325,6 +366,7 @@
     "transmissionId"
   ],
   "Transmission/Update": [
+    "transmission",
     "transmissionId"
   ],
   "User/Create": [
@@ -357,7 +399,11 @@
     "destinationKey"
   ],
   "Utilities/Template": [
+    "data",
     "template"
+  ],
+  "Validation/Validate": [
+    "rules"
   ],
   "Workflow/Create": [
     "workflow"

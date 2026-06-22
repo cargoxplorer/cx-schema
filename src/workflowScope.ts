@@ -30,8 +30,14 @@ export function createGlobalScope(workflowData: any): ScopeContext {
     .forEach((variable: any) => globals.add(variable.name));
 
   const triggers = workflowData.triggers || [];
-  const hasEntityTrigger = triggers.some((t: any) => t && t.type === 'Entity');
-  if (hasEntityTrigger) {
+  const entityNames = new Set(
+    triggers
+      .filter((t: any) => t && t.type === 'Entity' && typeof t.entityName === 'string')
+      .map((t: any) => t.entityName.toLowerCase())
+  );
+
+  if (entityNames.size > 0) {
+    // Common to all entity triggers
     [
       'entity',
       'entityId',
@@ -43,15 +49,76 @@ export function createGlobalScope(workflowData: any): ScopeContext {
       'entityType'
     ].forEach(name => globals.add(name));
 
-    // Order and AccountingTransaction entity triggers also inject DivisionId.
-    // Variable lookup is case-insensitive, so it satisfies 'divisionId'.
-    const entityNames = new Set(
-      triggers
-        .filter((t: any) => t && t.type === 'Entity' && typeof t.entityName === 'string')
-        .map((t: any) => t.entityName.toLowerCase())
-    );
-    if (entityNames.has('order') || entityNames.has('accountingtransaction')) {
-      globals.add('divisionId');
+    // Order entity trigger injects a large set of Order fields.
+    if (entityNames.has('order')) {
+      [
+        'orderId',
+        'orderNumber',
+        'trackingNumber',
+        'organizationId',
+        'divisionId',
+        'divisionName',
+        'orderType',
+        'orderTypeName',
+        'orderStatusId',
+        'orderStatusName',
+        'lastOrderStatusModified',
+        'billToContactId',
+        'billToContactName',
+        'billToContactAccountNumber',
+        'billToContactType',
+        'employeeContactId',
+        'employeeContactName',
+        'salespersonContactId',
+        'salespersonContactName',
+        'equipmentTypeId',
+        'equipmentTypeName',
+        'isDraft',
+        'created',
+        'createdBy',
+        'createdByUserName',
+        'lastModified',
+        'lastModifiedBy',
+        'lastModifiedByUserName',
+        'customValues'
+      ].forEach(name => globals.add(name));
+    }
+
+    // AccountingTransaction entity trigger injects accounting fields.
+    if (entityNames.has('accountingtransaction')) {
+      [
+        'accountingTransactionId',
+        'organizationId',
+        'transactionNumber',
+        'divisionId',
+        'divisionName',
+        'accountId',
+        'accountName',
+        'accountType',
+        'accountingTransactionStatus',
+        'accountingTransactionType',
+        'applyToContactId',
+        'applyToContactName',
+        'applyToContactType',
+        'applyToContactAccountNumber',
+        'billToContactAddressId',
+        'billToContactAddressLine',
+        'transactionDate',
+        'dueDate',
+        'paidDate',
+        'amountDue',
+        'amountPaid',
+        'paidAs',
+        'paymentTermsId',
+        'paymentTermsDescription',
+        'note',
+        'isDraft',
+        'created',
+        'createdBy',
+        'lastModified',
+        'lastModifiedBy',
+        'customValues'
+      ].forEach(name => globals.add(name));
     }
   }
 
