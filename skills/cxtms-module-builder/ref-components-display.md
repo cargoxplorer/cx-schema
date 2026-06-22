@@ -192,7 +192,7 @@ When `rootEntityName` is set in datagrid options, the component fetches entity f
 
 | Property | Location | Effect |
 |----------|----------|--------|
-| `allowOrderBy: false` | `props` | Disables sorting |
+| `allowOrderBy: false` | `props` (preferred) or top-level legacy | Disables sorting; runtime falls back to top-level `allowOrderBy` when `props.allowOrderBy` is absent |
 | `allowFilter: false` | `props` | Hides from filter picker |
 | `allowSelect: false` | `props` | Hides from standard column picker; filter picker still uses `allowFilter` |
 | `filterByProperty` | `props` | Filter against a different field/path than the display column; nested filter paths honor parent `filterByProperty` values |
@@ -474,8 +474,8 @@ Colored chip/badge with dot indicator.
 **Props:**
 | Prop | Type | Description |
 |------|------|-------------|
-| `label` | `string` | Badge text (template-parsed) |
-| `colorKey` | `string` | Color lookup key (template-parsed; defaults to lowercased label) |
+| `label` | `string` | Badge text (template-parsed with store, component variables, and form values) |
+| `colorKey` | `string` | Color lookup key (template-parsed with store, component variables, and form values; defaults to lowercased label) |
 | `options.colors` | `Record<string, {label, bgcolor, dot}>` | Color map (must include `default`) |
 | `onClick` | `Action[]` | Actions to dispatch when the badge is clicked. Makes the badge interactive (pointer cursor). |
 

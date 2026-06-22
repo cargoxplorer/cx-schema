@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "badge-component",
+  "title": "Badge Component",
+  "description": "Colored chip/badge with template-parsed label, optional color lookup key, dot indicator, and optional click actions.",
+  "type": "object",
+  "required": ["component", "props"],
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "badge",
+      "description": "Component type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique identifier for the badge component"
+    },
+    "props": {
+      "type": "object",
+      "required": ["label", "options"],
+      "properties": {
+        "label": {
+          "type": ["string", "object"],
+          "description": "Badge text. Template-parsed with store values, component variables, and form values.",
+          "x-example": "{{ status }}"
+        },
+        "colorKey": {
+          "type": ["string", "object"],
+          "description": "Optional color lookup key. Template-parsed with store values, component variables, and form values. Defaults to the normalized label.",
+          "x-example": "{{ statusCode }}"
+        },
+        "options": {
+          "type": "object",
+          "required": ["colors"],
+          "properties": {
+            "colors": {
+              "type": "object",
+              "description": "Map of color keys to text/background/dot colors. Include a default entry for fallback rendering.",
+              "additionalProperties": {
+                "type": "object",
+                "required": ["label", "bgcolor", "dot"],
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Text color"
+                  },
+                  "bgcolor": {
+                    "type": "string",
+                    "description": "Chip background color"
+                  },
+                  "dot": {
+                    "type": "string",
+                    "description": "Leading dot color"
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        "onClick": {
+          "type": "array",
+          "description": "Actions to dispatch when clicked. Makes the badge interactive and stops event propagation.",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true,
+  "x-examples": {
+    "statusBadge": {
+      "component": "badge",
+      "name": "statusBadge",
+      "props": {
+        "label": "{{ status }}",
+        "colorKey": "{{ status }}",
+        "options": {
+          "colors": {
+            "Delivered": { "label": "#1b5e20", "bgcolor": "#e8f5e9", "dot": "#4caf50" },
+            "default": { "label": "#5f370e", "bgcolor": "#fff8e1", "dot": "#ff9800" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -10152,6 +10152,8 @@ input UpdateCommodityInput {
   organizationId: Int!
   commodityId: Int!
   values: MapOfObject
+  cascadeToChildren: Boolean! = false
+  promoteParentWhenAllChildren: Boolean! = false
 }
 
 input UpdateCommodityStatusInput {

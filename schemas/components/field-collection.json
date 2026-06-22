@@ -333,6 +333,12 @@
           "description": "Show drag handle for reordering",
           "x-example": true
         },
+        "showMoveButtons": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show up/down move buttons for reordering. Requires options.allowReorder to be true. Reorder UI backfills stable internal _uuid keys on object rows so moves follow the row instead of the array index.",
+          "x-example": true
+        },
         "containerClass": {
           "type": "string",
           "description": "CSS class for the container",

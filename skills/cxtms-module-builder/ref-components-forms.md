@@ -544,7 +544,7 @@ Polymorphic form field — renders different input types based on `type` prop.
 
 ## field-collection
 
-Dynamic array/list editor for repeating field groups. Supports add/remove/reorder with drag-and-drop.
+Dynamic array/list editor for repeating field groups. Supports add/remove/reorder with drag-and-drop and optional up/down move buttons. Reorder UI adds stable internal `_uuid` keys to object rows only when drag handles or move buttons are shown, so non-reorder payloads stay untouched.
 
 **Props:**
 | Prop | Type | Default | Description |
@@ -571,6 +571,7 @@ Dynamic array/list editor for repeating field groups. Supports add/remove/reorde
 | `groups` | `{key, label, icon?}[]` | — | Group definitions |
 | `showIndex` | `boolean` | `false` | Show item index |
 | `showDragHandle` | `boolean` | `false` | Show drag handles |
+| `showMoveButtons` | `boolean` | `false` | Show up/down move buttons for accessible reordering; requires `options.allowReorder` |
 
 **Children:** Uses `itemTemplate` (not `children`). Each item gets `item`, `index`, `collection` variables.
 

@@ -141,6 +141,7 @@ Container Commodity (parent)
 - Changing warehouse location on parent cascades to children
 - Changing commodity status on parent cascades to children
 - Deleting parent cascades to children
+- `updateCommodity` can optionally cascade `customValues` to direct children (`cascadeToChildren`) or promote markers to the parent once all direct siblings have those keys (`promoteParentWhenAllChildren`)
 
 ## CommodityTrackingNumber Sub-Entity
 
@@ -208,9 +209,26 @@ conditions:
 # Update via Commodity/Update task
 inputs:
   commodityId: "{{ entity.commodityId }}"
-  commodity:
-    CustomValues.lotNumber: "LOT-001"
-    CustomValues.hazmat: true
+  entity:
+    customValues:
+      lotNumber: "LOT-001"
+      hazmat: true
+
+# Pallet/carton scan cascade: parent scan marks direct children
+inputs:
+  commodityId: "{{ pallet.commodityId }}"
+  cascadeToChildren: true
+  entity:
+    customValues:
+      scanned: true
+
+# Carton scan promotion: final marked sibling marks the parent
+inputs:
+  commodityId: "{{ carton.commodityId }}"
+  promoteParentWhenAllChildren: true
+  entity:
+    customValues:
+      scanned: true
 ```
 
 Resolve custom-value contact references:

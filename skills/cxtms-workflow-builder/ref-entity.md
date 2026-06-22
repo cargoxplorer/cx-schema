@@ -257,7 +257,7 @@ Bulk imports contact addresses for one `organizationId` + `contactId` from file/
 | Task | Description |
 |------|-------------|
 | `Commodity/Create` | Create commodity |
-| `Commodity/Update` (v1, v2) | Update commodity |
+| `Commodity/Update` (v1, v2) | Update commodity; supports scan custom-value cascade flags `cascadeToChildren` and `promoteParentWhenAllChildren` |
 | `Commodity/Split` | Split commodity into multiple |
 | `Commodity/Repack` | Repack commodities |
 | `Commodity/Unpack` | Unpack commodity |

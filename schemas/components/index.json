@@ -31,6 +31,9 @@
     "card": {
       "$ref": "card.json"
     },
+    "badge": {
+      "$ref": "badge.json"
+    },
     "barcodeScanner": {
       "$ref": "barcodeScanner.json"
     },

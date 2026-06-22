@@ -67,6 +67,14 @@
         "partial": {
           "type": "boolean",
           "description": "Partial update (patch)"
+        },
+        "cascadeToChildren": {
+          "type": "boolean",
+          "description": "For Commodity/Update: copy inputs.entity/customValues to direct child commodities after updating this commodity"
+        },
+        "promoteParentWhenAllChildren": {
+          "type": "boolean",
+          "description": "For Commodity/Update: copy inputs.entity/customValues to the parent once every direct non-deleted sibling has the same custom-value keys"
         }
       },
       "additionalProperties": true
