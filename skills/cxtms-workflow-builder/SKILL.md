@@ -258,10 +258,16 @@ Variables set in Activity A are **not** visible in Activity B. Pass data between
 
 ### Validator limitations (`--schema-enforcement`)
 
-The required-input presence check used by `--schema-enforcement=warn|error` seeds scope from `workflow.inputs`, `workflow.variables`, `activity.variables`, `Utilities/SetVariable`, loop vars, and system-injected variables. It currently has gaps that can cause false positives:
+The required-input presence check used by `--schema-enforcement=warn|error` seeds scope from `workflow.inputs`, `workflow.variables`, `activity.variables`, `Utilities/SetVariable`, loop vars, and system-injected variables. It is intentionally conservative: it avoids false positives when possible, which means it under-reports some real issues. Known gaps:
+
+**False positives (reported as missing even though the value is available at runtime):**
 
 - It does **not** treat dotted step-output paths (`ActivityName.StepName.outputKey`) as satisfying a required input. A task that reads a previous step's output may be reported as missing a required input even though the value is available at runtime.
 - Entity-trigger injected fields are hardcoded; if the backend adds new trigger fields, the validator may not know about them.
+
+**False negatives (real issues that are not reported):**
+
+- **Flow workflows**: all states and transitions are validated against one shared scope. A variable set in one state's `onEnter`/`onExit` is treated as available to every other state, even though at runtime only one transition executes at a time with a fresh scope. This means missing inputs in a state handler may not be reported if some other state sets the same variable name.
 - It does **not** validate that every `{{ variable }}` or `[variable]` reference resolves to a known name, so typos are not caught.
 
 Use `npx cxtms <file.yaml>` for structural validation and treat `--schema-enforcement` as a helpful but not exhaustive check.
