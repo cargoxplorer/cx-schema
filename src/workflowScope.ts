@@ -29,6 +29,27 @@ export function createGlobalScope(workflowData: any): ScopeContext {
     .filter((variable: any) => variable && typeof variable === 'object' && typeof variable.name === 'string')
     .forEach((variable: any) => globals.add(variable.name));
 
+  // System-injected variables that are always available at runtime.
+  [
+    'organizationId',
+    'currentUserId',
+    'currentEmployeeId',
+    'currentContactId',
+    'executionId',
+    'workflowId',
+    'triggerType',
+    'eventType',
+    'position',
+    'entityName',
+    'entityId',
+    'entity',
+    'data',
+    'changes',
+    'trackedEntity',
+    'entityType',
+    'exception'
+  ].forEach(name => globals.add(name));
+
   const triggers = workflowData.triggers || [];
   const entityNames = new Set(
     triggers

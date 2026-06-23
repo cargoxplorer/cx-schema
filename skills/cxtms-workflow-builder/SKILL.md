@@ -257,11 +257,11 @@ Variables set in Activity A are **not** visible in Activity B. Pass data between
 
 ### Validator limitations (`--schema-enforcement`)
 
-The required-input presence check used by `--schema-enforcement=warn|error` seeds scope from `workflow.inputs`, `workflow.variables`, `activity.variables`, `Utilities/SetVariable`, and loop vars. It currently has gaps that can cause false positives or false negatives:
+The required-input presence check used by `--schema-enforcement=warn|error` seeds scope from `workflow.inputs`, `workflow.variables`, `activity.variables`, `Utilities/SetVariable`, loop vars, and system-injected variables. It currently has gaps that can cause false positives:
 
 - It does **not** treat dotted step-output paths (`ActivityName.StepName.outputKey`) as satisfying a required input. A task that reads a previous step's output may be reported as missing a required input even though the value is available at runtime.
 - Entity-trigger injected fields are hardcoded; if the backend adds new trigger fields, the validator may not know about them.
-- System-injected variables are not seeded into the validator scope, so typos in names like `organzationId` are not caught.
+- It does **not** validate that every `{{ variable }}` or `[variable]` reference resolves to a known name, so typos are not caught.
 
 Use `npx cxtms <file.yaml>` for structural validation and treat `--schema-enforcement` as a helpful but not exhaustive check.
 
