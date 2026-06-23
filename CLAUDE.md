@@ -21,6 +21,7 @@ npx cxtms create workflow <n> --template <t>  # Scaffold from template (skills a
 npx cxtms create module <n> --template <t>    # Scaffold from template
 npx cxtms <file.yaml>                     # Validate any YAML (skills always validate after changes)
 npx cxtms <file.yaml> --verbose           # Detailed errors with schema paths
+npx cxtms <file.yaml> --no-line-numbers   # Suppress source line/column info in output
 npx cxtms schema <name>                   # Show JSON schema (skills use this to look up task/component schemas)
 npx cxtms example <name>                  # Show example YAML
 npx cxtms list                            # List all available schemas
@@ -141,6 +142,7 @@ features/             # Feature-scoped modules and workflows
 | `npx cxtms create module <name> --feature <f>` | Place under features/<f>/modules/ |
 | `npx cxtms <file.yaml>` | Validate a YAML file |
 | `npx cxtms <file.yaml> --verbose` | Validate with detailed errors |
+| `npx cxtms <file.yaml> --no-line-numbers` | Validate without source line/column info |
 | `npx cxtms <file.yaml> --schema-enforcement=warn\|error` | Enforce schemas: component/field schemas (modules) and, for workflows, top-level `workflow.json` + required-task-input presence (off by default; `warn` reports, `error` fails) |
 | `npx cxtms schema <name>` | Show JSON schema for a component or task |
 | `npx cxtms example <name>` | Show example YAML |
