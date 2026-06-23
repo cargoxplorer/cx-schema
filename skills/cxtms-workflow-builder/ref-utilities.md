@@ -100,7 +100,9 @@ Throws `WorkflowRuntimeException` if lat/lng missing or unparseable.
 
 ## SetVariable@1
 
-Sets variables directly into both activity and global scope. No outputs — the side effect IS the variable setting.
+The only task whose purpose is to add a variable name to the running scope as a side effect. No `outputs:` are needed — the side effect is the variable setting.
+
+The backend writes each `name` to both the current activity's variable bag and the workflow's global variable bag. In practice that means the name can be read like any other global variable — directly by its name, without the `ActivityName.StepName.` prefix required for normal step outputs.
 
 ```yaml
 - task: "Utilities/SetVariable@1"
@@ -116,7 +118,100 @@ Sets variables directly into both activity and global scope. No outputs — the 
           expression: "[offset] < [Data?.FetchPage?.result?.totalCount?]"
 ```
 
-Each variable entry has `name` (string) and `value` (any type, supports expression directives).
+Each variable entry has `name` (string) and `value` (any type; supports `expression:` directives and the full template/value-directive syntax).
+
+### Step-local aliases (same-step only)
+
+Any key you put directly under `inputs:` becomes a **step-local alias** (a `TaskVariable`) that can be referenced inside the same step. It is **not** visible to other steps. The `varXxx` prefix you see in many workflows is just a naming convention — the engine does not treat it specially.
+
+Use step-local aliases to break complex expressions into named pieces, then publish only the final values via `variables:`:
+
+```yaml
+- task: "Utilities/SetVariable@1"
+  name: setCustomers
+  inputs:
+    varCustomers:                        # step-local alias
+      foreach: "{{ data?.getTransaction?.freights? }}"
+      mapping: "{{ item?.billToContactId? }}"
+    variables:                           # published globals
+      - name: customers
+        value:
+          expression: "distinct(removeEmpty([varCustomers?]))"
+
+- task: "Utilities/SetVariable@1"
+  name: setFilters
+  inputs:
+    varContainer: "{{ data?.getTransaction?.commodities?[0]?.commodity? }}"  # step-local alias (redeclared)
+    variables:
+      - name: quoteLoadTypeFilter
+        value:
+          switch:
+            expression: "count([customers?]) > 1"
+          cases:
+            "True":
+              type: "Coload"
+              filter: "customValues.loadType:\"Coload\""
+          default:
+            type: "Single"
+            filter: "customValues.loadType:\"Single\""
+```
+
+`varCustomers` and `varContainer` can only be used inside the step that declares them. `customers` and `quoteLoadTypeFilter` are published globals visible to later steps.
+
+### Reading a SetVariable value
+
+Because `SetVariable` writes to the activity and global variable bags, downstream steps read the value directly by its variable name:
+
+```yaml
+- task: "Utilities/SetVariable@1"
+  name: SetFilters
+  inputs:
+    variables:
+      - name: statusFilter
+        value: "Active"
+
+- task: "Order/Query@1"
+  name: GetOrders
+  inputs:
+    filter: "statusName:{{ statusFilter }}"
+```
+
+### SetVariable vs. normal step outputs
+
+Normal task outputs are **not** stored as global variables. They are stored under the dotted path `ActivityName.StepName.outputKey` and must be read with that full path.
+
+```yaml
+# SetVariable -> global/activity variable, read by short name
+- task: "Utilities/SetVariable@1"
+  name: SetStatus
+  inputs:
+    variables:
+      - name: statusFilter
+        value: "Active"
+
+# Normal output -> dotted path
+- task: "Order/Get@1"
+  name: GetOrder
+  inputs:
+    orderId: "{{ inputs.orderId }}"
+  outputs:
+    - name: order
+      mapping: "order?"
+
+- task: "Utilities/Log@1"
+  name: LogResults
+  inputs:
+    # SetVariable value read by short name
+    statusUsed: "{{ statusFilter }}"
+    # Normal output read as dotted path
+    orderNumber: "{{ Main?.GetOrder?.order?.orderNumber? }}"
+```
+
+### Scope notes
+
+- Variables set in Activity A are **not** visible in Activity B unless they were seeded from workflow-level `inputs`/`variables`.
+- `SetVariable` is the standard way to create a reusable value inside a single activity.
+- See [Variable Scope](skills/cxtms-workflow-builder/SKILL.md#variable-scope) in SKILL.md for the full scope model, including `foreach`/`while`/`switch` rules and current validator limitations.
 
 ## Log@1
 

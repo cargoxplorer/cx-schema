@@ -10,7 +10,7 @@ There are **two distinct syntaxes** for referencing variables, used in different
 
 ## Template Expressions: `{{ path }}` (in step inputs)
 
-Used in step `inputs` values. Resolves variable paths from scoped variables.
+Used in step `inputs` values. Resolves variable paths from scoped variables. For the scope model — where variables come from, how `SetVariable` differs from step outputs, and control-flow rules — see [Variable Scope](skills/cxtms-workflow-builder/SKILL.md#variable-scope).
 
 ```yaml
 inputs:

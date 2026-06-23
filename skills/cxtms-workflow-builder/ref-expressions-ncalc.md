@@ -16,7 +16,7 @@ For template expressions `{{ path }}` used in step inputs, see [ref-expressions-
 
 ## NCalc Expressions: `[variable]` (in conditions and expression directives)
 
-Used in `conditions[].expression`, `switch` case `when`, and `expression:` value directives. Variables use **square bracket** `[name]` syntax.
+Used in `conditions[].expression`, `switch` case `when`, and `expression:` value directives. Variables use **square bracket** `[name]` syntax. For where these variables come from and the rules that govern visibility between steps, see [Variable Scope](skills/cxtms-workflow-builder/SKILL.md#variable-scope).
 
 ```yaml
 conditions:
