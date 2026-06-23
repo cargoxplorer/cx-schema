@@ -488,3 +488,8 @@ npx cxtms app release -m "Add warehouse locations module" --org 42
     - **No bare `spacing: <number>` for adaptive layouts** — use a breakpoint map (`spacing: { xs: 1, md: 3 }`) or split into `columnSpacing`/`rowSpacing`.
 11. **Do not change `appModuleId` or `filePath`** — set correctly by CLI scaffold
 12. **Always validate** the final YAML: `npx cxtms <file.yaml>`
+
+
+## Reactive page titles
+
+Route `props.title` and root component `displayName` may be template expressions. App screens parse them against the app module store and update the page header/browser title when store values change. Unauthorized-route labels intentionally use route name/path instead of parsing store-backed title templates.

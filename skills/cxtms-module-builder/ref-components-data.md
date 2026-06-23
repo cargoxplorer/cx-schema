@@ -27,6 +27,22 @@ props:
         - name: emailAddress
 ```
 
+
+## dataGrid static items inherit parent variables
+
+When `options.items` is a template expression, the grid parses it with local variables, store values, and parent component variables. Nested grids can reference parent-scope values such as collection items or datasource results:
+
+```yaml
+component: dataGrid
+name: commodityLines
+props:
+  options:
+    items: "{{ order.commodities }}"
+    entityKeys: [commodityId]
+```
+
+Use `options.items` for already-loaded arrays; use `options.query` for server-side search/sort/pagination.
+
 ---
 
 ## collection
