@@ -64,7 +64,7 @@
         },
         "matchByFields": {
           "type": "array",
-          "description": "Business-key fields used after ID-first ContactAddressId matching",
+          "description": "Business-key fields used after ID-first ContactAddressId matching. When supplied, imports selectively fetch existing address candidates using row-level Lucene filters instead of loading all addresses for the contact.",
           "items": { "type": "string" }
         },
         "columnMappings": {

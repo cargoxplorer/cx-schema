@@ -369,6 +369,8 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `datetime` | Date + time picker |
 | `rangedatetime` | Date range picker |
 | `enhanced-rangedatetime` | Enhanced date range picker |
+
+**Enhanced rangedatetime filter behavior:** `more_than` emits bracketed Lucene ranges such as `field:[* TO NOW-7DAYS]`; boolean/number falsy values (`false`, `0`) are preserved as real filter values; and switching away from Empty/Not Empty clears the previous `NULL` term instead of latching it.
 | `time` | Time picker |
 | `select` | Dropdown select from `items[]` |
 | `select-async` | Async search select (GraphQL-backed) |

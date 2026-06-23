@@ -611,7 +611,7 @@ props:
 
 ## diff
 
-Side-by-side diff viewer for comparing text.
+Side-by-side diff viewer for comparing text. Long lines wrap within each pane, and gutters/markers keep fixed widths so the two columns stay balanced.
 
 **Props:**
 | Prop | Type | Default | Description |
