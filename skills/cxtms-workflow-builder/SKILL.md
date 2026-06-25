@@ -229,6 +229,30 @@ collection: "Activity?.Step?.output?.items?"
 url: "{{ config?.baseUrl? }}"
 ```
 
+### `fromConfig` Whole-Config Variables Include `organizationConfigId`
+
+When a workflow-level variable loads an organization config without a `key`, the runtime injects `organizationConfigId` into the returned object alongside the config custom values. Use this ID when a later `OrganizationConfig/Update@1` step needs to update the same record.
+
+```yaml
+variables:
+  - name: config
+    fromConfig:
+      configName: "apps.myApp"
+
+activities:
+  - name: UpdateConfig
+    steps:
+      - task: "OrganizationConfig/Update@1"
+        inputs:
+          organizationId: "{{ int organizationId }}"
+          organizationConfigId: "{{ int config.organizationConfigId }}"
+          organizationConfig:
+            baseUrl: "{{ config?.baseUrl? }}"
+            lastSyncAt: "{{ datetime now }}"
+```
+
+If `fromConfig.key` is provided, the variable resolves to only that keyed value and does not include `organizationConfigId`.
+
 **Engine-level null safety for object inputs**: Task inputs resolved as complex objects (e.g., `headers`, `columnMappings`, configuration objects) are automatically null-safe at the engine level. If an optional object input is omitted from YAML, the engine returns `null` instead of throwing — no `?` suffix needed on the YAML key itself. The `?` operator is still required in template expressions and NCalc paths that reference those objects.
 
 **When `?` is NOT needed** (guaranteed system variables):
