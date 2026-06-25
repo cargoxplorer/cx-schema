@@ -31,14 +31,14 @@
             },
             "key": {
               "type": "string",
-              "description": "Optional key within configuration"
+              "description": "Optional key within configuration. If omitted, the variable receives the whole config object with organizationConfigId injected alongside custom values."
             }
           },
           "required": ["configName"],
           "additionalProperties": true
         }
       ],
-      "description": "Load value from configuration"
+      "description": "Load value from organization configuration. When a full config is loaded without a key, the runtime injects organizationConfigId into the returned object; keyed lookups return only the keyed value."
     }
   },
   "required": ["name"],
