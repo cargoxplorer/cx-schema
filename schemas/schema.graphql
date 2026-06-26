@@ -1896,7 +1896,7 @@ type dispatchRoute {
 type dispatchRouteStop {
   dispatchRouteStopId: Int!
   dispatchRouteId: Int!
-  stopContactId: Int!
+  stopContactId: Int
   stopContact: contact
   contactAddressId: Int
   contactAddress: contactAddress
@@ -1906,12 +1906,22 @@ type dispatchRouteStop {
   estimatedServiceMinutes: Int
   actualArrivalTime: DateTime
   actualCompletionTime: DateTime
+  orderIds: [Int!]!
+  orders: [dispatchRouteStopOrder!]
   customValues: MapOfObject
   isDeleted: Boolean!
   created: DateTime!
   createdBy: String!
   lastModified: DateTime!
   lastModifiedBy: String!
+}
+
+type dispatchRouteStopOrder {
+  dispatchRouteStopOrderId: Int!
+  dispatchRouteStopId: Int!
+  orderId: Int!
+  order: order
+  customValues: MapOfObject
 }
 
 type GenerateDispatchRoutesResultGqlDto {
@@ -6407,6 +6417,8 @@ type order {
   businessDays(path: String!, contactId: Int): Int @cost(weight: "10")
   getRoute(idPropertyName: String!): route @cost(weight: "10")
   getRelatedOrderByProperty(idPropertyName: String): order @cost(weight: "10")
+  relatedDispatchRoutes(filter: String, orderBy: String): [dispatchRoute!]!
+    @cost(weight: "10")
   outgoingLinks: [linkedOrders] @cost(weight: "10")
   incomingLinks: [linkedOrders] @cost(weight: "10")
   notesCount(threadFilter: String): Int @cost(weight: "10")
