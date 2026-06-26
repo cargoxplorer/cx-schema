@@ -218,9 +218,9 @@ Imports order data from an external feed. Supports create and upsert (match-by-f
 | `ContactAddress/Create` | Create address |
 | `ContactAddress/Update` | Update address |
 | `ContactAddress/Delete` | Delete address |
-| `ContactAddress/Import` | Bulk import addresses; ID-first upsert when `ContactAddressId` is present |
+| `ContactAddress/Import` | Bulk import addresses; ID-first upsert when `ContactAddressId` or `contactAddressId` is present |
 
-**Selective import fetch:** `ContactAddress/Import@1` matches rows by `ContactAddressId` first, then by `matchByFields`. When `matchByFields` is set, the importer builds batched Lucene filters from the incoming row values and fetches only candidate `AddressType.Other` addresses for the target contact. If `matchByFields` is omitted, it falls back to loading all `Other` addresses for that contact. Use stable fields such as `AddressLine`, `CityName`, `CountryCode`, `PostalCode`, and `StateCode` for large imports.
+**Selective import fetch:** `ContactAddress/Import@1` matches rows by `ContactAddressId`/`contactAddressId` first, then by `matchByFields`. Rows are bound as dictionaries, so primary-key columns and custom inbound column names survive even when there is no DTO property. When `matchByFields` is set, the importer builds batched Lucene filters from the incoming row values and fetches only candidate `AddressType.Other` addresses for the target contact. If `matchByFields` is omitted, it falls back to loading all `Other` addresses for that contact. Use stable fields such as `AddressLine`, `CityName`, `CountryCode`, `PostalCode`, and `StateCode` for large imports.
 
 
 ### ContactAddress/Import@1
@@ -243,7 +243,7 @@ Bulk imports contact addresses for one `organizationId` + `contactId` from file/
       mapping: "result?"
 ```
 
-**Behavior:** rows with `ContactAddressId` match existing addresses by ID first; otherwise `matchByFields` is used. New rows default to `AddressType.Other`. `City` aliases to `CityName`; `StateCode` is used directly or `StateName` is resolved. `Longitude` + `Latitude` set location. Rows missing country or state context are skipped.
+**Behavior:** rows with `ContactAddressId` or `contactAddressId` match existing addresses by ID first; otherwise `matchByFields` is used. New rows default to `AddressType.Other`. `City` aliases to `CityName`; `StateCode` is used directly or `StateName` is resolved. `Longitude` + `Latitude` set location. Rows missing country or state context are skipped.
 
 ## Contact Payment Method
 

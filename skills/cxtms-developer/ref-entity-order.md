@@ -116,7 +116,7 @@ These are virtual fields that filter `orderEntities` by type:
 | `getChargesByChargeType(chargeType)` | `[Charge]` | Charges filtered by type |
 | `getOrderSummary(weightUnit, volumeUnit, dimensionsUnit)` | `OrderSummary` | |
 | `lastTrackingEvent(eventDefinitionName, orderBy?)` | `TrackingEvent` | Most recent (or earliest) tracking event, resolved via batched DataLoader. `orderBy` is **honoured**: omit or prefix with `-` for DESC (latest event: `COALESCE(EventDate, Created) DESC, TrackingEventId DESC`); no prefix for ASC (earliest event: same columns ASC). Default is DESC. |
-| `businessDays(path: String!, contactId?: Int)` | `int?` | Business days from the date at `path` to today, using the org business calendar. Optional `contactId` scopes availability blocks to org-wide plus matching contact blocks. Returns `null` if path does not resolve or value is not parseable. |
+| `businessDays(path: String!, contactId?: Int)` | `int?` | Business days from the date at `path` to today, using the org business calendar. Optional `contactId` scopes availability blocks to org-wide plus matching contact blocks. Instant values are converted to the org timezone before taking the date; date-only values are not timezone-shifted. Returns `null` if path does not resolve or value is not parseable. |
 | `attachmentsSummary` | `OrderAttachmentSummaryGqlDto` | `.totalCount` (int), `.hasAny` (bool) — batched DataLoader, backed by DB view |
 | `notesSummary` | `OrderNoteSummaryGqlDto` | `.totalCount` (int), `.hasAny` (bool) — batched DataLoader, backed by DB view |
 | `notesCount(threadFilter)` | `int` | |
