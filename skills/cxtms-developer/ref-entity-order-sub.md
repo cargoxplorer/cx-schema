@@ -81,7 +81,7 @@ Milestone/tracking event on an order or commodity.
 
 | Field | Returns | Notes |
 |-------|---------|-------|
-| `businessDays(path: String!, contactId?: Int)` | `int?` | Business days from the date at `path` to today, using the org business calendar. Optional `contactId` scopes availability blocks to org-wide plus matching contact blocks. Returns `null` if path does not resolve or value is not parseable. |
+| `businessDays(path: String!, contactId?: Int)` | `int?` | Business days from the date at `path` to today, using the org business calendar. Optional `contactId` scopes availability blocks to org-wide plus matching contact blocks. Instant values are converted to the org timezone before taking the date; date-only values are not timezone-shifted. Returns `null` if path does not resolve or value is not parseable. |
 
 ---
 

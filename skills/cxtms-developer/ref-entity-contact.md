@@ -138,7 +138,7 @@ Contact CSV/import handling protects division scoping:
 
 GraphQL resolver: `formattedAddress(outputFormat, addressFormat, lang, multiline)` — formatted string.
 
-**ContactAddress import notes:** `ContactAddress/Import@1` can update by `ContactAddressId` first, then falls back to business-key matching. Export grids should include `contactAddressId`/entity keys when data is intended for re-import. Import aliases `City` to `cityName`, resolves `StateName` to `stateCode`, and accepts `Longitude`/`Latitude` for `location`.
+**ContactAddress import notes:** `ContactAddress/Import@1` can update by `ContactAddressId` or `contactAddressId` first, then falls back to business-key matching. Rows are bound as dictionaries, so exported primary-key columns survive re-import even when the casing is camelCase. Export grids should include `contactAddressId`/entity keys when data is intended for re-import. Import aliases `City` to `cityName`, resolves `StateName` to `stateCode`, and accepts `Longitude`/`Latitude` for `location`.
 
 Module default-data imports support `entity: "contact"` with `keys` for natural-key matching and `overwrite` for update-vs-skip behavior. Use `ContactType: Port` for port/location contacts when appropriate.
 
