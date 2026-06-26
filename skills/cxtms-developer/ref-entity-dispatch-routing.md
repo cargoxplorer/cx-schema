@@ -85,11 +85,26 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 | `estimatedServiceMinutes` | `int?` | Planned service time |
 | `actualArrivalTime` | `DateTime?` | Actual arrival timestamp |
 | `actualCompletionTime` | `DateTime?` | Actual completion timestamp |
+| `orderIds` | `int[]` | Attached order IDs; always projected |
+| `orders` | `[DispatchRouteStopOrder]` | Attached order links; expand `order` when needed |
 | `customValues` | `Dictionary` | jsonb (use for ad-hoc address when not using a contact) |
+
+## DispatchRouteStopOrder
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `dispatchRouteStopOrderId` | `int` | PK |
+| `dispatchRouteStopId` | `int` | Parent stop |
+| `orderId` | `int` | Attached order |
+| `order` | `Order?` | Optional expanded order |
+| `customValues` | `Dictionary` | jsonb on the stop/order link |
 
 ## GraphQL Notes
 
 - Queries: `dispatchRouteStatus`, `dispatchRouteStatuses`, `dispatchRouteTemplate`, `dispatchRouteTemplates`, `dispatchRoute`, `dispatchRoutes`.
 - Mutations use `input: { organizationId, values }` and return payload fields named `dispatchRouteStatus`, `dispatchRouteTemplate`, `dispatchRoute`, or `generateDispatchRoutesResult`.
-- Create accepts nested stops. Dynamic route/template updates can replace the full `stops` array: existing stops with IDs are sparse-updated, new stops are inserted, omitted existing stops are soft-deleted, and sequence/plannedSequence is reassigned from array order. Dedicated stop add/update/remove/reorder mutations remain available for targeted edits.
+- Route stops can be anchored by location (`stopContactId`, `contactAddressId`, ad-hoc `customValues`) or by attached `orderIds`.
+- Create accepts nested route stops with `orderIds`. Dynamic route updates and stop add/update mutations also accept `orderIds`; when present, the attached orders are reconciled to exactly those IDs after organization validation.
+- Dynamic route/template updates can replace the full `stops` array: existing stops with IDs are sparse-updated, new stops are inserted, omitted existing stops are soft-deleted, and sequence/plannedSequence is reassigned from array order. Dedicated stop add/update/remove/reorder mutations remain available for targeted edits.
+- Orders expose `relatedDispatchRoutes(filter, orderBy)` for routes linked through stop order attachments; draft orders return no related routes.
 - Route generation is idempotent per template/date and creates draft routes.

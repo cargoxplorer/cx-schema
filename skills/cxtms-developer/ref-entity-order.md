@@ -70,6 +70,7 @@ Order GraphQL quick search (`orders(search:)` and `orderGroupBy(search:)`) match
 | `orderCarriers` | `[OrderCarrier]` | |
 | `allTags` | `[OrderAllTagsView]` | View: all tags including from commodities |
 | `allRelatedOrders` | `[OrderRelatedOrdersView]` | Orders sharing commodities |
+| `relatedDispatchRoutes` | `[DispatchRoute]` | Routes linked through dispatch route stop order attachments; supports `filter` and `orderBy`; draft orders return an empty list |
 | `attachmentsSummary` | `OrderAttachmentSummaryView?` | DB view: `.totalCount`, `.hasAny` (active attachments) |
 | `notesSummary` | `OrderNoteSummaryView?` | DB view: `.totalCount`, `.hasAny` (non-deleted notes) |
 | `outgoingLinks` | `[LinkedOrder]` | |
@@ -112,6 +113,7 @@ These are virtual fields that filter `orderEntities` by type:
 | `getModeOfTransportation(idPropertyName)` | `ModeOfTransportation` | |
 | `getCustomCode(idPropertyName)` | `CustomCode` | |
 | `getRelatedOrderByProperty(idPropertyName)` | `Order` | Resolve related order from `customValues[idPropertyName]` |
+| `relatedDispatchRoutes(filter, orderBy)` | `[DispatchRoute]` | Routes linked through dispatch route stop order attachments; draft orders return an empty list |
 | `getCharge(chargeDescription)` | `Charge` | Single charge by description |
 | `getChargesByChargeType(chargeType)` | `[Charge]` | Charges filtered by type |
 | `getOrderSummary(weightUnit, volumeUnit, dimensionsUnit)` | `OrderSummary` | |
