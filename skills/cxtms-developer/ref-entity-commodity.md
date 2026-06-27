@@ -117,6 +117,7 @@ Field names as used in workflow expressions: `{{ entity.description }}`, `{{ ent
 | `getParentCommodity` | `Commodity` | Parent commodity |
 | `getRelatedOrders(filter)` | `[Order]` | Related orders |
 | `getRelatedOrder(filter)` | `Order` | First related order |
+| `getRelatedDispatchRoutes(filter?, orderBy?)` | `[DispatchRoute]` | Dispatch routes linked through non-draft orders attached to this commodity or any descendant commodity |
 | `getCommodityTrackingNumber(idPropertyName)` | `TrackingNumber` | Lookup |
 | `getCommodityAttachments(filter)` | `[Attachment]` | |
 | `getWeightTotal(weightUnit)` | `decimal?` | Total weight converted to requested unit; defaults to commodity `weightUnit` when omitted |

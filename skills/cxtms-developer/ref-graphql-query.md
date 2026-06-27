@@ -202,6 +202,23 @@ Commodities expose `getContact(idPropertyName: String!)` to resolve a contact ID
 }
 ```
 
+### Commodity related dispatch routes
+
+Commodities expose `getRelatedDispatchRoutes(filter, orderBy)` for dispatch routes linked through non-draft orders attached to the commodity or any descendant commodity.
+
+```graphql
+commodities(organizationId: 1, filter: "commodityId:5001") {
+  items {
+    commodityId
+    getRelatedDispatchRoutes(orderBy: "routeDate") {
+      dispatchRouteId
+      name
+      routeDate
+    }
+  }
+}
+```
+
 ## Order Custom-Value Resolvers
 
 Orders expose `getContactAddress(idPropertyName: String!)` to resolve a contact-address id stored in `customValues` into a `contactAddress` object. The lookup is organization-scoped and returns null/empty when the custom-value key is missing.
