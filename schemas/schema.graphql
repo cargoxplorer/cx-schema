@@ -4150,6 +4150,8 @@ type Query {
   parentCommodity: commodity @cost(weight: "10")
   commodityRelatedOrders(filter: String!): [order!]! @cost(weight: "10")
   commodityRelatedOrder(filter: String!): order @cost(weight: "10")
+  getRelatedDispatchRoutes(filter: String, orderBy: String): [dispatchRoute!]!
+    @cost(weight: "10")
   trackingNumber(idPropertyName: String!): commodityTrackingNumber
     @cost(weight: "10")
   commodityAttachments(filter: String!): [AttachmentGqlDto!]!
