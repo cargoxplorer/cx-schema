@@ -560,6 +560,7 @@ Dynamic array/list editor for repeating field groups. Supports add/remove/reorde
 | `options.allowReorder` | `boolean` | `true` | Enable drag-and-drop |
 | `options.minItems` | `number` | `0` | Minimum items (auto-created) |
 | `options.maxItems` | `number` | `∞` | Maximum items |
+| `options.removeType` | `soft \| hard` | `soft` | Individual remove behavior. `soft` marks object rows with `isDeleted: true`; `hard` splices the row from the array |
 | `addButton.label` | `ILocalizeString` | `Add Item` | Add button label |
 | `addButton.icon` | `string` | `plus` | Add button icon |
 | `addButton.position` | `top \| bottom \| both` | `bottom` | Add button placement |
@@ -586,6 +587,7 @@ props:
     allowAdd: true
     allowRemove: true
     allowReorder: true
+    removeType: soft
     minItems: 1
     maxItems: 50
   addButton:
