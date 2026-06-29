@@ -105,12 +105,20 @@
               "default": null,
               "description": "Maximum number of items allowed",
               "x-example": 10
+            },
+            "removeType": {
+              "type": "string",
+              "enum": ["soft", "hard"],
+              "default": "soft",
+              "description": "Delete mode for removed items: 'soft' marks object rows with isDeleted=true, while 'hard' physically removes the item from the array",
+              "x-example": "hard"
             }
           },
           "x-example": {
             "allowAdd": true,
             "allowRemove": true,
             "allowReorder": true,
+            "removeType": "soft",
             "minItems": 0,
             "maxItems": 7
           }
