@@ -6,6 +6,7 @@
 - Dashboard component
 - DashboardWidget component
 - Widget component
+- Map component
 - Timeline component
 - TimelineGrid component
 - OAuth2 component
@@ -99,6 +100,55 @@ props:
           props:
             startDate: "{{ startStr }}"
             endDate: "{{ endStr }}"
+```
+
+---
+
+## map
+
+Inline Google Maps component for plotting explicit markers or dispatch route/template stops.
+
+**Props:**
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `google` | `google` | Map provider; only Google Maps is supported |
+| `height` | `number` | `520` | Map viewport height in pixels |
+| `center` | `{lat,lng}` | auto | Optional fixed center; numbers or numeric strings |
+| `zoom` | `number` | auto | Initial zoom; single marker defaults to 14 |
+| `markers` | `array` | - | Explicit markers; takes precedence over `stops` |
+| `stops` | `array` | - | Dispatch route/template stops converted from `stopContact.shipping` |
+| `fitBounds` | `boolean` | `true` | Fit viewport to valid markers when no fixed center is supplied |
+| `showUnmappedNote` | `boolean` | `true` | Show a caption for unplotted markers/stops |
+| `showInfoWindow` | `boolean` | `true` | Show marker label/address/stop type in a Google info window |
+| `onMarkerClick` | `action[]` | - | Fired with clicked marker as `result` |
+
+`markers` should include `id`, `label`, `lat`, `lng`, and optionally `number`, `address`, `stopType`. Invalid coordinates and `0,0` are treated as unmapped.
+
+```yaml
+component: map
+name: dispatchRouteMap
+props:
+  height: 560
+  stops: "{{ dispatchRoute.stops }}"
+  fitBounds: true
+  onMarkerClick:
+    - setStore:
+        selectedStopId: "{{ result.id }}"
+```
+
+```yaml
+component: map
+name: terminalMap
+props:
+  height: 420
+  center: { lat: 33.749, lng: -84.388 }
+  zoom: 8
+  markers:
+    - id: atl
+      label: Atlanta Terminal
+      lat: 33.749
+      lng: -84.388
+      address: "Atlanta, GA"
 ```
 
 ---
