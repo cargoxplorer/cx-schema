@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Map Component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "map"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name identifier for the map instance"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["google"],
+          "default": "google",
+          "description": "Map provider. Only Google Maps is currently supported."
+        },
+        "height": {
+          "oneOf": [
+            { "type": "number" },
+            {
+              "type": "string",
+              "pattern": "\\{\\{.*\\}\\}",
+              "description": "Template expression that resolves to a numeric height"
+            }
+          ],
+          "default": 520,
+          "description": "Map viewport height in pixels"
+        },
+        "center": {
+          "type": "object",
+          "description": "Optional map center. Values can be numbers or numeric strings.",
+          "properties": {
+            "lat": {
+              "oneOf": [{ "type": "number" }, { "type": "string" }]
+            },
+            "lng": {
+              "oneOf": [{ "type": "number" }, { "type": "string" }]
+            }
+          },
+          "required": ["lat", "lng"]
+        },
+        "zoom": {
+          "oneOf": [
+            { "type": "number" },
+            {
+              "type": "string",
+              "pattern": "\\{\\{.*\\}\\}",
+              "description": "Template expression that resolves to a numeric zoom"
+            }
+          ],
+          "description": "Initial zoom level"
+        },
+        "stops": {
+          "description": "Dispatch route/template stops array or template expression. Used when markers is not supplied.",
+          "oneOf": [
+            { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+            { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+          ]
+        },
+        "markers": {
+          "description": "Explicit marker array or template expression. Takes precedence over stops.",
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [{ "type": "string" }, { "type": "number" }]
+                  },
+                  "number": {
+                    "oneOf": [{ "type": "string" }, { "type": "number" }]
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "lat": {
+                    "oneOf": [{ "type": "number" }, { "type": "string" }, { "type": "null" }]
+                  },
+                  "lng": {
+                    "oneOf": [{ "type": "number" }, { "type": "string" }, { "type": "null" }]
+                  },
+                  "address": {
+                    "type": ["string", "null"]
+                  },
+                  "stopType": {
+                    "type": ["string", "null"]
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+          ]
+        },
+        "fitBounds": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+          ],
+          "default": true,
+          "description": "Automatically fit the map bounds to valid markers when no explicit center is supplied"
+        },
+        "showUnmappedNote": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+          ],
+          "default": true,
+          "description": "Show a caption listing markers/stops that could not be plotted"
+        },
+        "showInfoWindow": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+          ],
+          "default": true,
+          "description": "Open an info window when a marker is clicked"
+        },
+        "onMarkerClick": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions fired when a marker is clicked. Receives the marker as result."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["component"],
+  "x-examples": [
+    {
+      "component": "map",
+      "name": "dispatchRouteMap",
+      "props": {
+        "height": 560,
+        "stops": "{{ dispatchRoute.stops }}",
+        "fitBounds": true,
+        "onMarkerClick": [
+          { "setStore": { "selectedStopId": "{{ result.id }}" } }
+        ]
+      }
+    },
+    {
+      "component": "map",
+      "name": "terminalMap",
+      "props": {
+        "height": 420,
+        "center": { "lat": 33.749, "lng": -84.388 },
+        "zoom": 8,
+        "markers": [
+          {
+            "id": "atl",
+            "label": "Atlanta Terminal",
+            "lat": 33.749,
+            "lng": -84.388,
+            "address": "Atlanta, GA"
+          }
+        ]
+      }
+    }
+  ]
+}
