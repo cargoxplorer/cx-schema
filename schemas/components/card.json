@@ -12,7 +12,7 @@
       "description": "Unique name identifier for the card"
     },
     "props": {
-      "type": "object",
+      "type": ["object", "null"],
       "properties": {
         "title": {
           "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]

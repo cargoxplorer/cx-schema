@@ -1,0 +1,13 @@
+workflow:
+  workflowId: "33333333-3333-3333-3333-333333333333"
+  name: "Activity variable satisfies required input"
+activities:
+  - name: Main
+    variables:
+      - name: order
+        value: {}
+    steps:
+      - task: Order/Create@1
+        name: CreateOrder
+        inputs:
+          order: "{{order}}"

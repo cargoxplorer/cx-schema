@@ -16,13 +16,30 @@
       "type": "object",
       "properties": {
         "label": {
-          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "../schemas.json#/definitions/localized"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "x-example": {
             "en-US": "Country Code"
           }
         },
         "placeholder": {
-          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "../schemas.json#/definitions/localized"
+            }
+          ],
           "description": "Field placeholder text. Supports plain strings or localized values.",
           "x-example": {
             "en-US": "Enter Country Code"
@@ -41,9 +58,12 @@
             "date",
             "datetime",
             "rangedatetime",
+            "enhanced-rangedatetime",
             "time",
             "select",
             "select-async",
+            "autocomplete",
+            "autocomplete-async",
             "autocomplete-googleplaces",
             "checkbox",
             "radio",
@@ -53,9 +73,11 @@
             "secret",
             "file",
             "hidden",
+            "phone",
             "quill",
             "object",
-            "yaml"
+            "yaml",
+            "display"
           ],
           "description": "Field input type",
           "x-example": "select-async"
@@ -66,8 +88,11 @@
           "x-example": true
         },
         "disabled": {
-          "type": "boolean",
-          "description": "Whether field is disabled",
+          "type": [
+            "boolean",
+            "string"
+          ],
+          "description": "Whether field is disabled (string = template expression; renderer uses parseTemplate)",
           "x-example": false
         },
         "min": { "type": "number", "description": "Minimum value for numeric field types" },
@@ -78,24 +103,57 @@
           "description": "Template expression for the secret name used by secret fields, e.g. integrations/{{ id }}/apiKey"
         },
         "options": {
-          "type": "object",
+          "type": [
+            "object",
+            "null"
+          ],
           "description": "Field options for select types",
           "properties": {
-            "variant": { "type": "string" },
-            "size": { "type": "string" },
-            "allowInlineCreate": { "type": "boolean" },
-            "allowCreate": { "type": "boolean", "description": "Alias for allowInlineCreate" },
-            "allowMultiple": { "type": "boolean" },
-            "allowClear": { "type": "boolean" },
-            "allowSearch": { "type": "boolean" },
+            "variant": {
+              "type": "string"
+            },
+            "size": {
+              "type": "string"
+            },
+            "allowInlineCreate": {
+              "type": "boolean"
+            },
+            "allowCreate": {
+              "type": "boolean",
+              "description": "Alias for allowInlineCreate"
+            },
+            "allowMultiple": {
+              "type": "boolean"
+            },
+            "allowClear": {
+              "type": "boolean"
+            },
+            "allowSearch": {
+              "type": "boolean"
+            },
             "placeholder": {
-              "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "../schemas.json#/definitions/localized"
+                }
+              ],
               "description": "Select placeholder text. Supports plain strings or localized values."
             },
-            "minWidth": { "type": "string" },
+            "minWidth": {
+              "type": "string"
+            },
             "valueFieldName": {
-              "type": "string",
-              "description": "Field name to use as the value for select options",
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              ],
+              "description": "Field name(s) to use as the value for select options",
               "x-example": "countryCode"
             },
             "itemLabelTemplate": {
@@ -117,7 +175,10 @@
               "type": "object",
               "description": "Query configuration for async search",
               "properties": {
-                "name": { "type": "string", "x-example": "getCountries" },
+                "name": {
+                  "type": "string",
+                  "x-example": "getCountries"
+                },
                 "path": {
                   "type": "string",
                   "description": "Path to data in query result",
@@ -140,9 +201,18 @@
               "type": "object",
               "description": "Query configuration for fetching selected value",
               "properties": {
-                "name": { "type": "string" },
-                "path": { "type": "string", "description": "Path to data in query result" },
-                "params": { "type": "object", "description": "Query parameters", "additionalProperties": true }
+                "name": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Path to data in query result"
+                },
+                "params": {
+                  "type": "object",
+                  "description": "Query parameters",
+                  "additionalProperties": true
+                }
               }
             },
             "defaultValues": {
@@ -156,9 +226,14 @@
           "additionalProperties": true
         },
         "dropDownToolbar": {
-          "type": "array",
+          "type": [
+            "array",
+            "null"
+          ],
           "description": "Toolbar components for dropdown",
-          "items": { "$ref": "../schemas.json#/definitions/component" }
+          "items": {
+            "$ref": "../schemas.json#/definitions/component"
+          }
         },
         "queries": {
           "type": "array",
@@ -166,12 +241,19 @@
           "items": {
             "type": "object",
             "properties": {
-              "name": { "type": "string" },
+              "name": {
+                "type": "string"
+              },
               "query": {
                 "type": "object",
                 "properties": {
-                  "command": { "type": "string" },
-                  "variables": { "type": "object", "additionalProperties": true }
+                  "command": {
+                    "type": "string"
+                  },
+                  "variables": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
                 }
               }
             }
@@ -186,29 +268,67 @@
           "description": "Actions to execute when clicking on an option tag/chip in the dropdown"
         },
         "items": {
-          "type": "array",
+          "type": [
+            "array",
+            "null"
+          ],
           "description": "Static options for select, radio, and toggle fields",
           "items": {
-            "type": "object",
+            "type": [
+              "object",
+              "string"
+            ],
             "properties": {
-              "label": { "type": "string" },
-              "value": { "oneOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }] }
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              }
             },
-            "required": ["label", "value"]
+            "required": [
+              "label",
+              "value"
+            ]
           }
         },
         "transformValue": {
           "type": "object",
           "description": "Value transformation configuration",
           "properties": {
-            "onLoad": { "type": "string", "description": "Template expression to transform value on load" },
-            "onChange": { "type": "string", "description": "Template expression to transform value on change" },
-            "onBlur": { "type": "string", "description": "Template expression to transform value on blur" }
+            "onLoad": {
+              "type": "string",
+              "description": "Template expression to transform value on load"
+            },
+            "onChange": {
+              "type": "string",
+              "description": "Template expression to transform value on change"
+            },
+            "onBlur": {
+              "type": "string",
+              "description": "Template expression to transform value on blur"
+            }
           }
         },
-        "onChange": { "$ref": "../schemas.json#/definitions/actionsList" },
-        "onBlur": { "$ref": "../schemas.json#/definitions/actionsList" },
-        "onFocus": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onChange": {
+          "$ref": "../schemas.json#/definitions/triggerActions"
+        },
+        "onBlur": {
+          "$ref": "../schemas.json#/definitions/actionsList"
+        },
+        "onFocus": {
+          "$ref": "../schemas.json#/definitions/actionsList"
+        },
         "onSelectValue": {
           "$ref": "../schemas.json#/definitions/actionsList",
           "description": "Actions to execute when a value is selected in select-async fields"
@@ -233,23 +353,57 @@
   },
   "allOf": [
     {
-      "if": { "properties": { "props": { "properties": { "type": { "const": "select" } } } } },
-      "then": { "properties": { "props": { "required": ["items"] } } }
+      "if": {
+        "properties": {
+          "props": {
+            "properties": {
+              "type": {
+                "const": "select"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "required": [
+              "items"
+            ]
+          }
+        }
+      }
     }
   ],
-  "required": ["component", "name"],
+  "required": [
+    "component",
+    "name"
+  ],
   "x-examples": [
     {
       "component": "field",
       "name": "calendarType",
       "props": {
-        "label": { "en-US": "Calendar Type" },
+        "label": {
+          "en-US": "Calendar Type"
+        },
         "type": "select",
-        "options": { "placeholder": "Select Calendar Type" },
+        "options": {
+          "placeholder": "Select Calendar Type"
+        },
         "items": [
-          { "label": "Standard", "value": "Standard" },
-          { "label": "Resource", "value": "Resource" },
-          { "label": "Personal", "value": "Personal" }
+          {
+            "label": "Standard",
+            "value": "Standard"
+          },
+          {
+            "label": "Resource",
+            "value": "Resource"
+          },
+          {
+            "label": "Personal",
+            "value": "Personal"
+          }
         ]
       }
     },
@@ -257,7 +411,9 @@
       "component": "field",
       "name": "countryId",
       "props": {
-        "label": { "en-US": "Country" },
+        "label": {
+          "en-US": "Country"
+        },
         "type": "select-async",
         "options": {
           "allowSearch": true,
@@ -279,14 +435,27 @@
       "component": "field",
       "name": "tags",
       "props": {
-        "label": { "en-US": "Tags" },
+        "label": {
+          "en-US": "Tags"
+        },
         "type": "select-async",
         "onOptionTagClick": [
           {
             "dialog": {
               "name": "editTagDialog",
-              "props": { "title": { "en-US": "Edit Tag" } },
-              "component": { "component": "layout", "children": [{ "component": "Tags/EditTag" }] }
+              "props": {
+                "title": {
+                  "en-US": "Edit Tag"
+                }
+              },
+              "component": {
+                "component": "layout",
+                "children": [
+                  {
+                    "component": "Tags/EditTag"
+                  }
+                ]
+              }
             }
           }
         ]
@@ -296,7 +465,9 @@
       "component": "field",
       "name": "description",
       "props": {
-        "label": { "en-US": "Description" },
+        "label": {
+          "en-US": "Description"
+        },
         "type": "text",
         "placeholder": {
           "en-US": "Enter description"

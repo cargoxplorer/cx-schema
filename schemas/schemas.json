@@ -8,7 +8,6 @@
       "pattern": "\\{\\{.*\\}\\}",
       "description": "Template expression that will be evaluated"
     },
-
     "permissions": {
       "oneOf": [
         {
@@ -25,24 +24,32 @@
       ],
       "description": "Permission(s) required to access this component"
     },
-
     "actionsList": {
       "type": "array",
       "description": "List of actions to execute",
-      "items": { "$ref": "actions/all.json" }
+      "items": {
+        "$ref": "actions/all.json"
+      }
     },
-
+    "triggerActions": {
+      "description": "Action trigger (onClick/onChange): an action array, a single action object, or null. Type-union (not oneOf) to avoid cascading errors when an array's items fail validation. The frontend's action() accepts all three shapes.",
+      "type": [
+        "array",
+        "object",
+        "null",
+        "string"
+      ]
+    },
     "localized": {
       "type": "object",
       "description": "Localized text object",
       "patternProperties": {
-        "^[a-z]{2}-[A-Z]{2}$": {
+        "^[a-zA-Z]{2}-[a-zA-Z]{2}$": {
           "type": "string"
         }
       },
       "additionalProperties": false
     },
-
     "component": {
       "type": "object",
       "description": "Generic component structure for CXTMS",
@@ -52,12 +59,18 @@
           "description": "Component type identifier"
         },
         "name": {
-          "type": "string",
-          "description": "Component name identifier"
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Component name identifier (null/absent: renderer keys by index)"
         },
         "props": {
-          "type": "object",
-          "description": "Component properties",
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Component properties (null/absent means no props; renderers guard via props?.props || {})",
           "additionalProperties": true
         },
         "children": {
@@ -68,18 +81,48 @@
           "description": "Boolean expression for conditional rendering"
         }
       },
-      "required": ["component"],
-      "additionalProperties": false
+      "required": [
+        "component"
+      ],
+      "additionalProperties": true
     },
-
     "componentChildren": {
-      "type": "array",
-      "description": "Array of child components",
+      "type": [
+        "array",
+        "null"
+      ],
+      "description": "Array of child components; null/absent means no children (frontend is null-safe)",
       "items": {
         "$ref": "#/definitions/component"
       }
     },
-
+    "componentDefinition": {
+      "description": "A component reference (e.g. dialog.component): either a component name (string, resolved by AppComponent) or an inline definition whose 'layout' property holds a component tree (rendered via MainLayoutComponent). cx-app uses object{layout} (~90%) and string (~10%); never a bare component.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "layout": {
+              "$ref": "#/definitions/component"
+            },
+            "props": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "variables": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
     "dataGridView": {
       "type": "object",
       "properties": {
@@ -88,11 +131,19 @@
           "description": "View identifier"
         },
         "displayName": {
-          "$ref": "#/definitions/localized"
+          "oneOf": [
+            { "type": "string" },
+            { "$ref": "#/definitions/localized" }
+          ],
+          "description": "Display name for the view"
         },
         "enableSelect": {
           "type": "string",
-          "enum": ["Single", "Multiple", "None"],
+          "enum": [
+            "Single",
+            "Multiple",
+            "None"
+          ],
           "description": "Selection mode for grid rows"
         },
         "columns": {
@@ -106,7 +157,12 @@
                 "description": "Column field name"
               },
               "label": {
-                "$ref": "#/definitions/localized"
+                "oneOf": [
+                  { "type": "string" },
+                  { "$ref": "#/definitions/localized" },
+                  { "type": "null" }
+                ],
+                "description": "Column header label: plain string, localized object, or null to fall back to column name"
               },
               "showAs": {
                 "$ref": "#/definitions/component",
@@ -183,7 +239,10 @@
           }
         },
         "filter": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "Filter expression for this view"
         },
         "search": {
@@ -191,7 +250,10 @@
           "description": "Default search term seeded once when the grid first loads this view. Supports template expressions; URL search parameters and user input take precedence."
         },
         "childViews": {
-          "type": "array",
+          "type": [
+            "array",
+            "null"
+          ],
           "description": "Nested child views",
           "items": {
             "$ref": "#/definitions/dataGridView"
@@ -219,9 +281,10 @@
           "description": "Render pagination controls above or below the grid rows. Defaults to bottom."
         }
       },
-      "required": ["name"]
+      "required": [
+        "name"
+      ]
     },
-
     "dataGridOptions": {
       "type": "object",
       "properties": {
@@ -247,7 +310,11 @@
         },
         "navigationType": {
           "type": "string",
-          "enum": ["navigate", "dialog", "store"],
+          "enum": [
+            "navigate",
+            "dialog",
+            "store"
+          ],
           "description": "Navigation behavior type"
         },
         "enableDynamicGrid": {
@@ -283,50 +350,18 @@
           "description": "Pre-expand parent rows on first load when childViews are configured; preserves user collapse/expand choices on refresh"
         },
         "onRowClick": {
-          "oneOf": [
-            { "$ref": "#/definitions/actionsList" },
-            {
-              "type": "object",
-              "properties": {
-                "dialog": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "props": {
-                      "type": "object",
-                      "additionalProperties": true
-                    },
-                    "component": {
-                      "$ref": "#/definitions/component"
-                    },
-                    "onClose": {
-                      "$ref": "#/definitions/actionsList"
-                    }
-                  }
-                }
-              }
-            }
-          ]
+          "type": [
+            "array",
+            "object",
+            "null"
+          ],
+          "description": "Row click action(s): array, single action object, or null."
         }
       },
       "required": [
-        "query",
-        "rootEntityName",
-        "entityKeys",
-        "navigationType",
-        "enableDynamicGrid",
-        "enableViews",
-        "enableSearch",
-        "enablePagination",
-        "enableColumns",
-        "enableFilter",
-        "defaultView",
-        "onRowClick"
+        "entityKeys"
       ]
     },
-
     "collection": {
       "type": "object",
       "properties": {
@@ -355,7 +390,10 @@
             },
             "orientation": {
               "type": "string",
-              "enum": ["horizontal", "vertical"],
+              "enum": [
+                "horizontal",
+                "vertical"
+              ],
               "description": "Layout orientation"
             },
             "containerTag": {
@@ -371,15 +409,20 @@
               "description": "CSS classes for child elements"
             }
           },
-          "required": ["items", "itemName"]
+          "required": [
+            "items",
+            "itemName"
+          ]
         },
         "children": {
           "$ref": "#/definitions/componentChildren"
         }
       },
-      "required": ["component", "props"]
+      "required": [
+        "component",
+        "props"
+      ]
     },
-
     "row": {
       "type": "object",
       "properties": {
@@ -409,7 +452,6 @@
         }
       }
     },
-
     "entityField": {
       "type": "object",
       "description": "Entity field definition",
@@ -466,19 +508,32 @@
                   "additionalProperties": true
                 }
               },
-              "required": ["component"],
+              "required": [
+                "component"
+              ],
               "x-examples": [
                 {
                   "component": "Contacts/Select",
-                  "props": { "filter": "contactType: Customer", "options": { "baseName": "contactId" } }
+                  "props": {
+                    "filter": "contactType: Customer",
+                    "options": {
+                      "baseName": "contactId"
+                    }
+                  }
                 },
                 {
                   "component": "OrderStatuses/Select",
-                  "props": { "filter": "orderType: Purchase" }
+                  "props": {
+                    "filter": "orderType: Purchase"
+                  }
                 },
                 {
                   "component": "AppManifests/Select",
-                  "props": { "options": { "baseName": "appManifestId" } }
+                  "props": {
+                    "options": {
+                      "baseName": "appManifestId"
+                    }
+                  }
                 },
                 {
                   "component": "Countries/Select"
@@ -489,29 +544,52 @@
           "additionalProperties": false
         }
       },
-      "required": ["name", "fieldType"]
+      "required": [
+        "name",
+        "fieldType"
+      ]
     },
-
     "entity": {
       "type": "object",
       "description": "CXTMS entity definition",
       "properties": {
-        "name": { "type": "string" },
+        "name": {
+          "type": "string"
+        },
         "entityKind": {
           "type": "string",
-          "enum": ["Order", "Contact", "OrderEntity", "AccountingTransaction", "Calendar", "CalendarEvent", "Other"]
+          "enum": [
+            "Order",
+            "Contact",
+            "OrderEntity",
+            "AccountingTransaction",
+            "Calendar",
+            "CalendarEvent",
+            "Other"
+          ]
         },
-        "extension": { "type": "boolean", "description": "Whether this entity extends an existing type" },
-        "displayName": { "$ref": "#/definitions/localized" },
-        "description": { "$ref": "#/definitions/localized" },
+        "extension": {
+          "type": "boolean",
+          "description": "Whether this entity extends an existing type"
+        },
+        "displayName": {
+          "$ref": "#/definitions/localized"
+        },
+        "description": {
+          "$ref": "#/definitions/localized"
+        },
         "fields": {
           "type": "array",
-          "items": { "$ref": "#/definitions/entityField" }
+          "items": {
+            "$ref": "#/definitions/entityField"
+          }
         }
       },
-      "required": ["name", "entityKind"]
+      "required": [
+        "name",
+        "entityKind"
+      ]
     },
-
     "calendarEvent": {
       "type": "object",
       "description": "Calendar event object structure",
@@ -565,7 +643,14 @@
         },
         "display": {
           "type": "string",
-          "enum": ["auto", "block", "list-item", "background", "inverse-background", "none"],
+          "enum": [
+            "auto",
+            "block",
+            "list-item",
+            "background",
+            "inverse-background",
+            "none"
+          ],
           "description": "How the event is displayed"
         },
         "overlap": {
@@ -573,7 +658,14 @@
           "description": "Whether event can overlap with others"
         },
         "constraint": {
-          "oneOf": [{ "type": "string" }, { "type": "object" }],
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
           "description": "Constraint for event movement"
         },
         "color": {
@@ -598,100 +690,80 @@
           "additionalProperties": true
         }
       },
-      "required": ["title", "start"]
+      "required": [
+        "title",
+        "start"
+      ]
     }
   },
-
   "components": {
     "schemas": {
       "appComponent": {
         "$ref": "components/appComponent.json"
       },
-
       "navbar": {
         "$ref": "components/navbar.json"
       },
-
       "navbarItem": {
         "$ref": "components/navbarItem.json"
       },
-
       "navDropdown": {
         "$ref": "components/navDropdown.json"
       },
-
       "navbarLink": {
         "$ref": "components/navbarLink.json"
       },
-
       "collection": {
         "$ref": "components/collection.json"
       },
-
       "row": {
         "$ref": "components/row.json"
       },
-
       "dataGrid": {
         "$ref": "components/dataGrid.json"
       },
-
       "barcodeScanner": {
         "$ref": "components/barcodeScanner.json"
       },
-
       "button": {
         "$ref": "components/button.json"
       },
-
       "form": {
         "$ref": "components/form.json"
       },
-
       "layout": {
         "$ref": "components/layout.json"
       },
-
       "tabs": {
         "$ref": "components/tabs.json"
       },
-
       "tab": {
         "$ref": "components/tab.json"
       },
-
       "field": {
         "$ref": "components/field.json"
       },
-
       "dropdown": {
         "$ref": "components/dropdown.json"
       },
-
       "datasource": {
         "$ref": "components/datasource.json"
       },
-
       "calendar": {
         "$ref": "components/calendar.json"
       },
-
       "card": {
         "$ref": "components/card.json"
       },
-
       "module": {
         "$ref": "components/module.json"
       },
-
       "field-collection": {
         "$ref": "components/field-collection.json"
       },
-
       "timeline": {
         "$ref": "components/timeline.json"
       },
-
       "timeline-grid": {
         "$ref": "components/timelineGrid.json"
       }

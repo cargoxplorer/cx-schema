@@ -1,0 +1,30 @@
+workflow:
+  workflowId: "55555555-5555-5555-5555-555555555555"
+  name: "Switch case variables do not leak outside the case"
+activities:
+  - name: Main
+    steps:
+      - task: switch
+        name: Branch
+        inputs:
+          expression: "1 == 1"
+        cases:
+          - when: "1 == 1"
+            steps:
+              - task: Utilities/SetVariable
+                name: SetOrder
+                inputs:
+                  variables:
+                    - name: order
+                      value: "{}"
+          - when: "1 == 2"
+            steps:
+              - task: Utilities/SetVariable
+                name: SetOther
+                inputs:
+                  variables:
+                    - name: other
+                      value: "{}"
+      - task: Order/Create@1
+        name: UseOrderAfterSwitch
+        inputs: {}

@@ -12,10 +12,10 @@
       "description": "Tabs name identifier"
     },
     "props": {
-      "type": "object",
+      "type": ["object", "null"],
       "properties": {
         "toolbar": {
-          "type": "array",
+          "type": ["array", "null"],
           "description": "Toolbar components",
           "items": {
             "$ref": "../schemas.json#/definitions/component"

@@ -12,8 +12,8 @@
       "description": "Instance name for referencing in actions/variables"
     },
     "inputs": {
-      "type": "object",
-      "description": "Input parameters for the timeline"
+      "type": ["array", "null"],
+      "description": "Input parameters for the timeline (array of input defs; null/absent means none)"
     },
     "props": {
       "type": "object",

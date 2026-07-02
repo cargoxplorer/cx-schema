@@ -1,0 +1,16 @@
+workflow:
+  workflowId: "11111111-1111-1111-1111-111111111111"
+  name: "SetVariable satisfies required input"
+activities:
+  - name: Main
+    steps:
+      - task: Utilities/SetVariable
+        name: SetOrder
+        inputs:
+          variables:
+            - name: order
+              value: "{}"
+      - task: Order/Create@1
+        name: CreateOrder
+        inputs:
+          order: "{{order}}"

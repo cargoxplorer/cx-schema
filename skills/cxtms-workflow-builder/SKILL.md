@@ -12,6 +12,8 @@ You are a CXTMS workflow YAML builder. You generate schema-valid YAML for CX wor
 **IMPORTANT — use `cxtms` for all workflow operations:**
 - **Scaffold**: `npx cxtms create workflow <name> --template <template>` — generates a schema-valid YAML file. ALWAYS run this first, then read the generated file, then customize. Do NOT write YAML from scratch or copy templates manually.
 - **Validate**: `npx cxtms <file.yaml>` — run after every change
+- **Validate without locations**: `npx cxtms <file.yaml> --no-line-numbers` — suppress source line/column info in output
+- **Enforce schemas**: `npx cxtms <file.yaml> --schema-enforcement=warn|error` — off by default; `warn` reports violations, `error` fails validation (exit 1). For workflows this checks the top-level `workflow.json` schema **and** that each task has its required `inputs:` keys present (per `schemas/workflows/task-required-inputs.json`, generated from the backend task handlers). System-injected inputs like `organizationId`/`currentEmployeeId` are excluded, so a missing-key warning is a real signal the author forgot a required input.
 - **Schema lookup**: `npx cxtms schema <task>` — e.g., `cxtms schema graphql`, `cxtms schema foreach`, `cxtms schema action-event`. Schema names use kebab-case file names. Case-insensitive: `ActionEvent` resolves to `action-event`.
 - **Examples**: `npx cxtms example <task>` — show example YAML for a task
 - **List schemas**: `npx cxtms list --type workflow` — shows all available task schemas in the Tasks section
@@ -174,7 +176,7 @@ events:                                     # Workflow-level event handlers
 
 **Flow**: Workflow -> Activities (sequential) -> Steps (sequential)
 
-**Outputs stored as**: `ActivityName.StepName.outputKey` (in both activity and global scope)
+**Variable scope**: See [Variable Scope](#variable-scope) below. Step outputs are stored under `ActivityName.StepName.outputKey`; `Utilities/SetVariable` adds names to both the activity and global scope so they can be read like other globals.
 
 **System variables**: `organizationId`, `currentUserId`, `executionId`, `workflowId`, `triggerType`, `eventType`, `position`, `entityName`, `entityId`, `entity`, `data`, `changes`
 
@@ -183,6 +185,92 @@ events:                                     # Workflow-level event handlers
 **Events**: `onWorkflowStarted`, `onWorkflowCompleted`, `onWorkflowFailed`, `onActivityStarted`, `onActivityCompleted`, `onActivityFailed`
 
 **Task naming**: `Namespace/TaskName@Version` — version optional, defaults to highest.
+
+---
+
+## Variable Scope
+
+Workflows have a **global scope** and one **activity scope** per activity. Understanding the distinction prevents null-reference errors and missing-input warnings.
+
+### Global scope
+
+Seeded at workflow start from:
+
+- `workflow.inputs[*].name`
+- `workflow.variables[*].name`
+- System-injected variables: `organizationId`, `currentUserId`, `executionId`, `workflowId`, `triggerType`, `eventType`, `position`, `entityName`, `entityId`, `entity`, `data`, `changes`
+- Trigger-specific variables (for entity triggers): e.g. `orderId`, `orderNumber`, `trackingNumber`, `customValues` for Order triggers; similar fields for `Commodity`, `OrderCommodity`, and `AccountingTransaction` triggers.
+
+Global scope persists for the entire workflow execution.
+
+### Activity scope
+
+Each activity receives a **copy** of global scope plus its own `activity.variables`. Variables set inside an activity are visible to all later steps in that activity, but they are **not** visible in other activities unless they came from global scope.
+
+### Two ways to produce variables
+
+1. **`Utilities/SetVariable`** — the only task whose side effect is adding a variable name to both the activity and global scope. The name can then be read like any other global variable, without the `ActivityName.StepName.` prefix required for normal step outputs.
+
+   ```yaml
+   - task: "Utilities/SetVariable@1"
+     name: SetFilters
+     inputs:
+       variables:
+         - name: statusFilter
+           value: "Active"
+
+   - task: "Order/Query@1"
+     name: GetOrders
+     inputs:
+       filter: "statusName:{{ statusFilter }}"
+   ```
+
+2. **Normal step `outputs:`** — stored as a nested path: `ActivityName.StepName.outputKey`. Read it with the full dotted path, not by the short variable name.
+
+   ```yaml
+   - task: "Order/Get@1"
+     name: GetOrder
+     inputs:
+       orderId: "{{ inputs.orderId }}"
+     outputs:
+       - name: order
+         mapping: "order?"
+
+   - task: "Utilities/Log@1"
+     name: LogOrderNumber
+     inputs:
+       message: "Order: {{ Main?.GetOrder?.order?.orderNumber? }}"
+   ```
+
+### Control-flow scope rules
+
+- **`foreach`**: injects `item` (or the custom name from `item:`) and `index`. Variables set inside the loop body persist after the loop.
+- **`while`**: injects `iteration`. The engine removes it after the loop finishes.
+- **`switch`**: each case runs in an isolated copy of the scope. A variable set inside one case is **not** visible after the switch.
+
+### Cross-activity visibility
+
+Variables set in Activity A are **not** visible in Activity B. Pass data between activities by:
+
+- workflow-level `inputs` or `variables`
+- `Utilities/SetVariable` in a shared prior activity (it writes to global scope as well)
+- workflow `outputs` consumed by a caller via `Workflow/Execute@1`
+
+### Validator limitations (`--schema-enforcement`)
+
+The required-input presence check used by `--schema-enforcement=warn|error` seeds scope from `workflow.inputs`, `workflow.variables`, `activity.variables`, `Utilities/SetVariable`, loop vars, and system-injected variables. It is intentionally conservative: it avoids false positives when possible, which means it under-reports some real issues. Known gaps:
+
+**False positives (reported as missing even though the value is available at runtime):**
+
+- It does **not** treat dotted step-output paths (`ActivityName.StepName.outputKey`) as satisfying a required input. A task that reads a previous step's output may be reported as missing a required input even though the value is available at runtime.
+- Entity-trigger injected fields are hardcoded; if the backend adds new trigger fields, the validator may not know about them.
+
+**False negatives (real issues that are not reported):**
+
+- **Flow workflows**: all states and transitions are validated against one shared scope. A variable set in one state's `onEnter`/`onExit` is treated as available to every other state, even though at runtime only one transition executes at a time with a fresh scope. This means missing inputs in a state handler may not be reported if some other state sets the same variable name.
+- It does **not** validate that every `{{ variable }}` or `[variable]` reference resolves to a known name, so typos are not caught.
+
+Use `npx cxtms <file.yaml>` for structural validation and treat `--schema-enforcement` as a helpful but not exhaustive check.
 
 ---
 
