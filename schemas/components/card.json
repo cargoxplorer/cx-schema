@@ -28,6 +28,84 @@
           "type": "string",
           "description": "CSS classes for styling"
         },
+        "options": {
+          "type": "object",
+          "description": "Card visual and layout options",
+          "properties": {
+            "variant": {
+              "type": "string",
+              "enum": ["elevation", "outlined"],
+              "description": "MUI Card variant"
+            },
+            "elevation": {
+              "type": "number",
+              "description": "Shadow depth when variant is elevation"
+            },
+            "sx": {
+              "type": "object",
+              "description": "MUI sx styles applied to the card root",
+              "additionalProperties": true
+            },
+            "style": {
+              "type": "object",
+              "description": "Theme-aware CSSProperties applied after sx",
+              "properties": {
+                "light": {
+                  "type": "object",
+                  "description": "Card root styles for light mode",
+                  "additionalProperties": true
+                },
+                "dark": {
+                  "type": "object",
+                  "description": "Card root styles for dark mode",
+                  "additionalProperties": true
+                }
+              },
+              "additionalProperties": false
+            },
+            "bgcolor": {
+              "type": "string",
+              "description": "Background color"
+            },
+            "color": {
+              "type": "string",
+              "description": "Text color"
+            },
+            "className": {
+              "type": "string",
+              "description": "CSS classes for the card root"
+            },
+            "header": {
+              "type": "object",
+              "description": "Card header configuration",
+              "additionalProperties": true
+            },
+            "actions": {
+              "type": "object",
+              "description": "Card actions configuration",
+              "additionalProperties": true
+            },
+            "disableContentWrapper": {
+              "type": "boolean",
+              "description": "Render children directly without CardContent"
+            },
+            "contentSx": {
+              "type": "object",
+              "description": "MUI sx styles applied to CardContent",
+              "additionalProperties": true
+            },
+            "contentClassName": {
+              "type": "string",
+              "description": "CSS class applied to CardContent"
+            },
+            "contentProps": {
+              "type": "object",
+              "description": "Additional CardContent props",
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        },
         "toolbar": {
           "type": "array",
           "description": "Toolbar components",

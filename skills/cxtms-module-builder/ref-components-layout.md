@@ -509,6 +509,7 @@ MUI Card container with optional header, content, and actions.
 | `variant` | `elevation \| outlined` | — | MUI Card variant |
 | `elevation` | `number` | — | Shadow depth |
 | `sx` | `SxProps` | — | Card sx styles |
+| `style` | `{light?,dark?}` | — | Theme-aware root CSSProperties applied after `sx`; use `style.light` for light mode and `style.dark` for dark mode |
 | `className` | `string` | — | Additional CSS class |
 | `bgcolor` | `string` | — | Background color |
 | `color` | `string` | — | Text color |
@@ -525,6 +526,9 @@ name: summaryCard
 props:
   options:
     variant: outlined
+    style:
+      light: { backgroundColor: "#ffffff", borderColor: "#d7dee8" }
+      dark: { backgroundColor: "#121826", borderColor: "#344054", color: "#f8fafc" }
     header:
       title: "Summary"
       subheader: "Last updated today"
