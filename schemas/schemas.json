@@ -166,7 +166,13 @@
                 "description": "Column behavior/export options such as orderByProperty, allowOrderBy, allowFilter, allowSelect, and filterByProperty",
                 "properties": {
                   "allowOrderBy": { "type": "boolean" },
-                  "allowFilter": { "type": "boolean" },
+                  "allowFilter": {
+                    "oneOf": [
+                      { "type": "boolean" },
+                      { "$ref": "#/definitions/templateExpression" }
+                    ],
+                    "description": "Boolean or template expression controlling whether this column appears in the filter picker"
+                  },
                   "allowSelect": { "type": "boolean" },
                   "orderByProperty": {
                     "type": "string",
@@ -431,7 +437,13 @@
           "properties": {
             "showAs": { "$ref": "#/definitions/component" },
             "allowOrderBy": { "type": "boolean" },
-            "allowFilter": { "type": "boolean" },
+            "allowFilter": {
+              "oneOf": [
+                { "type": "boolean" },
+                { "$ref": "#/definitions/templateExpression" }
+              ],
+              "description": "Boolean or template expression controlling whether this field appears in the filter picker"
+            },
             "allowSelect": { "type": "boolean" },
             "filterByProperty": {
               "type": "string",

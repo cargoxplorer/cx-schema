@@ -45,6 +45,26 @@ Use `options.items` for already-loaded arrays; use `options.query` for server-si
 
 ---
 
+## dataGrid conditional filter columns
+
+DataGrid column `props.allowFilter` accepts either a boolean or a template expression. The filter column picker evaluates the expression with the grid's current variables before deciding whether the column can be added as a filter.
+
+```yaml
+component: dataGrid
+name: ordersGrid
+props:
+  views:
+    - name: operations
+      columns:
+        - name: orderStatusName
+          props:
+            allowFilter: "{{ currentUser.canFilterStatus }}"
+```
+
+Dynamic entity fields use the same rule through `fieldDefinition.props.allowFilter`.
+
+---
+
 ## collection
 
 Iterates over data items and renders children as templates. Supports drag-and-drop reordering.
