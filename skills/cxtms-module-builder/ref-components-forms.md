@@ -352,6 +352,8 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `offset` | `number \| {xs,sm,md,lg,xl}` | Leading offset (push field right) when inside a `layout` |
 | `order` | `number \| {xs,sm,md,lg,xl}` | Visual order per breakpoint when inside a `layout` |
 
+Password fields receive a stable input id from the field name unless an explicit `id` is provided. This keeps multiple password fields in the same form isolated for browser autocomplete. Use `autoComplete` when a form needs a specific password-manager hint.
+
 **Field Types:**
 | Type | Description |
 |------|-------------|

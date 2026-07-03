@@ -162,6 +162,8 @@ states:
         priority: 1
 ```
 
+For Order-triggered auto-transitions, `order.orderStatusName` is available in the lightweight trigger payload and is loaded before trigger mapping when the navigation property was not already present.
+
 **Cross-entity resolution:**
 | Triggering Entity | Flow Entity | Resolution |
 |-------------------|-------------|------------|

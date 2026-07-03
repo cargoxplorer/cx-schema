@@ -227,7 +227,7 @@ entities:
         priority: 0              # Optional override precedence; highest active duplicate field wins
         props:
           allowOrderBy: true
-          allowFilter: true
+          allowFilter: true       # Boolean or template expression, e.g. "{{ canFilterField }}"
           filter:                          # Optional filter selector
             component: "Contacts/Select"
             props:
