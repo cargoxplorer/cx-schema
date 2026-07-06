@@ -63,6 +63,8 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 
 **Pagination display:** when `totalCount` is `0`, DataGrid shows `Showing 0 to 0 of 0 entries` instead of starting at row `1`.
 
+**Store navigation state:** with `navigationType: store`, DataGrid keeps `{gridName}_limit`, `{gridName}_offset`, and search state in the local UI context store, not URL variables. Use it for embedded/stateful grids where dialogs or parent re-renders must not reset pagination back to page 1.
+
 **View definition:**
 | Prop | Type | Description |
 |------|------|-------------|
