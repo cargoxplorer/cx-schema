@@ -78,6 +78,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `onRowClick` | `action[]` | Per-view row click |
 | `enableSelect` | `Single \| Multiple` | Per-view selection |
 | `includeEntityKeysInExport` | `boolean` | Per-view override for exporting entity keys |
+| `stickyColumns` | `{left: string[], right: string[]}` | User-pinned columns for the view. Left-pinned columns render first, normal columns next, right-pinned columns last |
 | `childViews` | `object` | Expandable child views |
 
 **Column definition:**

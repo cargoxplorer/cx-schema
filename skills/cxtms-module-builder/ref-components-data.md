@@ -65,6 +65,27 @@ Dynamic entity fields use the same rule through `fieldDefinition.props.allowFilt
 
 ---
 
+## dataGrid sticky column state
+
+DataGrid table headers let users pin columns left or right. The active view stores pinned column names under `stickyColumns.left[]` and `stickyColumns.right[]`; left-pinned columns render first, normal columns render in their original order, and right-pinned columns render last.
+
+```yaml
+component: dataGrid
+name: ordersGrid
+props:
+  views:
+    - name: operations
+      stickyColumns:
+        left: [orderNumber]
+        right: [orderStatusName]
+      columns:
+        - name: orderNumber
+        - name: customerName
+        - name: orderStatusName
+```
+
+---
+
 ## collection
 
 Iterates over data items and renders children as templates. Supports drag-and-drop reordering.

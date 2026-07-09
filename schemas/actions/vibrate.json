@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "vibrate Action",
+  "type": "object",
+  "properties": {
+    "vibrate": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["success", "error", "warning", "light", "medium", "heavy"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["success", "error", "warning", "light", "medium", "heavy"],
+              "description": "Haptic preset. Defaults to success."
+            },
+            "pattern": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0
+              },
+              "minItems": 1,
+              "description": "Vibration API pattern in milliseconds: even indexes vibrate, odd indexes pause."
+            },
+            "duration": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Single vibration duration in milliseconds."
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Trigger device haptic feedback through navigator.vibrate when supported. Unsupported devices resolve without failing the action chain.",
+      "x-examples": [
+        "success",
+        { "type": "light" },
+        { "pattern": [50, 60, 50] }
+      ]
+    }
+  },
+  "required": ["vibrate"],
+  "additionalProperties": false
+}
