@@ -35,14 +35,13 @@ export class ModuleValidator {
       includeWarnings: options.includeWarnings ?? true
     };
 
-    // Initialize Ajv with Draft 7 support and custom loader
+    // Initialize Ajv with Draft 7 support
     this.ajv = new Ajv({
       strict: false,
       allErrors: true,
       verbose: true,
       validateFormats: true,
-      allowUnionTypes: true,
-      loadSchema: async (uri: string) => this.loadSchemaByUri(uri)
+      allowUnionTypes: true
     });
 
     // Add format validators
@@ -59,15 +58,13 @@ export class ModuleValidator {
    * Register all loaded schemas with Ajv
    */
   private registerSchemas(): void {
-    // First, add all schemas to Ajv with their URIs
+    // First, add all schemas to Ajv
     for (const [key, entry] of this.schemas.entries()) {
       try {
         const schemaId = this.getSchemaId(key);
-        // Add schema with URI to allow reference resolution
-        const schemaWithId = { ...entry.schema, $id: entry.uri };
-        this.ajv.addSchema(schemaWithId, schemaId);
+        this.ajv.addSchema(entry.schema, schemaId);
       } catch (error) {
-        // Silently skip schemas that fail to register (they may have unresolved refs)
+        console.error(`Error adding schema ${key}:`, error);
       }
     }
   }
@@ -80,51 +77,6 @@ export class ModuleValidator {
       return 'schemas.json';
     }
     return key;
-  }
-
-  /**
-   * Load schema by URI for AJV's loadSchema callback
-   */
-  private async loadSchemaByUri(uri: string): Promise<any> {
-    // Handle different URI formats and relative references
-    let schemaKey: string | null = null;
-
-    // First, try direct match
-    for (const [key, entry] of this.schemas.entries()) {
-      if (entry.uri === uri || uri.endsWith(`/${key}`) || uri.includes(key)) {
-        schemaKey = key;
-        break;
-      }
-    }
-
-    // Try to resolve as a relative path from a file URI
-    if (!schemaKey && uri.includes('.json')) {
-      // Extract the path components from the URI
-      const uriPath = uri.replace('file:///', '').replace(/\\/g, '/');
-      const parts = uriPath.split('/');
-      const filename = parts[parts.length - 1];
-
-      // Find by filename in the schema map
-      for (const [key] of this.schemas.entries()) {
-        if (key.endsWith(filename) || key.endsWith(`/${filename.split('.')[0]}.json`)) {
-          schemaKey = key;
-          break;
-        }
-      }
-
-      // If still not found, try to resolve relative paths
-      if (!schemaKey && filename === 'schemas.json') {
-        schemaKey = 'schemas.json';
-      }
-    }
-
-    if (schemaKey && this.schemas.has(schemaKey)) {
-      return this.schemas.get(schemaKey)?.schema;
-    }
-
-    // Return a minimal schema if we can't find it (prevents breaking validation)
-    console.error(`Schema not found for URI: ${uri}`);
-    return { type: 'object' };
   }
 
   /**
@@ -392,7 +344,7 @@ export class ModuleValidator {
   }
 
   /**
-   * Validate component props that may contain nested components or actions
+   * Validate component props that may contain nested components
    */
   private validateComponentProps(
     props: any,
@@ -404,83 +356,17 @@ export class ModuleValidator {
       return;
     }
 
-    // Check for nested layouts or components in props, and actions arrays
+    // Check for nested layouts or components in props
     for (const [key, value] of Object.entries(props)) {
-      if (value && typeof value === 'object') {
-        // Check if it's a nested component
-        if ((value as any).component) {
-          this.validateNestedComponent(
-            value,
-            `${propsPath}.${key}`,
-            errors,
-            warnings
-          );
-        }
-        // Check if it's an actions array (common action props)
-        else if (Array.isArray(value) && this.isActionArrayProp(key)) {
-          this.validateActionArray(
-            value,
-            `${propsPath}.${key}`,
-            errors
-          );
-        }
-      }
-      // Check for action arrays at top level (no wrapper object)
-      else if (Array.isArray(value) && this.isActionArrayProp(key)) {
-        this.validateActionArray(value, `${propsPath}.${key}`, errors);
+      if (value && typeof value === 'object' && (value as any).component) {
+        this.validateNestedComponent(
+          value,
+          `${propsPath}.${key}`,
+          errors,
+          warnings
+        );
       }
     }
-  }
-
-  /**
-   * Check if a property name suggests it contains actions
-   */
-  private isActionArrayProp(key: string): boolean {
-    const actionPropNames = [
-      'onClick', 'onSuccess', 'onError', 'onClose',
-      'submitActions', 'submitErrorActions', 'onEdit',
-      'onRowClick', 'actions'
-    ];
-    return actionPropNames.includes(key);
-  }
-
-  /**
-   * Validate an array of actions
-   */
-  private validateActionArray(
-    actions: any[],
-    basePath: string,
-    errors: ValidationError[]
-  ): void {
-    if (!Array.isArray(actions)) {
-      return;
-    }
-
-    actions.forEach((action, index) => {
-      if (!action || typeof action !== 'object') {
-        return;
-      }
-
-      // Get the action type (sound, vibrate, navigate, etc.)
-      const actionType = Object.keys(action)[0];
-      if (!actionType) {
-        return;
-      }
-
-      // Try to validate against the specific action schema
-      const schemaKey = `actions/${actionType}.json`;
-      if (this.schemas.has(schemaKey)) {
-        try {
-          const validate = this.ajv.getSchema(schemaKey);
-          if (validate && !validate(action)) {
-            this.addAjvErrors(validate.errors, `${basePath}[${index}]`, errors);
-          }
-        } catch (error: any) {
-          // Silently skip if schema validation fails
-          // This can happen if the schema has unresolved references
-        }
-      }
-    });
   }
 
   /**
