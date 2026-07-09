@@ -1,0 +1,48 @@
+# Feedback Actions Example
+# Demonstrates the sound and vibrate device feedback actions.
+
+module:
+  name: FeedbackActionsExample
+  appModuleId: 9c1f8a2e-0d4b-4f7a-9b3c-2e5d6a7f8b90
+  displayName:
+    en-US: "Feedback Actions Example"
+  description:
+    en-US: "Demonstrates the sound and vibrate device feedback actions"
+  application: CXTMS
+
+components:
+  - name: FeedbackActionsExample/Demo
+    displayName:
+      en-US: "Feedback Demo"
+    platforms:
+      - web
+      - mobile
+    layout:
+      component: layout
+      props:
+        title:
+          en-US: "Feedback Demo"
+      children:
+        - component: button
+          props:
+            text:
+              en-US: "Confirm Pick"
+            onClick:
+              - sound: success
+              - vibrate: success
+              - sound:
+                  type: error
+                  volume: 0.8
+              - vibrate:
+                  type: heavy
+              - vibrate:
+                  pattern: [100, 50, 100]
+              - vibrate:
+                  duration: 200
+
+routes:
+  - path: /feedback-actions-example
+    component: FeedbackActionsExample/Demo
+
+permissions:
+  - feedbackActionsExample.view

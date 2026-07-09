@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `OrderTrackingEvent/Create@1` — new inputs `autoLinkToCommodities` (per-task override of `tms.trackingEvents.autoLinkToCommodities` org config) and `commodityIds` (explicit list of commodity IDs to link, overriding the auto-link behavior entirely).
 - `TrackingEvent/Create@1` — added to the `tracking-event.json` schema and to the `cxtms-workflow-builder` skill (`ref-entity.md`). Exposes `organizationId`, `orderId`, `commodityId`, `commodityIds`, `eventDefinitionId`, `eventDefinitionName`, `eventDate`, `description`, `location`, `includeInTracking`, `sendEmail`, `customValues`, `skipIfExists`, `eventDefinitionValues`.
+- `sound` and `vibrate` module actions — audible/haptic device feedback for scan and confirmation flows. String shorthand (`- sound: success`) or object form (`sound: { type, volume }`; `vibrate: { type, pattern, duration }`). New schemas `schemas/actions/sound.json` and `schemas/actions/vibrate.json`, registered in `actions/all.json` and documented in the `cxtms-module-builder` skill.
 
 ### Changed
 - `cxtms-workflow-builder/ref-entity.md` now documents commodity auto-link precedence for `OrderTrackingEvent/Create@1` and guides users between `OrderTrackingEvent/Create@1` vs `TrackingEvent/Create@1`.

@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "vibrate Action",
+  "type": "object",
+  "properties": {
+    "vibrate": {
+      "description": "Triggers device vibration or haptic feedback. String shorthand triggers a preset. Failures are silent and never stop the action chain.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["success", "error", "warning", "light", "medium", "heavy"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["success", "error", "warning", "light", "medium", "heavy"],
+              "description": "Preset haptic pattern. Default: success"
+            },
+            "pattern": {
+              "type": "array",
+              "items": { "type": "number", "minimum": 0 },
+              "minItems": 1,
+              "description": "Custom vibration sequence in milliseconds using the Web Vibration API convention (even index = vibrate, odd index = pause). Overrides type."
+            },
+            "duration": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Single vibration pulse length in milliseconds. Used when pattern is omitted."
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "x-examples": [
+        "success",
+        { "type": "heavy" },
+        { "pattern": [100, 50, 100] },
+        { "duration": 200 }
+      ]
+    }
+  },
+  "additionalProperties": false
+}
