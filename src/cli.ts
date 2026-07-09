@@ -112,6 +112,8 @@ interface CLIOptions {
   listSchemas: boolean;
   listTasks: boolean;
   quiet: boolean;
+  schemaEnforcement: false | 'warn' | 'error';
+  noLineNumbers: boolean;
   report?: string;
   reportFormat: ReportFormat;
   createType?: 'module' | 'workflow';
@@ -228,6 +230,8 @@ ${chalk.bold.yellow('OPTIONS:')}
   ${chalk.green('-s, --schemas <path>')}    Path to schemas directory
   ${chalk.green('--verbose')}               Show detailed output with schema paths
   ${chalk.green('--quiet')}                 Only show errors, suppress other output
+  ${chalk.green('--schema-enforcement <mode>')}  Enforce component/field schemas: ${chalk.cyan('warn')} or ${chalk.cyan('error')} ${chalk.gray('(default: off)')}
+  ${chalk.green('--no-line-numbers')}       Suppress source line/column info in validation output
   ${chalk.green('-r, --report <file>')}     Generate report to file (html, md, or json)
   ${chalk.green('--report-format <fmt>')}   Report format: ${chalk.cyan('html')}, ${chalk.cyan('markdown')}, or ${chalk.cyan('json')} ${chalk.gray('(default: auto from extension)')}
   ${chalk.green('--template <name>')}       Template variant for create command (e.g., ${chalk.cyan('basic')})
@@ -4014,6 +4018,8 @@ function parseArgs(args: string[]): ParsedArgs {
     listSchemas: false,
     listTasks: false,
     quiet: false,
+    schemaEnforcement: false,
+    noLineNumbers: false,
     reportFormat: 'json'
   };
 
@@ -4053,6 +4059,18 @@ function parseArgs(args: string[]): ParsedArgs {
       options.verbose = true;
     } else if (arg === '--quiet' || arg === '-q') {
       options.quiet = true;
+    } else if (arg === '--no-line-numbers') {
+      options.noLineNumbers = true;
+    } else if (arg === '--schema-enforcement' || arg.startsWith('--schema-enforcement=')) {
+      const seArg = arg.startsWith('--schema-enforcement=')
+        ? arg.slice('--schema-enforcement='.length)
+        : args[++i];
+      if (seArg === 'warn' || seArg === 'error') {
+        options.schemaEnforcement = seArg;
+      } else {
+        console.error(chalk.red(`Invalid --schema-enforcement value: ${seArg}. Use: warn or error`));
+        process.exit(2);
+      }
     } else if (arg === '--json') {
       options.format = 'json';
     } else if (arg === '--report' || arg === '-r') {
@@ -4518,16 +4536,22 @@ function formatErrorPretty(
   error: ValidationError,
   index: number,
   schemasPath: string,
-  verbose: boolean
+  verbose: boolean,
+  noLineNumbers: boolean
 ): string {
   const lines: string[] = [];
+
+  const locationSuffix =
+    !noLineNumbers && error.location
+      ? ` (line ${error.location.line}, col ${error.location.column})`
+      : '';
 
   // Error header
   lines.push(chalk.red(`\n┌─ Error #${index + 1}: ${error.type.toUpperCase().replace(/_/g, ' ')}`));
   lines.push(chalk.red('│'));
 
   // Path
-  lines.push(chalk.red('│  ') + chalk.bold('Path:    ') + chalk.yellow(error.path || '/'));
+  lines.push(chalk.red('│  ') + chalk.bold('Path:    ') + chalk.yellow((error.path || '/') + locationSuffix));
 
   // Message
   lines.push(chalk.red('│  ') + chalk.bold('Message: ') + error.message);
@@ -4595,10 +4619,14 @@ function getSuggestion(error: ValidationError): string | null {
   }
 }
 
-function formatWarningPretty(warning: any, index: number): string {
+function formatWarningPretty(warning: any, index: number, noLineNumbers: boolean): string {
   const lines: string[] = [];
+  const locationSuffix =
+    !noLineNumbers && warning.location
+      ? ` (line ${warning.location.line}, col ${warning.location.column})`
+      : '';
   lines.push(chalk.yellow(`\n⚠ Warning #${index + 1}: ${warning.type.toUpperCase().replace(/_/g, ' ')}`));
-  lines.push(chalk.gray(`  Path: ${warning.path}`));
+  lines.push(chalk.gray(`  Path: ${warning.path}${locationSuffix}`));
   lines.push(`  ${warning.message}`);
   return lines.join('\n');
 }
@@ -4611,13 +4639,14 @@ function printResultPretty(
   result: ValidationResult,
   fileType: ValidationType,
   schemasPath: string,
-  verbose: boolean
+  verbose: boolean,
+  noLineNumbers: boolean
 ): void {
   const { summary, errors, warnings } = result;
 
   // Header
   console.log('\n' + chalk.bold.cyan('╔═══════════════════════════════════════════════════════════════════╗'));
-  console.log(chalk.bold.cyan('║') + chalk.bold.white('                  CX SCHEMA VALIDATION REPORT                     ') + chalk.bold.cyan('║'));
+  console.log(chalk.bold.cyan('║') + chalk.bold.white('                  CX SCHEMA VALIDATION REPORT                      ') + chalk.bold.cyan('║'));
   console.log(chalk.bold.cyan('╚═══════════════════════════════════════════════════════════════════╝\n'));
 
   // Summary
@@ -4648,7 +4677,7 @@ function printResultPretty(
     console.log(chalk.bold.red('═══════════════════════════════════════════════════════════════════'));
 
     errors.forEach((error, index) => {
-      console.log(formatErrorPretty(error, index, schemasPath, verbose));
+      console.log(formatErrorPretty(error, index, schemasPath, verbose, noLineNumbers));
     });
   }
 
@@ -4659,7 +4688,7 @@ function printResultPretty(
     console.log(chalk.bold.yellow('═══════════════════════════════════════════════════════════════════'));
 
     warnings.forEach((warning, index) => {
-      console.log(formatWarningPretty(warning, index));
+      console.log(formatWarningPretty(warning, index, noLineNumbers));
     });
   }
 
@@ -4682,8 +4711,17 @@ function printResultCompact(result: ValidationResult, filePath: string): void {
   console.log(`${status} ${filePath}${errorInfo}`);
 }
 
-function printResultJson(result: ValidationResult): void {
-  console.log(JSON.stringify(result, null, 2));
+function printResultJson(result: ValidationResult, noLineNumbers: boolean): void {
+  if (noLineNumbers) {
+    const cleaned = {
+      ...result,
+      errors: result.errors.map(({ location, ...rest }) => rest),
+      warnings: result.warnings.map(({ location, ...rest }) => rest)
+    };
+    console.log(JSON.stringify(cleaned, null, 2));
+  } else {
+    console.log(JSON.stringify(result, null, 2));
+  }
 }
 
 // ============================================================================
@@ -4972,11 +5010,15 @@ async function validateFile(
   // Create appropriate validator
   if (fileType === 'workflow') {
     const validator = new WorkflowValidator({
-      schemasPath: path.join(schemasPath, 'workflows')
+      schemasPath: path.join(schemasPath, 'workflows'),
+      schemaEnforcement: options.schemaEnforcement
     });
     return validator.validateWorkflow(filePath);
   } else {
-    const validator = new ModuleValidator({ schemasPath });
+    const validator = new ModuleValidator({
+      schemasPath,
+      schemaEnforcement: options.schemaEnforcement
+    });
     return validator.validateModule(filePath);
   }
 }
@@ -5256,11 +5298,11 @@ async function main() {
       // Output individual results (unless quiet mode for reports)
       if (!isReportMode || !options.quiet) {
         if (options.format === 'json' && !isReportMode) {
-          printResultJson(result);
+          printResultJson(result, options.noLineNumbers);
         } else if (options.format === 'compact' || isReportMode) {
           printResultCompact(result, file);
         } else {
-          printResultPretty(result, fileType, schemasPath, options.verbose);
+          printResultPretty(result, fileType, schemasPath, options.verbose, options.noLineNumbers);
         }
       }
 

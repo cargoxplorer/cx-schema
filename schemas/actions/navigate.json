@@ -4,7 +4,10 @@
   "type": "object",
   "properties": {
     "navigate": {
-      "type": "string",
+      "type": [
+        "string",
+        "object"
+      ],
       "description": "Navigation path",
       "x-examples": [
         "~/team-calendars/view/{{ calendarId }}",

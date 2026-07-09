@@ -8,8 +8,8 @@
       "properties": {
         "name": { "type": "string", "description": "Dialog identifier" },
         "props": { "type": "object", "description": "Props to pass to dialog" },
-        "component": { "$ref": "../schemas.json#/definitions/component" },
-        "onClose": { "$ref": "../schemas.json#/definitions/actionsList" }
+        "component": { "$ref": "../schemas.json#/definitions/componentDefinition" },
+        "onClose": { "oneOf": [ { "$ref": "../schemas.json#/definitions/actionsList" }, { "type": "null" } ] }
       },
       "x-examples": [
         { "name": "addCommoditiesDialog", "props": { "title": { "en-US": "Add Commodities" } } },

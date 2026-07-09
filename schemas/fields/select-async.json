@@ -35,8 +35,14 @@
       "description": "Select-async specific options",
       "properties": {
         "valueFieldName": {
-          "type": "string",
-          "description": "Field name to use as the value for select options",
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          ],
+          "description": "Field name(s) to use as the value for select options",
           "x-example": "orderId"
         },
         "itemLabelTemplate": {

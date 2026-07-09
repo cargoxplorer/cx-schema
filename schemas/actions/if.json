@@ -3,10 +3,26 @@
   "title": "if Action",
   "type": "object",
   "properties": {
-    "if": { "type": "string", "description": "Template expression condition" },
-    "then": { "$ref": "../schemas.json#/definitions/actionsList" },
-    "else": { "$ref": "../schemas.json#/definitions/actionsList" }
+    "if": {
+      "type": "string",
+      "description": "Template expression condition"
+    },
+    "then": {
+      "$ref": "../schemas.json#/definitions/triggerActions"
+    },
+    "else": {
+      "$ref": "../schemas.json#/definitions/triggerActions"
+    }
   },
-  "x-examples": [{ "if": "{{ result }}", "then": [{ "refresh": "warehouseReceiptsCommodities" }] }],
+  "x-examples": [
+    {
+      "if": "{{ result }}",
+      "then": [
+        {
+          "refresh": "warehouseReceiptsCommodities"
+        }
+      ]
+    }
+  ],
   "additionalProperties": false
 }

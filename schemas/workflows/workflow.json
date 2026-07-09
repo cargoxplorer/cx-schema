@@ -66,9 +66,10 @@
           "description": "Tags for categorization and filtering"
         },
         "workflowType": {
+          "$comment": "TMS.Workflows treats WorkflowType as a free-form string; only Document, Flow, and PublicApi trigger type-specific behavior. Other values are inert labels that run as standard process workflows. The enum includes the canonical built-in types plus custom types currently used in CX apps.",
           "type": "string",
-          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi"],
-          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), or PublicApi (REST API endpoint). Omit for standard process workflows."
+          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi", "EmailTemplate", "Transaction"],
+          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), PublicApi (REST API endpoint), EmailTemplate, Transaction, or omit for standard process workflows."
         },
         "runAs": {
           "type": "string",
@@ -139,7 +140,7 @@
     },
     "activities": {
       "type": "array",
-      "description": "Workflow activities containing steps (required for standard workflows, not used in Flow workflows)",
+      "description": "Workflow activities containing steps (optional for standard workflows, required for PublicApi workflows, not used in Flow workflows)",
       "items": {
         "$ref": "activity.json"
       },
@@ -312,7 +313,7 @@
         }
       },
       "else": {
-        "required": ["workflow", "activities"]
+        "required": ["workflow"]
       }
     },
     {

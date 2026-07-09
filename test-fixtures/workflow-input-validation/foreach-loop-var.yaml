@@ -1,0 +1,18 @@
+workflow:
+  workflowId: "44444444-4444-4444-4444-444444444444"
+  name: "Foreach loop variable is scoped to the loop"
+activities:
+  - name: Main
+    steps:
+      - task: foreach
+        name: LoopOrders
+        inputs:
+          collection: "[{orderId: 1}, {orderId: 2}]"
+        steps:
+          - task: Order/Create@1
+            name: CreateOrder
+            inputs:
+              order: "{{item}}"
+      - task: Order/Create@1
+        name: UseItemAfterLoop
+        inputs: {}

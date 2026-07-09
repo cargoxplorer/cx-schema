@@ -4,27 +4,53 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 import { SchemaEntry } from '../types';
 
 /**
  * Recursively loads all JSON schema files from a directory
  */
-export function loadSchemas(schemasDir: string): Map<string, SchemaEntry> {
+export function loadSchemas(
+  schemasDir: string,
+  config: {
+    mainSchema?: string;
+    extraFiles?: string[];
+    subdirs?: string[];
+  } = {}
+): Map<string, SchemaEntry> {
+  const {
+    mainSchema = 'schemas.json',
+    extraFiles = [],
+    subdirs = ['components', 'fields', 'actions']
+  } = config;
+
   const schemas = new Map<string, SchemaEntry>();
 
-  // Load main schemas.json
-  const mainSchemaPath = path.join(schemasDir, 'schemas.json');
-  if (fs.existsSync(mainSchemaPath)) {
-    const schema = JSON.parse(fs.readFileSync(mainSchemaPath, 'utf-8'));
-    schemas.set('schemas.json', {
-      schema,
-      uri: `file:///${mainSchemaPath.replace(/\\/g, '/')}`
-    });
+  // Load main schema
+  if (mainSchema) {
+    const mainSchemaPath = path.join(schemasDir, mainSchema);
+    if (fs.existsSync(mainSchemaPath)) {
+      const schema = JSON.parse(fs.readFileSync(mainSchemaPath, 'utf-8'));
+      schemas.set(mainSchema, {
+        schema,
+        uri: pathToFileURL(mainSchemaPath).href
+      });
+    }
+  }
+
+  // Load explicitly named schema files
+  for (const file of extraFiles) {
+    const filePath = path.join(schemasDir, file);
+    if (fs.existsSync(filePath)) {
+      const schema = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      schemas.set(file, {
+        schema,
+        uri: pathToFileURL(filePath).href
+      });
+    }
   }
 
   // Load schemas from subdirectories
-  const subdirs = ['components', 'fields', 'actions'];
-
   for (const subdir of subdirs) {
     const subdirPath = path.join(schemasDir, subdir);
     if (fs.existsSync(subdirPath)) {
@@ -57,7 +83,7 @@ function loadSchemasFromDir(
         const key = `${relativePath}/${file}`;
         schemas.set(key, {
           schema,
-          uri: `file:///${filePath.replace(/\\/g, '/')}`
+          uri: pathToFileURL(filePath).href
         });
       } catch (error) {
         console.error(`Error loading schema ${filePath}:`, error);
