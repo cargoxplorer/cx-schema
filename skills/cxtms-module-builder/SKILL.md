@@ -312,6 +312,9 @@ onClick:
   - consoleLog: { message: "debug info" }
   - openBarcodeScanner: { onScan: [...] }
   - resetDirtyState: {}
+  - sound: success                    # audible cue: success|error|warning|scan (or { type, volume: 0-1 })
+  - vibrate: success                  # haptic: success|error|warning|light|medium|heavy
+  - vibrate: { pattern: [100, 50, 100] }   # custom ms pattern (web Vibration API convention) or { duration: 200 }
 ```
 
 ## Common Patterns
