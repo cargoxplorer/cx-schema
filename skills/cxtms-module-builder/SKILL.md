@@ -313,6 +313,8 @@ onClick:
   - consoleLog: { message: "debug info" }
   - openBarcodeScanner: { onScan: [...] }
   - resetDirtyState: {}
+  - sound: success                                         # success|error|warning|scan
+  - vibrate: light                                         # success|error|warning|light|medium|heavy
 ```
 
 ## Common Patterns

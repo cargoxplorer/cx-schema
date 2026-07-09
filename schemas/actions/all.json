@@ -22,6 +22,8 @@
     { "$ref": "consoleLog.json" },
     { "$ref": "openBarcodeScanner.json" },
     { "$ref": "resetDirtyState.json" },
-    { "$ref": "clipboard.json" }
+    { "$ref": "clipboard.json" },
+    { "$ref": "sound.json" },
+    { "$ref": "vibrate.json" }
   ]
 }

@@ -203,6 +203,23 @@
             "$ref": "#/definitions/dataGridView"
           }
         },
+        "stickyColumns": {
+          "type": "object",
+          "description": "User-pinned DataGrid columns for this view. Left-pinned columns render first, normal columns render next, and right-pinned columns render last.",
+          "properties": {
+            "left": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Column names pinned to the left edge in pin order"
+            },
+            "right": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Column names pinned to the right edge in pin order"
+            }
+          },
+          "additionalProperties": false
+        },
         "showHeader": {
           "type": "boolean",
           "description": "Whether to show header for child views"
