@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "sound Action",
+  "type": "object",
+  "properties": {
+    "sound": {
+      "description": "Plays a short audible cue on the client device. String shorthand plays a preset at full volume. Failures are silent and never stop the action chain.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["success", "error", "warning", "scan"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["success", "error", "warning", "scan"],
+              "description": "Preset sound to play. Default: success"
+            },
+            "volume": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Playback volume from 0 to 1. Default: 1"
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "x-examples": ["success", { "type": "error", "volume": 0.8 }]
+    }
+  },
+  "additionalProperties": false
+}
