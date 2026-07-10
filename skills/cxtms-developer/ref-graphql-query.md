@@ -112,7 +112,10 @@ filter: "NOT customValues.returnLocationId->contactAddress.contactAddressId:NULL
 ### Filtered collections (bracket notation)
 ```
 filter: "children[category:CatA].name:test"
+filter: "contactAddresses[addressType:Billing|Shipping].contactAddressId:[1 TO *]"
 ```
+
+Inside `[path:value]`, pipe-separated values are OR-combined after trimming and normal type conversion. Use this for exact multi-value bracket filters in both `filter` and `orderBy`, e.g. `children[category:CatA|CatB].name` or `lastTrackingEvent[eventDefinition.eventName:Departed|Delivered].eventDate`.
 
 ## Mutations
 
@@ -178,9 +181,11 @@ Filter to a specific event type using bracket notation before sorting:
 
 ```
 orderBy: "-lastTrackingEvent[eventDefinition.eventName:Departed].eventDate"
+orderBy: "-lastTrackingEvent[eventDefinition.eventName:Departed|Delivered].eventDate"
 ```
 
 - The bracket predicate (`[path:value]`) filters the `TrackingEvents` collection before the winner is picked.
+- Pipe-separated bracket values are OR-combined, so the winner can be selected from several event definitions.
 - Only `.eventDate` is supported as the sub-path. The expression resolves to `COALESCE(winner.EventDate, winner.Created)`, so null `EventDate` values fall back to `Created`.
 - Works on both `orders` and `commodities` top-level queries.
 

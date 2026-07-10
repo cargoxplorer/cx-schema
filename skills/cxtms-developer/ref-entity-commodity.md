@@ -121,7 +121,7 @@ Field names as used in workflow expressions: `{{ entity.description }}`, `{{ ent
 | `getCommodityTrackingNumber(idPropertyName)` | `TrackingNumber` | Lookup |
 | `getCommodityAttachments(filter)` | `[Attachment]` | |
 | `getWeightTotal(weightUnit)` | `decimal?` | Total weight converted to requested unit; defaults to commodity `weightUnit` when omitted |
-| `lastTrackingEvent(eventDefinitionName, orderBy?)` | `TrackingEvent` | Most recent (or earliest) tracking event, resolved via batched DataLoader. `orderBy` is **honoured**: omit or prefix with `-` for DESC (latest event: `COALESCE(EventDate, Created) DESC, TrackingEventId DESC`); no prefix for ASC (earliest event: same columns ASC). Default is DESC. |
+| `lastTrackingEvent(eventDefinitionName, orderBy?)` | `TrackingEvent` | Most recent (or earliest) tracking event, resolved via batched DataLoader. `eventDefinitionName` may contain pipe-separated names such as `Departed|Delivered`; the resolver selects the winner across all matching definitions. `orderBy` is **honoured**: omit or prefix with `-` for DESC (latest event: `COALESCE(EventDate, Created) DESC, TrackingEventId DESC`); no prefix for ASC (earliest event: same columns ASC). Default is DESC. |
 | `changeHistory(startDate, endDate, maxResults)` | `[ChangeHistory]` | Audit trail |
 | `getContact(idPropertyName)` | `Contact` | Resolves a contact ID stored in `customValues[idPropertyName]` within the same organization; returns null when no valid ID exists |
 
