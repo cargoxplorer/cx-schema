@@ -168,13 +168,14 @@ orderBy: "customValues.portId->port.name"
 orderBy: "orderSummary.totalPieces"
 ```
 
-### `lastTrackingEvent` synthetic sort path (Order / Commodity)
+### Tracking-event synthetic sort paths (Order / Commodity)
 
-Sort the result list by the winning tracking event of each order or commodity. The "winner" is selected using `COALESCE(EventDate, Created) DESC/ASC, TrackingEventId DESC/ASC` — identical to the DataLoader logic — so SQL-level ordering and per-row resolution are always consistent.
+Sort the result list by the winning tracking event of each order or commodity. Use `lastTrackingEvent` for the newest matching event and `firstTrackingEvent` for the oldest matching event. Winners are selected using `COALESCE(EventDate, Created)` plus `TrackingEventId` as a tie-breaker, so SQL-level ordering and per-row resolution stay consistent.
 
 ```
 orderBy: "-lastTrackingEvent.eventDate"   # Latest event first (DESC)
-orderBy: "lastTrackingEvent.eventDate"    # Earliest event first (ASC)
+orderBy: "lastTrackingEvent.eventDate"    # Newest-event winner, sorted ASC
+orderBy: "firstTrackingEvent.eventDate"   # Oldest-event winner, sorted ASC
 ```
 
 Filter to a specific event type using bracket notation before sorting:
@@ -182,6 +183,7 @@ Filter to a specific event type using bracket notation before sorting:
 ```
 orderBy: "-lastTrackingEvent[eventDefinition.eventName:Departed].eventDate"
 orderBy: "-lastTrackingEvent[eventDefinition.eventName:Departed|Delivered].eventDate"
+orderBy: "firstTrackingEvent[eventDefinition.eventName:Yard Scan|Archive Yard Scan].eventDate"
 ```
 
 - The bracket predicate (`[path:value]`) filters the `TrackingEvents` collection before the winner is picked.
