@@ -209,7 +209,7 @@ Variables resolve through a 6-stage pipeline:
 
 ### Runtime Boundary
 
-Workflow `{{ }}` (server-side `TemplatedVariableParser`) and app module `{{ }}` (client-side custom template engine) are **different runtimes** with different syntax and capabilities. Workflow expressions support type converters, value directives, and NCalc conditions. App module expressions support their own operations: `eval`, `format`, `formatTz`, `hasPermission`, `isNullOrEmpty`, `any`, `isEqual`/`isEquals`, `moreThan`, `lessThan`, `dateDiff`, `daysBetween`, `daysUntil`, `daysAgo`, `isDateBefore`, `isDateAfter`, `round`, `trim`, `parse`, `startsWith`, `endsWith`, `includes`/`contains`, `isTrue`, `localStorage`, `fromConfig`, `encodeURIComponent`.
+Workflow `{{ }}` (server-side `TemplatedVariableParser`) and app module `{{ }}` (client-side custom template engine) are **different runtimes** with different syntax and capabilities. Workflow expressions support type converters, value directives, and NCalc conditions. App module expressions support their own operations: `eval`, `format`, `formatTz`, `hasPermission`, `isNullOrEmpty`, `any`, `isEqual`/`isEquals`, `moreThan`, `lessThan`, `dateDiff`, `daysBetween`, `daysUntil`, `daysAgo`, `isDateBefore`, `isDateAfter`, `round`, `trim`, `parse`, `startsWith`, `endsWith`, `includes`/`contains`, `isTrue`, `localStorage`, `sessionStorage`, `fromConfig`, `encodeURIComponent`.
 
 ### Null-Safe Operator `?` — USE BY DEFAULT
 

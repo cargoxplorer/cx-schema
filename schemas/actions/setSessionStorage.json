@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "setSessionStorage Action",
+  "type": "object",
+  "properties": {
+    "setSessionStorage": {
+      "type": "object",
+      "description": "Browser sessionStorage value to set for the current tab",
+      "required": ["key", "value"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Unscoped sessionStorage key"
+        },
+        "value": {
+          "description": "Value to store. Template expressions are resolved before writing."
+        }
+      },
+      "additionalProperties": false,
+      "x-examples": [
+        { "key": "isDevMode", "value": "true" },
+        { "key": "activeWorkspace", "value": "{{ workspaceId }}" }
+      ]
+    },
+    "onSuccess": {
+      "type": "array",
+      "description": "Actions to execute after sessionStorage is updated",
+      "items": { "$ref": "all.json" }
+    },
+    "onError": {
+      "type": "array",
+      "description": "Actions to execute if sessionStorage update fails",
+      "items": { "$ref": "all.json" }
+    }
+  },
+  "required": ["setSessionStorage"],
+  "additionalProperties": false
+}

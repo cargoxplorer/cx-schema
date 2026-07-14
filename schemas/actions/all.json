@@ -13,6 +13,7 @@
     { "$ref": "query.json" },
     { "$ref": "setFields.json" },
     { "$ref": "setStore.json" },
+    { "$ref": "setSessionStorage.json" },
     { "$ref": "validateForm.json" },
     { "$ref": "dialog.json" },
     { "$ref": "workflow.json" },
