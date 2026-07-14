@@ -291,6 +291,7 @@ onClick:
       onError: [...]
   - setFields: { "fieldName": "{{ value }}" }              # Set form field values
   - setStore: { "key": "{{ value }}" }                     # Set store values
+  - setSessionStorage: { key: "isDevMode", value: "true" } # Set tab-scoped sessionStorage
   - validateForm: {}                                        # Trigger form validation
   - dialog:
       name: "dialogName"
@@ -331,6 +332,7 @@ displayName:
 value: "{{ fieldName }}"                    # Simple variable
 value: "{{ format date L }}"               # Format helper
 value: "{{ number quantity }}"             # Type cast
+value: "{{ sessionStorage isDevMode }}"    # Current-tab sessionStorage
 value: "{{ eval items.length > 0 }}"       # JavaScript expression
 isHidden: "{{ eval !canEdit }}"            # Conditional visibility
 ```
