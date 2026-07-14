@@ -89,12 +89,14 @@ If validation fails and `continueOnError` is false (default), execution stops an
 ## Workflow/Execute
 
 Executes a child workflow. Can run sync (wait for result) or async (fire and forget).
+Pass `executionId` when the call represents a retryable business operation; it is treated as an idempotency key, so duplicate attempts return the original result instead of re-running the child workflow.
 
 ```yaml
 - task: "Workflow/Execute@1"
   name: RunChild
   inputs:
     workflowId: "<uuid>"
+    executionId: "{{ inputs.operationId? }}"
     workflowInputs:
       orderId: "{{ inputs.orderId }}"
       customerId: "{{ Data.GetOrder.order.customer.contactId }}"
@@ -103,6 +105,7 @@ Executes a child workflow. Can run sync (wait for result) or async (fire and for
 The child workflow's outputs are available as step outputs: `ActivityName.RunChild.outputName`.
 
 **Circular call detection**: The executor maintains a call stack and throws if a workflow calls itself recursively.
+**Idempotency**: Reuse an `executionId` only for retries of the same workflow operation. A reused ID for another workflow or organization is rejected.
 
 ## Workflow/Create, Workflow/Update, Workflow/Delete
 

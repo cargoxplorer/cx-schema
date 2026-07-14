@@ -428,6 +428,10 @@ High-level summary of changes (grouped by change event):
 
 ## Workflow Execution Queries
 
+### `executeWorkflow` idempotency
+
+The `executeWorkflow` mutation accepts an optional `executionId` GUID. Use one stable ID per retryable business operation, especially offline or mobile sync actions. Replays with the same organization, workflow, and `executionId` return the stored result instead of executing the workflow again; using the same ID for another workflow or organization is rejected.
+
 ### `workflowExecutions` — paginated execution history
 
 Returns paginated `WorkflowExecutionLog` records. Supports Lucene filter scoping, free-text search, and sorting.
