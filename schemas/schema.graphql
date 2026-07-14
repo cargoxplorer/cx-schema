@@ -71,15 +71,6 @@ type AllOrderCommoditiesCollectionSegment {
   totalCount: Int! @cost(weight: "10")
 }
 
-"A segment of a collection."
-type ApiCredentialsCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [apiCredential!]
-  totalCount: Int! @cost(weight: "10")
-}
-
 type AppComponentGqlDto {
   appComponentId: UUID!
   appModuleId: UUID!
@@ -179,11 +170,8 @@ type AttachmentGqlDto {
   getParentOrder: order @cost(weight: "10")
   getPresignedUri(expiresInDays: Int!, uriType: String!): String
     @cost(weight: "10")
-  previewUri: String @cost(weight: "10")
-  thumbnailUri: String @cost(weight: "10")
   attachmentId: Int!
   attachmentGuid: UUID
-  status: AttachmentStatus!
   attachmentType: AttachmentType!
   created: DateTime!
   createdBy: String!
@@ -195,6 +183,8 @@ type AttachmentGqlDto {
   organizationId: Int!
   parentId: String
   parentType: AttachmentParentType!
+  previewUri: String
+  thumbnailUri: String
   presignedFileUri: String
   presignedPreviewUri: String
   presignedThumbnailUri: String
@@ -214,110 +204,6 @@ type AttachmentsCollectionSegment {
   totalCount: Int! @cost(weight: "10")
 }
 
-"Detailed audit information for a single entity change"
-type AuditChangeDetail {
-  "Name of the entity that was changed"
-  entityName: String
-  "Change state (Added, Modified, Deleted)"
-  state: String
-  "Primary key of the changed entity"
-  primaryKey: String
-  "User who made the change"
-  userId: String
-  "When the change was made"
-  timestamp: DateTime!
-  "Organization ID where change was made"
-  organizationId: Int
-  "Original values before the change"
-  originalValues: MapOfObject
-  "Current values after the change"
-  currentValues: MapOfObject
-}
-
-"Audit change entry with metadata parsed from filename. changedFields are loaded on demand."
-type AuditChangeEntry {
-  "Change state (Added, Modified, Deleted)"
-  state: String
-  "User ID who made the change"
-  userId: String
-  "When the change was made"
-  timestamp: DateTime!
-  "User details (name, email, etc.). Loaded from database when requested."
-  user: AuditUser @cost(weight: "10")
-  "List of field-level changes. Downloads audit file when requested."
-  changedFields: [AuditChangeField!]! @cost(weight: "10")
-  entityName: String
-  entityPrimaryKey: String
-}
-
-"Field-level change information"
-type AuditChangeField {
-  "Name of the field (e.g., 'Status' or 'CustomValues.Color')"
-  fieldName: String!
-  "Original value of the field"
-  originalValue: Any
-  "Current value of the field"
-  currentValue: Any
-  "Data type of the field"
-  fieldType: String!
-}
-
-"Parsed JSON representation of audit changes"
-type AuditChangeJson {
-  "Unique identifier for this change"
-  changeId: UUID!
-  "Name of the entity that was changed"
-  entityName: String
-  "Change state (Added, Modified, Deleted)"
-  state: String
-  "Primary key of the changed entity"
-  primaryKey: String
-  "User who made the change"
-  userId: String
-  "When the change was made"
-  timestamp: DateTime!
-  "Organization ID where change was made"
-  organizationId: Int
-  "List of field-level changes"
-  fields: [AuditChangeField!]!
-}
-
-type AuditChangeSummariesResult {
-  items: [AuditChangeSummary!]!
-  continuationToken: String
-  hasMoreRecords: Boolean!
-}
-
-"Summary of audit changes for a specific change event"
-type AuditChangeSummary {
-  "Unique identifier for this change set"
-  changeId: UUID!
-  "User who made the changes"
-  userId: String
-  "When the changes were made"
-  timestamp: DateTime!
-  "List of file paths containing individual change details"
-  changePaths: [String!]!
-  "Organization ID where changes were made"
-  organizationId: Int
-}
-
-"User information for audit log entries"
-type AuditUser {
-  "User ID"
-  id: String!
-  "User's first name"
-  firstName: String
-  "User's last name"
-  lastName: String
-  "User's full name"
-  fullName: String
-  "Username"
-  userName: String
-  "User's email address"
-  email: String
-}
-
 type AvailableCreditByCurrency {
   currencyId: Int!
   currencyCode: String!
@@ -332,8 +218,7 @@ type CalendarAvailabilityBlockGqlDto {
   end: DateTime!
   isAvailable: Boolean!
   description: String
-  customValues: MapOfObject
-  contactId: Int
+  customValues: [MapOfObject!]
   created: DateTime!
   lastModified: DateTime!
   createdBy: String!
@@ -363,46 +248,6 @@ type CalendarAvailabilityRecurrenceRuleGqlDto {
   count: Int
 }
 
-type CalendarBusinessHourBlockGqlDto {
-  calendarBusinessHourId: Int!
-  calendarId: Int!
-  start: DateTime!
-  end: DateTime!
-  dayOfWeek: Int!
-  label: String
-  customValues: MapOfObject
-  startFormatted: String!
-  endFormatted: String!
-}
-
-type CalendarBusinessHourGqlDto {
-  calendarBusinessHourId: Int!
-  calendarId: Int!
-  dayOfWeek: Int!
-  startTime: TimeSpanScalar
-  endTime: TimeSpanScalar
-  label: String
-  customValues: MapOfObject
-}
-
-"A segment of a collection."
-type CalendarBusinessHoursBlocksCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [CalendarBusinessHourBlockGqlDto!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-"A segment of a collection."
-type CalendarBusinessHoursCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [CalendarBusinessHourGqlDto!]
-  totalCount: Int! @cost(weight: "10")
-}
-
 type CalendarEventGqlDto {
   calendarEventId: Int!
   calendarId: Int!
@@ -413,7 +258,7 @@ type CalendarEventGqlDto {
   end: DateTime!
   status: CalendarEventStatus!
   transparency: CalendarEventTransparency!
-  customValues: MapOfObject
+  customValues: [MapOfObject!]
   created: DateTime!
   lastModified: DateTime!
   createdBy: String!
@@ -443,9 +288,8 @@ type CalendarGqlDto {
   calendarId: Int!
   organizationId: Int!
   name: String!
-  calendarType: String!
+  productId: String!
   timeZone: String!
-  customValues: MapOfObject
   created: DateTime!
   lastModified: DateTime!
   createdBy: String!
@@ -453,7 +297,6 @@ type CalendarGqlDto {
   organization: organization
   events: [CalendarEventGqlDto!]
   availabilityBlocks: [CalendarAvailabilityBlockGqlDto!]
-  businessHours: [CalendarBusinessHourGqlDto!]
 }
 
 type CalendarRecurrenceRuleGqlDto {
@@ -526,16 +369,6 @@ type CommoditiesCollectionSegment {
   totalCount: Int! @cost(weight: "10")
 }
 
-type CommodityAllTagsGqlDto {
-  commodityId: Int!
-  organizationId: Int!
-  tagId: Int!
-  tagName: String!
-  tagDescription: String
-  tagEntityName: String!
-  customValues: MapOfObject
-}
-
 "A segment of a collection."
 type CommodityStatusesCollectionSegment {
   "Information to aid in pagination."
@@ -543,17 +376,6 @@ type CommodityStatusesCollectionSegment {
   "A flattened list of the items."
   items: [commodityStatus!]
   totalCount: Int! @cost(weight: "10")
-}
-
-type CommodityTagGqlDto {
-  commodityId: Int!
-  tagId: Int!
-  tag: tagItem
-  customValues: MapOfObject
-  createdBy: String
-  created: DateTime!
-  lastModifiedBy: String
-  lastModified: DateTime!
 }
 
 "A segment of a collection."
@@ -682,11 +504,6 @@ type CreateActionEventPayload {
   query: Query!
 }
 
-type CreateApiCredentialPayload {
-  apiCredentialWithSecret: apiCredentialWithSecret
-  query: Query!
-}
-
 type CreateAppManifestPayload {
   appManifest: appManifest
   query: Query!
@@ -704,11 +521,6 @@ type CreateAttachmentPayload {
 
 type CreateCalendarAvailabilityBlockPayload {
   calendarAvailabilityBlockGqlDto: CalendarAvailabilityBlockGqlDto
-  query: Query!
-}
-
-type CreateCalendarBusinessHourPayload {
-  calendarBusinessHourGqlDto: CalendarBusinessHourGqlDto
   query: Query!
 }
 
@@ -847,11 +659,6 @@ type CreateModeOfTransportationPayload {
   query: Query!
 }
 
-type CreateNotePayload {
-  note: note
-  query: Query!
-}
-
 type CreateOrderCommodityPayload {
   orderCommodity: orderCommodity
   query: Query!
@@ -882,11 +689,6 @@ type CreateOrganizationConfigPayload {
   query: Query!
 }
 
-type CreateOrganizationUserPayload {
-  organizationUser: organizationUser
-  query: Query!
-}
-
 type CreatePackageCategoryPayload {
   packageCategory: packageCategory
   query: Query!
@@ -909,11 +711,6 @@ type CreatePaymentTermPayload {
 
 type CreatePortPayload {
   port: port
-  query: Query!
-}
-
-type CreateTerminalPayload {
-  terminal: terminal
   query: Query!
 }
 
@@ -949,11 +746,6 @@ type CreateSalesTaxPayload {
 
 type CreateStatePayload {
   state: state
-  query: Query!
-}
-
-type CreateTagPayload {
-  tagItem: tagItem
   query: Query!
 }
 
@@ -1059,11 +851,6 @@ type DeleteActionEventPayload {
   query: Query!
 }
 
-type DeleteApiCredentialPayload {
-  deleteResult: DeleteResult
-  query: Query!
-}
-
 type DeleteAppManifestPayload {
   deleteResult: DeleteResult
   query: Query!
@@ -1080,11 +867,6 @@ type DeleteAttachmentPayload {
 }
 
 type DeleteCalendarAvailabilityBlockPayload {
-  deleteResult: DeleteResult
-  query: Query!
-}
-
-type DeleteCalendarBusinessHourPayload {
   deleteResult: DeleteResult
   query: Query!
 }
@@ -1224,11 +1006,6 @@ type DeleteModeOfTransportationPayload {
   query: Query!
 }
 
-type DeleteNotePayload {
-  deleteResult: DeleteResult
-  query: Query!
-}
-
 type DeleteOrderCommodityPayload {
   deleteResult: DeleteResult
   query: Query!
@@ -1254,11 +1031,6 @@ type DeleteOrganizationConfigPayload {
   query: Query!
 }
 
-type DeleteOrganizationUserPayload {
-  deleteResult: DeleteResult
-  query: Query!
-}
-
 type DeletePackageCategoryPayload {
   deleteResult: DeleteResult
   query: Query!
@@ -1280,11 +1052,6 @@ type DeletePaymentTermPayload {
 }
 
 type DeletePortPayload {
-  deleteResult: DeleteResult
-  query: Query!
-}
-
-type DeleteTerminalPayload {
   deleteResult: DeleteResult
   query: Query!
 }
@@ -1324,11 +1091,6 @@ type DeleteSalesTaxPayload {
 }
 
 type DeleteStatePayload {
-  deleteResult: DeleteResult
-  query: Query!
-}
-
-type DeleteTagPayload {
   deleteResult: DeleteResult
   query: Query!
 }
@@ -1388,11 +1150,6 @@ type DeleteWorkflowPayload {
   query: Query!
 }
 
-type DisableApiCredentialPayload {
-  apiCredential: apiCredential
-  query: Query!
-}
-
 "A segment of a collection."
 type DiscountsCollectionSegment {
   "Information to aid in pagination."
@@ -1448,7 +1205,6 @@ type DocumentTemplatesCollectionSegment {
 type EmailAttachmentGqlDto {
   getEmailPresignedUri(expiresInDays: Int!, uriType: String!): String
     @cost(weight: "10")
-  id: String!
   attachmentId: Int
   orderDocumentId: Int
   documentWorkflowId: UUID
@@ -1456,51 +1212,6 @@ type EmailAttachmentGqlDto {
   fileUri: String
   thumbnailUri: String
   previewUri: String
-}
-
-type EnableApiCredentialPayload {
-  apiCredential: apiCredential
-  query: Query!
-}
-
-"Complete audit history for a specific entity"
-type EntityAuditHistory {
-  "Name of the entity"
-  entityName: String
-  "Primary key of the entity"
-  primaryKey: String
-  "List of all changes for this entity"
-  changes: [AuditChangeDetail!]!
-}
-
-"Lightweight audit history result - metadata parsed from filenames, changedFields loaded on demand"
-type EntityAuditHistoryLightResult {
-  "Name of the entity"
-  entityName: String
-  "Primary key of the entity"
-  primaryKey: String
-  "Organization ID"
-  organizationId: Int
-  "List of change entries for this entity"
-  changes: [AuditChangeEntry!]!
-  "Token for fetching next page of results"
-  continuationToken: String
-  "Whether more records exist"
-  hasMoreRecords: Boolean!
-}
-
-"Paginated audit history result for a specific entity"
-type EntityAuditHistoryResult {
-  "Name of the entity"
-  entityName: String
-  "Primary key of the entity"
-  primaryKey: String
-  "List of changes for this entity"
-  changes: [AuditChangeDetail!]!
-  "Token for fetching next page of results"
-  continuationToken: String
-  "Whether more records exist"
-  hasMoreRecords: Boolean!
 }
 
 "A segment of a collection."
@@ -1617,11 +1328,6 @@ type ImportEquipmentTypesPayload {
   query: Query!
 }
 
-type ImportPortsPayload {
-  importResult: ImportResult
-  query: Query!
-}
-
 type ImportPostalCodesPayload {
   importResult: ImportResult
   query: Query!
@@ -1658,27 +1364,6 @@ type IncomingLinkedOrdersCollectionSegment {
 type InstallAppManifestPayload {
   appManifest: appManifest
   query: Query!
-}
-
-type InventoryItemAllTagsGqlDto {
-  inventoryItemId: Int!
-  organizationId: Int!
-  tagId: Int!
-  tagName: String!
-  tagDescription: String
-  tagEntityName: String!
-  customValues: MapOfObject
-}
-
-type InventoryItemTagGqlDto {
-  inventoryItemId: Int!
-  tagId: Int!
-  tag: tagItem
-  customValues: MapOfObject
-  createdBy: String
-  created: DateTime!
-  lastModifiedBy: String
-  lastModified: DateTime!
 }
 
 "A segment of a collection."
@@ -1758,11 +1443,6 @@ type LanesCollectionSegment {
   totalCount: Int! @cost(weight: "10")
 }
 
-type LinkChargesToAccountingTransactionPayload {
-  accountingTransaction: accountingTransaction
-  query: Query!
-}
-
 type LinkDto {
   href: String!
   rel: String!
@@ -1789,211 +1469,7 @@ type ModeOfTransportationsCollectionSegment {
   totalCount: Int! @cost(weight: "10")
 }
 
-
-"A segment of dispatch route statuses."
-type DispatchRouteStatusesCollectionSegment {
-  pageInfo: CollectionSegmentInfo!
-  items: [dispatchRouteStatus!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-"A segment of dispatch route templates."
-type DispatchRouteTemplatesCollectionSegment {
-  pageInfo: CollectionSegmentInfo!
-  items: [dispatchRouteTemplate!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-"A segment of dispatch routes."
-type DispatchRoutesCollectionSegment {
-  pageInfo: CollectionSegmentInfo!
-  items: [dispatchRoute!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-type dispatchRouteStatus {
-  dispatchRouteStatusId: Int!
-  organizationId: Int!
-  statusName: String!
-  statusDescription: String
-  statusStage: StatusStage!
-  routeType: DispatchRouteType
-  priority: Int!
-  color: String
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-}
-
-type dispatchRouteTemplate {
-  dispatchRouteTemplateId: Int!
-  organizationId: Int!
-  name: String!
-  routeType: DispatchRouteType!
-  daysOfWeek: [DayOfWeek!]!
-  divisionId: Int
-  division: division
-  equipmentTypeId: Int
-  equipmentType: equipmentType
-  enabled: Boolean!
-  stops: [dispatchRouteTemplateStop!]
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-}
-
-type dispatchRouteTemplateStop {
-  dispatchRouteTemplateStopId: Int!
-  dispatchRouteTemplateId: Int!
-  stopContactId: Int!
-  stopContact: contact
-  contactAddressId: Int
-  contactAddress: contactAddress
-  stopType: DispatchRouteType!
-  sequence: Int!
-  estimatedServiceMinutes: Int
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-}
-
-type dispatchRoute {
-  dispatchRouteId: Int!
-  organizationId: Int!
-  name: String!
-  routeType: DispatchRouteType!
-  routeDate: Date!
-  dispatchRouteTemplateId: Int
-  divisionId: Int
-  division: division
-  driverContactId: Int
-  driverContact: contact
-  equipmentId: Int
-  equipment: equipment
-  dispatchRouteStatusId: Int!
-  dispatchRouteStatus: dispatchRouteStatus
-  isDraft: Boolean!
-  isInactive: Boolean!
-  collapsedIntoDispatchRouteId: Int
-  stops: [dispatchRouteStop!]
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-}
-
-type dispatchRouteStop {
-  dispatchRouteStopId: Int!
-  dispatchRouteId: Int!
-  stopContactId: Int
-  stopContact: contact
-  contactAddressId: Int
-  contactAddress: contactAddress
-  stopType: DispatchRouteType!
-  plannedSequence: Int!
-  actualSequence: Int
-  estimatedServiceMinutes: Int
-  actualArrivalTime: DateTime
-  actualCompletionTime: DateTime
-  orderIds: [Int!]!
-  orders: [dispatchRouteStopOrder!]
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-}
-
-type dispatchRouteStopOrder {
-  dispatchRouteStopOrderId: Int!
-  dispatchRouteStopId: Int!
-  orderId: Int!
-  order: order
-  customValues: MapOfObject
-}
-
-type GenerateDispatchRoutesResultGqlDto {
-  createdCount: Int!
-  skippedCount: Int!
-  createdRouteIds: [Int!]!
-}
-
-type GenerateDispatchRoutesPayload {
-  generateDispatchRoutesResult: GenerateDispatchRoutesResultGqlDto
-  query: Query!
-}
-
-type CreateDispatchRouteStatusPayload { dispatchRouteStatus: dispatchRouteStatus query: Query! }
-type UpdateDispatchRouteStatusPayload { dispatchRouteStatus: dispatchRouteStatus query: Query! }
-type DeleteDispatchRouteStatusPayload { deleteResult: DeleteResult query: Query! }
-type CreateDispatchRouteTemplatePayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
-type UpdateDispatchRouteTemplatePayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
-type DeleteDispatchRouteTemplatePayload { deleteResult: DeleteResult query: Query! }
-type AddDispatchRouteTemplateStopPayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
-type UpdateDispatchRouteTemplateStopPayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
-type RemoveDispatchRouteTemplateStopPayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
-type ReorderDispatchRouteTemplateStopPayload { dispatchRouteTemplate: dispatchRouteTemplate query: Query! }
-type CreateDispatchRoutePayload { dispatchRoute: dispatchRoute query: Query! }
-type UpdateDispatchRoutePayload { dispatchRoute: dispatchRoute query: Query! }
-type ActivateDispatchRoutePayload { dispatchRoute: dispatchRoute query: Query! }
-type DeleteDispatchRoutePayload { deleteResult: DeleteResult query: Query! }
-type AddDispatchRouteStopPayload { dispatchRoute: dispatchRoute query: Query! }
-type UpdateDispatchRouteStopPayload { dispatchRoute: dispatchRoute query: Query! }
-type RemoveDispatchRouteStopPayload { dispatchRoute: dispatchRoute query: Query! }
-type ReorderDispatchRouteStopPayload { dispatchRoute: dispatchRoute query: Query! }
-
-input CreateDispatchRouteStatusInput { organizationId: Int! values: MapOfObject! }
-input UpdateDispatchRouteStatusInput { organizationId: Int! dispatchRouteStatusId: Int! values: MapOfObject! }
-input DeleteDispatchRouteStatusInput { organizationId: Int! dispatchRouteStatusId: Int! }
-input CreateDispatchRouteTemplateInput { organizationId: Int! values: MapOfObject! }
-input UpdateDispatchRouteTemplateInput { organizationId: Int! dispatchRouteTemplateId: Int! values: MapOfObject! }
-input DeleteDispatchRouteTemplateInput { organizationId: Int! dispatchRouteTemplateId: Int! }
-input AddDispatchRouteTemplateStopInput { organizationId: Int! dispatchRouteTemplateId: Int! values: MapOfObject! }
-input UpdateDispatchRouteTemplateStopInput { organizationId: Int! dispatchRouteTemplateId: Int! dispatchRouteTemplateStopId: Int! values: MapOfObject! }
-input RemoveDispatchRouteTemplateStopInput { organizationId: Int! dispatchRouteTemplateId: Int! dispatchRouteTemplateStopId: Int! }
-input ReorderDispatchRouteTemplateStopInput { organizationId: Int! dispatchRouteTemplateId: Int! dispatchRouteTemplateStopId: Int! newSequence: Int! }
-input CreateDispatchRouteInput { organizationId: Int! values: MapOfObject! }
-input UpdateDispatchRouteInput { organizationId: Int! dispatchRouteId: Int! values: MapOfObject! }
-input ActivateDispatchRouteInput { organizationId: Int! dispatchRouteId: Int! }
-input DeleteDispatchRouteInput { organizationId: Int! dispatchRouteId: Int! }
-input AddDispatchRouteStopInput { organizationId: Int! dispatchRouteId: Int! values: MapOfObject! }
-input UpdateDispatchRouteStopInput { organizationId: Int! dispatchRouteId: Int! dispatchRouteStopId: Int! values: MapOfObject! }
-input RemoveDispatchRouteStopInput { organizationId: Int! dispatchRouteId: Int! dispatchRouteStopId: Int! }
-input ReorderDispatchRouteStopInput { organizationId: Int! dispatchRouteId: Int! dispatchRouteStopId: Int! newSequence: Int! }
-input GenerateDispatchRoutesInput { organizationId: Int! values: MapOfObject! }
-
 type Mutation {
-  createDispatchRouteStatus(input: CreateDispatchRouteStatusInput!): CreateDispatchRouteStatusPayload! @cost(weight: "10")
-  updateDispatchRouteStatus(input: UpdateDispatchRouteStatusInput!): UpdateDispatchRouteStatusPayload! @cost(weight: "10")
-  deleteDispatchRouteStatus(input: DeleteDispatchRouteStatusInput!): DeleteDispatchRouteStatusPayload! @cost(weight: "10")
-  createDispatchRouteTemplate(input: CreateDispatchRouteTemplateInput!): CreateDispatchRouteTemplatePayload! @cost(weight: "10")
-  updateDispatchRouteTemplate(input: UpdateDispatchRouteTemplateInput!): UpdateDispatchRouteTemplatePayload! @cost(weight: "10")
-  deleteDispatchRouteTemplate(input: DeleteDispatchRouteTemplateInput!): DeleteDispatchRouteTemplatePayload! @cost(weight: "10")
-  addDispatchRouteTemplateStop(input: AddDispatchRouteTemplateStopInput!): AddDispatchRouteTemplateStopPayload! @cost(weight: "10")
-  updateDispatchRouteTemplateStop(input: UpdateDispatchRouteTemplateStopInput!): UpdateDispatchRouteTemplateStopPayload! @cost(weight: "10")
-  removeDispatchRouteTemplateStop(input: RemoveDispatchRouteTemplateStopInput!): RemoveDispatchRouteTemplateStopPayload! @cost(weight: "10")
-  reorderDispatchRouteTemplateStop(input: ReorderDispatchRouteTemplateStopInput!): ReorderDispatchRouteTemplateStopPayload! @cost(weight: "10")
-  createDispatchRoute(input: CreateDispatchRouteInput!): CreateDispatchRoutePayload! @cost(weight: "10")
-  updateDispatchRoute(input: UpdateDispatchRouteInput!): UpdateDispatchRoutePayload! @cost(weight: "10")
-  activateDispatchRoute(input: ActivateDispatchRouteInput!): ActivateDispatchRoutePayload! @cost(weight: "10")
-  deleteDispatchRoute(input: DeleteDispatchRouteInput!): DeleteDispatchRoutePayload! @cost(weight: "10")
-  addDispatchRouteStop(input: AddDispatchRouteStopInput!): AddDispatchRouteStopPayload! @cost(weight: "10")
-  updateDispatchRouteStop(input: UpdateDispatchRouteStopInput!): UpdateDispatchRouteStopPayload! @cost(weight: "10")
-  removeDispatchRouteStop(input: RemoveDispatchRouteStopInput!): RemoveDispatchRouteStopPayload! @cost(weight: "10")
-  reorderDispatchRouteStop(input: ReorderDispatchRouteStopInput!): ReorderDispatchRouteStopPayload! @cost(weight: "10")
-  generateDispatchRoutes(input: GenerateDispatchRoutesInput!): GenerateDispatchRoutesPayload! @cost(weight: "10")
   createWorkflow(input: CreateWorkflowInput!): CreateWorkflowPayload!
     @cost(weight: "10")
   updateWorkflow(input: UpdateWorkflowInput!): UpdateWorkflowPayload!
@@ -2055,9 +1531,6 @@ type Mutation {
   deleteTrackingEvent(
     input: DeleteTrackingEventInput!
   ): DeleteTrackingEventPayload! @cost(weight: "10")
-  createTag(input: CreateTagInput!): CreateTagPayload! @cost(weight: "10")
-  updateTag(input: UpdateTagInput!): UpdateTagPayload! @cost(weight: "10")
-  deleteTag(input: DeleteTagInput!): DeleteTagPayload! @cost(weight: "10")
   createState(input: CreateStateInput!): CreateStatePayload! @cost(weight: "10")
   updateState(input: UpdateStateInput!): UpdateStatePayload! @cost(weight: "10")
   deleteState(input: DeleteStateInput!): DeleteStatePayload! @cost(weight: "10")
@@ -2098,10 +1571,6 @@ type Mutation {
   createPort(input: CreatePortInput!): CreatePortPayload! @cost(weight: "10")
   updatePort(input: UpdatePortInput!): UpdatePortPayload! @cost(weight: "10")
   deletePort(input: DeletePortInput!): DeletePortPayload! @cost(weight: "10")
-  createTerminal(input: CreateTerminalInput!): CreateTerminalPayload! @cost(weight: "10")
-  updateTerminal(input: UpdateTerminalInput!): UpdateTerminalPayload! @cost(weight: "10")
-  deleteTerminal(input: DeleteTerminalInput!): DeleteTerminalPayload! @cost(weight: "10")
-  importPorts(input: ImportPortsInput!): ImportPortsPayload! @cost(weight: "10")
   createPaymentTerm(input: CreatePaymentTermInput!): CreatePaymentTermPayload!
     @cost(weight: "10")
   updatePaymentTerm(input: UpdatePaymentTermInput!): UpdatePaymentTermPayload!
@@ -2129,15 +1598,6 @@ type Mutation {
   deletePackageCategory(
     input: DeletePackageCategoryInput!
   ): DeletePackageCategoryPayload! @cost(weight: "10")
-  createOrganizationUser(
-    input: CreateOrganizationUserInput!
-  ): CreateOrganizationUserPayload! @cost(weight: "10")
-  updateOrganizationUser(
-    input: UpdateOrganizationUserInput!
-  ): UpdateOrganizationUserPayload! @cost(weight: "10")
-  deleteOrganizationUser(
-    input: DeleteOrganizationUserInput!
-  ): DeleteOrganizationUserPayload! @cost(weight: "10")
   updateOrganization(
     input: UpdateOrganizationInput!
   ): UpdateOrganizationPayload! @cost(weight: "10")
@@ -2182,9 +1642,6 @@ type Mutation {
   deleteOrderDocument(
     input: DeleteOrderDocumentInput!
   ): DeleteOrderDocumentPayload! @cost(weight: "10")
-  regenerateOrderDocument(
-    input: RegenerateOrderDocumentInput!
-  ): RegenerateOrderDocumentPayload! @cost(weight: "10")
   createOrderCommodity(
     input: CreateOrderCommodityInput!
   ): CreateOrderCommodityPayload! @cost(weight: "10")
@@ -2194,11 +1651,6 @@ type Mutation {
   deleteOrderCommodity(
     input: DeleteOrderCommodityInput!
   ): DeleteOrderCommodityPayload! @cost(weight: "10")
-  createNote(input: CreateNoteInput!): CreateNotePayload! @cost(weight: "10")
-  updateNote(input: UpdateNoteInput!): UpdateNotePayload! @cost(weight: "10")
-  deleteNote(input: DeleteNoteInput!): DeleteNotePayload! @cost(weight: "10")
-  renameNoteThread(input: RenameNoteThreadInput!): RenameNoteThreadPayload!
-    @cost(weight: "10")
   createModeOfTransportation(
     input: CreateModeOfTransportationInput!
   ): CreateModeOfTransportationPayload! @cost(weight: "10")
@@ -2417,18 +1869,6 @@ type Mutation {
   deleteCalendarAvailabilityBlock(
     input: DeleteCalendarAvailabilityBlockInput!
   ): DeleteCalendarAvailabilityBlockPayload! @cost(weight: "10")
-  createCalendarBusinessHour(
-    input: CreateCalendarBusinessHourInput!
-  ): CreateCalendarBusinessHourPayload! @cost(weight: "10")
-  updateCalendarBusinessHour(
-    input: UpdateCalendarBusinessHourInput!
-  ): UpdateCalendarBusinessHourPayload! @cost(weight: "10")
-  deleteCalendarBusinessHour(
-    input: DeleteCalendarBusinessHourInput!
-  ): DeleteCalendarBusinessHourPayload! @cost(weight: "10")
-  updateCalendarBusinessHours(
-    input: UpdateCalendarBusinessHoursInput!
-  ): UpdateCalendarBusinessHoursPayload! @cost(weight: "10")
   createCalendarEvent(
     input: CreateCalendarEventInput!
   ): CreateCalendarEventPayload! @cost(weight: "10")
@@ -2470,24 +1910,6 @@ type Mutation {
     @cost(weight: "10")
   mergeAppManifest(input: MergeAppManifestInput!): MergeAppManifestPayload!
     @cost(weight: "10")
-  createApiCredential(
-    input: CreateApiCredentialInput!
-  ): CreateApiCredentialPayload! @cost(weight: "10")
-  updateApiCredential(
-    input: UpdateApiCredentialInput!
-  ): UpdateApiCredentialPayload! @cost(weight: "10")
-  regenerateApiCredentialSecret(
-    input: RegenerateApiCredentialSecretInput!
-  ): RegenerateApiCredentialSecretPayload! @cost(weight: "10")
-  deleteApiCredential(
-    input: DeleteApiCredentialInput!
-  ): DeleteApiCredentialPayload! @cost(weight: "10")
-  enableApiCredential(
-    input: EnableApiCredentialInput!
-  ): EnableApiCredentialPayload! @cost(weight: "10")
-  disableApiCredential(
-    input: DisableApiCredentialInput!
-  ): DisableApiCredentialPayload! @cost(weight: "10")
   createActionEvent(input: CreateActionEventInput!): CreateActionEventPayload!
     @cost(weight: "10")
   updateActionEvent(input: UpdateActionEventInput!): UpdateActionEventPayload!
@@ -2506,12 +1928,6 @@ type Mutation {
   deleteAccountingTransaction(
     input: DeleteAccountingTransactionInput!
   ): DeleteAccountingTransactionPayload! @cost(weight: "10")
-  linkChargesToAccountingTransaction(
-    input: LinkChargesToAccountingTransactionInput!
-  ): LinkChargesToAccountingTransactionPayload! @cost(weight: "10")
-  unlinkChargesFromAccountingTransaction(
-    input: UnlinkChargesFromAccountingTransactionInput!
-  ): UnlinkChargesFromAccountingTransactionPayload! @cost(weight: "10")
   createAccountingItem(
     input: CreateAccountingItemInput!
   ): CreateAccountingItemPayload! @cost(weight: "10")
@@ -2530,34 +1946,6 @@ type Mutation {
   deleteAccountingAccount(
     input: DeleteAccountingAccountInput!
   ): DeleteAccountingAccountPayload! @cost(weight: "10")
-}
-
-"A segment of a collection."
-type NoteThreadsCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [noteThread!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-"A segment of a collection."
-type NotesByThreadNameCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [note!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-type OrderAllTagsGqlDto {
-  orderId: Int!
-  organizationId: Int!
-  tagId: Int!
-  tagName: String!
-  tagDescription: String
-  tagEntityName: String!
-  customValues: MapOfObject
 }
 
 "A segment of a collection."
@@ -2631,34 +2019,6 @@ type OrderSummaryGqlDto {
   billManagerShippers: [ManagersContactDto!]!
 }
 
-type OrderTagGqlDto {
-  orderId: Int!
-  tagId: Int!
-  tag: tagItem
-  customValues: MapOfObject
-  createdBy: String
-  created: DateTime!
-  lastModifiedBy: String
-  lastModified: DateTime!
-}
-
-type OrderTagSummaryDto {
-  totalTags: Int!
-  directTags: Int!
-  commodityTags: Int!
-  tagNames: [String!]!
-  tagIds: [Int!]!
-}
-
-"A segment of a collection."
-type OrderTagsCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [OrderTagGqlDto!]
-  totalCount: Int! @cost(weight: "10")
-}
-
 "A segment of a collection."
 type OrdersCollectionSegment {
   "Information to aid in pagination."
@@ -2683,15 +2043,6 @@ type OrganizationConfigsCollectionSegment {
   pageInfo: CollectionSegmentInfo!
   "A flattened list of the items."
   items: [organizationConfig!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-"A segment of a collection."
-type OrganizationUsersCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [organizationUser!]
   totalCount: Int! @cost(weight: "10")
 }
 
@@ -2765,15 +2116,6 @@ type PortsCollectionSegment {
 }
 
 "A segment of a collection."
-type TerminalsCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [terminal!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-"A segment of a collection."
 type PostalCodesCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
@@ -2797,12 +2139,6 @@ type PublishAppManifestPayload {
 }
 
 type Query {
-  dispatchRouteStatus(organizationId: Int!, dispatchRouteStatusId: Int!): dispatchRouteStatus @cost(weight: "10")
-  dispatchRouteStatuses(skip: Int, take: Int, organizationId: Int!, filter: String, search: String, orderBy: String): DispatchRouteStatusesCollectionSegment @cost(weight: "10")
-  dispatchRouteTemplate(organizationId: Int!, dispatchRouteTemplateId: Int!): dispatchRouteTemplate @cost(weight: "10")
-  dispatchRouteTemplates(skip: Int, take: Int, organizationId: Int!, filter: String, search: String, orderBy: String): DispatchRouteTemplatesCollectionSegment @cost(weight: "10")
-  dispatchRoute(organizationId: Int!, dispatchRouteId: Int!): dispatchRoute @cost(weight: "10")
-  dispatchRoutes(skip: Int, take: Int, organizationId: Int!, filter: String, search: String, orderBy: String): DispatchRoutesCollectionSegment @cost(weight: "10")
   workflow(organizationId: Int!, workflowId: UUID!): workflow
     @cost(weight: "10")
   workflows(
@@ -2813,26 +2149,6 @@ type Query {
     search: String
     orderBy: String
   ): WorkflowsCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-  workflowExecution(
-    executionId: UUID!
-    organizationId: Int!
-  ): workflowExecution @cost(weight: "10")
-  workflowExecutions(
-    skip: Int
-    take: Int
-    workflowId: UUID!
-    organizationId: Int!
-    filter: String
-    orderBy: String
-  ): WorkflowExecutionsCollectionSegment
     @listSize(
       assumedSize: 10000
       slicingArguments: ["take"]
@@ -2979,64 +2295,6 @@ type Query {
     orderBy: String
     search: String
   ): TrackingEventsCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-  terminal(organizationId: Int!, terminalId: Int!): terminal @cost(weight: "10")
-  terminals(
-    skip: Int
-    take: Int
-    organizationId: Int!
-    filter: String
-    search: String
-    orderBy: String
-  ): TerminalsCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-  tag(
-    organizationId: Int!
-    tagId: Int!
-    includeDeleted: Boolean! = false
-  ): tagItem @cost(weight: "10")
-  tags(
-    skip: Int
-    take: Int
-    organizationId: Int!
-    entityName: String
-    filter: String
-    limit: Int! = 100
-    orderBy: String
-    offset: Int! = 0
-    search: String
-    includeDeleted: Boolean! = false
-  ): TagsCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-  orderTags(
-    skip: Int
-    take: Int
-    organizationId: Int!
-    orderId: Int!
-    limit: Int! = 100
-    offset: Int! = 0
-  ): OrderTagsCollectionSegment
     @listSize(
       assumedSize: 10000
       slicingArguments: ["take"]
@@ -3277,25 +2535,6 @@ type Query {
       requireOneSlicingArgument: false
     )
     @cost(weight: "10")
-  organizationUser(organizationId: Int!, contactId: Int!): organizationUser
-    @cost(weight: "10")
-  organizationUsers(
-    skip: Int
-    take: Int
-    organizationId: Int!
-    parentContactId: Int
-    filter: String
-    search: String
-    orderBy: String
-  ): OrganizationUsersCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
   organization(organizationId: Int!): organization @cost(weight: "10")
   organizations(
     skip: Int
@@ -3506,38 +2745,6 @@ type Query {
     weightUnit: WeightUnit
     volumeUnit: VolumeUnit
   ): [GroupedOrderCommoditySummaryGqlDto!]! @cost(weight: "10")
-  notesByThreadName(
-    skip: Int
-    take: Int
-    organizationId: Int!
-    threadName: String!
-    search: String
-    tags: [String!]
-  ): NotesByThreadNameCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-  noteThreadByName(organizationId: Int!, threadName: String!): noteThread
-    @cost(weight: "10")
-  noteThreads(
-    skip: Int
-    take: Int
-    organizationId: Int!
-    search: String
-  ): NoteThreadsCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
   modeOfTransportation(
     organizationId: Int!
     modeOfTransportationId: Int!
@@ -3964,12 +3171,6 @@ type Query {
   contactAttachments(filter: String, orderBy: String): [AttachmentGqlDto!]!
     @cost(weight: "10")
   availableCredit: [AvailableCreditByCurrency!]! @cost(weight: "10")
-  contactChangeHistory(
-    startDate: DateTime
-    endDate: DateTime
-    maxResults: Int! = 10
-  ): EntityAuditHistoryLightResult! @cost(weight: "10")
-  parentContact: contact @cost(weight: "10")
   contactStatus(organizationId: Int!, statusId: Int!): contactStatus
     @cost(weight: "10")
   contactStatuses(
@@ -4049,10 +3250,6 @@ type Query {
     addressFormat: String
     lang: String = "en-US"
     multiline: Boolean = false
-    language: AddressLanguage! = English
-    useNativeCountryName: Boolean = false
-    includeCountryName: Boolean = true
-    translit: Boolean = false
   ): String! @cost(weight: "10")
   country(organizationId: Int!, countryCode: String!): country
     @cost(weight: "10")
@@ -4150,17 +3347,10 @@ type Query {
   parentCommodity: commodity @cost(weight: "10")
   commodityRelatedOrders(filter: String!): [order!]! @cost(weight: "10")
   commodityRelatedOrder(filter: String!): order @cost(weight: "10")
-  getRelatedDispatchRoutes(filter: String, orderBy: String): [dispatchRoute!]!
-    @cost(weight: "10")
   trackingNumber(idPropertyName: String!): commodityTrackingNumber
     @cost(weight: "10")
   commodityAttachments(filter: String!): [AttachmentGqlDto!]!
     @cost(weight: "10")
-  commodityChangeHistory(
-    startDate: DateTime
-    endDate: DateTime
-    maxResults: Int! = 10
-  ): EntityAuditHistoryLightResult! @cost(weight: "10")
   city(organizationId: Int!, cityId: Int!): city @cost(weight: "10")
   cities(
     skip: Int
@@ -4212,8 +3402,7 @@ type Query {
       requireOneSlicingArgument: false
     )
     @cost(weight: "10")
-  calendar(organizationId: Int!, calendarId: Int!): CalendarGqlDto
-    @cost(weight: "10")
+  calendar(calendarId: Int!): CalendarGqlDto @cost(weight: "10")
   calendars(
     skip: Int
     take: Int
@@ -4233,12 +3422,10 @@ type Query {
   calendarEvents(
     skip: Int
     take: Int
-    organizationId: Int!
-    calendarId: Int
+    calendarId: Int!
     startDate: DateTime
     endDate: DateTime
     filter: String
-    search: String
     orderBy: String
     expandRecurring: Boolean! = false
   ): CalendarEventsCollectionSegment
@@ -4253,12 +3440,10 @@ type Query {
   calendarAvailability(
     skip: Int
     take: Int
-    organizationId: Int!
-    calendarId: Int
+    calendarId: Int!
     startDate: DateTime
     endDate: DateTime
     filter: String
-    search: String
     orderBy: String
   ): CalendarAvailabilityCollectionSegment
     @listSize(
@@ -4269,97 +3454,6 @@ type Query {
       requireOneSlicingArgument: false
     )
     @cost(weight: "10")
-  calendarBusinessHours(
-    skip: Int
-    take: Int
-    organizationId: Int!
-    calendarId: Int
-    dayOfWeek: Int
-    filter: String
-    orderBy: String
-  ): CalendarBusinessHoursCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-  calendarBusinessHoursBlocks(
-    skip: Int
-    take: Int
-    startDate: DateTime!
-    endDate: DateTime!
-    organizationId: Int!
-    calendarId: Int
-    timeZone: String
-    filter: String
-    orderBy: String
-    limit: Int! = 1000
-    offset: Int! = 0
-    includeExtraWindows: Boolean = false
-  ): CalendarBusinessHoursBlocksCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-  "Retrieves a paginated list of audit change summaries, sorted by timestamp descending"
-  auditChangeSummaries(
-    "Organization ID to filter by"
-    organizationId: Int
-    "Start date for filtering"
-    startDate: DateTime
-    "End date for filtering"
-    endDate: DateTime
-    "User ID to filter by"
-    userId: String
-    "Continuation token from previous request"
-    startAfter: String
-    "Maximum number of results to return"
-    maxResults: Int! = 50
-  ): AuditChangeSummariesResult! @cost(weight: "10")
-  "Retrieves audit change details for a specific change ID, sorted by entity name and primary key"
-  auditChangeDetails(
-    "Change ID to retrieve details for"
-    changeId: UUID!
-    "Organization ID"
-    organizationId: Int
-  ): [AuditChangeDetail!]! @cost(weight: "10")
-  "Retrieves paginated audit history for a specific entity. Metadata is parsed from filenames, changedFields are loaded on demand."
-  auditEntityHistory(
-    "Entity name (e.g., Order, Commodity)"
-    entityName: String!
-    "Primary key of the entity"
-    primaryKey: String!
-    "Organization ID"
-    organizationId: Int
-    "Start date for filtering"
-    startDate: DateTime
-    "End date for filtering"
-    endDate: DateTime
-    "Continuation token from previous request"
-    startAfter: String
-    "Maximum number of results to return"
-    maxResults: Int! = 50
-  ): EntityAuditHistoryLightResult! @cost(weight: "10")
-  "Retrieves a parsed JSON representation of audit changes with field-by-field comparison, supporting nested types"
-  auditChangeJson(
-    "Direct file path to the audit log"
-    filePath: String
-    "Change ID to search for"
-    changeId: UUID
-    "Entity name for latest change lookup"
-    entityName: String
-    "Primary key for latest change lookup"
-    primaryKey: String
-    "Organization ID"
-    organizationId: Int
-  ): AuditChangeJson! @cost(weight: "10")
   attachment(organizationId: Int!, attachmentId: Int!): AttachmentGqlDto
     @cost(weight: "10")
   attachments(
@@ -4380,7 +3474,7 @@ type Query {
     @cost(weight: "10")
   emailAttachment(
     organizationId: Int!
-    emailAttachmentId: String!
+    attachmentId: String!
   ): EmailAttachmentGqlDto @cost(weight: "10")
   allOrderAttachments(
     skip: Int
@@ -4402,8 +3496,6 @@ type Query {
   parentOrder: order @cost(weight: "10")
   presignedUri(uriType: String!, expiresInDays: Int!): String!
     @cost(weight: "10")
-  computedPreviewUri: String @cost(weight: "10")
-  computedThumbnailUri: String @cost(weight: "10")
   publicAppRoutes(
     skip: Int
     take: Int
@@ -4532,24 +3624,6 @@ type Query {
       requireOneSlicingArgument: false
     )
     @cost(weight: "10")
-  apiCredential(organizationId: Int!, apiCredentialId: Int!): apiCredential
-    @cost(weight: "10")
-  apiCredentials(
-    skip: Int
-    take: Int
-    organizationId: Int!
-    filter: String
-    search: String
-    orderBy: String
-  ): ApiCredentialsCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
   actionEvent(organizationId: Int!, eventId: UUID!): actionEvent
     @cost(weight: "10")
   actionEvents(
@@ -4615,19 +3689,13 @@ type Query {
   orderModeOfTransportation(idPropertyName: String!): modeOfTransportation
     @cost(weight: "10")
   orderAccountingTransactions(
-    filter: String
+    filter: String!
     orderBy: String
   ): [accountingTransaction!]! @cost(weight: "10")
-  orderChangeHistory(
-    startDate: DateTime
-    endDate: DateTime
-    maxResults: Int! = 10
-  ): EntityAuditHistoryLightResult! @cost(weight: "10")
   orderRelatedOrder(filter: String!): order @cost(weight: "10")
   orderRelatedOrders(filter: String!): [order!]! @cost(weight: "10")
   orderJobsRelatedOrders(filter: String!): [order!]! @cost(weight: "10")
-  orderAttachments(filter: String!, orderBy: String): [AttachmentGqlDto!]!
-    @cost(weight: "10")
+  orderAttachments(filter: String!): [AttachmentGqlDto!]! @cost(weight: "10")
   orderEntityByType(
     idPropertyName: String!
     customValuesKey: String
@@ -4650,31 +3718,16 @@ type Query {
     volumeUnit: VolumeUnit
     dimensionsUnit: DimensionsUnit
   ): OrderSummaryGqlDto! @cost(weight: "10")
-  lastTrackingEvent(
-    eventDefinitionName: String
-    orderBy: String
-  ): trackingEvent @cost(weight: "10")
+  lastTrackingEvent(eventDefinitionName: String): trackingEvent
+    @cost(weight: "10")
   routeForOrder(idPropertyName: String!): route @cost(weight: "10")
   relatedOrderByProperty(idPropertyName: String!): order @cost(weight: "10")
   outgoingOrderLinks: [linkedOrders!]! @cost(weight: "10")
   incomingOrderLinks: [linkedOrders!]! @cost(weight: "10")
-  orderNotesCount(threadFilter: String): Int! @cost(weight: "10")
-  relatedOrders(filter: String, orderBy: String): [order!]! @cost(weight: "10")
-  relatedOrder(filter: String, orderBy: String): order @cost(weight: "10")
   accountingTransaction(
-    filter: String
-    orderBy: String
     organizationId: Int!
     accountingTransactionId: Int!
   ): accountingTransaction @cost(weight: "10")
-  invoice(filter: String, orderBy: String): accountingTransaction
-    @cost(weight: "10")
-  invoices(filter: String, orderBy: String): [accountingTransaction!]!
-    @cost(weight: "10")
-  bill(filter: String, orderBy: String): accountingTransaction
-    @cost(weight: "10")
-  bills(filter: String, orderBy: String): [accountingTransaction!]!
-    @cost(weight: "10")
   accountingTransactions(
     skip: Int
     take: Int
@@ -4698,15 +3751,6 @@ type Query {
   amountDue: Decimal! @cost(weight: "10")
   relatedOrdersByOrderType(orderType: String!): [order]! @cost(weight: "10")
   relatedOrderByOrderType(orderType: String!): order @cost(weight: "10")
-  accountingTransactionRelatedOrders(
-    filter: String
-    orderBy: String
-  ): [order!]! @cost(weight: "10")
-  accountingTransactionChangeHistory(
-    startDate: DateTime
-    endDate: DateTime
-    maxResults: Int! = 10
-  ): EntityAuditHistoryLightResult! @cost(weight: "10")
   accountingItem(organizationId: Int!, accountingItemId: Int!): accountingItem
     @cost(weight: "10")
   accountingItems(
@@ -4761,21 +3805,6 @@ type RatesCollectionSegment {
   "A flattened list of the items."
   items: [rate!]
   totalCount: Int! @cost(weight: "10")
-}
-
-type RegenerateApiCredentialSecretPayload {
-  apiCredentialWithSecret: apiCredentialWithSecret
-  query: Query!
-}
-
-type RegenerateOrderDocumentPayload {
-  orderDocument: orderDocument
-  query: Query!
-}
-
-type RenameNoteThreadPayload {
-  noteThread: noteThread
-  query: Query!
 }
 
 "A segment of a collection."
@@ -4858,26 +3887,12 @@ type SwitchCase {
 }
 
 "A segment of a collection."
-type TagsCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [tagItem!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-"A segment of a collection."
 type TrackingEventsCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
   "A flattened list of the items."
   items: [trackingEvent!]
   totalCount: Int! @cost(weight: "10")
-}
-
-type UnlinkChargesFromAccountingTransactionPayload {
-  accountingTransaction: accountingTransaction
-  query: Query!
 }
 
 type UpdateAccountingAccountPayload {
@@ -4900,11 +3915,6 @@ type UpdateActionEventPayload {
   query: Query!
 }
 
-type UpdateApiCredentialPayload {
-  apiCredential: apiCredential
-  query: Query!
-}
-
 type UpdateAppManifestPayload {
   appManifest: appManifest
   query: Query!
@@ -4923,24 +3933,6 @@ type UpdateAttachmentPayload {
 type UpdateCalendarAvailabilityBlockPayload {
   calendarAvailabilityBlockGqlDto: CalendarAvailabilityBlockGqlDto
   query: Query!
-}
-
-type UpdateCalendarBusinessHourPayload {
-  calendarBusinessHourGqlDto: CalendarBusinessHourGqlDto
-  query: Query!
-}
-
-type UpdateCalendarBusinessHoursPayload {
-  updateCalendarBusinessHoursResult: UpdateCalendarBusinessHoursResult
-  query: Query!
-}
-
-type UpdateCalendarBusinessHoursResult {
-  calendarId: Int!
-  createdCount: Int!
-  updatedCount: Int!
-  deletedCount: Int!
-  businessHourIds: [Int!]!
 }
 
 type UpdateCalendarEventPayload {
@@ -5088,11 +4080,6 @@ type UpdateModeOfTransportationPayload {
   query: Query!
 }
 
-type UpdateNotePayload {
-  note: note
-  query: Query!
-}
-
 type UpdateOrderCommodityPayload {
   orderCommodity: orderCommodity
   query: Query!
@@ -5128,11 +4115,6 @@ type UpdateOrganizationPayload {
   query: Query!
 }
 
-type UpdateOrganizationUserPayload {
-  organizationUser: organizationUser
-  query: Query!
-}
-
 type UpdatePackageCategoryPayload {
   packageCategory: packageCategory
   query: Query!
@@ -5155,11 +4137,6 @@ type UpdatePaymentTermPayload {
 
 type UpdatePortPayload {
   port: port
-  query: Query!
-}
-
-type UpdateTerminalPayload {
-  terminal: terminal
   query: Query!
 }
 
@@ -5195,11 +4172,6 @@ type UpdateSalesTaxPayload {
 
 type UpdateStatePayload {
   state: state
-  query: Query!
-}
-
-type UpdateTagPayload {
-  tagItem: tagItem
   query: Query!
 }
 
@@ -5363,15 +4335,6 @@ type WorkflowExecutionResult {
   workflowType: String!
 }
 
-"A segment of a collection."
-type WorkflowExecutionsCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [workflowExecution!]
-  totalCount: Int! @cost(weight: "10")
-}
-
 type WorkflowRuntime {
   additionalProperties: MapOfObject
   name: String
@@ -5483,12 +4446,6 @@ type accountingTransaction {
   getAmountDue: Decimal @cost(weight: "10")
   getRelatedOrdersByOrderType(orderType: String!): [order] @cost(weight: "10")
   getRelatedOrderByOrderType(orderType: String!): order @cost(weight: "10")
-  getRelatedOrders(filter: String, orderBy: String): [order] @cost(weight: "10")
-  changeHistory(
-    startDate: DateTime
-    endDate: DateTime
-    maxResults: Int = 10
-  ): EntityAuditHistoryLightResult @cost(weight: "10")
   accountingTransactionId: Int!
   isDraft: Boolean
   accountId: Int!
@@ -5542,41 +4499,6 @@ type actionEvent {
   eventName: String!
   organizationId: Int!
   status: EventStatus!
-}
-
-type apiCredential {
-  apiCredentialId: Int!
-  organizationId: Int!
-  userId: String!
-  name: String!
-  clientId: String!
-  expiresAt: DateTime
-  allowedIpAddresses: [String!]
-  isActive: Boolean!
-  isDeleted: Boolean!
-  lastUsedAt: DateTime
-  createdBy: String
-  created: DateTime
-  lastModifiedBy: String
-  lastModified: DateTime
-}
-
-type apiCredentialWithSecret {
-  clientSecret: String!
-  apiCredentialId: Int!
-  organizationId: Int!
-  userId: String!
-  name: String!
-  clientId: String!
-  expiresAt: DateTime
-  allowedIpAddresses: [String!]
-  isActive: Boolean!
-  isDeleted: Boolean!
-  lastUsedAt: DateTime
-  createdBy: String
-  created: DateTime
-  lastModifiedBy: String
-  lastModified: DateTime
 }
 
 type appManifest {
@@ -5675,10 +4597,7 @@ type charge {
   accountingTransactions: [accountingTransaction!]!
   orders: [order!]!
   salesTax: salesTax
-  tariff: Any
   customValues: MapOfObject
-  createdUser: user!
-  updatedUser: user!
 }
 
 type city {
@@ -5710,12 +4629,6 @@ type commodity {
     @cost(weight: "10")
   getCommodityAttachments(filter: String): [AttachmentGqlDto]
     @cost(weight: "10")
-  getWeightTotal(weightUnit: String): Decimal @cost(weight: "10")
-  changeHistory(
-    startDate: DateTime
-    endDate: DateTime
-    maxResults: Int = 10
-  ): EntityAuditHistoryLightResult @cost(weight: "10")
   commodityId: Int!
   commodityStatusId: Int
   commodityStatus: commodityStatus
@@ -5756,10 +4669,6 @@ type commodity {
   width: Decimal
   trackingNumbers: [commodityTrackingNumber!]
   orderCommodities: [orderCommodity!]
-  commodityTags: [CommodityTagGqlDto!]
-  allTags(
-    where: CommodityAllTagsGqlDtoFilterInput @cost(weight: "10")
-  ): [CommodityAllTagsGqlDto!]!
   containerCommodity: commodity
   containerCommodities: [commodity!]
   shipments(where: orderFilterInput @cost(weight: "10")): [order!]
@@ -5769,23 +4678,7 @@ type commodity {
   valueByTotal: Boolean!
   packageTypeName: String
   isDeleted: Boolean
-  billToContactId: Int
   links: [LinkDto!]!
-  "Gets all unique tag names for the commodity as a simple string array"
-  allTagNames: [String!]! @cost(weight: "10")
-  "Gets only the tags directly assigned to this commodity"
-  directTagNames: [String!]! @cost(weight: "10")
-  lastTrackingEvent(
-    eventDefinitionName: String
-    orderBy: String
-  ): trackingEvent @cost(weight: "10")
-  lastTrackingEventBusinessDays(
-    path: String!
-    contactId: Int
-    contactIdPropertyName: String
-    eventDefinitionName: String
-    orderBy: String
-  ): Int @cost(weight: "10")
 }
 
 type commodityStatus {
@@ -5850,12 +4743,6 @@ type contact {
   getCustomValuesAttachment(filter: String): AttachmentGqlDto
     @cost(weight: "10")
   availableCredit: [AvailableCreditByCurrency] @cost(weight: "10")
-  changeHistory(
-    startDate: DateTime
-    endDate: DateTime
-    maxResults: Int = 10
-  ): EntityAuditHistoryLightResult @cost(weight: "10")
-  parentContact: contact @cost(weight: "10")
   contactId: Int!
   accountNumber: String
   contactFirstName: String
@@ -5885,6 +4772,7 @@ type contact {
   paymentTermId: Int
   paymentTerm: paymentTerm
   parentContactId: Int
+  parentContact: contact
   phoneNumber: String
   tags: [String!]
   website: String
@@ -5910,17 +4798,8 @@ type contactAddress {
     addressFormat: String
     lang: String = "en-US"
     multiline: Boolean = false
-    "Language for address output. English (default, always Latin transliteration), Ukrainian (Cyrillic by default, Latin if translit=true), Russian (Cyrillic by default, Latin if translit=true)"
-    language: AddressLanguage = English
-    "Use native country name from CustomValues['nativeName'] if available"
-    useNativeCountryName: Boolean = false
-    "Include country name in formatted address"
-    includeCountryName: Boolean = true
-    "Transliterate Cyrillic to Latin. Only applies to Ukrainian and Russian languages (English always transliterates). Default is false."
-    translit: Boolean = false
   ): String @cost(weight: "10")
   contactAddressId: Int!
-  name: String
   isInactive: Boolean
   addressLine: String!
   addressLine2: String
@@ -6142,9 +5021,6 @@ type division {
   streetAndNumber: String
   useDivisionInDocumentHeaders: Boolean!
   zipCode: String
-  parentDivisionId: Int
-  parentDivision: division
-  nestedDivisions: [division!]
   updatedUser: user!
   createdUser: user!
 }
@@ -6161,7 +5037,6 @@ type entityField {
   lastModifiedBy: String!
   name: String
   organizationId: Int!
-  priority: Int!
   updatedUser: user!
   createdUser: user!
 }
@@ -6241,12 +5116,6 @@ type inventoryItem {
   width: Decimal
   updatedUser: user!
   createdUser: user!
-  inventoryItemTags(
-    where: InventoryItemTagGqlDtoFilterInput @cost(weight: "10")
-  ): [InventoryItemTagGqlDto!]
-  allTags(
-    where: InventoryItemAllTagsGqlDtoFilterInput @cost(weight: "10")
-  ): [InventoryItemAllTagsGqlDto!]!
 }
 
 type jobStatus {
@@ -6343,43 +5212,8 @@ type modeOfTransportation {
   createdUser: user!
 }
 
-type note {
-  id: UUID!
-  threadId: UUID!
-  threadName: String!
-  content: MapOfObject
-  mentions: [MapOfObject]
-  tags: [String!]!
-  isPinned: Boolean!
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-  createdUser: user!
-  updatedUser: user!
-  thread: noteThread!
-}
-
-type noteThread {
-  id: UUID!
-  organizationId: Int!
-  name: String!
-  slug: String!
-  metadata: MapOfObject
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-  createdUser: user!
-  updatedUser: user!
-  notes(where: noteFilterInput @cost(weight: "10")): [note!]
-  links: [LinkDto!]!
-}
-
 type order {
   getContact(idPropertyName: String!): contact @cost(weight: "10")
-  getTerminal(idPropertyName: String!): terminal @cost(weight: "10")
-  getContactAddress(idPropertyName: String!): contactAddress @cost(weight: "10")
   getPort(idPropertyName: String!): port @cost(weight: "10")
   getCustomCode(idPropertyName: String!): customCode @cost(weight: "10")
   getVessel(idPropertyName: String!): vessel @cost(weight: "10")
@@ -6390,15 +5224,9 @@ type order {
     filter: String
     orderBy: String
   ): [accountingTransaction] @cost(weight: "10")
-  changeHistory(
-    startDate: DateTime
-    endDate: DateTime
-    maxResults: Int = 10
-  ): EntityAuditHistoryLightResult @cost(weight: "10")
   getRelatedOrders(filter: String): [order] @cost(weight: "10")
   getOrderJobsRelatedOrders(filter: String): [order] @cost(weight: "10")
-  getOrderAttachments(filter: String, orderBy: String): [AttachmentGqlDto]
-    @cost(weight: "10")
+  getOrderAttachments(filter: String): [AttachmentGqlDto] @cost(weight: "10")
   getOrderEntityByType(
     idPropertyName: String!
     customValuesKey: String
@@ -6412,32 +5240,12 @@ type order {
     volumeUnit: String
     dimensionsUnit: String
   ): OrderSummaryGqlDto @cost(weight: "10")
-  lastTrackingEvent(
-    eventDefinitionName: String
-    orderBy: String
-  ): trackingEvent @cost(weight: "10")
-  businessDays(path: String!, contactId: Int): Int @cost(weight: "10")
+  lastTrackingEvent(eventDefinitionName: String): trackingEvent
+    @cost(weight: "10")
   getRoute(idPropertyName: String!): route @cost(weight: "10")
   getRelatedOrderByProperty(idPropertyName: String): order @cost(weight: "10")
-  relatedDispatchRoutes(filter: String, orderBy: String): [dispatchRoute!]!
-    @cost(weight: "10")
   outgoingLinks: [linkedOrders] @cost(weight: "10")
   incomingLinks: [linkedOrders] @cost(weight: "10")
-  notesCount(threadFilter: String): Int @cost(weight: "10")
-  allRelatedOrders(filter: String, orderBy: String): [order!]!
-    @cost(weight: "10")
-  relatedOrders(filter: String, orderBy: String): [order!]! @cost(weight: "10")
-  relatedOrder(filter: String, orderBy: String): order @cost(weight: "10")
-  accountingTransaction(filter: String, orderBy: String): accountingTransaction
-    @cost(weight: "10")
-  invoice(filter: String, orderBy: String): accountingTransaction
-    @cost(weight: "10")
-  invoices(filter: String, orderBy: String): [accountingTransaction!]!
-    @cost(weight: "10")
-  bill(filter: String, orderBy: String): accountingTransaction
-    @cost(weight: "10")
-  bills(filter: String, orderBy: String): [accountingTransaction!]!
-    @cost(weight: "10")
   orderId: Int!
   isDraft: Boolean
   billToContactId: Int
@@ -6495,6 +5303,9 @@ type order {
     where: trackingEventFilterInput @cost(weight: "10")
   ): [trackingEvent!]!
   shipments(where: orderFilterInput @cost(weight: "10")): [order!]!
+  invoices(
+    where: accountingTransactionFilterInput @cost(weight: "10")
+  ): [accountingTransaction!]!
   jobs(where: JobFilterInput @cost(weight: "10")): [Job!]!
   jobOrders(
     where: JobOrderGqlDtoFilterInput @cost(weight: "10")
@@ -6503,21 +5314,11 @@ type order {
     where: AttachmentGqlDtoFilterInput @cost(weight: "10")
   ): [AttachmentGqlDto!]
   carriers(where: contactFilterInput @cost(weight: "10")): [contact!]!
-  orderTags(
-    where: OrderTagGqlDtoFilterInput @cost(weight: "10")
-  ): [OrderTagGqlDto!]!
-  allTags(
-    where: OrderAllTagsGqlDtoFilterInput @cost(weight: "10")
-  ): [OrderAllTagsGqlDto!]!
   updatedUser: user!
   createdUser: user!
   commoditySummary: commoditySummary!
   accountingSummary: accountingSummary!
   links: [LinkDto!]!
-  "Gets all unique tag names for the order as a simple string array"
-  allTagNames: [String!]! @cost(weight: "10")
-  "Gets a summary of tags from the materialized view"
-  tagSummary: OrderTagSummaryDto @cost(weight: "10")
 }
 
 type orderCarrier {
@@ -6556,7 +5357,6 @@ type orderDocument {
   linkToDocument: String!
   updatedUser: user!
   createdUser: user!
-  workflowId: UUID
 }
 
 type orderEntity {
@@ -6636,37 +5436,6 @@ type organizationConfig {
   lastModified: DateTime!
   lastModifiedBy: String!
   organizationId: Int!
-  updatedUser: user!
-  createdUser: user!
-}
-
-type organizationUser {
-  userEmployeeId: Int!
-  created: DateTime!
-  createdBy: String!
-  employeeContactId: Int!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-  organizationId: Int!
-  userId: String!
-  user: user!
-  employee: contact!
-  visibleTransactions: VisibleTransactions!
-  userGroups: [userGroup!]!
-  contactFirstName: String
-  contactLastName: String
-  contactName: String
-  contactEmailAddress: String
-  contactPhoneNumber: String
-  contactMobilePhoneNumber: String
-  contactAccountNumber: String
-  contactWebsite: String
-  contactFaxNumber: String
-  divisionId: Int!
-  additionalDivisionIds: [Int!]
-  userName: String
-  isInactive: Boolean!
-  userIsInactive: Boolean!
   updatedUser: user!
   createdUser: user!
 }
@@ -6772,27 +5541,8 @@ type port {
   name: String!
   portRemarks: String
   stateCode: String
-  customValues: MapOfObject
   country: country
   state: state
-  updatedUser: user!
-  createdUser: user!
-}
-
-type terminal {
-  terminalId: Int!
-  organizationId: Int!
-  code: String
-  name: String!
-  portId: String
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-  port: port
-  organization: organization
   updatedUser: user!
   createdUser: user!
 }
@@ -6998,20 +5748,6 @@ type state {
   createdUser: user!
 }
 
-type tagItem {
-  tagId: Int!
-  organizationId: Int!
-  name: String!
-  description: String
-  entityName: String!
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  createdBy: String
-  created: DateTime
-  lastModifiedBy: String
-  lastModified: DateTime
-}
-
 type trackingEvent {
   trackingEventId: Int!
   created: DateTime!
@@ -7029,7 +5765,6 @@ type trackingEvent {
   sendEmail: Boolean!
   updatedUser: user!
   createdUser: user!
-  businessDays(path: String!, contactId: Int): Int @cost(weight: "10")
 }
 
 type user {
@@ -7077,7 +5812,6 @@ type userGroup {
   lastModifiedBy: String!
   name: String!
   organizationId: Int!
-  customValues: MapOfObject
   updatedUser: user!
   createdUser: user!
 }
@@ -7181,19 +5915,6 @@ type workflow {
   createdUser: user!
 }
 
-type workflowExecution {
-  executionId: UUID!
-  workflowId: UUID!
-  organizationId: Int!
-  userId: String
-  executedAt: DateTime!
-  executionStatus: WorkflowExecutionStatus!
-  durationMs: Long!
-  txtLogUrl: String @cost(weight: "10")
-  jsonLogUrl: String @cost(weight: "10")
-  user: AuditUser @cost(weight: "10")
-}
-
 input AccountTypeOperationFilterInput {
   eq: AccountType @cost(weight: "10")
   neq: AccountType @cost(weight: "10")
@@ -7251,7 +5972,6 @@ input AttachmentGqlDtoFilterInput {
   or: [AttachmentGqlDtoFilterInput!]
   attachmentId: IntOperationFilterInput
   attachmentGuid: UuidOperationFilterInput
-  status: AttachmentStatusOperationFilterInput
   attachmentType: AttachmentTypeOperationFilterInput
   created: DateTimeOperationFilterInput
   createdBy: StringOperationFilterInput
@@ -7282,13 +6002,6 @@ input AttachmentParentTypeOperationFilterInput {
   nin: [AttachmentParentType!] @cost(weight: "10")
 }
 
-input AttachmentStatusOperationFilterInput {
-  eq: AttachmentStatus @cost(weight: "10")
-  neq: AttachmentStatus @cost(weight: "10")
-  in: [AttachmentStatus!] @cost(weight: "10")
-  nin: [AttachmentStatus!] @cost(weight: "10")
-}
-
 input AttachmentTypeOperationFilterInput {
   eq: AttachmentType @cost(weight: "10")
   neq: AttachmentType @cost(weight: "10")
@@ -7299,16 +6012,6 @@ input AttachmentTypeOperationFilterInput {
 input BooleanOperationFilterInput {
   eq: Boolean @cost(weight: "10")
   neq: Boolean @cost(weight: "10")
-}
-
-input BusinessHourInput {
-  calendarBusinessHourId: Int
-  dayOfWeek: Int!
-  startTime: TimeSpanScalar
-  endTime: TimeSpanScalar
-  label: String
-  isDeleted: Boolean
-  customValues: MapOfObject
 }
 
 input CalendarAvailabilityRecurrenceRuleDtoInput {
@@ -7356,36 +6059,11 @@ input ChargeTypeOperationFilterInput {
   nin: [ChargeType!] @cost(weight: "10")
 }
 
-input CommodityAllTagsGqlDtoFilterInput {
-  and: [CommodityAllTagsGqlDtoFilterInput!]
-  or: [CommodityAllTagsGqlDtoFilterInput!]
-  commodityId: IntOperationFilterInput
-  organizationId: IntOperationFilterInput
-  tagId: IntOperationFilterInput
-  tagName: StringOperationFilterInput
-  tagDescription: StringOperationFilterInput
-  tagEntityName: StringOperationFilterInput
-  customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-}
-
 input CommodityStatusStageOperationFilterInput {
   eq: CommodityStatusStage @cost(weight: "10")
   neq: CommodityStatusStage @cost(weight: "10")
   in: [CommodityStatusStage!] @cost(weight: "10")
   nin: [CommodityStatusStage!] @cost(weight: "10")
-}
-
-input CommodityTagGqlDtoFilterInput {
-  and: [CommodityTagGqlDtoFilterInput!]
-  or: [CommodityTagGqlDtoFilterInput!]
-  commodityId: IntOperationFilterInput
-  tagId: IntOperationFilterInput
-  tag: tagItemFilterInput
-  customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-  createdBy: StringOperationFilterInput
-  created: DateTimeOperationFilterInput
-  lastModifiedBy: StringOperationFilterInput
-  lastModified: DateTimeOperationFilterInput
 }
 
 input ComponentInputFilterInput {
@@ -7560,18 +6238,6 @@ input CreateActionEventInput {
   values: CreateActionEventCommandValuesInput!
 }
 
-input CreateApiCredentialCommandValuesInput {
-  name: String!
-  expiresAt: DateTime
-  allowedIpAddresses: [String!]
-  userId: String
-}
-
-input CreateApiCredentialInput {
-  organizationId: Int!
-  values: CreateApiCredentialCommandValuesInput!
-}
-
 input CreateAppManifestCommandValuesInput {
   author: String
   currentVersion: String
@@ -7612,7 +6278,6 @@ input CreateAttachmentCommandValuesInput {
   prefix: String
   bytesArray: [Byte!]
   fileUrl: String
-  attachmentGuid: UUID
   customValues: [MapOfObject!]
 }
 
@@ -7626,8 +6291,7 @@ input CreateCalendarAvailabilityBlockCommandValuesInput {
   end: DateTime!
   isAvailable: Boolean!
   description: String
-  customValues: MapOfObject
-  contactId: Int
+  customValues: [MapOfObject!]
   recurrenceRule: CalendarAvailabilityRecurrenceRuleDtoInput
 }
 
@@ -7636,24 +6300,10 @@ input CreateCalendarAvailabilityBlockInput {
   values: CreateCalendarAvailabilityBlockCommandValuesInput!
 }
 
-input CreateCalendarBusinessHourCommandValuesInput {
-  dayOfWeek: Int!
-  startTime: TimeSpan!
-  endTime: TimeSpan!
-  label: String
-  customValues: MapOfObject
-}
-
-input CreateCalendarBusinessHourInput {
-  calendarId: Int!
-  values: CreateCalendarBusinessHourCommandValuesInput!
-}
-
 input CreateCalendarCommandValuesInput {
   name: String!
-  calendarType: String!
   timeZone: String
-  customValues: MapOfObject
+  productId: String
 }
 
 input CreateCalendarEventCommandValuesInput {
@@ -7664,7 +6314,7 @@ input CreateCalendarEventCommandValuesInput {
   end: DateTime!
   status: CalendarEventStatus!
   transparency: CalendarEventTransparency!
-  customValues: MapOfObject
+  customValues: [MapOfObject!]
   recurrenceRule: CalendarRecurrenceRuleDtoInput
 }
 
@@ -7719,7 +6369,6 @@ input CreateChargeCommandValuesInput {
   rateId: Int
   allowAutomaticUpdate: Boolean!
   calculatedOf: CalculatedOfTypes
-  tariff: TariffOptionsInput
   customValues: MapOfObject
 }
 
@@ -7775,8 +6424,6 @@ input CreateCommodityCommandValuesInput {
   warehouseLocationCode: String
   inventoryItemId: Int
   isDeleted: Boolean
-  commodityTags: [Int!]
-  billToContactId: Int
 }
 
 input CreateCommodityInput {
@@ -7815,7 +6462,7 @@ input CreateCommodityTypeCommandValuesInput {
   code: String!
   description: String
   isActive: Boolean
-  customValues: MapOfObject
+  customValues: [MapOfObject!]
 }
 
 input CreateCommodityTypeInput {
@@ -7994,7 +6641,6 @@ input CreateDivisionCommandValuesInput {
   zipCode: String
   portId: String
   airAmsOriginatorCode: String
-  parentDivisionId: Int
 }
 
 input CreateDivisionInput {
@@ -8133,19 +6779,6 @@ input CreateModeOfTransportationInput {
   values: CreateModeOfTransportationCommandValuesInput!
 }
 
-input CreateNoteCommandValuesInput {
-  threadName: String!
-  content: MapOfObject
-  mentions: [MapOfObject]
-  tags: [String!]
-  isPinned: Boolean
-}
-
-input CreateNoteInput {
-  organizationId: Int!
-  values: CreateNoteCommandValuesInput!
-}
-
 input CreateOrderCommandValuesInput {
   billToContactId: Int
   divisionId: Int
@@ -8165,7 +6798,6 @@ input CreateOrderCommandValuesInput {
   customValues: MapOfObject
   jobIds: [UUID!]
   isDraft: Boolean
-  orderTags: [Int!]
 }
 
 input CreateOrderCommodityCommandValuesInput {
@@ -8238,26 +6870,6 @@ input CreateOrganizationConfigCommandValuesInput {
 input CreateOrganizationConfigInput {
   organizationId: Int!
   values: CreateOrganizationConfigCommandValuesInput!
-}
-
-input CreateOrganizationUserCommandValuesInput {
-  divisionId: Int
-  contactFirstName: String!
-  contactLastName: String!
-  contactName: String!
-  contactEmailAddress: String!
-  contactPhoneNumber: String
-  userName: String!
-  password: String!
-  visibleTransactions: VisibleTransactions!
-  parentContactId: Int
-  userGroups: [Int!]
-  additionalDivisionIds: [Int!]
-}
-
-input CreateOrganizationUserInput {
-  organizationId: Int!
-  values: CreateOrganizationUserCommandValuesInput!
 }
 
 input CreatePackageCategoryCommandValuesInput {
@@ -8341,18 +6953,6 @@ input CreatePortCommandValuesInput {
 input CreatePortInput {
   organizationId: Int!
   values: CreatePortCommandValuesInput!
-}
-
-input CreateTerminalCommandValuesInput {
-  name: String!
-  code: String
-  portId: String
-  customValues: MapOfObject
-}
-
-input CreateTerminalInput {
-  organizationId: Int!
-  values: CreateTerminalCommandValuesInput!
 }
 
 input CreatePostalCodeCommandValuesInput {
@@ -8487,18 +7087,6 @@ input CreateStateInput {
   values: CreateStateCommandValuesInput!
 }
 
-input CreateTagCommandValuesInput {
-  name: String!
-  description: String
-  entityName: String!
-  customValues: MapOfObject
-}
-
-input CreateTagInput {
-  organizationId: Int!
-  values: CreateTagCommandValuesInput!
-}
-
 input CreateTrackingEventCommandInput {
   organizationId: Int!
   values: CreateTrackingEventCommandValuesInput!
@@ -8552,7 +7140,6 @@ input CreateUserEmployeeInput {
 input CreateUserGroupCommandValuesInput {
   description: String!
   name: String!
-  customValues: MapOfObject
   userRoles: [ApplicationUserRoleDtoInput!]
 }
 
@@ -8684,11 +7271,6 @@ input DeleteActionEventInput {
   eventId: UUID!
 }
 
-input DeleteApiCredentialInput {
-  organizationId: Int!
-  apiCredentialId: Int!
-}
-
 input DeleteAppManifestInput {
   organizationId: Int!
   appManifestId: UUID!
@@ -8706,10 +7288,6 @@ input DeleteAttachmentInput {
 
 input DeleteCalendarAvailabilityBlockInput {
   calendarAvailabilityBlockId: Int!
-}
-
-input DeleteCalendarBusinessHourInput {
-  calendarBusinessHourId: Int!
 }
 
 input DeleteCalendarEventInput {
@@ -8848,11 +7426,6 @@ input DeleteModeOfTransportationInput {
   modeOfTransportationId: Int!
 }
 
-input DeleteNoteInput {
-  organizationId: Int!
-  id: UUID!
-}
-
 input DeleteOrderCommodityInput {
   organizationId: Int!
   orderId: Int!
@@ -8879,11 +7452,6 @@ input DeleteOrganizationConfigInput {
   organizationConfigId: Int!
 }
 
-input DeleteOrganizationUserInput {
-  organizationId: Int!
-  userEmployeeId: Int!
-}
-
 input DeletePackageCategoryInput {
   organizationId: Int!
   packageCategoryCode: String!
@@ -8908,11 +7476,6 @@ input DeletePortInput {
   organizationId: Int!
   portId: String!
   countryCode: String!
-}
-
-input DeleteTerminalInput {
-  organizationId: Int!
-  terminalId: Int!
 }
 
 input DeletePostalCodeInput {
@@ -8950,11 +7513,6 @@ input DeleteStateInput {
   organizationId: Int!
   countryCode: String!
   stateCode: String!
-}
-
-input DeleteTagInput {
-  organizationId: Int!
-  tagId: Int!
 }
 
 input DeleteTrackingEventInput {
@@ -9017,11 +7575,6 @@ input DimensionsUnitOperationFilterInput {
   neq: DimensionsUnit @cost(weight: "10")
   in: [DimensionsUnit!] @cost(weight: "10")
   nin: [DimensionsUnit!] @cost(weight: "10")
-}
-
-input DisableApiCredentialInput {
-  organizationId: Int!
-  apiCredentialId: Int!
 }
 
 input DiscountDtoInput {
@@ -9092,11 +7645,6 @@ input DocumentTemplateTypeOperationFilterInput {
   nin: [DocumentTemplateType!] @cost(weight: "10")
 }
 
-input EnableApiCredentialInput {
-  organizationId: Int!
-  apiCredentialId: Int!
-}
-
 input EventTriggerDtoInput {
   entity: String!
   eventName: String!
@@ -9108,6 +7656,7 @@ input ExecuteWorkflowInput {
   organizationUniqueId: UUID
   workflowId: UUID!
   variables: MapOfObject
+  executionId: UUID
 }
 
 input FileTypeOperationFilterInput {
@@ -9156,8 +7705,6 @@ input ImportCommodityTypesInput {
 input ImportContactsInput {
   organizationId: Int!
   fileUploadUrl: String!
-  contactType: ContactType
-  columnMappings: MapOfString
 }
 
 input ImportCountriesInput {
@@ -9170,13 +7717,6 @@ input ImportEquipmentTypesInput {
   organizationId: Int!
   fileUploadUrl: String!
   keys: [String!]
-}
-
-input ImportPortsInput {
-  organizationId: Int!
-  fileUploadUrl: String!
-  keys: [String!]
-  updateIfExists: Boolean! = false
 }
 
 input ImportPostalCodesInput {
@@ -9201,7 +7741,6 @@ input InstallAppManifestCommandValuesInput {
   repositoryBranch: String!
   force: Boolean
   isAutoUpdateEnabled: Boolean
-  skipModulesWithChanges: Boolean
 }
 
 input InstallAppManifestInput {
@@ -9222,31 +7761,6 @@ input IntOperationFilterInput {
   nlt: Int @cost(weight: "10")
   lte: Int @cost(weight: "10")
   nlte: Int @cost(weight: "10")
-}
-
-input InventoryItemAllTagsGqlDtoFilterInput {
-  and: [InventoryItemAllTagsGqlDtoFilterInput!]
-  or: [InventoryItemAllTagsGqlDtoFilterInput!]
-  inventoryItemId: IntOperationFilterInput
-  organizationId: IntOperationFilterInput
-  tagId: IntOperationFilterInput
-  tagName: StringOperationFilterInput
-  tagDescription: StringOperationFilterInput
-  tagEntityName: StringOperationFilterInput
-  customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-}
-
-input InventoryItemTagGqlDtoFilterInput {
-  and: [InventoryItemTagGqlDtoFilterInput!]
-  or: [InventoryItemTagGqlDtoFilterInput!]
-  inventoryItemId: IntOperationFilterInput
-  tagId: IntOperationFilterInput
-  tag: tagItemFilterInput
-  customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-  createdBy: StringOperationFilterInput
-  created: DateTimeOperationFilterInput
-  lastModifiedBy: StringOperationFilterInput
-  lastModified: DateTimeOperationFilterInput
 }
 
 input ItemTypeOperationFilterInput {
@@ -9297,12 +7811,6 @@ input KeyValuePairOfStringAndObjectFilterInput {
   key: StringOperationFilterInput
 }
 
-input LinkChargesToAccountingTransactionInput {
-  organizationId: Int!
-  accountingTransactionId: Int!
-  chargeIds: [Int!]!
-}
-
 input LinkDtoFilterInput {
   and: [LinkDtoFilterInput!]
   or: [LinkDtoFilterInput!]
@@ -9333,20 +7841,6 @@ input ListFilterInputTypeOfAttachmentGqlDtoFilterInput {
   any: Boolean @cost(weight: "10")
 }
 
-input ListFilterInputTypeOfCommodityAllTagsGqlDtoFilterInput {
-  all: CommodityAllTagsGqlDtoFilterInput @cost(weight: "10")
-  none: CommodityAllTagsGqlDtoFilterInput @cost(weight: "10")
-  some: CommodityAllTagsGqlDtoFilterInput @cost(weight: "10")
-  any: Boolean @cost(weight: "10")
-}
-
-input ListFilterInputTypeOfCommodityTagGqlDtoFilterInput {
-  all: CommodityTagGqlDtoFilterInput @cost(weight: "10")
-  none: CommodityTagGqlDtoFilterInput @cost(weight: "10")
-  some: CommodityTagGqlDtoFilterInput @cost(weight: "10")
-  any: Boolean @cost(weight: "10")
-}
-
 input ListFilterInputTypeOfComponentInputFilterInput {
   all: ComponentInputFilterInput @cost(weight: "10")
   none: ComponentInputFilterInput @cost(weight: "10")
@@ -9358,20 +7852,6 @@ input ListFilterInputTypeOfConditionFilterInput {
   all: ConditionFilterInput @cost(weight: "10")
   none: ConditionFilterInput @cost(weight: "10")
   some: ConditionFilterInput @cost(weight: "10")
-  any: Boolean @cost(weight: "10")
-}
-
-input ListFilterInputTypeOfInventoryItemAllTagsGqlDtoFilterInput {
-  all: InventoryItemAllTagsGqlDtoFilterInput @cost(weight: "10")
-  none: InventoryItemAllTagsGqlDtoFilterInput @cost(weight: "10")
-  some: InventoryItemAllTagsGqlDtoFilterInput @cost(weight: "10")
-  any: Boolean @cost(weight: "10")
-}
-
-input ListFilterInputTypeOfInventoryItemTagGqlDtoFilterInput {
-  all: InventoryItemTagGqlDtoFilterInput @cost(weight: "10")
-  none: InventoryItemTagGqlDtoFilterInput @cost(weight: "10")
-  some: InventoryItemTagGqlDtoFilterInput @cost(weight: "10")
   any: Boolean @cost(weight: "10")
 }
 
@@ -9400,20 +7880,6 @@ input ListFilterInputTypeOfLinkDtoFilterInput {
   all: LinkDtoFilterInput @cost(weight: "10")
   none: LinkDtoFilterInput @cost(weight: "10")
   some: LinkDtoFilterInput @cost(weight: "10")
-  any: Boolean @cost(weight: "10")
-}
-
-input ListFilterInputTypeOfOrderAllTagsGqlDtoFilterInput {
-  all: OrderAllTagsGqlDtoFilterInput @cost(weight: "10")
-  none: OrderAllTagsGqlDtoFilterInput @cost(weight: "10")
-  some: OrderAllTagsGqlDtoFilterInput @cost(weight: "10")
-  any: Boolean @cost(weight: "10")
-}
-
-input ListFilterInputTypeOfOrderTagGqlDtoFilterInput {
-  all: OrderTagGqlDtoFilterInput @cost(weight: "10")
-  none: OrderTagGqlDtoFilterInput @cost(weight: "10")
-  some: OrderTagGqlDtoFilterInput @cost(weight: "10")
   any: Boolean @cost(weight: "10")
 }
 
@@ -9550,24 +8016,10 @@ input ListFilterInputTypeOfdiscountFilterInput {
   any: Boolean @cost(weight: "10")
 }
 
-input ListFilterInputTypeOfdivisionFilterInput {
-  all: divisionFilterInput @cost(weight: "10")
-  none: divisionFilterInput @cost(weight: "10")
-  some: divisionFilterInput @cost(weight: "10")
-  any: Boolean @cost(weight: "10")
-}
-
 input ListFilterInputTypeOfmodeOfTransportationFilterInput {
   all: modeOfTransportationFilterInput @cost(weight: "10")
   none: modeOfTransportationFilterInput @cost(weight: "10")
   some: modeOfTransportationFilterInput @cost(weight: "10")
-  any: Boolean @cost(weight: "10")
-}
-
-input ListFilterInputTypeOfnoteFilterInput {
-  all: noteFilterInput @cost(weight: "10")
-  none: noteFilterInput @cost(weight: "10")
-  some: noteFilterInput @cost(weight: "10")
   any: Boolean @cost(weight: "10")
 }
 
@@ -9687,16 +8139,6 @@ input ListListDecimalOperationFilterInput {
   all: ListDecimalOperationFilterInput @cost(weight: "10")
   none: ListDecimalOperationFilterInput @cost(weight: "10")
   some: ListDecimalOperationFilterInput @cost(weight: "10")
-  any: Boolean @cost(weight: "10")
-}
-
-input ListListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput {
-  all: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-    @cost(weight: "10")
-  none: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-    @cost(weight: "10")
-  some: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-    @cost(weight: "10")
   any: Boolean @cost(weight: "10")
 }
 
@@ -9840,31 +8282,6 @@ input NullableOfWorkflowRuntimeExecutionModeOperationFilterInput {
   nin: [WorkflowRuntimeExecutionMode] @cost(weight: "10")
 }
 
-input OrderAllTagsGqlDtoFilterInput {
-  and: [OrderAllTagsGqlDtoFilterInput!]
-  or: [OrderAllTagsGqlDtoFilterInput!]
-  orderId: IntOperationFilterInput
-  organizationId: IntOperationFilterInput
-  tagId: IntOperationFilterInput
-  tagName: StringOperationFilterInput
-  tagDescription: StringOperationFilterInput
-  tagEntityName: StringOperationFilterInput
-  customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-}
-
-input OrderTagGqlDtoFilterInput {
-  and: [OrderTagGqlDtoFilterInput!]
-  or: [OrderTagGqlDtoFilterInput!]
-  orderId: IntOperationFilterInput
-  tagId: IntOperationFilterInput
-  tag: tagItemFilterInput
-  customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-  createdBy: StringOperationFilterInput
-  created: DateTimeOperationFilterInput
-  lastModifiedBy: StringOperationFilterInput
-  lastModified: DateTimeOperationFilterInput
-}
-
 input OrderTypesOperationFilterInput {
   eq: OrderTypes @cost(weight: "10")
   neq: OrderTypes @cost(weight: "10")
@@ -9918,13 +8335,11 @@ input RateDataFilterInput {
   or: [RateDataFilterInput!]
   rateIndex: IntOperationFilterInput
   rateValue: DecimalOperationFilterInput
-  packageTypeId: IntOperationFilterInput
 }
 
 input RateDataInput {
   rateIndex: Int
   rateValue: Decimal!
-  packageTypeId: Int
 }
 
 input RateTypeOperationFilterInput {
@@ -9932,24 +8347,6 @@ input RateTypeOperationFilterInput {
   neq: RateType @cost(weight: "10")
   in: [RateType!] @cost(weight: "10")
   nin: [RateType!] @cost(weight: "10")
-}
-
-input RegenerateApiCredentialSecretInput {
-  organizationId: Int!
-  apiCredentialId: Int!
-}
-
-input RegenerateOrderDocumentInput {
-  organizationId: Int!
-  orderId: Int!
-  orderDocumentId: Int!
-  metadata: MapOfObject
-}
-
-input RenameNoteThreadInput {
-  organizationId: Int!
-  threadName: String!
-  newName: String!
 }
 
 input ScheduleFilterInput {
@@ -10063,12 +8460,6 @@ input TransportationMethodOperationFilterInput {
   nin: [TransportationMethod!] @cost(weight: "10")
 }
 
-input UnlinkChargesFromAccountingTransactionInput {
-  organizationId: Int!
-  accountingTransactionId: Int!
-  chargeIds: [Int!]!
-}
-
 input UpdateAccountingAccountInput {
   organizationId: Int!
   accountId: Int!
@@ -10093,12 +8484,6 @@ input UpdateActionEventInput {
   values: MapOfObject
 }
 
-input UpdateApiCredentialInput {
-  organizationId: Int!
-  apiCredentialId: Int!
-  values: MapOfObject
-}
-
 input UpdateAppManifestInput {
   organizationId: Int!
   appManifestId: UUID!
@@ -10120,17 +8505,6 @@ input UpdateAttachmentInput {
 input UpdateCalendarAvailabilityBlockInput {
   calendarAvailabilityBlockId: Int!
   values: MapOfObject
-}
-
-input UpdateCalendarBusinessHourInput {
-  calendarBusinessHourId: Int!
-  values: MapOfObject
-}
-
-input UpdateCalendarBusinessHoursInput {
-  organizationId: Int!
-  calendarId: Int!
-  businessHours: [BusinessHourInput!]!
 }
 
 input UpdateCalendarEventInput {
@@ -10166,8 +8540,6 @@ input UpdateCommodityInput {
   organizationId: Int!
   commodityId: Int!
   values: MapOfObject
-  cascadeToChildren: Boolean! = false
-  promoteParentWhenAllChildren: Boolean! = false
 }
 
 input UpdateCommodityStatusInput {
@@ -10308,19 +8680,6 @@ input UpdateModeOfTransportationInput {
   values: MapOfObject
 }
 
-input UpdateNoteCommandValuesInput {
-  content: MapOfObject
-  mentions: [MapOfObject]
-  tags: [String!]
-  isPinned: Boolean
-}
-
-input UpdateNoteInput {
-  organizationId: Int!
-  noteId: UUID!
-  values: UpdateNoteCommandValuesInput!
-}
-
 input UpdateOrderCommodityInput {
   organizationId: Int!
   orderId: Int!
@@ -10364,27 +8723,6 @@ input UpdateOrganizationInput {
   values: MapOfObject
 }
 
-input UpdateOrganizationUserCommandValuesInput {
-  divisionId: Int
-  firstName: String
-  lastName: String
-  email: String
-  phoneNumber: String
-  userName: String
-  password: String
-  visibleTransactions: VisibleTransactions
-  isInactive: Boolean
-  isInactiveGlobal: Boolean
-  userGroups: [Int!]
-  additionalDivisionIds: [Int!]
-}
-
-input UpdateOrganizationUserInput {
-  organizationId: Int!
-  userEmployeeId: Int!
-  values: UpdateOrganizationUserCommandValuesInput!
-}
-
 input UpdatePackageCategoryInput {
   organizationId: Int!
   packageCategoryCode: String!
@@ -10413,12 +8751,6 @@ input UpdatePortInput {
   organizationId: Int!
   portId: String!
   countryCode: String!
-  values: MapOfObject
-}
-
-input UpdateTerminalInput {
-  organizationId: Int!
-  terminalId: Int!
   values: MapOfObject
 }
 
@@ -10463,12 +8795,6 @@ input UpdateStateInput {
   organizationId: Int!
   countryCode: String!
   stateCode: String!
-  values: MapOfObject
-}
-
-input UpdateTagInput {
-  organizationId: Int!
-  tagId: Int!
   values: MapOfObject
 }
 
@@ -10543,7 +8869,6 @@ input UserEmployeeDtoInput {
   userNormalizedUserName: String
   userUserName: String
   employeeDivisionId: Int!
-  employeeParentContactId: Int
   userGroups: [UserGroupDtoInput!]!
   links: [LinkDtoInput!]!
 }
@@ -10569,7 +8894,6 @@ input UserGroupDtoInput {
   lastModifiedBy: String!
   name: String!
   organizationId: Int!
-  customValues: [MapOfObject!]
   userRoles: [ApplicationUserRoleDtoInput!]!
   links: [LinkDtoInput!]!
 }
@@ -10868,7 +9192,6 @@ input chargeFilterInput {
   accountingTransactions: ListFilterInputTypeOfaccountingTransactionFilterInput
   orders: ListFilterInputTypeOforderFilterInput
   salesTax: salesTaxFilterInput
-  tariff: TariffOptionsFilterInput
   customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
 }
 
@@ -10936,8 +9259,6 @@ input commodityFilterInput {
   width: DecimalOperationFilterInput
   trackingNumbers: ListFilterInputTypeOfcommodityTrackingNumberFilterInput
   orderCommodities: ListFilterInputTypeOforderCommodityFilterInput
-  commodityTags: ListFilterInputTypeOfCommodityTagGqlDtoFilterInput
-  allTags: ListFilterInputTypeOfCommodityAllTagsGqlDtoFilterInput
   containerCommodity: commodityFilterInput
   containerCommodities: ListFilterInputTypeOfcommodityFilterInput
   shipments: ListFilterInputTypeOforderFilterInput
@@ -10947,7 +9268,6 @@ input commodityFilterInput {
   valueByTotal: BooleanOperationFilterInput
   packageTypeName: StringOperationFilterInput
   isDeleted: BooleanOperationFilterInput
-  billToContactId: IntOperationFilterInput
   links: ListFilterInputTypeOfLinkDtoFilterInput
 }
 
@@ -11240,9 +9560,6 @@ input divisionFilterInput {
   streetAndNumber: StringOperationFilterInput
   useDivisionInDocumentHeaders: BooleanOperationFilterInput
   zipCode: StringOperationFilterInput
-  parentDivisionId: IntOperationFilterInput
-  parentDivision: divisionFilterInput
-  nestedDivisions: ListFilterInputTypeOfdivisionFilterInput
   updatedUser: userFilterInput
   createdUser: userFilterInput
 }
@@ -11320,8 +9637,6 @@ input inventoryItemFilterInput {
   width: DecimalOperationFilterInput
   updatedUser: userFilterInput
   createdUser: userFilterInput
-  inventoryItemTags: ListFilterInputTypeOfInventoryItemTagGqlDtoFilterInput
-  allTags: ListFilterInputTypeOfInventoryItemAllTagsGqlDtoFilterInput
 }
 
 input jobStatusFilterInput {
@@ -11357,43 +9672,6 @@ input modeOfTransportationFilterInput {
   usCustomsCode: StringOperationFilterInput
   updatedUser: userFilterInput
   createdUser: userFilterInput
-}
-
-input noteFilterInput {
-  and: [noteFilterInput!]
-  or: [noteFilterInput!]
-  id: UuidOperationFilterInput
-  threadId: UuidOperationFilterInput
-  threadName: StringOperationFilterInput
-  content: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-  mentions: ListListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-  tags: ListStringOperationFilterInput
-  isPinned: BooleanOperationFilterInput
-  created: DateTimeOperationFilterInput
-  createdBy: StringOperationFilterInput
-  lastModified: DateTimeOperationFilterInput
-  lastModifiedBy: StringOperationFilterInput
-  createdUser: userFilterInput
-  updatedUser: userFilterInput
-  thread: noteThreadFilterInput
-}
-
-input noteThreadFilterInput {
-  and: [noteThreadFilterInput!]
-  or: [noteThreadFilterInput!]
-  id: UuidOperationFilterInput
-  organizationId: IntOperationFilterInput
-  name: StringOperationFilterInput
-  slug: StringOperationFilterInput
-  metadata: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-  created: DateTimeOperationFilterInput
-  createdBy: StringOperationFilterInput
-  lastModified: DateTimeOperationFilterInput
-  lastModifiedBy: StringOperationFilterInput
-  createdUser: userFilterInput
-  updatedUser: userFilterInput
-  notes: ListFilterInputTypeOfnoteFilterInput
-  links: ListFilterInputTypeOfLinkDtoFilterInput
 }
 
 input orderCarrierFilterInput {
@@ -11437,7 +9715,6 @@ input orderDocumentFilterInput {
   linkToDocument: StringOperationFilterInput
   updatedUser: userFilterInput
   createdUser: userFilterInput
-  workflowId: UuidOperationFilterInput
 }
 
 input orderEntityFilterInput {
@@ -11517,9 +9794,6 @@ input orderFilterInput {
   jobOrders: ListFilterInputTypeOfJobOrderGqlDtoFilterInput
   attachments: ListFilterInputTypeOfAttachmentGqlDtoFilterInput
   carriers: ListFilterInputTypeOfcontactFilterInput
-  orderTags: ListFilterInputTypeOfOrderTagGqlDtoFilterInput
-  allTags: ListFilterInputTypeOfOrderAllTagsGqlDtoFilterInput
-  allRelatedOrders: ListFilterInputTypeOforderFilterInput
   updatedUser: userFilterInput
   createdUser: userFilterInput
   commoditySummary: commoditySummaryFilterInput
@@ -11679,7 +9953,6 @@ input portFilterInput {
   name: StringOperationFilterInput
   portRemarks: StringOperationFilterInput
   stateCode: StringOperationFilterInput
-  customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
   country: countryFilterInput
   state: stateFilterInput
   updatedUser: userFilterInput
@@ -11860,22 +10133,6 @@ input stateFilterInput {
   createdUser: userFilterInput
 }
 
-input tagItemFilterInput {
-  and: [tagItemFilterInput!]
-  or: [tagItemFilterInput!]
-  tagId: IntOperationFilterInput
-  organizationId: IntOperationFilterInput
-  name: StringOperationFilterInput
-  description: StringOperationFilterInput
-  entityName: StringOperationFilterInput
-  customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
-  isDeleted: BooleanOperationFilterInput
-  createdBy: StringOperationFilterInput
-  created: DateTimeOperationFilterInput
-  lastModifiedBy: StringOperationFilterInput
-  lastModified: DateTimeOperationFilterInput
-}
-
 input trackingEventFilterInput {
   and: [trackingEventFilterInput!]
   or: [trackingEventFilterInput!]
@@ -11946,7 +10203,6 @@ input userGroupFilterInput {
   lastModifiedBy: StringOperationFilterInput
   name: StringOperationFilterInput
   organizationId: IntOperationFilterInput
-  customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
   updatedUser: userFilterInput
   createdUser: userFilterInput
 }
@@ -12045,12 +10301,6 @@ enum AccuracyTypes {
   Centroid
 }
 
-enum AddressLanguage {
-  English
-  Ukrainian
-  Russian
-}
-
 enum AddressType {
   Billing
   Shipping
@@ -12085,12 +10335,6 @@ enum AttachmentParentType {
   EquipmentType
   Job
   Commodity
-}
-
-enum AttachmentStatus {
-  Active
-  PendingUpload
-  UploadFailed
 }
 
 enum AttachmentType {
@@ -12190,9 +10434,6 @@ enum ContactType {
   PoolPoint
   DistributionCenter
   Store
-  ContactUser
-  USPPI
-  Port
 }
 
 enum CustomCodeTypes {
@@ -12233,8 +10474,6 @@ enum DocumentTemplateType {
   ShippingLabelDocument
   ExportManifestExcelDocument
   EmailNotification
-  OrganizationUserAddedEmail
-  WelcomeEmail
 }
 
 enum EntityTypes {
@@ -12258,7 +10497,6 @@ enum EventStatus {
   Pending
   Completed
   Failed
-  Started
 }
 
 enum FileType {
@@ -12344,7 +10582,6 @@ enum OrderTypes {
   LoadOrder
   BookingOrder
   Freight
-  DeliveryOrder
 }
 
 enum PaidAs {
@@ -12439,23 +10676,6 @@ enum ServiceType {
   PortToPort
 }
 
-enum DispatchRouteType {
-  Delivery
-  Pickup
-}
-
-enum DayOfWeek {
-  Sunday
-  Monday
-  Tuesday
-  Wednesday
-  Thursday
-  Friday
-  Saturday
-}
-
-scalar Date
-
 enum StatusStage {
   Pending
   InProgress
@@ -12525,11 +10745,6 @@ enum WeightUnit {
   Kg
 }
 
-enum WorkflowExecutionStatus {
-  Success
-  Failed
-}
-
 enum WorkflowRuntimeExecutionMode {
   Async
   Sync
@@ -12574,9 +10789,6 @@ scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time")
 "The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal
 
-"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
-scalar Long
-
 scalar MapOfObject
 
 scalar MapOfPoint
@@ -12589,3 +10801,4 @@ scalar TimeSpan
 scalar TimeSpanScalar
 
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+

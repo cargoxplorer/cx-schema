@@ -425,7 +425,7 @@ npx cxtms workflow execute workflow.yaml --vars '{"mode": "preview"}' --file imp
 
 `--file varName=path` uploads the local file to the server via presigned URL and sets the resulting URL as the named variable. Can be specified multiple times.
 
-Returns execution result including `executionId`, `isAsync`, `outputs` (for Sync workflows).
+Returns execution result including `executionId`, `isAsync`, `outputs` (for Sync workflows). When retry safety matters, pass a stable `executionId` per business operation so duplicate `executeWorkflow` attempts replay the stored result instead of running side effects again.
 
 ### Execution Logs
 

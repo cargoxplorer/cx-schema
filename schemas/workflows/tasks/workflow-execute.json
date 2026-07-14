@@ -50,6 +50,10 @@
           "description": "Inputs to pass to the child workflow",
           "additionalProperties": true
         },
+        "executionId": {
+          "type": "string",
+          "description": "Optional caller-provided GUID idempotency key for retry-safe workflow execution"
+        },
         "async": {
           "type": "boolean",
           "description": "Execute asynchronously"
