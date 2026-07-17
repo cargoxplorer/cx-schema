@@ -48,6 +48,7 @@ outputs:
       type: object
       description: "Order details"
       schema:
+        type: object
         properties:
           orderId:
             type: integer
