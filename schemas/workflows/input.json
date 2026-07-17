@@ -65,7 +65,7 @@
           "description": "Item type for array inputs (e.g., 'number', 'text')"
         },
         "schema": {
-          "description": "Input validation schema. Can be a type assertion (e.g., {type: 'string'}), an object field list (multiline string), or an array field list with types/conditions.",
+          "description": "Input validation/OpenAPI schema. For PublicApi body inputs, supports recursive schema fields such as type, properties, required, items, format, description, and enum.",
           "oneOf": [
             {
               "type": "string",
