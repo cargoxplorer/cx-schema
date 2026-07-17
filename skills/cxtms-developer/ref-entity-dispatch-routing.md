@@ -1,6 +1,6 @@
 # Dispatch Routing Entity Field Reference
 
-Dispatch routing covers reusable weekly route templates, daily dispatch routes, statuses, and stops.
+Dispatch routing covers reusable weekly route templates, daily dispatch routes, route statuses, stop statuses, and stops.
 
 ## DispatchRouteType Enum
 
@@ -22,6 +22,21 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 | `priority` | `int` | Display sort order |
 | `color` | `string?` | Hex/display color |
 | `customValues` | `Dictionary` | jsonb |
+
+## DispatchRouteStopStatus
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `dispatchRouteStopStatusId` | `int` | PK |
+| `organizationId` | `int` | Tenant scope |
+| `statusName` | `string` | Display name; unique per organization for active statuses |
+| `statusDescription` | `string?` | Optional description |
+| `statusStage` | `StatusStage` | `Pending`, `InProgress`, `Completed` |
+| `stopType` | `DispatchRouteType?` | Null applies to any stop type |
+| `priority` | `int` | Display sort order |
+| `color` | `string?` | Hex/display color |
+| `customValues` | `Dictionary` | jsonb |
+| `isDeleted` | `bool` | Soft-delete flag |
 
 ## DispatchRouteTemplate
 
@@ -83,6 +98,8 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 | `plannedSequence` | `int` | Planned 1-based order |
 | `actualSequence` | `int?` | Actual execution order |
 | `estimatedServiceMinutes` | `int?` | Planned service time |
+| `dispatchRouteStopStatusId` | `int?` | FK to DispatchRouteStopStatus |
+| `dispatchRouteStopStatus` | `DispatchRouteStopStatus?` | Optional expanded stop status |
 | `actualArrivalTime` | `DateTime?` | Actual arrival timestamp |
 | `actualCompletionTime` | `DateTime?` | Actual completion timestamp |
 | `orderIds` | `int[]` | Attached order IDs; always projected |
@@ -101,10 +118,11 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 
 ## GraphQL Notes
 
-- Queries: `dispatchRouteStatus`, `dispatchRouteStatuses`, `dispatchRouteTemplate`, `dispatchRouteTemplates`, `dispatchRoute`, `dispatchRoutes`.
-- Mutations use `input: { organizationId, values }` and return payload fields named `dispatchRouteStatus`, `dispatchRouteTemplate`, `dispatchRoute`, or `generateDispatchRoutesResult`.
+- Queries: `dispatchRouteStatus`, `dispatchRouteStatuses`, `dispatchRouteStopStatus`, `dispatchRouteStopStatuses`, `dispatchRouteTemplate`, `dispatchRouteTemplates`, `dispatchRoute`, `dispatchRoutes`.
+- Mutations use `input: { organizationId, values }` and return payload fields named `dispatchRouteStatus`, `dispatchRouteStopStatus`, `dispatchRouteTemplate`, `dispatchRoute`, or `generateDispatchRoutesResult`.
+- Stop status mutations: `createDispatchRouteStopStatus`, `updateDispatchRouteStopStatus`, `deleteDispatchRouteStopStatus`.
 - Route stops can be anchored by location (`stopContactId`, `contactAddressId`, ad-hoc `customValues`) or by attached `orderIds`.
-- Create accepts nested route stops with `orderIds`. Dynamic route updates and stop add/update mutations also accept `orderIds`; when present, the attached orders are reconciled to exactly those IDs after organization validation.
+- Create accepts nested route stops with `dispatchRouteStopStatusId` and `orderIds`. Dynamic route updates and stop add/update mutations also accept `dispatchRouteStopStatusId` and `orderIds`; statuses are organization-scoped and validated against stop type, and when `orderIds` is present, the attached orders are reconciled to exactly those IDs after organization validation.
 - Dynamic route/template updates can replace the full `stops` array: existing stops with IDs are sparse-updated, new stops are inserted, omitted existing stops are soft-deleted, and sequence/plannedSequence is reassigned from array order. Dedicated stop add/update/remove/reorder mutations remain available for targeted edits.
 - Orders expose `relatedDispatchRoutes(filter, orderBy)` for routes linked through stop order attachments; draft orders return no related routes.
 - Route generation is idempotent per template/date and creates draft routes.
