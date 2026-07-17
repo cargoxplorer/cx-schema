@@ -10802,3 +10802,111 @@ scalar TimeSpanScalar
 
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 
+extend type Query {
+  dispatchRouteStopStatus(
+    organizationId: Int!
+    dispatchRouteStopStatusId: Int!
+  ): dispatchRouteStopStatus @cost(weight: "10")
+  dispatchRouteStopStatuses(
+    skip: Int
+    take: Int
+    organizationId: Int!
+    filter: String
+    search: String
+    orderBy: String
+  ): DispatchRouteStopStatusesCollectionSegment
+    @listSize(
+      assumedSize: 10000
+      slicingArguments: ["take"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["items"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+}
+
+extend type Mutation {
+  createDispatchRouteStopStatus(
+    input: CreateDispatchRouteStopStatusInput!
+  ): CreateDispatchRouteStopStatusPayload! @cost(weight: "10")
+  updateDispatchRouteStopStatus(
+    input: UpdateDispatchRouteStopStatusInput!
+  ): UpdateDispatchRouteStopStatusPayload! @cost(weight: "10")
+  deleteDispatchRouteStopStatus(
+    input: DeleteDispatchRouteStopStatusInput!
+  ): DeleteDispatchRouteStopStatusPayload! @cost(weight: "10")
+}
+
+type DispatchRouteStopStatusesCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [dispatchRouteStopStatus!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+type CreateDispatchRouteStopStatusPayload {
+  dispatchRouteStopStatus: dispatchRouteStopStatus
+  query: Query!
+}
+
+type UpdateDispatchRouteStopStatusPayload {
+  dispatchRouteStopStatus: dispatchRouteStopStatus
+  query: Query!
+}
+
+type DeleteDispatchRouteStopStatusPayload {
+  deleteResult: DeleteResult
+  query: Query!
+}
+
+type dispatchRouteStopStatus {
+  dispatchRouteStopStatusId: Int!
+  organizationId: Int!
+  statusName: String!
+  statusDescription: String
+  statusStage: StatusStage!
+  stopType: DispatchRouteType
+  priority: Int!
+  color: String
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+  createdUser: user!
+  updatedUser: user!
+}
+
+input CreateDispatchRouteStopStatusInput {
+  organizationId: Int!
+  values: CreateDispatchRouteStopStatusCommandValuesInput!
+}
+
+input CreateDispatchRouteStopStatusCommandValuesInput {
+  statusName: String!
+  statusDescription: String
+  statusStage: StatusStage!
+  stopType: DispatchRouteType
+  priority: Int!
+  color: String
+  customValues: MapOfObject
+}
+
+input UpdateDispatchRouteStopStatusInput {
+  organizationId: Int!
+  dispatchRouteStopStatusId: Int!
+  values: MapOfObject!
+}
+
+input DeleteDispatchRouteStopStatusInput {
+  organizationId: Int!
+  dispatchRouteStopStatusId: Int!
+}
+
+enum DispatchRouteType {
+  Delivery
+  Pickup
+}
+
