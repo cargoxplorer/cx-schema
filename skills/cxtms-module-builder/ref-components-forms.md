@@ -372,6 +372,8 @@ Password fields receive a stable input id from the field name unless an explicit
 | `rangedatetime` | Date range picker |
 | `enhanced-rangedatetime` | Enhanced date range picker |
 
+**Timezone-aware datetime fields:** For appointment or terminal times that must be stored as UTC but displayed as a fixed local wall clock, set `options.useTimezone: true`, `options.storeAsUTC: true`, and an IANA `options.timezone` such as `America/New_York`. The picker treats the selected time as being in that configured timezone, not the user's browser timezone, so saving `11:00 PM` in New York stores the matching UTC instant and reads back as `11:00 PM` on machines in any timezone.
+
 **Enhanced rangedatetime filter behavior:** `more_than` emits bracketed Lucene ranges such as `field:[* TO NOW-7DAYS]`; boolean/number falsy values (`false`, `0`) are preserved as real filter values; and switching away from Empty/Not Empty clears the previous `NULL` term instead of latching it.
 | `time` | Time picker |
 | `select` | Dropdown select from `items[]` |
