@@ -23,8 +23,16 @@
         "timeIntervals": { "type": "number", "description": "Time intervals in minutes", "x-example": 60 },
         "timeCaption": { "type": "string", "description": "Time caption label", "x-example": "Time" },
         "useTimezone": { "type": "boolean", "description": "Enable timezone-aware handling", "x-example": false },
-        "storeAsUTC": { "type": "boolean", "description": "When useTimezone is true, store in UTC", "x-example": true },
-        "timezone": { "type": "string", "description": "Fixed timezone for display", "x-example": "America/New_York" },
+        "storeAsUTC": {
+          "type": "boolean",
+          "description": "When useTimezone is true, store in UTC. With a fixed timezone, selected wall-clock values are interpreted in that timezone before UTC conversion.",
+          "x-example": true
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Fixed IANA timezone for display and wall-clock interpretation when storing as UTC",
+          "x-example": "America/New_York"
+        },
         "format": { "type": "string", "description": "Custom storage format" },
         "isClearable": { "type": "boolean", "description": "Show clear button", "x-example": true }
       },
