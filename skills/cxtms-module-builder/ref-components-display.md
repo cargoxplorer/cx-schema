@@ -20,6 +20,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 **Responsive layout:**
 - **Toolbar**: ViewSelector and search input stack full-width on mobile (`xs`), then collapse to auto-width on `sm` and above. Search input enforces a `20ch` minimum width on `sm+`.
 - **Filters**: Filter inputs use a responsive grid — 1 per row on `xs`/`sm`, 2 per row on `md`, 3 per row on `lg`, 4 per row on `xl`.
+- **Pagination**: Below the MUI `sm` breakpoint, the pager tightens inline padding and narrows the page-size select so short pagers stay on one row inside dialogs. Do not add extra mobile-only wrapper padding around embedded grids unless the content needs it.
 
 **Props:**
 | Prop | Type | Description |
