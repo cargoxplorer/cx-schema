@@ -113,6 +113,7 @@ filter: "NOT customValues.returnLocationId->contactAddress.contactAddressId:NULL
 ```
 filter: "children[category:CatA].name:test"
 filter: "contactAddresses[addressType:Billing|Shipping].contactAddressId:[1 TO *]"
+filter: "dispatchRouteStopOrders.dispatchRouteStop.dispatchRouteStopStatus.statusStage:Completed"
 ```
 
 Inside `[path:value]`, pipe-separated values are OR-combined after trimming and normal type conversion. Use this for exact multi-value bracket filters in both `filter` and `orderBy`, e.g. `children[category:CatA|CatB].name` or `lastTrackingEvent[eventDefinition.eventName:Departed|Delivered].eventDate`.
