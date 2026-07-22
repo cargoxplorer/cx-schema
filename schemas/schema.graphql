@@ -10910,3 +10910,115 @@ enum DispatchRouteType {
   Pickup
 }
 
+extend type order {
+  dispatchRouteStopOrders: [dispatchRouteStopOrder!]!
+}
+
+extend type trackingEvent {
+  dispatchRoutes: [dispatchRoute!]
+  dispatchRouteStops: [dispatchRouteStop!]
+}
+
+type dispatchRoute {
+  dispatchRouteId: Int!
+  organizationId: Int!
+  name: String!
+  routeType: DispatchRouteType!
+  routeDate: DateTime!
+  dispatchRouteTemplateId: Int
+  divisionId: Int
+  division: division
+  driverContactId: Int
+  driverContact: contact
+  equipmentId: Int
+  equipment: equipment
+  dispatchRouteStatusId: Int!
+  dispatchRouteStatus: dispatchRouteStatus
+  isDraft: Boolean!
+  isInactive: Boolean!
+  collapsedIntoDispatchRouteId: Int
+  stops: [dispatchRouteStop!]
+  trackingEvents: [trackingEvent!]
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+  createdUser: user!
+  updatedUser: user!
+}
+
+type dispatchRouteStatus {
+  dispatchRouteStatusId: Int!
+  organizationId: Int!
+  statusName: String!
+  statusDescription: String
+  statusStage: StatusStage!
+  routeType: DispatchRouteType
+  priority: Int!
+  color: String
+  customValues: MapOfObject
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+  createdUser: user!
+  updatedUser: user!
+}
+
+type dispatchRouteStop {
+  dispatchRouteStopId: Int!
+  dispatchRouteId: Int!
+  stopContactId: Int
+  stopContact: contact
+  contactAddressId: Int
+  contactAddress: contactAddress
+  stopType: DispatchRouteType!
+  plannedSequence: Int!
+  actualSequence: Int
+  estimatedServiceMinutes: Int
+  dispatchRouteStopStatusId: Int
+  dispatchRouteStopStatus: dispatchRouteStopStatus
+  actualArrivalTime: DateTime
+  actualCompletionTime: DateTime
+  orderIds: [Int!]!
+  orders: [dispatchRouteStopOrder!]
+  trackingEvents: [trackingEvent!]
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+  createdUser: user!
+  updatedUser: user!
+}
+
+type dispatchRouteStopOrder {
+  dispatchRouteStopOrderId: Int!
+  dispatchRouteStopId: Int!
+  orderId: Int!
+  order: order
+  dispatchRouteStop: dispatchRouteStop
+  customValues: MapOfObject
+}
+
+type equipment {
+  equipmentId: Int!
+  organizationId: Int!
+  unitNumber: String!
+  equipmentTypeId: Int!
+  equipmentType: equipmentType
+  equipmentStatusId: Int!
+  notes: String
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+  createdUser: user!
+  updatedUser: user!
+}
+
