@@ -84,7 +84,7 @@
         },
         "valueQuery": {
           "type": "object",
-          "description": "Query configuration for fetching selected value details",
+          "description": "Optional query configuration for fetching selected value details. Omit for inline-create-only fields; with allowCreate enabled, stored primitive values are rendered directly, including as chips in multiple mode.",
           "properties": {
             "name": {
               "type": "string",
@@ -141,7 +141,7 @@
         },
         "allowCreate": {
           "type": "boolean",
-          "description": "Allow creating new items inline",
+          "description": "Allow creating new items inline. When valueQuery is omitted, existing primitive values are mapped directly to options and rendered without a lookup.",
           "x-example": true
         },
         "transformValue": {

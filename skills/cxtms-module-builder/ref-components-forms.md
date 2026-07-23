@@ -404,6 +404,23 @@ Password fields receive a stable input id from the field name unless an explicit
 | `valueQuery` | `{name, path, params}` | Single-value lookup query ref |
 | `variant` | `string` | Select variant |
 
+For an inline-create-only `select-async`, omit `valueQuery` and enable
+`allowCreate`. Existing primitive values are rendered directly (as chips when
+`allowMultiple` is true), so this pattern works for free-form arrays without a
+backing entity lookup. Optional `itemLabelTemplate` and `itemValueTemplate`
+still control the displayed label and stored value.
+
+```yaml
+- component: field
+  name: aliasScacCodes
+  props:
+    type: select-async
+    label: { en-US: "Alias SCAC codes" }
+    options:
+      allowCreate: true
+      allowMultiple: true
+```
+
 **Google Places autocomplete:** `autocomplete-googleplaces` uses the organization-level Google Maps API key from `apps.google.googleMapsApiKey`. Do not put API keys in module YAML. Configure `searchQuery.params` and `valueQuery.params` only:
 
 ```yaml
