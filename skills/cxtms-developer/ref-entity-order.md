@@ -197,7 +197,7 @@ inputs:
 - `deliveryLocationId` — contact-address reference; sortable/filterable with `customValues.deliveryLocationId->contactAddress.name`
 - `returnLocationId` — terminal or contact-address return-location reference; sortable/filterable with `customValues.returnLocationId->terminal.name` or `customValues.returnLocationId->contactAddress.name`
 
-**Join expression pattern** — Order queries can sort and filter by properties of entities referenced from `customValues` using `customValues.key->entity.property`. Supported aliases include `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, `contactAddress`, and `port`.
+**Join expression pattern** — Order queries can sort and filter by properties of entities referenced from `customValues` using `customValues.key->entity.property`. Supported aliases include `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, `contactAddress`, `port`, and `vessel`. The `vessel` alias joins an integer custom value to `Vessel.VesselId`.
 
 ```graphql
 orders(
@@ -209,6 +209,7 @@ orders(
 orders(
   organizationId: 1
   orderBy: "customValues.portId->port.name"
+  orderBy: "customValues.vesselId->vessel.name"
 ) { items { orderId orderNumber } }
 ```
 

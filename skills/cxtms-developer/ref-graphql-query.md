@@ -99,15 +99,18 @@ filter: "customValues.fieldName:NULL"
 
 ### CustomValue join expressions
 
-When a custom value stores a foreign key to a supported entity, use `customValues.key->entity.property` to filter by a property on the joined row. Supported join aliases include `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, `contactAddress`, and `port`.
+When a custom value stores a foreign key to a supported entity, use `customValues.key->entity.property` to filter by a property on the joined row. Supported join aliases include `contact`, `order`, `modeOfTransportation`, `country`, `terminal`, `contactAddress`, `port`, and `vessel`. Vessel keys are integer `VesselId` values.
 
 ```
 filter: "customValues.carrierId->contact.name:Acme*"
 filter: "customValues.terminalId->terminal.name:Chicago*"
 filter: "customValues.portId->port.name:Los Angeles*"
+filter: "customValues.vesselId->vessel.name:Ever*"
 filter: "customValues.deliveryLocationId->contactAddress.name:Warehouse*"
 filter: "NOT customValues.returnLocationId->contactAddress.contactAddressId:NULL"
 ```
+
+For list-valued scalar columns, a negated match includes rows where the list column is null; a positive match requires a non-null list. For example, `NOT tags:Priority` matches null tag lists as well as lists that do not contain `Priority`.
 
 ### Filtered collections (bracket notation)
 ```
@@ -166,6 +169,7 @@ orderBy: "customValues.terminalId->terminal.name"
 orderBy: "-customValues.returnLocationId->terminal.name"
 orderBy: "customValues.deliveryLocationId->contactAddress.name"
 orderBy: "customValues.portId->port.name"
+orderBy: "customValues.vesselId->vessel.name"
 orderBy: "orderSummary.totalPieces"
 ```
 
