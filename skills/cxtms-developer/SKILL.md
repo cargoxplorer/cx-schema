@@ -68,6 +68,7 @@ Use `--feature <feature_name>` with `cx-cli create` to automatically place files
 | **Order sub** | OrderEntity, TrackingEvent, EventDefinition, LinkedOrder, OrderDocument | ref-entity-order-sub.md |
 | **Job** | Job, JobOrder, JobStatus | ref-entity-job.md |
 | **Dispatch routing** | DispatchRouteStatus, DispatchRouteTemplate, DispatchRoute, stops | ref-entity-dispatch-routing.md |
+| **Order moves (proposed)** | OrderMove, OrderMoveLeg, move and leg statuses | ref-entity-dispatch-routing.md |
 | **Pricing** | Rate, Lane, Discount, AccountingItem, AccountingAccount, PaymentTerm | ref-entity-rate.md |
 | **Shared** | Tag, Attachment, Division, EquipmentType, Equipment, EquipmentStatus, PackageType, Note/NoteThread | ref-entity-shared.md |
 | **Geography** | Country, State, City, Port, Vessel, CustomCode, ModeOfTransportation | ref-entity-geography.md |

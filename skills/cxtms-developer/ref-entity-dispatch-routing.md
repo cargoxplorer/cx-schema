@@ -2,6 +2,10 @@
 
 Dispatch routing covers reusable weekly route templates, daily dispatch routes, route statuses, stop statuses, and stops.
 
+> **Proposed API:** The Order Move entities and fields in the section below come from the backend
+> design specification and are not deployed yet. Do not generate production queries or mutations
+> against them until implementation is confirmed.
+
 ## DispatchRouteType Enum
 
 | Value | Notes |
@@ -118,6 +122,44 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 | `order` | `Order?` | Optional expanded order |
 | `dispatchRouteStop` | `DispatchRouteStop?` | Optional expanded stop when reached from `order.dispatchRouteStopOrders` |
 | `customValues` | `Dictionary` | jsonb on the stop/order link |
+
+## Order Moves (Proposed)
+
+An order owns ordered `OrderMove` records, and each move owns ordered `OrderMoveLeg` records.
+Vertical-specific routing details belong in `customValues`.
+
+### OrderMove
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `orderMoveId` | `int` | PK |
+| `organizationId` | `int` | Tenant scope |
+| `orderId` | `int` | Parent order |
+| `sequence` | `int` | 1-based order within the order |
+| `name` | `string?` | Optional label |
+| `assignedDriverContactId` | `int?` | FK to Contact |
+| `orderMoveStatusId` | `int?` | FK to OrderMoveStatus |
+| `startDate` | `DateTime?` | UTC start |
+| `endDate` | `DateTime?` | UTC end |
+| `customValues` | `Dictionary` | Vertical-specific jsonb data |
+| `legs` | `[OrderMoveLeg]` | Ordered by `sequence` |
+
+### OrderMoveLeg
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `orderMoveLegId` | `int` | PK |
+| `orderMoveId` | `int` | Parent move |
+| `sequence` | `int` | 1-based order within the move |
+| `name` | `string?` | Optional label |
+| `orderMoveLegStatusId` | `int?` | FK to OrderMoveLegStatus |
+| `startDate` | `DateTime?` | UTC start |
+| `endDate` | `DateTime?` | UTC end |
+| `customValues` | `Dictionary` | Location, event, appointment, and metric data |
+
+`OrderMoveStatus` and `OrderMoveLegStatus` are organization-scoped status dictionaries with
+`statusName`, `statusDescription`, `statusStage`, `priority`, `color`, and `customValues`.
+The proposed dispatch bridge is nullable `DispatchRouteStop.orderMoveId` → `OrderMove`.
 
 ## GraphQL Notes
 
