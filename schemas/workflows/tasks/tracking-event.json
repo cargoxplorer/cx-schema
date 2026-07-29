@@ -37,7 +37,7 @@
     },
     "inputs": {
       "type": "object",
-      "description": "TrackingEvent/Create inputs (organizationId, eventDefinitionId or eventDefinitionName, orderId/commodityId/commodityIds, description, location, includeInTracking, sendEmail, eventDate, customValues, skipIfExists, eventDefinitionValues) OR TrackingEvent/Import inputs",
+      "description": "TrackingEvent/Create inputs (organizationId, eventDefinitionId or eventDefinitionName, order/commodity/dispatch-route target, description, location, includeInTracking, sendEmail, eventDate, customValues, skipIfExists, eventDefinitionValues) OR TrackingEvent/Import inputs",
       "properties": {
         "organizationId": {
           "type": ["integer", "string"],
@@ -45,7 +45,7 @@
         },
         "orderId": {
           "type": ["integer", "string"],
-          "description": "Target order ID. Required for TrackingEvent/Import@1; for TrackingEvent/Create@1 at least one of orderId, commodityId, or commodityIds must be provided."
+          "description": "Target order ID. TrackingEvent/Import@1 requires exactly one of orderId, dispatchRouteId, or dispatchRouteStopId. TrackingEvent/Create@1 requires at least one supported target."
         },
         "commodityId": {
           "type": ["integer", "string"],
@@ -57,6 +57,14 @@
           "items": {
             "type": ["integer", "string"]
           }
+        },
+        "dispatchRouteId": {
+          "type": ["integer", "string"],
+          "description": "Target dispatch route ID. For TrackingEvent/Import@1 it is mutually exclusive with orderId and dispatchRouteStopId."
+        },
+        "dispatchRouteStopId": {
+          "type": ["integer", "string"],
+          "description": "Target dispatch route stop ID. For TrackingEvent/Import@1 it is mutually exclusive with orderId and dispatchRouteId."
         },
         "eventDefinitionId": {
           "type": ["integer", "string"],
@@ -148,7 +156,7 @@
         },
         "skipIfExists": {
           "type": ["boolean", "string"],
-          "description": "(TrackingEvent/Import@1) Skip event if duplicate found via matchByFields. Default: true. (TrackingEvent/Create@1) Skip if an event with the same event definition already exists on the target order or commodity."
+          "description": "(TrackingEvent/Import@1) Skip event if duplicate found via matchByFields. Default: true. (TrackingEvent/Create@1) Skip if an event with the same event definition already exists on a target order, commodity, dispatch route, or dispatch route stop."
         },
         "createEventDefinitions": {
           "type": ["boolean", "string"],
