@@ -409,7 +409,7 @@ Imports postal/ZIP codes. Inputs: `organizationId`, `fileUrl`/`stream`/`postalCo
 
 ### TrackingEvent/Import@1
 
-Imports tracking events for an order. Inputs: `orderId`, `events`, `matchByFields` (default: `["eventDefinitionName", "eventDate"]`), `skipIfExists`, `createEventDefinitions`. Auto-links commodities via `CommodityId`.
+Imports tracking events for exactly one order, dispatch route, or dispatch route stop. Inputs: one of `orderId` / `dispatchRouteId` / `dispatchRouteStopId`, `events`, `matchByFields` (default: `["eventDefinitionName", "eventDate"]`), `skipIfExists`, `createEventDefinitions`. Order targets can auto-link commodities; route and stop targets do not.
 
 ```yaml
 # Full ZIP-to-import pipeline

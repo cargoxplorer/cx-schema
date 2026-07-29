@@ -172,4 +172,5 @@ The proposed dispatch bridge is nullable `DispatchRouteStop.orderMoveId` → `Or
 - Orders expose `relatedDispatchRoutes(filter, orderBy)` for routes linked through stop order attachments; draft orders return no related routes.
 - Orders expose raw stop membership links through `dispatchRouteStopOrders`; use nested paths such as `dispatchRouteStopOrders.dispatchRouteStop.dispatchRouteStopStatus.statusStage` when filtering orders by route-stop assignment or completion state.
 - Tracking events can be attached directly to dispatch routes and dispatch route stops. Use route-level events for whole-route milestones and stop-level events for arrival, completion, exception, or proof-of-service milestones tied to one stop.
+- Workflow tasks support these links: `TrackingEvent/Create@1` accepts `dispatchRouteId` or `dispatchRouteStopId`; `TrackingEvent/Import@1` requires exactly one target among `orderId`, `dispatchRouteId`, and `dispatchRouteStopId`.
 - Route generation is idempotent per template/date and creates draft routes.

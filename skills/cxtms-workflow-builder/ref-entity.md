@@ -385,8 +385,8 @@ Bulk imports contact addresses for one `organizationId` + `contactId` from file/
 | `Country/Create`, `Country/Update`, `Country/Delete` | Country CRUD |
 | `Cities/Import` | Import cities |
 | `Rate/Update` | Update rate |
-| `TrackingEvent/Create` | Create a single tracking event and link to an order, a commodity, or multiple commodities |
-| `TrackingEvent/Import` | Batch import tracking events into an order |
+| `TrackingEvent/Create` | Create a single tracking event and link to an order, commodity, dispatch route, or dispatch route stop |
+| `TrackingEvent/Import` | Batch import tracking events into exactly one order, dispatch route, or dispatch route stop |
 
 ```yaml
 # Create a single tracking event linked to a commodity (or a list of commodities)
@@ -405,6 +405,8 @@ Bulk imports contact addresses for one `organizationId` + `contactId` from file/
 ```
 
 Use [`OrderTrackingEvent/Create@1`](#order-sub-entities) when you want per-task overrides of the commodity auto-link behavior (`autoLinkToCommodities`, `commodityIds`). `TrackingEvent/Create@1` only honors the org-wide `tms.trackingEvents.autoLinkToCommodities` default for the auto-link step.
+
+For dispatch milestones, pass `dispatchRouteId` or `dispatchRouteStopId` to `TrackingEvent/Create@1`. For `TrackingEvent/Import@1`, provide exactly one of `orderId`, `dispatchRouteId`, or `dispatchRouteStopId`; route and stop imports do not auto-link commodities.
 
 ```yaml
 # Batch import tracking events
