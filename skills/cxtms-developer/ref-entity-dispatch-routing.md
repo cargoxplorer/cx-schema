@@ -12,6 +12,7 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 |-------|-------|
 | `Delivery` | Delivery route or stop |
 | `Pickup` | Pickup route or stop |
+| `PickupDelivery` | Combined pickup-and-delivery route or stop |
 
 ## DispatchRouteStatus
 
@@ -49,7 +50,7 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 | `dispatchRouteTemplateId` | `int` | PK |
 | `organizationId` | `int` | Tenant scope |
 | `name` | `string` | Template name |
-| `routeType` | `DispatchRouteType` | `Delivery` or `Pickup` |
+| `routeType` | `DispatchRouteType` | `Delivery`, `Pickup`, or `PickupDelivery` |
 | `daysOfWeek` | `DayOfWeek[]` | Matching generation days |
 | `divisionId` | `int?` | FK to Division |
 | `equipmentTypeId` | `int?` | Planned equipment type |
@@ -77,7 +78,7 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 | `dispatchRouteId` | `int` | PK |
 | `organizationId` | `int` | Tenant scope |
 | `name` | `string` | Route name |
-| `routeType` | `DispatchRouteType` | `Delivery` or `Pickup` |
+| `routeType` | `DispatchRouteType` | `Delivery`, `Pickup`, or `PickupDelivery` |
 | `routeDate` | `Date` | `yyyy-MM-dd` |
 | `dispatchRouteStatusId` | `int` | FK to DispatchRouteStatus |
 | `dispatchRouteTemplateId` | `int?` | Source template when generated |

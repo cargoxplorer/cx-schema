@@ -10908,6 +10908,7 @@ input DeleteDispatchRouteStopStatusInput {
 enum DispatchRouteType {
   Delivery
   Pickup
+  PickupDelivery
 }
 
 extend type order {
