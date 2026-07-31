@@ -52,6 +52,9 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
 | Task | Description |
 |------|-------------|
 | `DispatchRoutes/Generate@1` | Generate daily draft dispatch routes from enabled templates |
+| `OrderMove/Create@1` | Create an order move with nested legs |
+| `OrderMove/Update@1` | Sparse-update a move and reconcile nested legs |
+| `OrderMove/Delete@1` | Soft-delete a move and its legs |
 
 ### DispatchRoutes/Generate@1
 
