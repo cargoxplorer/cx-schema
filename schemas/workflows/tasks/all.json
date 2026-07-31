@@ -113,6 +113,9 @@
       "$ref": "order.json"
     },
     {
+      "$ref": "order-move.json"
+    },
+    {
       "$ref": "payment.json"
     },
     {

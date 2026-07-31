@@ -124,7 +124,7 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 | `dispatchRouteStop` | `DispatchRouteStop?` | Optional expanded stop when reached from `order.dispatchRouteStopOrders` |
 | `customValues` | `Dictionary` | jsonb on the stop/order link |
 
-## Order Moves (Proposed)
+## Order Moves
 
 An order owns ordered `OrderMove` records, and each move owns ordered `OrderMoveLeg` records.
 Vertical-specific routing details belong in `customValues`.
@@ -143,7 +143,8 @@ Vertical-specific routing details belong in `customValues`.
 | `startDate` | `DateTime?` | UTC start |
 | `endDate` | `DateTime?` | UTC end |
 | `customValues` | `Dictionary` | Vertical-specific jsonb data |
-| `legs` | `[OrderMoveLeg]` | Ordered by `sequence` |
+| `orderMoveLegs` | `[OrderMoveLeg]` | Ordered by `sequence` |
+| `trackingEvents` | `[TrackingEvent]` | Move-level milestones |
 
 ### OrderMoveLeg
 
@@ -157,14 +158,17 @@ Vertical-specific routing details belong in `customValues`.
 | `startDate` | `DateTime?` | UTC start |
 | `endDate` | `DateTime?` | UTC end |
 | `customValues` | `Dictionary` | Location, event, appointment, and metric data |
+| `trackingEvents` | `[TrackingEvent]` | Leg-level milestones |
 
 `OrderMoveStatus` and `OrderMoveLegStatus` are organization-scoped status dictionaries with
 `statusName`, `statusDescription`, `statusStage`, `priority`, `color`, and `customValues`.
-The proposed dispatch bridge is nullable `DispatchRouteStop.orderMoveId` → `OrderMove`.
+Moves support `OrderMove/Create@1`, `OrderMove/Update@1`, and `OrderMove/Delete@1` workflow tasks.
 
 ## GraphQL Notes
 
 - Queries: `dispatchRouteStatus`, `dispatchRouteStatuses`, `dispatchRouteStopStatus`, `dispatchRouteStopStatuses`, `dispatchRouteTemplate`, `dispatchRouteTemplates`, `dispatchRoute`, `dispatchRoutes`.
+- Order move queries: `orderMove`, `orderMoves`, `orderMoveStatus`, `orderMoveStatuses`, `orderMoveLegStatus`, and `orderMoveLegStatuses`.
+- Order move mutations create, sparse-update, and soft-delete moves; create/update accepts nested `orderMoveLegs`, reconciled by ID and array order.
 - Mutations use `input: { organizationId, values }` and return payload fields named `dispatchRouteStatus`, `dispatchRouteStopStatus`, `dispatchRouteTemplate`, `dispatchRoute`, or `generateDispatchRoutesResult`.
 - Stop status mutations: `createDispatchRouteStopStatus`, `updateDispatchRouteStopStatus`, `deleteDispatchRouteStopStatus`.
 - Route stops can be anchored by location (`stopContactId`, `contactAddressId`, ad-hoc `customValues`) or by attached `orderIds`.

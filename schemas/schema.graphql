@@ -11023,3 +11023,70 @@ type equipment {
   updatedUser: user!
 }
 
+extend type Query {
+  orderMove(organizationId: Int!, orderMoveId: Int!): orderMove
+  orderMoves(skip: Int, take: Int, organizationId: Int!, filter: String, search: String, orderBy: String): OrderMovesCollectionSegment
+}
+
+extend type Mutation {
+  createOrderMove(input: CreateOrderMoveInput!): CreateOrderMovePayload!
+  updateOrderMove(input: UpdateOrderMoveInput!): UpdateOrderMovePayload!
+  deleteOrderMove(input: DeleteOrderMoveInput!): DeleteOrderMovePayload!
+}
+
+type OrderMovesCollectionSegment {
+  pageInfo: CollectionSegmentInfo!
+  items: [orderMove!]
+  totalCount: Int!
+}
+
+type orderMove {
+  orderMoveId: Int!
+  organizationId: Int!
+  orderId: Int!
+  sequence: Int!
+  name: String
+  assignedDriverContactId: Int
+  assignedDriverContact: contact
+  orderMoveStatusId: Int
+  orderMoveStatus: orderMoveStatus
+  startDate: DateTime
+  endDate: DateTime
+  orderMoveLegs: [orderMoveLeg!]
+  trackingEvents: [trackingEvent!]
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+  createdUser: user!
+  updatedUser: user!
+}
+
+type orderMoveLeg {
+  orderMoveLegId: Int!
+  orderMoveId: Int!
+  sequence: Int!
+  name: String
+  orderMoveLegStatusId: Int
+  orderMoveLegStatus: orderMoveLegStatus
+  startDate: DateTime
+  endDate: DateTime
+  trackingEvents: [trackingEvent!]
+  customValues: MapOfObject
+  isDeleted: Boolean!
+}
+
+type orderMoveStatus { orderMoveStatusId: Int!, organizationId: Int!, statusName: String!, statusDescription: String, statusStage: StatusStage!, priority: Int!, color: String, customValues: MapOfObject }
+type orderMoveLegStatus { orderMoveLegStatusId: Int!, organizationId: Int!, statusName: String!, statusDescription: String, statusStage: StatusStage!, priority: Int!, color: String, customValues: MapOfObject }
+
+input CreateOrderMoveInput { organizationId: Int!, values: CreateOrderMoveCommandValuesInput! }
+input CreateOrderMoveCommandValuesInput { orderId: Int!, sequence: Int, name: String, assignedDriverContactId: Int, orderMoveStatusId: Int, startDate: DateTime, endDate: DateTime, customValues: MapOfObject, orderMoveLegs: [CreateOrderMoveLegValuesInput!] }
+input CreateOrderMoveLegValuesInput { name: String, orderMoveLegStatusId: Int, startDate: DateTime, endDate: DateTime, customValues: MapOfObject }
+input UpdateOrderMoveInput { organizationId: Int!, orderMoveId: Int!, values: MapOfObject! }
+input DeleteOrderMoveInput { organizationId: Int!, orderMoveId: Int! }
+type CreateOrderMovePayload { orderMove: orderMove, query: Query! }
+type UpdateOrderMovePayload { orderMove: orderMove, query: Query! }
+type DeleteOrderMovePayload { deleteResult: DeleteResult, query: Query! }
+
