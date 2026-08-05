@@ -566,7 +566,8 @@ ${chalk.bold.yellow('WORKFLOW TEMPLATES:')}
   ${chalk.green('utility')}         Reusable helper (called via Workflow/Execute)
   ${chalk.green('webhook')}         HTTP endpoint for external callers (anonymous, rate-limited)
   ${chalk.green('public-api')}      REST API endpoint with OpenAPI documentation
-  ${chalk.green('mcp-tool')}        Expose workflow as MCP tool for AI agents
+  ${chalk.green('mcp-tool')}        Expose workflow as MCP tool for AI agents (workflowType McpTool + mcp block)
+  ${chalk.green('mcp-resource')}    Expose workflow as MCP resource for AI agents (workflowType McpResource + mcp block)
   ${chalk.green('ftp-tracking')}    Import tracking events from FTP
   ${chalk.green('ftp-edi')}         Import orders from FTP via EDI
   ${chalk.green('api-tracking')}    Fetch tracking from carrier API
@@ -576,6 +577,7 @@ ${chalk.bold.yellow('EXAMPLES:')}
   ${chalk.cyan(`${PROGRAM_NAME} create workflow invoice-generator`)}
   ${chalk.cyan(`${PROGRAM_NAME} create workflow stripe-events --template webhook`)}
   ${chalk.cyan(`${PROGRAM_NAME} create workflow get-order --template public-api`)}
+  ${chalk.cyan(`${PROGRAM_NAME} create workflow get-order-status --template mcp-tool`)}
 `;
 
 const EXTRACT_HELP = `

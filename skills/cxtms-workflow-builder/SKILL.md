@@ -45,6 +45,8 @@ npx cxtms create workflow <name> --template <template>
 | `api-tracking` | Fetch tracking from carrier API |
 | `webhook` | HTTP endpoint for external callers |
 | `public-api` | REST API endpoint with OpenAPI docs |
+| `mcp-tool` | MCP tool AI agents can call |
+| `mcp-resource` | MCP resource AI agents can read |
 
 ### Step 2: Read the generated file
 
@@ -69,6 +71,10 @@ npx cxtms create workflow <name> --template <template>
 **`webhook`** — endpoint: `POST /api/v2/orgs/{organizationId}/webhooks/{workflowId}`. The endpoint is anonymous (`[AllowAnonymous]`) and rate-limited (10/sec, 100/min per IP). Two inputs are auto-injected by the controller: `payload` (parsed JSON body or raw string) and `request` (object with `headers`, `body`, `remoteIpAddress`). Control the HTTP response via `response` and `statusCode` outputs. Update `webhookSecret` configName to your app config path. Customize the `ValidateWebhook` step for your auth method (header secret, HMAC signature, etc.). Use `executionMode: Sync` when the caller needs a response; use `Async` for fire-and-forget (returns immediately). Keep `runAs: "system"` since the endpoint is anonymous. Add `additionalProperties.cors.allowedOrigins` to restrict CORS if needed.
 
 **`public-api`** — requires a top-level `api` section defining the REST endpoint. Set `api.path` with route params (e.g., `/orders/{orderId}`), `api.method` (GET/POST/PUT/PATCH/DELETE), `api.authentication` (`none`, `bearer`, `apiKey`), `api.document` (swagger doc name, default `"public"`), and `api.category` (swagger tag). Configure `api.rateLimit` with `perSecond`/`perMinute`. Each input uses `props.in` (`path`, `query`, `header`, `body`) to specify where the parameter comes from, and `props.format` for OpenAPI type hints (e.g., `uuid`, `date-time`). Outputs use `props.type`, `props.description`, and `props.schema` to describe the response for OpenAPI docs. Must use `executionMode: Sync`. Control HTTP response via `response` and `statusCode` outputs.
+
+**`mcp-tool`** — requires a top-level `mcp` section and `workflowType: McpTool`. The workflow becomes a callable tool on the org's MCP server (`/public-api/v1/{orgUniqueId}/mcp`, bearer auth, org members only). Set `mcp.name` (tool name the AI calls — must match `^[a-zA-Z0-9_-]{1,64}$`, unique per org, snake_case convention), `mcp.description` (write it FOR the AI: when to use the tool and what it returns), and optional `mcp.timeout` (seconds, default 60). Inputs become the tool's JSON Schema arguments — there is NO `props.in` (MCP tools take named arguments); use `props.required` and `props.description` on every input. The `response` output becomes the tool result (JSON-serialized); without a `response` output all outputs are returned. Must use `executionMode: Sync`. Workflow failures and timeouts surface to the AI as tool error results. Validation codes: MCP_001–MCP_007.
+
+**`mcp-resource`** — requires a top-level `mcp` section and `workflowType: McpResource`. The workflow becomes a readable resource on the org's MCP server; reading it executes the workflow with no arguments and returns the `response` output as content. Set `mcp.uri` (absolute URI, e.g. `tms://docs/shipping-terms`, unique per org), optional `mcp.name` (display name, defaults to workflow name), `mcp.description`, and `mcp.mimeType` (default `application/json`). A string `response` with a `text/*` mimeType is returned as-is; anything else is JSON-serialized. Must use `executionMode: Sync`. Use resources for stable org knowledge (glossaries, guides, reference data); use tools for parameterized data access.
 
 **All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowCompleted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed. (`onWorkflowExecuted` is a deprecated alias for `onWorkflowCompleted` — use `onWorkflowCompleted` in new workflows.)
 
@@ -100,7 +106,7 @@ workflow:
   isActive: true
   enableAudit: true
   filePath: "workflows/<name>.yaml"
-  workflowType: Document | Quote | Flow | Webhook | PublicApi  # omit for standard process workflows
+  workflowType: Document | Quote | Flow | Webhook | PublicApi | McpTool | McpResource  # omit for standard process workflows
   runAs: "system"                           # Optional elevated permissions
   tags: ["tag1", "tag2"]
   concurrency:                              # Optional

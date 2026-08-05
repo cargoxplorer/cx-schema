@@ -67,8 +67,8 @@
         },
         "workflowType": {
           "type": "string",
-          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi"],
-          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), or PublicApi (REST API endpoint). Omit for standard process workflows."
+          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi", "McpTool", "McpResource"],
+          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), PublicApi (REST API endpoint), McpTool (MCP tool for AI agents), or McpResource (MCP resource for AI agents). Omit for standard process workflows."
         },
         "runAs": {
           "type": "string",
@@ -266,6 +266,34 @@
       "required": ["path", "method"],
       "additionalProperties": true
     },
+    "mcp": {
+      "type": "object",
+      "description": "MCP configuration (required for McpTool / McpResource workflows). The org-scoped MCP server at /public-api/v1/{orgUniqueId}/mcp serves these workflows to AI agents.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "For McpTool: the tool name (required; must match ^[a-zA-Z0-9_-]{1,64}$; unique per organization). For McpResource: optional display name (defaults to the workflow name)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Tool/resource description shown to the AI agent — describe when to use it and what it returns"
+        },
+        "uri": {
+          "type": "string",
+          "description": "Resource URI (required for McpResource). Must be an absolute URI, e.g. 'tms://docs/shipping-terms'. Unique per organization"
+        },
+        "mimeType": {
+          "type": "string",
+          "description": "Resource content MIME type (McpResource only, default: 'application/json'). String responses with a 'text/*' mimeType are returned as-is"
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Workflow execution timeout in seconds (default: 60)"
+        }
+      },
+      "additionalProperties": true
+    },
     "entity": {
       "$ref": "flow/entity.json",
       "description": "Entity configuration for Flow workflows"
@@ -328,6 +356,51 @@
       },
       "then": {
         "required": ["workflow", "activities", "api"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "workflow": {
+            "properties": {
+              "workflowType": { "const": "McpTool" }
+            },
+            "required": ["workflowType"]
+          }
+        }
+      },
+      "then": {
+        "required": ["workflow", "activities", "mcp"],
+        "properties": {
+          "mcp": {
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "workflow": {
+            "properties": {
+              "workflowType": { "const": "McpResource" }
+            },
+            "required": ["workflowType"]
+          }
+        }
+      },
+      "then": {
+        "required": ["workflow", "activities", "mcp"],
+        "properties": {
+          "mcp": {
+            "required": ["uri"]
+          }
+        }
       }
     }
   ],
