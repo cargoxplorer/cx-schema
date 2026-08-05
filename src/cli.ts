@@ -568,6 +568,7 @@ ${chalk.bold.yellow('WORKFLOW TEMPLATES:')}
   ${chalk.green('public-api')}      REST API endpoint with OpenAPI documentation
   ${chalk.green('mcp-tool')}        Expose workflow as MCP tool for AI agents (workflowType McpTool + mcp block)
   ${chalk.green('mcp-resource')}    Expose workflow as MCP resource for AI agents (workflowType McpResource + mcp block)
+  ${chalk.green('mcp-prompt')}      Expose workflow as MCP prompt template for AI agents (workflowType McpPrompt + mcp block)
   ${chalk.green('ftp-tracking')}    Import tracking events from FTP
   ${chalk.green('ftp-edi')}         Import orders from FTP via EDI
   ${chalk.green('api-tracking')}    Fetch tracking from carrier API

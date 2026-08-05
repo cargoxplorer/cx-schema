@@ -47,6 +47,7 @@ npx cxtms create workflow <name> --template <template>
 | `public-api` | REST API endpoint with OpenAPI docs |
 | `mcp-tool` | MCP tool AI agents can call |
 | `mcp-resource` | MCP resource AI agents can read |
+| `mcp-prompt` | MCP prompt template AI agents can invoke |
 
 ### Step 2: Read the generated file
 
@@ -75,6 +76,8 @@ npx cxtms create workflow <name> --template <template>
 **`mcp-tool`** — requires a top-level `mcp` section and `workflowType: McpTool`. The workflow becomes a callable tool on the org's MCP server (`/public-api/v1/{orgUniqueId}/mcp`, bearer auth, org members only). Set `mcp.name` (tool name the AI calls — must match `^[a-zA-Z0-9_-]{1,64}$`, unique per org, snake_case convention), `mcp.description` (write it FOR the AI: when to use the tool and what it returns), and optional `mcp.timeout` (seconds, default 60). Inputs become the tool's JSON Schema arguments — there is NO `props.in` (MCP tools take named arguments); use `props.required` and `props.description` on every input. The `response` output becomes the tool result (JSON-serialized); without a `response` output all outputs are returned. Must use `executionMode: Sync`. Workflow failures and timeouts surface to the AI as tool error results. Validation codes: MCP_001–MCP_007.
 
 **`mcp-resource`** — requires a top-level `mcp` section and `workflowType: McpResource`. The workflow becomes a readable resource on the org's MCP server; reading it executes the workflow with no arguments and returns the `response` output as content. Set `mcp.uri` (absolute URI, e.g. `tms://docs/shipping-terms`, unique per org), optional `mcp.name` (display name, defaults to workflow name), `mcp.description`, and `mcp.mimeType` (default `application/json`). A string `response` with a `text/*` mimeType is returned as-is; anything else is JSON-serialized. Must use `executionMode: Sync`. Use resources for stable org knowledge (glossaries, guides, reference data); use tools for parameterized data access.
+
+**`mcp-prompt`** — requires a top-level `mcp` section and `workflowType: McpPrompt`. The workflow becomes a prompt template on the org's MCP server (users invoke it via their client, e.g. as a slash command). Set `mcp.name` (must match `^[a-zA-Z0-9_-]{1,64}$`, unique per org), optional `mcp.title` (display title), `mcp.description`, and `mcp.timeout`. Inputs become the prompt's arguments — MCP prompt argument values are ALWAYS strings; use `props.required` and `props.description`. Getting the prompt executes the workflow: output a `messages` list of `{ role: user|assistant, text: "..." }` objects, or a plain-string `response` output for a single user message. Must use `executionMode: Sync`. Failures and missing required arguments surface to the client as protocol errors.
 
 **All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowCompleted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed. (`onWorkflowExecuted` is a deprecated alias for `onWorkflowCompleted` — use `onWorkflowCompleted` in new workflows.)
 
@@ -106,7 +109,7 @@ workflow:
   isActive: true
   enableAudit: true
   filePath: "workflows/<name>.yaml"
-  workflowType: Document | Quote | Flow | Webhook | PublicApi | McpTool | McpResource  # omit for standard process workflows
+  workflowType: Document | Quote | Flow | Webhook | PublicApi | McpTool | McpResource | McpPrompt  # omit for standard process workflows
   runAs: "system"                           # Optional elevated permissions
   tags: ["tag1", "tag2"]
   concurrency:                              # Optional

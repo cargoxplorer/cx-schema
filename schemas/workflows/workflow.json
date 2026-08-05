@@ -67,8 +67,8 @@
         },
         "workflowType": {
           "type": "string",
-          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi", "McpTool", "McpResource"],
-          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), PublicApi (REST API endpoint), McpTool (MCP tool for AI agents), or McpResource (MCP resource for AI agents). Omit for standard process workflows."
+          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi", "McpTool", "McpResource", "McpPrompt"],
+          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), PublicApi (REST API endpoint), McpTool (MCP tool for AI agents), McpResource (MCP resource for AI agents), or McpPrompt (MCP prompt template for AI agents). Omit for standard process workflows."
         },
         "runAs": {
           "type": "string",
@@ -272,7 +272,11 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "For McpTool: the tool name (required; must match ^[a-zA-Z0-9_-]{1,64}$; unique per organization). For McpResource: optional display name (defaults to the workflow name)"
+          "description": "For McpTool/McpPrompt: the tool/prompt name (required; must match ^[a-zA-Z0-9_-]{1,64}$; unique per organization within its kind). For McpResource: optional display name (defaults to the workflow name)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable prompt title shown in client UIs (McpPrompt only, optional)"
         },
         "description": {
           "type": "string",
@@ -399,6 +403,31 @@
         "properties": {
           "mcp": {
             "required": ["uri"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "workflow": {
+            "properties": {
+              "workflowType": { "const": "McpPrompt" }
+            },
+            "required": ["workflowType"]
+          }
+        }
+      },
+      "then": {
+        "required": ["workflow", "activities", "mcp"],
+        "properties": {
+          "mcp": {
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+              }
+            }
           }
         }
       }
