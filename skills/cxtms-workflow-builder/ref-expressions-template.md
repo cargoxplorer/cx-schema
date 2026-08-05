@@ -24,6 +24,8 @@ inputs:
 
 **Date string normalization in step inputs**: When a string value is merged into a step's input dictionary (via `AddRangeN`), the engine auto-detects date/datetime strings and converts them to ISO format. Common formats recognized: ISO (`2024-03-15`), US (`03/15/2024`), EU (`25/12/2024`), datetime with offset (`2024-03-15T15:30:45+05:00` → UTC). Empty strings are converted to `null`. OLE Automation date numbers (e.g., `"45752"`) are also recognized as dates — but only when the field name includes a date/time keyword (e.g., `departureDate`, `pickupTime`). A numeric string like `"45752"` for a field named `amount` is kept as-is.
 
+**DateTime assignment in dynamic entity updates**: Values assigned to `DateTime` or nullable `DateTime` entity fields are normalized to UTC before persistence. Offset-bearing strings and local/offset values are shifted to the equivalent UTC instant. Zone-less strings and `DateTime` values with an unspecified kind are assumed UTC without changing their wall-clock value. Empty strings become `null` only for nullable fields; use ISO 8601 with `Z` or an explicit offset whenever the source represents a known instant.
+
 ### Type Converters (prefix in {{ }})
 
 ```yaml
