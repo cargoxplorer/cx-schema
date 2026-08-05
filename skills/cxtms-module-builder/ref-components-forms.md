@@ -569,6 +569,8 @@ still control the displayed label and stored value.
 
 Dynamic array/list editor for repeating field groups. Supports add/remove/reorder with drag-and-drop and optional up/down move buttons. Reorder UI adds stable internal `_uuid` keys to object rows only when drag handles or move buttons are shown, so non-reorder payloads stay untouched.
 
+When `options.allowRemove` is enabled and the item count is above `minItems`, removal is exposed through a theme-colored three-dots menu with a **Delete** action. The same menu is used for list/grid items and accordion headers; selecting it still follows `options.removeType` (`soft` or `hard`).
+
 **Props:**
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|

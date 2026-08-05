@@ -168,6 +168,7 @@ For Order-triggered auto-transitions, `order.orderStatusName` is available in th
 | Triggering Entity | Flow Entity | Resolution |
 |-------------------|-------------|------------|
 | Order | Commodity | Via `OrderCommodities` join table |
+| Commodity | Order | Via `OrderCommodities` join table; evaluates each distinct related order, then applies the Flow's Order subtype filter |
 
 ### From States
 - Single state: `from: Draft`
