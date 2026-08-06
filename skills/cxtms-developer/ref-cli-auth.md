@@ -86,6 +86,8 @@ npx cxtms deploy-all --org 42
 
 Validates all YAML files first, then pushes modules and workflows to the server. Skips files with validation errors and reports results.
 
+Deploying a module whose matching server record was soft-deleted restores and updates that record. The server resolves deleted modules by module and organization ID, avoiding a duplicate-key insert during reinstall.
+
 > Note: `deploy-all` pushes local YAML files to the CX server (per-file `updateWorkflow` / `updateAppModule` mutations). It does **not** touch git or create a PR. Use `app release` to open a git PR from the server's pending changes.
 
 ## App Manifest Management
