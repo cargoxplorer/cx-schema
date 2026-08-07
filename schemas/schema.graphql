@@ -5227,6 +5227,10 @@ type order {
   getRelatedOrders(filter: String): [order] @cost(weight: "10")
   getOrderJobsRelatedOrders(filter: String): [order] @cost(weight: "10")
   getOrderAttachments(filter: String): [AttachmentGqlDto] @cost(weight: "10")
+  getOrderMoves(filter: String, orderBy: String): [orderMove]
+    @cost(weight: "10")
+  getOrderMove(filter: String, orderBy: String): orderMove
+    @cost(weight: "10")
   getOrderEntityByType(
     idPropertyName: String!
     customValuesKey: String
