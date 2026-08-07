@@ -168,6 +168,7 @@ Moves support `OrderMove/Create@1`, `OrderMove/Update@1`, and `OrderMove/Delete@
 
 - Queries: `dispatchRouteStatus`, `dispatchRouteStatuses`, `dispatchRouteStopStatus`, `dispatchRouteStopStatuses`, `dispatchRouteTemplate`, `dispatchRouteTemplates`, `dispatchRoute`, `dispatchRoutes`.
 - Order move queries: `orderMove`, `orderMoves`, `orderMoveStatus`, `orderMoveStatuses`, `orderMoveLegStatus`, and `orderMoveLegStatuses`.
+- Nested order resolvers: `getOrderMoves(filter, orderBy)` returns pending or statusless moves (defaulted to sequence order), while `getOrderMove(filter, orderBy)` returns the first matching pending or statusless move. Moves whose status stage is no longer `Pending` are excluded.
 - Order move mutations create, sparse-update, and soft-delete moves; create/update accepts nested `orderMoveLegs`, reconciled by ID and array order. Omitted or `isDeleted: true` legs are soft-deleted, new already-deleted legs are ignored, and only active legs consume sequence positions.
 - A dynamic order update can supply `orderMoves` to reconcile the full collection with the same rules. New moves inherit `organizationId` and `orderId` from the aggregate; omitted or explicitly deleted moves are soft-deleted; active moves and nested legs are resequenced from 1.
 - Mutations use `input: { organizationId, values }` and return payload fields named `dispatchRouteStatus`, `dispatchRouteStopStatus`, `dispatchRouteTemplate`, `dispatchRoute`, or `generateDispatchRoutesResult`.
