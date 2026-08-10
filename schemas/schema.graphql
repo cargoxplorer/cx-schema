@@ -10987,6 +10987,8 @@ type dispatchRouteStop {
   dispatchRouteStopStatus: dispatchRouteStopStatus
   actualArrivalTime: DateTime
   actualCompletionTime: DateTime
+  orderMoveId: Int
+  orderMove: orderMove
   orderIds: [Int!]!
   orders: [dispatchRouteStopOrder!]
   trackingEvents: [trackingEvent!]
@@ -11057,6 +11059,7 @@ type orderMove {
   startDate: DateTime
   endDate: DateTime
   orderMoveLegs: [orderMoveLeg!]
+  dispatchRouteStops: [dispatchRouteStop!]
   trackingEvents: [trackingEvent!]
   customValues: MapOfObject
   isDeleted: Boolean!
