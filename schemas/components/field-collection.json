@@ -18,12 +18,18 @@
     },
     "props": {
       "type": "object",
-      "required": ["fieldName", "itemTemplate"],
+      "required": ["fieldName"],
       "properties": {
         "fieldName": {
           "type": "string",
           "description": "The form field name this collection binds to",
           "x-example": "businessHours"
+        },
+        "itemType": {
+          "type": "string",
+          "enum": ["object", "string", "number", "boolean", "auto"],
+          "default": "object",
+          "description": "Array item type. Primitive collections can omit itemTemplate; auto detects from existing data."
         },
         "itemTemplate": {
           "oneOf": [
@@ -356,7 +362,35 @@
           "type": "string",
           "description": "CSS class for each item",
           "x-example": "collection-item"
-        }
+        },
+        "label": {
+          "type": ["string", "object"],
+          "description": "Section label. Enables a full collection header at top level and a compact section header when nested."
+        },
+        "itemTitle": { "type": "string", "description": "Field path or template used as the accordion row title" },
+        "defaultExpanded": { "type": "boolean", "default": false },
+        "itemIcon": { "type": "string", "description": "Icon name or per-item template rendered before the accordion row title" },
+        "itemSubtitle": { "type": "string", "description": "Per-item template for muted row metadata" },
+        "itemBadges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["label"],
+            "properties": {
+              "label": { "type": "string" },
+              "color": { "type": "string", "enum": ["danger", "warning", "info", "success", "primary", "neutral"], "default": "neutral" },
+              "when": { "type": "string", "description": "Template guarding badge visibility" }
+            }
+          }
+        },
+        "itemNestedCount": { "type": "string", "description": "Template resolving to a nested-record count" },
+        "nestedCountLabel": { "type": ["string", "object"], "default": "nested items" },
+        "summaryTemplate": { "type": "string", "description": "Header summary template receiving count and items" },
+        "showCount": { "type": "boolean", "default": true },
+        "showExpandAll": { "type": "boolean", "default": true },
+        "collapseNested": { "type": "boolean", "default": true },
+        "autoItemTitle": { "type": "boolean", "default": true },
+        "density": { "type": "string", "enum": ["compact", "comfortable"], "default": "compact" }
       }
     }
   },
