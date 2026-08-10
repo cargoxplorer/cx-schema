@@ -497,3 +497,7 @@ npx cxtms app release -m "Add warehouse locations module" --org 42
 ## Reactive page titles
 
 Route `props.title` and root component `displayName` may be template expressions. App screens parse them against the app module store and update the page header/browser title when store values change. Unauthorized-route labels intentionally use route name/path instead of parsing store-backed title templates.
+
+## Screen route variables
+
+Matched route parameters are raw strings and are available on the component's first render, including when a cached component definition mounts. Query-string values that look numeric are converted to numbers. When names collide, the matched route parameter wins over the query string. Screen variables also include `organizationId`, `locale`, and `currentUser`.

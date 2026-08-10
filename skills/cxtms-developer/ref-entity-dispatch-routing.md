@@ -108,6 +108,8 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 | `dispatchRouteStopStatus` | `DispatchRouteStopStatus?` | Optional expanded stop status |
 | `actualArrivalTime` | `DateTime?` | Actual arrival timestamp |
 | `actualCompletionTime` | `DateTime?` | Actual completion timestamp |
+| `orderMoveId` | `int?` | Optional move this trip stop executes |
+| `orderMove` | `OrderMove?` | Expandable move navigation |
 | `orderIds` | `int[]` | Attached order IDs; always projected |
 | `orders` | `[DispatchRouteStopOrder]` | Attached order links; expand `order` when needed |
 | `trackingEvents` | `[TrackingEvent]` | Tracking events linked directly to this stop |
@@ -144,6 +146,7 @@ Vertical-specific routing details belong in `customValues`.
 | `endDate` | `DateTime?` | UTC end |
 | `customValues` | `Dictionary` | Vertical-specific jsonb data |
 | `orderMoveLegs` | `[OrderMoveLeg]` | Ordered by `sequence` |
+| `dispatchRouteStops` | `[DispatchRouteStop]` | Stops executing this move, ordered by route then planned sequence; may span routes |
 | `trackingEvents` | `[TrackingEvent]` | Move-level milestones |
 
 ### OrderMoveLeg
@@ -174,6 +177,7 @@ Moves support `OrderMove/Create@1`, `OrderMove/Update@1`, and `OrderMove/Delete@
 - Mutations use `input: { organizationId, values }` and return payload fields named `dispatchRouteStatus`, `dispatchRouteStopStatus`, `dispatchRouteTemplate`, `dispatchRoute`, or `generateDispatchRoutesResult`.
 - Stop status mutations: `createDispatchRouteStopStatus`, `updateDispatchRouteStopStatus`, `deleteDispatchRouteStopStatus`.
 - Route stops can be anchored by location (`stopContactId`, `contactAddressId`, ad-hoc `customValues`) or by attached `orderIds`.
+- Route stops optionally expand `orderMove`; the inverse `orderMove.dispatchRouteStops` collection supports filtering and may span multiple dispatch routes.
 - Create accepts nested route stops with `dispatchRouteStopStatusId` and `orderIds`. Dynamic route updates and stop add/update mutations also accept `dispatchRouteStopStatusId` and `orderIds`; statuses are organization-scoped and validated against stop type, and when `orderIds` is present, the attached orders are reconciled to exactly those IDs after organization validation.
 - `updateDispatchRouteStop` uses a dynamic `values` map. It sparse-updates only supplied keys, treats an explicit `null` as clearing a nullable field, and rejects unknown keys. Use `actualArrivalTime` and `actualCompletionTime` to stamp or clear actual stop times without echoing unrelated fields.
 - Dynamic route/template updates can replace the full `stops` array: existing stops with IDs are sparse-updated, new stops are inserted, omitted existing stops are soft-deleted, and sequence/plannedSequence is reassigned from array order. Dedicated stop add/update/remove/reorder mutations remain available for targeted edits.
