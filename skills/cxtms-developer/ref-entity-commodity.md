@@ -116,7 +116,7 @@ Field names as used in workflow expressions: `{{ entity.description }}`, `{{ ent
 | `getChildCommodities(filter)` | `[Commodity]` | Child commodities |
 | `getParentCommodity` | `Commodity` | Parent commodity |
 | `getRelatedOrders(filter)` | `[Order]` | Related orders |
-| `getRelatedOrder(filter)` | `Order` | First related order |
+| `getRelatedOrder(filter)` | `Order` | First non-draft related order, batched across commodity rows; optional order filter; lowest `orderId` wins when multiple orders match |
 | `getRelatedDispatchRoutes(filter?, orderBy?)` | `[DispatchRoute]` | Dispatch routes linked through non-draft orders attached to this commodity or any descendant commodity |
 | `getCommodityTrackingNumber(idPropertyName)` | `TrackingNumber` | Lookup |
 | `getCommodityAttachments(filter)` | `[Attachment]` | |

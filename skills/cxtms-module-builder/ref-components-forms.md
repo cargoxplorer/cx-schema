@@ -598,8 +598,25 @@ When `options.allowRemove` is enabled and the item count is above `minItems`, re
 | `showIndex` | `boolean` | `false` | Show item index |
 | `showDragHandle` | `boolean` | `false` | Show drag handles |
 | `showMoveButtons` | `boolean` | `false` | Show up/down move buttons for accessible reordering; requires `options.allowReorder` |
+| `label` | `ILocalizeString` | — | Enables a collection header; nested collections use a compact section header |
+| `itemTitle` | `string` | derived | Field path or template for the accordion row title |
+| `itemIcon` | `string` | — | Icon name or per-item template rendered before the row title |
+| `itemSubtitle` | `string` | — | Per-item template for muted row metadata |
+| `itemBadges` | `{label,color?,when?}[]` | — | Inline semantic badges; colors: `danger`, `warning`, `info`, `success`, `primary`, `neutral` |
+| `itemNestedCount` | `string` | — | Template resolving to a nested-record count on collapsed rows |
+| `summaryTemplate` | `string` | item count | Header summary template with `count` and `items` variables |
+| `showCount` | `boolean` | `true` | Show the header count chip |
+| `showExpandAll` | `boolean` | `true` | Show bulk expansion controls for multi-row accordions |
+| `collapseNested` | `boolean` | `true` | Render nested collections as collapsed accordion rows unless `layout` is explicit |
+| `autoItemTitle` | `boolean` | `true` | Derive missing titles from label-like scalar record fields |
+| `density` | `compact \| comfortable` | `compact` | Accordion row padding preset |
 
 **Children:** Uses `itemTemplate` (not `children`). Each item gets `item`, `index`, `collection` variables.
+
+For compact record lists, use `layout: accordion`. If `label` is set, the add action moves into
+the header unless its position is explicit. Nested collections collapse by default; blank new
+records expand automatically. `itemIcon`, `itemSubtitle`, and badge/count templates receive the
+parent variables plus `item`, `index`, and the item's own fields.
 
 ```yaml
 component: field-collection
