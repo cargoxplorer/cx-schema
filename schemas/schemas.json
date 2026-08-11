@@ -108,6 +108,10 @@
               "label": {
                 "$ref": "#/definitions/localized"
               },
+              "description": {
+                "$ref": "#/definitions/localized",
+                "description": "Localized tooltip shown for the column header and column selector"
+              },
               "showAs": {
                 "$ref": "#/definitions/component",
                 "description": "Custom component for column rendering"

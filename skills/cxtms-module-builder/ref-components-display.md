@@ -87,6 +87,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 |------|------|-------------|
 | `name` | `string` | Field name or resolver expression |
 | `label` | `ILocalizeString` | Column header |
+| `description` | `ILocalizeString` | Header and column-picker tooltip; dynamic entity columns inherit the field description |
 | `isHidden` | `boolean \| template` | Available in picker but hidden by default; also excluded from export when truthy |
 | `isVisible` | `boolean \| template` | Inverse visibility flag; excluded from export when false |
 | `showAs` | `{component, props, queries}` | Custom cell renderer |
