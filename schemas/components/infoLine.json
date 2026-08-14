@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Info Line Component",
+  "description": "Compact 'icon + value' line for entity cards (phone, email, truck, container…). Abstract: YAML assembles the value string, the component only renders it. An empty value renders nothing, so optional lines can be declared unconditionally.",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "infoLine"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name identifier for the info line"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Icon class name (tabler-* or FontAwesome), e.g. tabler-phone, tabler-mail, tabler-truck, tabler-container"
+        },
+        "iconColor": {
+          "type": "string",
+          "description": "Icon color: theme path (primary, text.secondary) or CSS color. Default text.secondary"
+        },
+        "value": {
+          "type": "string",
+          "description": "The text to render, assembled in YAML, e.g. '{{ container.number }} • {{ container.size }}'. Empty → the line is not rendered"
+        },
+        "href": {
+          "type": "string",
+          "description": "Renders the value as a link: tel:{{ … }}, mailto:{{ … }}, or any URL"
+        },
+        "onClick": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute on click (alternative to href); makes the line clickable"
+        },
+        "truncate": {
+          "type": "boolean",
+          "description": "Single line with ellipsis; the tooltip defaults to the full value"
+        },
+        "tooltip": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "description": "Explicit tooltip; overrides the truncate default"
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["plain", "chip"],
+          "description": "chip renders a bordered rounded container (equipment/container chips)"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Conditionally hide the line"
+        },
+        "permission": {
+          "$ref": "../schemas.json#/definitions/permissions"
+        }
+      }
+    }
+  },
+  "required": ["component"],
+  "x-examples": [
+    {
+      "component": "infoLine",
+      "name": "driverPhone",
+      "props": {
+        "icon": "tabler-phone",
+        "value": "{{ row.record.phoneNumber }}",
+        "href": "tel:{{ row.record.phoneNumber }}"
+      }
+    },
+    {
+      "component": "infoLine",
+      "name": "containerChip",
+      "props": {
+        "icon": "tabler-container",
+        "value": "{{ item.container.number }} • {{ item.container.size }} • {{ item.container.type }} • {{ item.container.line }}",
+        "variant": "chip",
+        "truncate": true
+      }
+    }
+  ]
+}

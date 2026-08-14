@@ -7,6 +7,9 @@
     "appComponent": {
       "$ref": "appComponent.json"
     },
+    "avatar": {
+      "$ref": "avatar.json"
+    },
     "navbar": {
       "$ref": "navbar.json"
     },
@@ -52,6 +55,12 @@
     "field": {
       "$ref": "field.json"
     },
+    "infoLine": {
+      "$ref": "infoLine.json"
+    },
+    "progressBar": {
+      "$ref": "progressBar.json"
+    },
     "dropdown": {
       "$ref": "dropdown.json"
     },
@@ -60,6 +69,9 @@
     },
     "calendar": {
       "$ref": "calendar.json"
+    },
+    "planner": {
+      "$ref": "planner.json"
     },
     "module": {
       "$ref": "module.json"

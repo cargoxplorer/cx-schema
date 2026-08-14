@@ -1,0 +1,355 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Planner Component",
+  "description": "Generic grouped & ordered planning grid: each resource (driver, truck, dock, crew...) is a row, its work items appear as ordinal slots across the columns (slot 1, slot 2...). Columns are positional — the item's index in its sorted group — not dates; for date/time columns use timeline-grid. Fully YAML-driven four-stage pipeline: Extract (queries + itemsPath) -> Group (rows.groupBy) -> Sort (columns.orderBy) -> Place.",
+  "type": "object",
+  "definitions": {
+    "componentTemplate": {
+      "type": "object",
+      "description": "A component rendered via ComponentRender. Kept permissive here: refs to ../schemas.json do not resolve in the CLI validator (Ajv rebases them to /schemas.json, which is unregistered), so this schema is self-contained; nested components are still validated individually by the recursive walker.",
+      "properties": {
+        "component": {
+          "type": "string",
+          "description": "Component type identifier"
+        },
+        "name": { "type": "string" },
+        "props": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "children": { "type": "array" }
+      },
+      "required": ["component"],
+      "additionalProperties": true
+    },
+    "actionsList": {
+      "type": "array",
+      "description": "List of actions to execute (standard action objects: navigate, dialog, workflow, ...)",
+      "items": { "type": "object" }
+    },
+    "orderBy": {
+      "type": "array",
+      "description": "Multi-key sort. Stable; null/undefined always sort last regardless of direction; ISO dates compare as dates, numbers numerically, strings locale-aware with numeric collation (natural sort - numeric strings such as customValues sort by value).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "Dot-path to the sort value"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["asc", "desc"],
+            "default": "asc"
+          }
+        },
+        "required": ["field"]
+      }
+    }
+  },
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "planner"
+    },
+    "name": {
+      "type": "string",
+      "description": "Component instance name for referencing in actions/variables"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "height": {
+          "oneOf": [
+            { "type": "number", "description": "Height in pixels" },
+            { "type": "string", "description": "CSS size (e.g., '700px', '80vh')" }
+          ],
+          "default": 700,
+          "description": "Board height; drives the vertical scroll viewport"
+        },
+        "debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Log per-stage pipeline counts (extracted N -> M rows -> K columns, orphan count, resolved paths) through logger"
+        },
+        "refreshHandler": {
+          "type": "string",
+          "description": "Named refresh channel: `- refresh: <this name>` re-runs the queries and rebuilds the board even when no query variable changed (e.g. after a mutation from an item template). Defaults to the component name.",
+          "x-example": "driverPlannerData"
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "enableVirtualization": {
+              "type": "boolean",
+              "default": true,
+              "description": "false forces plain (non-virtualised) rendering"
+            },
+            "virtualizeThreshold": {
+              "type": "number",
+              "default": 50,
+              "description": "Row count above which rows virtualise (TanStack Virtual, measured heights)"
+            },
+            "estimatedRowHeight": {
+              "type": "number",
+              "default": 220,
+              "description": "Initial row height estimate; real heights are measured after mount"
+            }
+          }
+        },
+        "queries": {
+          "type": "array",
+          "minItems": 1,
+          "description": "All data sources, in the useComponentQueries convention. Every query NOT referenced by rows.fromQuery is an items source; items from all items sources concatenate. The pipeline runs once after all queries resolve.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Query name; rows.fromQuery references the rows source by this name"
+              },
+              "query": {
+                "type": "object",
+                "description": "GraphQL query configuration",
+                "properties": {
+                  "command": {
+                    "type": "string",
+                    "description": "GraphQL document string"
+                  },
+                  "variables": {
+                    "type": "object",
+                    "description": "Query variables (template expressions supported). Changing any referenced variable re-runs the query and rebuilds the board.",
+                    "additionalProperties": true
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Plain dot-path into the response (getObj; no [] segments here)"
+                  }
+                },
+                "required": ["command"]
+              },
+              "itemsPath": {
+                "type": "string",
+                "description": "Items sources only. Path relative to the query.path result, resolved with expandPath: every array-valued segment flat-maps automatically (no leading []; explicit [] segments are accepted no-ops). Missing/null segments yield []. Omitted -> the path result itself, normalized to an array.",
+                "x-example": "orderMoves"
+              },
+              "parentAs": {
+                "type": "string",
+                "description": "Items sources only. Attaches the direct owner of the final flattened collection to every item under this key (e.g. item.order).",
+                "x-example": "order"
+              },
+              "mapping": {
+                "type": "object",
+                "description": "Items sources only. Optional per-item template, context { ...variables, item } (item already carries the parent); result is merged over the raw item. Supply mapping.id when the entity has no id field.",
+                "additionalProperties": true
+              }
+            },
+            "required": ["name", "query"]
+          }
+        },
+        "rows": {
+          "type": "object",
+          "description": "Row model: grouping key on the item plus an optional dedicated rows source (visible empty rows)",
+          "properties": {
+            "groupBy": {
+              "type": "string",
+              "description": "Dot-path ON the item -> row key (string-coerced). null/undefined/'' -> Unassigned.",
+              "x-example": "driver.contactId"
+            },
+            "fromQuery": {
+              "type": "string",
+              "description": "Name of the rows-source query. Rows come from it including rows with zero items. Omitted -> rows derived from distinct groupBy values in first-seen order."
+            },
+            "key": {
+              "type": "string",
+              "description": "Dot-path on the row record -> row key (string-coerced, must match groupBy values). Required with fromQuery.",
+              "x-example": "contactId"
+            },
+            "label": {
+              "type": "string",
+              "description": "Row label template; context: item = the row record. Default: the row key.",
+              "x-example": "{{ item.firstName }} {{ item.lastName }}"
+            },
+            "orderBy": {
+              "$ref": "#/definitions/orderBy",
+              "description": "Row sort over row fields (key, label, record.*). Default: rows-query order / first-seen order."
+            },
+            "unassigned": {
+              "type": "object",
+              "description": "Synthetic row collecting orphan items (group key matches no row). Always renders last.",
+              "properties": {
+                "show": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "false hides the row AND logs a warning with the dropped count — items are never silently dropped"
+                },
+                "label": {
+                  "type": "string",
+                  "default": "Unassigned"
+                }
+              }
+            },
+            "headerWidth": {
+              "type": "number",
+              "description": "Row-header column width in px. Required: the column is sticky and virtualised rows need explicit widths to stay aligned."
+            },
+            "headerPadding": {
+              "type": "number",
+              "default": 1,
+              "description": "Row-header cell padding in theme spacing units (1 = 4px), same idea as the top-level cellPadding but for the first column.",
+              "x-example": 2.5
+            }
+          },
+          "required": ["groupBy", "headerWidth"],
+          "dependencies": {
+            "fromQuery": ["key"]
+          }
+        },
+        "columns": {
+          "type": "object",
+          "description": "Column model: ordinal slots. Column count = size of the largest group; horizontal scroll, no cap.",
+          "properties": {
+            "orderBy": {
+              "$ref": "#/definitions/orderBy",
+              "description": "Sort WITHIN each row -> slot order. Item at sorted index i renders in column i. Runs after ALL sources resolve."
+            },
+            "label": {
+              "type": "string",
+              "default": "{{ index }}",
+              "description": "Column header template; variables: index (1-based), columnIndex (0-based)",
+              "x-example": "Move {{ index }}"
+            },
+            "width": {
+              "type": "number",
+              "description": "Column width in px. Required: every virtualised row applies the same explicit gridTemplateColumns."
+            }
+          },
+          "required": ["width"]
+        },
+        "rowHeaderTemplate": {
+          "$ref": "#/definitions/componentTemplate",
+          "description": "Row header cell; receives row { key, label, record, items, isUnassigned }, rowIndex, itemCount. Default: row.label as plain text."
+        },
+        "itemTemplate": {
+          "$ref": "#/definitions/componentTemplate",
+          "description": "Item cell; receives item (incl. item.<parentAs> and intact nested collections — iterate them with `collection`), row, column { index, columnIndex, label }, rowIndex, columnIndex"
+        },
+        "itemAccent": {
+          "type": "string",
+          "description": "Optional per-item color template (same context as itemTemplate), usually a status color. Paints a bar down the card's left edge and a low-alpha wash of the same color over the card background. Accepts hex/rgb()/hsl() or a theme palette path ('warning.main'); anything unparseable renders the plain card.",
+          "x-example": "{{ item.orderMove.orderMoveStatus.color }}"
+        },
+        "cellPadding": {
+          "type": "number",
+          "default": 0.5,
+          "description": "Gap between the card (or empty-cell content) and the cell separators, in theme spacing units (1 = 4px). Inner card padding is the item template's own business (options.p).",
+          "x-example": 2.5
+        },
+        "emptyCellTemplate": {
+          "$ref": "#/definitions/componentTemplate",
+          "description": "Optional; receives row, column, rowIndex, columnIndex. Default: empty cell."
+        },
+        "summaryComponent": {
+          "$ref": "#/definitions/componentTemplate",
+          "description": "Optional per-column footer (sticky below the viewport); receives column, columnIndex, items (that column across all rows), totalCount"
+        },
+        "emptyStateTemplate": {
+          "$ref": "#/definitions/componentTemplate",
+          "description": "Optional; shown when the pipeline yields zero items (rows from the rows query still render)"
+        },
+        "events": {
+          "type": "object",
+          "description": "Interaction handlers; payloads merge last over variables + store",
+          "properties": {
+            "onItemClick": {
+              "$ref": "#/definitions/actionsList",
+              "description": "Click on an item (propagation stopped); payload: item, row, column, rowIndex, columnIndex"
+            },
+            "onCellClick": {
+              "$ref": "#/definitions/actionsList",
+              "description": "Click on cell background — never fires from inside an item; payload: row, column, rowIndex, columnIndex"
+            },
+            "onRowClick": {
+              "$ref": "#/definitions/actionsList",
+              "description": "Click on the row header; payload: row, rowIndex"
+            },
+            "onItemsLoaded": {
+              "$ref": "#/definitions/actionsList",
+              "description": "Fires once per completed pipeline; payload: items, itemCount, rowCount, columnCount"
+            }
+          }
+        }
+      },
+      "required": ["queries", "rows", "columns", "itemTemplate"]
+    },
+    "isHidden": {
+      "type": "string",
+      "pattern": "\\{\\{.*\\}\\}",
+      "description": "Boolean template expression for conditional rendering"
+    }
+  },
+  "required": ["component", "props"],
+  "x-examples": [
+    {
+      "component": "planner",
+      "name": "driverPlanner",
+      "props": {
+        "height": 700,
+        "queries": [
+          {
+            "name": "moves",
+            "query": {
+              "command": "query GetOrderMovesForPlanner($date: DateTime!, $branchId: Int) { orders(filter: { orderMoves: { date: $date } }) { items { orderId orderNumber orderMoves { orderMoveId startDate driver { contactId firstName lastName } orderMoveLegs { legType location } } } } }",
+              "variables": {
+                "date": "{{ plannerDate }}",
+                "branchId": "{{ branchId }}"
+              },
+              "path": "orders.items"
+            },
+            "itemsPath": "orderMoves",
+            "parentAs": "order",
+            "mapping": {
+              "id": "{{ item.orderMoveId }}"
+            }
+          },
+          {
+            "name": "drivers",
+            "query": {
+              "command": "query GetPlannerDrivers($branchId: Int) { contacts(filter: { branchId: $branchId }) { items { contactId firstName lastName } } }",
+              "variables": {
+                "branchId": "{{ branchId }}"
+              },
+              "path": "contacts.items"
+            }
+          }
+        ],
+        "rows": {
+          "groupBy": "driver.contactId",
+          "fromQuery": "drivers",
+          "key": "contactId",
+          "label": "{{ item.firstName }} {{ item.lastName }}",
+          "orderBy": [{ "field": "label", "direction": "asc" }],
+          "unassigned": { "show": true, "label": "Unassigned" },
+          "headerWidth": 260
+        },
+        "columns": {
+          "orderBy": [
+            { "field": "startDate", "direction": "asc" },
+            { "field": "orderMoveId", "direction": "asc" }
+          ],
+          "label": "Move {{ index }}",
+          "width": 420
+        },
+        "itemTemplate": {
+          "component": "card",
+          "props": {
+            "title": "{{ item.order.orderNumber }}"
+          }
+        },
+        "events": {
+          "onItemClick": [{ "navigate": "orders/{{ item.order.orderId }}" }]
+        }
+      }
+    }
+  ]
+}

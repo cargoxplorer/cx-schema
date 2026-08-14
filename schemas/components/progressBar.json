@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Progress Bar Component",
+  "description": "Abstract progress bar. Feed it value/max directly, or an items array with a declarative completed predicate — what the numbers mean (moves, stops, hours…) is the module's business. Renders nothing when max is 0, so it can be declared unconditionally.",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "progressBar"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name identifier for the progress bar"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "oneOf": [{ "type": "number" }, { "type": "string" }],
+          "description": "Completed amount. Overrides the derived count when items/completedPath are also set"
+        },
+        "max": {
+          "oneOf": [{ "type": "number" }, { "type": "string" }],
+          "description": "Total amount. Defaults to items.length when items is set. max 0 or missing → nothing renders"
+        },
+        "items": {
+          "type": "string",
+          "description": "Single-chunk template resolving to an array, e.g. '{{ row.items }}'. Sets max = length; combined with completedPath sets value = matched count"
+        },
+        "completedPath": {
+          "type": "string",
+          "description": "Dot path inside each item to test, e.g. orderMove.orderMoveStatus.statusStage"
+        },
+        "completedValue": {
+          "type": "string",
+          "description": "Value at completedPath that counts as completed, e.g. Completed. Omitted → any truthy value counts"
+        },
+        "label": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "description": "Caption on the left above the bar, e.g. Moves"
+        },
+        "showValue": {
+          "type": "boolean",
+          "description": "Show the value caption (right-aligned for linear, centered for circular). Default true"
+        },
+        "valueFormat": {
+          "type": "string",
+          "enum": ["count", "percent"],
+          "description": "count → '2/5' (default), percent → '40%'"
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["linear", "circular"],
+          "description": "Bar shape. Default linear"
+        },
+        "height": {
+          "oneOf": [{ "type": "number" }, { "type": "string" }],
+          "description": "Linear bar thickness in px. Default 6"
+        },
+        "size": {
+          "oneOf": [{ "type": "number" }, { "type": "string" }],
+          "description": "Circular variant diameter in px. Default 40"
+        },
+        "color": {
+          "type": "string",
+          "description": "Theme color (primary, success, warning, info, error, secondary) or CSS color. Default: primary, flipping to success at 100%"
+        },
+        "tooltip": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "description": "Tooltip on hover"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Conditionally hide the bar"
+        },
+        "permission": {
+          "$ref": "../schemas.json#/definitions/permissions"
+        }
+      }
+    }
+  },
+  "required": ["component"],
+  "x-examples": [
+    {
+      "component": "progressBar",
+      "name": "laneMovesProgress",
+      "props": {
+        "label": "Moves",
+        "items": "{{ row.items }}",
+        "completedPath": "orderMove.orderMoveStatus.statusStage",
+        "completedValue": "Completed"
+      }
+    },
+    {
+      "component": "progressBar",
+      "name": "hoursOfService",
+      "props": {
+        "label": "Hours",
+        "value": "{{ row.record.customValues.hoursUsed }}",
+        "max": 11,
+        "valueFormat": "percent",
+        "color": "warning"
+      }
+    }
+  ]
+}
