@@ -32,6 +32,8 @@ Available root queries: `orders`, `contacts`, `commodities`, `accountingTransact
 
 `entityFields` returns field metadata. When `entityName` is supplied, the API filters out inactive fields and duplicate field names resolve to the active definition with the highest `priority`.
 
+`getEntityFieldsLastModified(organizationId, entityName, filter)` returns the newest matching field timestamp (or `null`) for cheap saved-view reconciliation without fetching every definition. Entity-name matching is case-insensitive.
+
 Order quick search (`orders.search` and `orderGroupBy.search`) matches order number, bill-to, carriers, tracking numbers, order entities, commodity text/tracking numbers, and InventoryItem values linked through order commodities or child/container commodities. Inventory item matches include `sku`, `productName`, `description`, `modelNumber`, and JSON `customValues` such as color or size.
 
 ## App Module Metadata Visibility

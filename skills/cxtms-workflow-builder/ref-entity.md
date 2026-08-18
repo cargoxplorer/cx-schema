@@ -156,6 +156,7 @@ Imports order data from an external feed. Supports create and upsert (match-by-f
     options:
       orderMatchByFields: ["customValues.externalId"]
       commodityMatchByFields: ["customValues.lineId"]
+      commodityMatchConflict: Error
       skipValues: "NullOrEmpty"   # default — preserves existing data when feed stops sending a field
   outputs:
     - name: result
@@ -172,6 +173,7 @@ Imports order data from an external feed. Supports create and upsert (match-by-f
 | `inventoryItemMatchByFields` | string[] | null | Fields to match existing inventory items on commodities. |
 | `tagMatchByFields` | string[] | null | Fields to match existing tags. |
 | `commodityMatchByFields` | string[] | null | Fields to match existing commodities on update. |
+| `commodityMatchConflict` | `Link` \| `Error` | `Link` | Handling when a matched top-level commodity belongs to another order of the same type. `Error` skips it and adds an import error. |
 | `linkTrackingEventsToCommodities` | boolean | false | Link imported tracking events to first-level commodities. |
 | `skipValues` | `None` \| `Null` \| `NullOrEmpty` | `NullOrEmpty` | Strip null/empty values before updating existing records. `NullOrEmpty` (default) prevents feeds that stop returning a field from wiping existing data (e.g. ETA after delivery). Use `None` to allow explicit null overwrites. |
 
@@ -181,6 +183,8 @@ Imports order data from an external feed. Supports create and upsert (match-by-f
 - `None` — no stripping; all values including nulls overwrite existing data
 
 **Order/Import commodity fields**: When importing commodities, you can supply `packageTypeName` (string) instead of `packageTypeId`. The import handler resolves the name to an ID using an N+1-safe per-import cache (one DB query per unique package type name).
+
+Commodity matches are shared across the entire import session. Nested container commodities match positionally within their parent, preserving repeated same-key lines without duplicating them on re-import.
 
 ## Contact
 
