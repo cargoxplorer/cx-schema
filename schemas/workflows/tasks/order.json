@@ -131,6 +131,12 @@
               "items": { "type": "string" },
               "description": "Fields to match existing commodities."
             },
+            "commodityMatchConflict": {
+              "type": "string",
+              "enum": ["Link", "Error"],
+              "default": "Link",
+              "description": "Handling when a matched top-level commodity already belongs to another order of the same type. Link reuses it; Error skips it and records an import error."
+            },
             "createEventDefinitions": {
               "type": "boolean",
               "description": "Auto-create missing tracking event definitions during import. Default: true."

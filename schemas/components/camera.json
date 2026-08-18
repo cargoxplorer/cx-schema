@@ -30,8 +30,35 @@
         },
         "mode": {
           "type": "string",
-          "description": "Camera mode. Currently only 'picture' is supported; other values fall back to picture mode.",
+          "enum": ["picture", "scanner", "hybrid"],
+          "description": "Camera mode. Scanner and hybrid modes are supported by the mobile renderer.",
           "default": "picture"
+        },
+        "scanner": {
+          "type": "object",
+          "description": "Scanner settings used by scanner and hybrid modes.",
+          "properties": {
+            "recognize": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["barcode", "vin", "container"] },
+              "uniqueItems": true,
+              "default": ["barcode"],
+              "description": "Mobile recognition modes. VIN and container use native OCR with checksum validation."
+            },
+            "autoCapture": {
+              "type": "boolean",
+              "default": false,
+              "description": "Mobile: capture a proof photo immediately after accepting a scan."
+            },
+            "barcodeTypes": { "type": "array", "items": { "type": "string" } },
+            "minBarcodeLength": { "type": "integer", "minimum": 1 },
+            "continuous": { "type": "boolean" },
+            "deduplicate": { "type": "boolean" },
+            "scanDelayMs": { "type": "number", "minimum": 0 },
+            "minScanIntervalMs": { "type": "number", "minimum": 0 },
+            "maxBarcodes": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": true
         },
         "enableTorch": {
           "type": "boolean",
@@ -75,6 +102,10 @@
         "onCapture": {
           "$ref": "../schemas.json#/definitions/actionsList",
           "description": "Actions fired after a successful capture. Receives { data: string|Blob, width: number, height: number }"
+        },
+        "onScan": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions fired after an accepted scan. Receives { data, format, type } and optional proof-photo fields when scanner.autoCapture is enabled."
         },
         "onClose": {
           "$ref": "../schemas.json#/definitions/actionsList",

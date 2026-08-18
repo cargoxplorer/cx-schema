@@ -459,11 +459,13 @@ props:
     - name: resources
       query: { command: 'query Resources { resources { items } }', path: resources.items }
   rows: { groupBy: resourceId, fromQuery: resources, key: id, headerWidth: 240 }
-  columns: { orderBy: [{ field: sequence, direction: asc }], label: 'Move {{ index }}', width: 400 }
+  columns: { orderBy: [{ field: sequence, direction: asc }], appendEmpty: true, label: 'Move {{ index }}', width: 400 }
   itemTemplate: { component: card }
 ```
 
 Optional templates cover row headers, empty cells/state, and summaries. Events are `onItemClick`, `onCellClick`, `onRowClick`, and `onItemsLoaded`. Explicit row-header and column widths are required for alignment when rows virtualize.
+
+Set `columns.appendEmpty: true` to render one trailing empty ordinal slot beyond the largest group, ensuring every lane has an append target.
 
 ## timeline-grid
 
