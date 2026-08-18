@@ -476,6 +476,21 @@ props:
 
 Colored chip/badge with dot indicator.
 
+## avatar, infoLine, and progressBar
+
+Use these template-aware display components for compact entity cards and planner headers.
+
+```yaml
+- component: avatar
+  props: { name: '{{ row.record.name }}', colorSeed: '{{ row.record.id }}', size: 40 }
+- component: infoLine
+  props: { icon: tabler-phone, value: '{{ row.record.phone }}', href: 'tel:{{ row.record.phone }}' }
+- component: progressBar
+  props: { items: '{{ row.items }}', completedPath: status, completedValue: Completed }
+```
+
+`avatar` derives initials from names/email and uses `src` as an optional image. `infoLine` renders nothing for an empty value and only links allowlisted URL schemes. `progressBar` accepts direct `value`/`max` or derives counts from `items`; choose `count`/`percent` and `linear`/`circular` display modes.
+
 **Props:**
 | Prop | Type | Description |
 |------|------|-------------|
