@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Avatar Component",
+  "description": "Circular avatar with automatic two-letter initials. Sources are tried in priority order: src image, firstName + lastName, name, email, then a placeholder user icon.",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "avatar"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name identifier for the avatar"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "Image URL. Falls back to initials when empty or failed to load"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full display name, e.g. '{{ row.record.name }}'. 'Andre Kovac' → AK, 'Kovac, Andre' → AK, single word → first two letters"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "Explicit first name (organization user form). Takes priority over name"
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Explicit last name (organization user form). Takes priority over name"
+        },
+        "email": {
+          "type": "string",
+          "description": "Fallback when no name resolves: initials from the local part, digits dropped ('andre.kovac@…' → AK)"
+        },
+        "colorSeed": {
+          "oneOf": [{ "type": "string" }, { "type": "number" }],
+          "description": "Stable seed for the deterministic color, e.g. '{{ row.record.contactId }}'. Use an id, not the display name, so renames don't change the color. Defaults to the resolved text"
+        },
+        "color": {
+          "type": "string",
+          "enum": ["primary", "secondary", "error", "warning", "info", "success"],
+          "description": "Pin a theme color instead of the colorSeed hash"
+        },
+        "bgcolor": {
+          "type": "string",
+          "description": "Explicit CSS background color override"
+        },
+        "textColor": {
+          "type": "string",
+          "description": "Explicit CSS text color override"
+        },
+        "size": {
+          "oneOf": [{ "type": "number" }, { "type": "string" }],
+          "description": "Diameter in pixels, default 40"
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["circular", "rounded", "square"],
+          "description": "Shape, default circular"
+        },
+        "skin": {
+          "type": "string",
+          "enum": ["filled", "light", "light-static"],
+          "description": "Fill style: light (default) is a tinted background with a colored letter, filled is a solid theme color"
+        },
+        "tooltip": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "description": "Tooltip shown on hover"
+        },
+        "onClick": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute on click; when present the avatar is clickable"
+        },
+        "isHidden": {
+          "$ref": "../schemas.json#/definitions/templateExpression",
+          "description": "Conditionally hide the avatar"
+        },
+        "permission": {
+          "$ref": "../schemas.json#/definitions/permissions"
+        }
+      }
+    }
+  },
+  "required": ["component"],
+  "x-examples": [
+    {
+      "component": "avatar",
+      "name": "driverLaneAvatar",
+      "props": {
+        "name": "{{ row.record.name }}",
+        "colorSeed": "{{ row.record.contactId }}",
+        "size": 40
+      }
+    },
+    {
+      "component": "avatar",
+      "props": {
+        "firstName": "{{ item.user.firstName }}",
+        "lastName": "{{ item.user.lastName }}",
+        "email": "{{ item.user.email }}",
+        "colorSeed": "{{ item.user.id }}",
+        "tooltip": "{{ item.user.email }}",
+        "onClick": [
+          {
+            "dialog": {
+              "name": "updateOrganizationUserDialog",
+              "props": { "employeeContactId": "{{ item.employeeContactId }}" },
+              "component": { "component": "OrganizationUsers/UpdateOrganizationUser" }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
