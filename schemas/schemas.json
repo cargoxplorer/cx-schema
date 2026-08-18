@@ -727,7 +727,11 @@
 
       "timeline-grid": {
         "$ref": "components/timelineGrid.json"
-      }
+      },
+      "avatar": { "$ref": "components/avatar.json" },
+      "infoLine": { "$ref": "components/infoLine.json" },
+      "progressBar": { "$ref": "components/progressBar.json" },
+      "planner": { "$ref": "components/planner.json" }
     }
   }
 }

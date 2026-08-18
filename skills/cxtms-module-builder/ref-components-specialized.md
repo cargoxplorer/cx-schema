@@ -445,6 +445,26 @@ props:
 
 ---
 
+## planner
+
+Use `planner` when columns are ordinal positions within grouped resource rows, not time buckets. Items flow through extraction (`queries[].itemsPath`), grouping (`rows.groupBy`), stable sorting (`columns.orderBy`), and index-based placement.
+
+```yaml
+component: planner
+name: dispatchPlanner
+props:
+  queries:
+    - name: work
+      query: { command: 'query Work { work { items } }', path: work.items }
+    - name: resources
+      query: { command: 'query Resources { resources { items } }', path: resources.items }
+  rows: { groupBy: resourceId, fromQuery: resources, key: id, headerWidth: 240 }
+  columns: { orderBy: [{ field: sequence, direction: asc }], label: 'Move {{ index }}', width: 400 }
+  itemTemplate: { component: card }
+```
+
+Optional templates cover row headers, empty cells/state, and summaries. Events are `onItemClick`, `onCellClick`, `onRowClick`, and `onItemsLoaded`. Explicit row-header and column widths are required for alignment when rows virtualize.
+
 ## timeline-grid
 
 CSS Grid-based timeline with swim lanes, drill-down, and virtual scrolling.
