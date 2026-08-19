@@ -335,6 +335,36 @@ value: "{{ eval items.length > 0 }}"       # JavaScript expression
 isHidden: "{{ eval !canEdit }}"            # Conditional visibility
 ```
 
+**Eval must stay human-readable.** Inline form is only for trivial expressions — a single
+comparison, negation, or property check. Anything longer (ternaries, chained `&&`/`||`,
+method chains, or ~60+ characters) MUST be written as a multiline YAML block scalar:
+
+```yaml
+# Multiline eval — block scalar, one clause per line
+color: >-
+  {{ eval
+    item.status === 'delayed' ? '#e53e3e'
+    : item.priority === 'high' ? '#ffa726'
+    : '#4ecdc4'
+  }}
+isHidden: >-
+  {{ eval
+    !pickupForm.contactAddressId ||
+    !pickupForm.pickupDate
+  }}
+```
+
+Multiline eval rules:
+- **Always use `>-` (folded, strip)** — never `>`, `|`, or `|+`. Those keep a trailing
+  newline, so the value no longer ends with `}}` and the engine silently falls back to
+  string interpolation instead of evaluating the expression.
+- The block must contain exactly one `{{ eval ... }}` and nothing else — surrounding text
+  or a second `{{ }}` also switches the engine to string interpolation.
+- Block scalars need no YAML quoting or escaping — use natural JavaScript quotes
+  (`'` or `"`) inside the expression.
+- Put `{{ eval` on the first line, one clause per indented line, and `}}` on its own
+  closing line.
+
 ### Permissions
 ```yaml
 permission: "ModuleName/Read"                # Single string (PascalCase/Action)
@@ -471,7 +501,7 @@ npx cxtms app release -m "Add warehouse locations module" --org 42
    - Component names: Module/Component pattern (e.g., `WarehouseLocations/List`)
    - Route paths: kebab-case (e.g., `/warehouse-locations`)
    - Permission names: PascalCase with slashes (e.g., `WarehouseLocations/Read`, `System/Contacts/Update`)
-4. **Template expressions** use `{{ expression }}` syntax (double curly braces)
+4. **Template expressions** use `{{ expression }}` syntax (double curly braces); write non-trivial `eval` expressions as multiline block scalars (`>-`) — see Template expressions
 5. **Include filePath** property pointing to the YAML file location
 6. **Set proper entityKind** when defining entities (Order, Contact, OrderEntity, AccountingTransaction, Calendar, CalendarEvent, Other)
 7. **DataGrid options** requires ALL properties: query, rootEntityName, entityKeys, navigationType, enableDynamicGrid, enableViews, enableSearch, enablePagination, enableColumns, enableFilter, defaultView, onRowClick
