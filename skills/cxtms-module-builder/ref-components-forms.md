@@ -227,6 +227,7 @@ Data entry form with validation, queries, and submission. Wraps React Hook Form'
 | `queries` | `QueryDef[]` | GraphQL queries for data loading |
 | `prefix` | `string` | Field name namespace prefix |
 | `refreshHandler` | `string` | Remount on refresh event |
+| `reloadHandler` | `string` | Refetch target; falls back to `refreshHandler`, then form name |
 | `dirtyGuard` | `DirtyGuardProps` | Unsaved changes protection |
 | `dirtyGuard.enabled` | `boolean` | Enable guard |
 | `dirtyGuard.title` | `ILocalizeString` | Dialog title |
@@ -251,6 +252,10 @@ Data entry form with validation, queries, and submission. Wraps React Hook Form'
 | `onError` | Action chain on error |
 
 **Children:** Yes — typically `field` components. Provides `formName` and `createMode` in variables.
+
+Named forms expose `{{<formName>.dirty}}` in action templates. The value compares current fields with the last loaded `initialValues`, treats `null`, `undefined`, and `''` as equivalent empty values, and resets after reload. It is not available to component visibility or disabled templates.
+
+Use `- reload: orderForm` to refetch and replace a mounted form's `initialValues` without remounting its children. Reload discards unsaved edits; `refresh` keeps current values and only recomputes the component. Multiple reload targets are supported as an array. Dialog `onClose` actions can read values written inside the dialog as well as the caller store, allowing reloads to be conditional.
 
 ```yaml
 component: form

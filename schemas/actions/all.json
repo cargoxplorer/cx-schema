@@ -7,6 +7,7 @@
     { "$ref": "navigateBack.json" },
     { "$ref": "navigateBackOrClose.json" },
     { "$ref": "refresh.json" },
+    { "$ref": "reload.json" },
     { "$ref": "notification.json" },
     { "$ref": "confirm.json" },
     { "$ref": "mutation.json" },
