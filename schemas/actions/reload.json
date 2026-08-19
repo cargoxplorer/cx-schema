@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "reload Action",
+  "type": "object",
+  "properties": {
+    "reload": {
+      "description": "Refetches and replaces one or more forms from their initialValues source",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      ],
+      "x-examples": ["orderForm", ["orderForm", "orderLinesForm"]]
+    }
+  },
+  "required": ["reload"],
+  "additionalProperties": false
+}

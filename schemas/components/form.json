@@ -159,6 +159,10 @@
           "type": "boolean",
           "description": "Reset form values after successful submission"
         },
+        "reloadHandler": {
+          "type": "string",
+          "description": "Handler targeted by reload actions; falls back to refreshHandler, then the form name"
+        },
         "dirtyGuard": {
           "type": "object",
           "description": "Configuration for unsaved changes warning dialog",

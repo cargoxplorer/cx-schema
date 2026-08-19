@@ -277,6 +277,7 @@ onClick:
   - navigateBack: { fallback: "/home" }                    # Go back in history
   - navigateBackOrClose: { fallback: "/home" }             # Go back or close dialog
   - refresh: "componentName"                               # Refresh a component
+  - reload: "formName"                                    # Refetch and replace a form's initial values
   - notification: { message: { en-US: "Saved!" }, type: success }  # success|error|warning|info
   - confirm: { title: { en-US: "Delete?" }, message: { en-US: "Are you sure?" } }
   - mutation:
