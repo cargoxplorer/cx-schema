@@ -167,6 +167,13 @@ Vertical-specific routing details belong in `customValues`.
 `statusName`, `statusDescription`, `statusStage`, `priority`, `color`, and `customValues`.
 Moves support `OrderMove/Create@1`, `OrderMove/Update@1`, and `OrderMove/Delete@1` workflow tasks.
 
+Order creation may include `orderMoves`; the new order supplies their `orderId`, moves default
+to array-position sequence, and nested legs receive 1-based array-order sequences.
+`Order/Import@1` also accepts moves and nested legs. Existing records match by ID, then by
+`ImportOrderOptions.OrderMoveMatchByFields` / `OrderMoveLegMatchByFields` (dotted
+`customValues` paths are supported), and finally by sequence or array position. New records
+are appended and omitted existing records are not deleted.
+
 ## GraphQL Notes
 
 - Queries: `dispatchRouteStatus`, `dispatchRouteStatuses`, `dispatchRouteStopStatus`, `dispatchRouteStopStatuses`, `dispatchRouteTemplate`, `dispatchRouteTemplates`, `dispatchRoute`, `dispatchRoutes`.
