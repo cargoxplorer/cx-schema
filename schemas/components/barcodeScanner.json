@@ -16,7 +16,35 @@
       "properties": {
         "minBarcodeLength": {
           "type": "integer",
+          "minimum": 1,
           "description": "Minimum length for recognized barcodes"
+        },
+        "deduplicate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Suppress repeated reads of the same barcode"
+        },
+        "scanDelayMs": {
+          "type": "number",
+          "minimum": 0,
+          "default": 1000,
+          "description": "Per-code deduplication window in milliseconds"
+        },
+        "minScanIntervalMs": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0,
+          "description": "Minimum interval in milliseconds between accepted scans"
+        },
+        "continuous": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow more than one accepted scan"
+        },
+        "maxBarcodes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of accepted scans in continuous mode"
         },
         "onScan": {
           "$ref": "../schemas.json#/definitions/actionsList",
