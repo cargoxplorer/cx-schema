@@ -708,9 +708,15 @@ Headless barcode/keyboard scanner listener. Captures rapid keystrokes and fires 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `minBarcodeLength` | `number` | `4` | Min chars to qualify as scan |
+| `deduplicate` | `boolean` | `true` | Mobile: suppress repeat reads per barcode |
+| `scanDelayMs` | `number` | `1000` | Mobile: per-code dedup window in milliseconds |
+| `minScanIntervalMs` | `number` | `0` | Mobile: minimum time between accepted scans; `0` disables |
+| `continuous` | `boolean` | `true` | Mobile: accept more than one scan |
+| `maxBarcodes` | `number` | — | Mobile: maximum accepted scans in continuous mode |
 | `onScan` | `action[]` | — | **Required.** Action on scan detection |
 
-**Renders:** Nothing (empty fragment). Listens on `document` keypress.
+**Renders:** Nothing (empty fragment). Web listens on `document` keypress. Mobile supports
+native HID scanners with a hidden-input fallback and shares camera-scanner deduplication rules.
 
 **Scan data:** `result: { data: string, format: 'input' }`
 
