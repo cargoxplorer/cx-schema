@@ -81,7 +81,7 @@ MUI Button with icon, label, loading state, and action dispatch.
     icon: check-circle
     options:
       variant: success
-      disabled: "{{ eval status !== 'Pending' }}"
+      disabled: "{{ !isEqual status 'Pending' }}"
     onClick:
       - mutation:
           command: "mutation($id: Int!) { approveOrder(id: $id) { success } }"
@@ -129,7 +129,7 @@ props:
         - dialog:
             component: Module/ImportDialog
     - label: { en-US: "Archive All" }
-      disabled: "{{ eval selectedItems.length === 0 }}"
+      disabled: "{{ !any selectedItems }}"
       onClick:
         - confirm: { title: { en-US: "Archive?" }, message: { en-US: "Archive selected items?" } }
 ```
@@ -214,7 +214,7 @@ Programmatic navigation — renders nothing (or spinner with delay).
 component: redirect
 name: createRedirect
 props:
-  condition: "{{ eval !id }}"
+  condition: "{{ !id }}"
   path: "/orders/create"
 
 # External redirect with delay
