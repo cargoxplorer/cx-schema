@@ -207,7 +207,7 @@
         },
         "columns": {
           "type": "object",
-          "description": "Column model: ordinal slots. Column count = size of the largest group; horizontal scroll, no cap.",
+          "description": "Column model: ordinal slots. Column count = size of the largest group (+1 with appendEmpty); horizontal scroll, no cap.",
           "properties": {
             "orderBy": {
               "$ref": "#/definitions/orderBy",
@@ -222,6 +222,11 @@
             "width": {
               "type": "number",
               "description": "Column width in px. Required: every virtualised row applies the same explicit gridTemplateColumns."
+            },
+            "appendEmpty": {
+              "type": "boolean",
+              "default": false,
+              "description": "Always append one empty trailing slot: column count = largest group + 1 (1 when there are no items), so every lane keeps an empty cell for emptyCellTemplate / add-move affordances."
             }
           },
           "required": ["width"]
