@@ -288,7 +288,7 @@ Polymorphic form field — renders different input types based on `type` prop.
     type: textarea
     label: { en-US: "Notes" }
     rows: 4
-    disabled: "{{ eval !canEdit }}"
+    disabled: "{{ !canEdit }}"
 ```
 
 ---

@@ -208,7 +208,7 @@ props:
           - navigate: "orders/{{ item.id }}"
       - label: "Delete"
         icon: trash
-        disabled: "{{ eval item.status === 'Completed' }}"
+        disabled: "{{ isEqual item.status 'Completed' }}"
         onClick:
           - confirm: { title: { en-US: "Delete?" } }
   onClick:

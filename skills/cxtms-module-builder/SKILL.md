@@ -331,13 +331,59 @@ displayName:
 value: "{{ fieldName }}"                    # Simple variable
 value: "{{ format date L }}"               # Format helper
 value: "{{ number quantity }}"             # Type cast
-value: "{{ eval items.length > 0 }}"       # JavaScript expression
-isHidden: "{{ eval !canEdit }}"            # Conditional visibility
+isHidden: "{{ !canEdit }}"                 # Negation — no eval needed
+value: "{{ eval items.map(x => x.id) }}"   # JavaScript eval — last resort
 ```
 
-**Eval must stay human-readable.** Inline form is only for trivial expressions — a single
-comparison, negation, or property check. Anything longer (ternaries, chained `&&`/`||`,
-method chains, or ~60+ characters) MUST be written as a multiline YAML block scalar:
+**Prefer built-in template functions over `eval`.** The engine ships named functions for
+the common cases — use them first. Reach for `eval` only when nothing below fits
+(array `.map()`/`.filter()`, arithmetic, template literals, object building, ternaries).
+
+| Function | Example | Notes |
+|----------|---------|-------|
+| `number` / `number!` | `{{ number quantity }}` | Cast to number; `number!` returns `0` for null |
+| `string` / `boolean` | `{{ boolean isActive }}` | Cast; `boolean` treats string `'true'` as true |
+| `nullIfEmpty` | `{{ nullIfEmpty notes }}` | `''`, `0`, undefined → null |
+| `luceneString` | `{{ luceneString search }}` | Escape for Lucene filter strings |
+| `isEqual` | `{{ isEqual status 'Pending' }}` | Deep equality; numeric strings coerced |
+| `isTrue` | `{{ isTrue customValues.flag }}` | `true`, `'true'`, or truthy |
+| `isNullOrEmpty` | `{{ isNullOrEmpty orderNumber }}` | null, undefined, `''`, or empty array |
+| `any` | `{{ any selectedItems }}` | Array/string has at least one element |
+| `moreThan` / `lessThan` | `{{ moreThan totalAmount 100 }}` | Numbers by value; arrays/strings by length |
+| `startsWith` / `endsWith` | `{{ startsWith trackingNumber 'TRK' }}` | String prefix/suffix check |
+| `includes` / `contains` | `{{ includes description 'rush' }}` | Substring check (aliases) |
+| `trim` | `{{ trim name }}` | Trim whitespace |
+| `round` | `{{ round totalAmount 2 }}` | `toFixed(n)` returned as number |
+| `encodeURIComponent` | `{{ encodeURIComponent returnUrl }}` | URL-encode |
+| `format` | `{{ format createdDate L }}` | moment format (`L`, `MM/DD/YYYY`, `fromNow`, …) |
+| `formatTz` | `{{ formatTz pickupDate 'MM/DD h:mm A' 'America/New_York' }}` | Format UTC value in a timezone |
+| `dateDiff` | `{{ dateDiff dueDate startDate }}` | Whole days, first minus second |
+| `daysBetween` | `{{ daysBetween pickupDate deliveryDate }}` | Absolute day difference |
+| `daysUntil` / `daysAgo` | `{{ daysUntil dueDate }}` | Days between now and the date |
+| `isDateBefore` / `isDateAfter` | `{{ isDateBefore pickupDate deliveryDate }}` | Date comparison |
+| `hasPermission` | `{{ hasPermission Orders/Update }}` | Current user permission check |
+| `fromConfig` | `{{ fromConfig apps.myFeature key }}` | Organization config lookup |
+| `localStorage` / `sessionStorage` | `{{ localStorage recentSearch }}` | Browser storage read |
+| `parse` | `{{ parse configs.labelTemplate }}` | Re-parse a template stored in a variable |
+
+Combinators — also no `eval` needed:
+- `!` / `!!` prefix negates / booleanizes any path or function: `{{ !isEqual status 'Pending' }}`, `{{ !!order.notes }}`
+- `||` / `&&` combine paths and comparisons: `{{ orderId || quoteId }}`, `{{ !pickupForm.contactAddressId || !pickupForm.pickupDate }}`
+- `?.` optional chaining inside paths: `{{ order?.customer?.name }}`
+- Quoted arguments are string literals; parenthesized arguments evaluate as nested expressions
+
+```yaml
+# ❌ eval where a built-in exists
+disabled: "{{ eval status !== 'Pending' }}"
+isHidden: "{{ eval selectedItems.length === 0 }}"
+# ✅ built-in equivalents
+disabled: "{{ !isEqual status 'Pending' }}"
+isHidden: "{{ !any selectedItems }}"
+```
+
+**When `eval` is genuinely needed, keep it human-readable.** Inline form is only for
+trivial expressions. Anything longer (ternaries, method chains, or ~60+ characters)
+MUST be written as a multiline YAML block scalar:
 
 ```yaml
 # Multiline eval — block scalar, one clause per line
@@ -347,10 +393,11 @@ color: >-
     : item.priority === 'high' ? '#ffa726'
     : '#4ecdc4'
   }}
-isHidden: >-
+label: >-
   {{ eval
-    !pickupForm.contactAddressId ||
-    !pickupForm.pickupDate
+    attachments.items
+      .map(x => x.fileName)
+      .join(', ')
   }}
 ```
 
@@ -501,7 +548,7 @@ npx cxtms app release -m "Add warehouse locations module" --org 42
    - Component names: Module/Component pattern (e.g., `WarehouseLocations/List`)
    - Route paths: kebab-case (e.g., `/warehouse-locations`)
    - Permission names: PascalCase with slashes (e.g., `WarehouseLocations/Read`, `System/Contacts/Update`)
-4. **Template expressions** use `{{ expression }}` syntax (double curly braces); write non-trivial `eval` expressions as multiline block scalars (`>-`) — see Template expressions
+4. **Template expressions** use `{{ expression }}` syntax (double curly braces); prefer built-in functions (`isEqual`, `any`, `isNullOrEmpty`, `format`, …) over `eval`, and write non-trivial `eval` expressions as multiline block scalars (`>-`) — see Template expressions
 5. **Include filePath** property pointing to the YAML file location
 6. **Set proper entityKind** when defining entities (Order, Contact, OrderEntity, AccountingTransaction, Calendar, CalendarEvent, Other)
 7. **DataGrid options** requires ALL properties: query, rootEntityName, entityKeys, navigationType, enableDynamicGrid, enableViews, enableSearch, enablePagination, enableColumns, enableFilter, defaultView, onRowClick
