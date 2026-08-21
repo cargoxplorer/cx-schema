@@ -330,6 +330,8 @@ Data-driven widget that delegates to sub-components by type.
 
 ## timeline
 
+The mobile renderer supports the shared normal and tracking contracts. In normal mode, `activeTemplate` can override `eventTemplate` for events mapped with `status: active`; both templates receive the event as `item`. Mobile renders horizontal timelines as a scrolling row and does not visually implement `alternateSides` or `showTodayMarker`. Query-backed sources can use static `events` as a failure fallback.
+
 MUI Lab Timeline for chronological events or milestone-based tracking progress.
 
 **Modes:**

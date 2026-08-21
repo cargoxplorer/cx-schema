@@ -489,7 +489,7 @@ Use these template-aware display components for compact entity cards and planner
   props: { items: '{{ row.items }}', completedPath: status, completedValue: Completed }
 ```
 
-`avatar` derives initials from names/email and uses `src` as an optional image. `infoLine` renders nothing for an empty value and only links allowlisted URL schemes. `progressBar` accepts direct `value`/`max` or derives counts from `items`; choose `count`/`percent` and `linear`/`circular` display modes.
+`avatar` derives initials from names/email and uses `src` as an optional image. `infoLine` renders nothing for an empty value and only links allowlisted URL schemes. `progressBar` accepts direct `value`/`max` or derives counts from `items`; choose `count`/`percent` and `linear`/`circular`/`segmented` display modes. On mobile, `activeColor` and `trackColor` customize segmented progress; `tooltip` is exposed to assistive technology rather than hover UI.
 
 **Props:**
 | Prop | Type | Description |
