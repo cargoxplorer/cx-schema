@@ -111,6 +111,10 @@
           "$ref": "../schemas.json#/definitions/component",
           "description": "Component used to render each event in normal mode; receives 'item' bound to mapped fields"
         },
+        "activeTemplate": {
+          "$ref": "../schemas.json#/definitions/component",
+          "description": "Mobile-only component used for normal-mode events whose mapped status is 'active'; receives 'item' bound to the event"
+        },
         "eventSources": {
           "type": "array",
           "description": "Data providers executed for the current visible range or tracking milestone source",
@@ -190,7 +194,7 @@
         "description": { "type": "string" },
         "includeInTracking": { "description": "Source flag available to mapping/templates. The timeline component does not filter by this field." },
         "isInactive": { "description": "Source flag available to mapping/templates. The timeline component does not filter by this field." },
-        "status": { "type": "string", "enum": ["completed", "pending", "extra"] },
+        "status": { "type": "string", "enum": ["active", "completed", "pending", "extra"] },
         "backgroundColor": { "type": "string" },
         "textColor": { "type": "string" },
         "borderColor": { "type": "string" },
