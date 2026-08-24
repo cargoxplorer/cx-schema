@@ -17,7 +17,7 @@
     },
     "props": {
       "type": "object",
-      "required": ["label", "options"],
+      "required": ["label"],
       "properties": {
         "label": {
           "type": ["string", "object"],
@@ -29,32 +29,21 @@
           "description": "Optional color lookup key. Template-parsed with store values, component variables, and form values. Defaults to the normalized label.",
           "x-example": "{{ statusCode }}"
         },
+        "color": { "type": ["string", "object"], "description": "Template-parsed seed color, normally an organization-defined hex." },
+        "variant": { "type": ["string", "object"], "description": "Semantic badge variant." },
+        "size": { "type": "string", "enum": ["xs", "sm", "md"], "default": "sm" },
+        "appearance": { "type": "string", "enum": ["soft", "outline", "solid", "ghost"], "default": "soft" },
+        "uppercase": { "type": "boolean", "default": false },
+        "dot": { "type": "boolean", "default": false },
+        "icon": { "type": "string" },
+        "maxWidth": { "type": ["number", "string"] },
         "options": {
           "type": "object",
-          "required": ["colors"],
           "properties": {
             "colors": {
               "type": "object",
               "description": "Map of color keys to text/background/dot colors. Include a default entry for fallback rendering.",
-              "additionalProperties": {
-                "type": "object",
-                "required": ["label", "bgcolor", "dot"],
-                "properties": {
-                  "label": {
-                    "type": "string",
-                    "description": "Text color"
-                  },
-                  "bgcolor": {
-                    "type": "string",
-                    "description": "Chip background color"
-                  },
-                  "dot": {
-                    "type": "string",
-                    "description": "Leading dot color"
-                  }
-                },
-                "additionalProperties": true
-              }
+              "additionalProperties": { "oneOf": [{ "type": "string" }, { "type": "object", "additionalProperties": true }] }
             }
           },
           "additionalProperties": true
