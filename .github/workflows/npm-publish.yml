@@ -11,7 +11,7 @@ jobs:
 
     permissions:
       contents: read
-      id-token: write  # Required for npm provenance
+      id-token: write  # Required for npm trusted publishing (OIDC) and provenance
 
     steps:
       - name: Checkout code
@@ -20,8 +20,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: '24'
+
+      # Auth via npm trusted publishing (OIDC) — no NPM_TOKEN secret. The token-based
+      # publish had been failing with EOTP (2FA one-time password) since May 2026.
+      # Requires npm >= 11.5.1 and a trusted publisher configured on npmjs.com for
+      # BOTH packages (@cxtms/cx-schema and cxtms): repo cargoxplorer/cx-schema,
+      # workflow npm-publish.yml.
+      - name: Update npm (trusted publishing requires >= 11.5.1)
+        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: npm ci
@@ -31,13 +38,9 @@ jobs:
 
       - name: Publish @cxtms/cx-schema to npm
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Rename package to cxtms
         run: npm pkg set name=cxtms
 
       - name: Publish cxtms to npm
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
