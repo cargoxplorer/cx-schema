@@ -20,12 +20,49 @@ import { computeExtractPriority } from './extractUtils';
 
 const pkg = require('../package.json');
 
-function checkForUpdates(): void {
+function isNewerVersion(latest: string, current: string): boolean {
+  const a = latest.split('.').map(n => parseInt(n, 10));
+  const b = current.split('.').map(n => parseInt(n, 10));
+  for (let i = 0; i < 3; i++) {
+    const diff = (a[i] || 0) - (b[i] || 0);
+    if (diff !== 0) return diff > 0;
+  }
+  return false;
+}
+
+function checkForUpdates(command: string | null | undefined): void {
   try {
-    updateNotifier({
+    const notifier = updateNotifier({
       pkg,
-      updateCheckInterval: 1000 * 60 * 60 * 24,
-    }).notify({ isGlobal: true });
+      updateCheckInterval: 1000 * 60 * 60 * 2, // ask the npm registry at most once every 2 hours
+    });
+
+    const update = notifier.update;
+    if (!update || !isNewerVersion(update.latest, update.current)) return;
+
+    // Auto-update only in an interactive terminal, outside CI, when cxtms is
+    // installed locally in cwd, and not while already running `update`.
+    const localInstall = path.join(process.cwd(), 'node_modules', 'cxtms', 'package.json');
+    const autoUpdateAllowed =
+      command !== 'update' &&
+      process.stdout.isTTY === true &&
+      !process.env.CI &&
+      !process.env.CXTMS_NO_AUTO_UPDATE &&
+      fs.existsSync(localInstall);
+
+    if (autoUpdateAllowed) {
+      console.log(chalk.cyan(`\ncxtms ${update.current} → ${update.latest} available — auto-updating...`));
+      if (runUpdate()) {
+        console.log(chalk.gray('The new version applies from the next run; continuing with the current command.\n'));
+      } else {
+        console.log(chalk.yellow('Auto-update failed — continuing with the current version.\n'));
+      }
+      return;
+    }
+
+    notifier.notify({
+      message: `Update available ${chalk.dim(update.current)} → ${chalk.green(update.latest)}\nRun ${chalk.cyan('npx cxtms update')} to update`,
+    });
   } catch {
     // Update check must never break the CLI.
   }
@@ -1675,7 +1712,7 @@ function runInstallSkills(): void {
 // Update Command
 // ============================================================================
 
-function runUpdate(): void {
+function runUpdate(): boolean {
   console.log(chalk.bold.cyan('\n╔═══════════════════════════════════════════════════════════════════╗'));
   console.log(chalk.bold.cyan('║                        UPDATE cxtms                               ║'));
   console.log(chalk.bold.cyan('╚═══════════════════════════════════════════════════════════════════╝\n'));
@@ -1693,7 +1730,7 @@ function runUpdate(): void {
     } catch (error: any) {
       console.error(chalk.red('\nError: Failed to uninstall @cxtms/cx-schema'));
       console.error(chalk.gray(error.message));
-      process.exit(1);
+      return false;
     }
   }
 
@@ -1717,12 +1754,13 @@ function runUpdate(): void {
   } catch (error: any) {
     console.error(chalk.red('\nError: Failed to update cxtms'));
     console.error(chalk.gray(error.message));
-    process.exit(1);
+    return false;
   }
 
   // Reinstall skills and update CLAUDE.md (postinstall handles schemas)
   runInstallSkills();
   runSetupClaude();
+  return true;
 }
 
 // ============================================================================
@@ -4986,9 +5024,9 @@ async function validateFile(
 // ============================================================================
 
 async function main() {
-  checkForUpdates();
   const args = process.argv.slice(2);
   const { command, files, options } = parseArgs(args);
+  checkForUpdates(command);
   checkSkillsInstalled(command);
 
   // Handle help
@@ -5209,8 +5247,7 @@ async function main() {
 
   // Handle update command
   if (command === 'update') {
-    runUpdate();
-    process.exit(0);
+    process.exit(runUpdate() ? 0 : 1);
   }
 
   // Handle setup-claude command
