@@ -9,6 +9,10 @@
 
 ## dataGrid export identity keys
 
+Saved views reconcile automatically with newer entity-field schemas before their first data load. Removed fields and filters are dropped, nested reference columns are resolved, and YAML-declared computed columns are preserved.
+
+`rowStyles.conditions` accepts a semantic `variant` or template-resolved hex `color` for theme-aware row and hover tints. Matching conditions apply in order; the last value wins.
+
 DataGrid table views support `includeEntityKeysInExport` on each view. It defaults to `true` and forces entity key/primary key fields into exports so rows can be matched by ID on re-import. Set it to `false` only when exports must omit internal IDs.
 
 On phone layouts, DataGrid pagination already reduces inline padding and the page-size select width below the MUI `sm` breakpoint. When placing grids in dialogs or cards, avoid adding extra horizontal padding around the grid unless it is required by the surrounding design.

@@ -474,7 +474,7 @@ props:
 
 ## badge
 
-Colored chip/badge with dot indicator.
+Compact theme-aware badge. Prefer semantic variants for new modules; the dot is opt-in.
 
 ## avatar, infoLine, and progressBar
 
@@ -496,7 +496,11 @@ Use these template-aware display components for compact entity cards and planner
 |------|------|-------------|
 | `label` | `string` | Badge text (template-parsed with store, component variables, and form values) |
 | `colorKey` | `string` | Color lookup key (template-parsed with store, component variables, and form values; defaults to lowercased label) |
-| `options.colors` | `Record<string, {label, bgcolor, dot}>` | Color map (must include `default`) |
+| `color` / `variant` | `string` | Seed hex or semantic variant (`danger`, `warning`, `info`, `success`, `primary`, `neutral`) |
+| `size` / `appearance` | `string` | `xs|sm|md`; `soft|outline|solid|ghost` |
+| `uppercase`, `dot` | `boolean` | Both default to `false` |
+| `icon`, `maxWidth` | `string`, `string \| number` | Optional icon and ellipsis width |
+| `options.colors` | `Record<string, string \| object>` | Optional variants, hexes, token objects, or legacy triples |
 | `onClick` | `Action[]` | Actions to dispatch when the badge is clicked. Makes the badge interactive (pointer cursor). |
 
 ```yaml

@@ -467,6 +467,8 @@ props:
 
 Optional templates cover row headers, empty cells/state, and summaries. Events are `onItemClick`, `onCellClick`, `onRowClick`, and `onItemsLoaded`. Explicit row-header and column widths are required for alignment when rows virtualize.
 
+`dotsMenu.items` adds dataGrid-style card actions. Items support `label`, `permission`, templated `disabled`, and `onClick`; actions receive the full item context without also triggering `onItemClick`.
+
 Set `columns.appendEmpty: true` to render one trailing empty ordinal slot beyond the largest group, ensuring every lane has an append target.
 
 ## timeline-grid
