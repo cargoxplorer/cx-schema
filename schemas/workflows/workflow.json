@@ -67,8 +67,8 @@
         },
         "workflowType": {
           "type": "string",
-          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi"],
-          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), or PublicApi (REST API endpoint). Omit for standard process workflows."
+          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi", "McpTool", "McpResource", "McpPrompt"],
+          "description": "Workflow type, including organization-scoped MCP tools, resources, and prompts. Omit for standard process workflows."
         },
         "runAs": {
           "type": "string",
@@ -266,6 +266,19 @@
       "required": ["path", "method"],
       "additionalProperties": true
     },
+    "mcp": {
+      "type": "object",
+      "description": "MCP metadata for McpTool, McpResource, and McpPrompt workflows",
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-zA-Z0-9_-]{1,64}$" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "uri": { "type": "string", "format": "uri" },
+        "mimeType": { "type": "string" },
+        "timeout": { "type": "integer", "minimum": 0, "default": 60 }
+      },
+      "additionalProperties": false
+    },
     "entity": {
       "$ref": "flow/entity.json",
       "description": "Entity configuration for Flow workflows"
@@ -328,6 +341,30 @@
       },
       "then": {
         "required": ["workflow", "activities", "api"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "workflow": { "properties": { "workflowType": { "enum": ["McpTool", "McpPrompt"] } }, "required": ["workflowType"] } }
+      },
+      "then": {
+        "required": ["workflow", "activities", "mcp"],
+        "properties": {
+          "mcp": { "required": ["name"] },
+          "workflow": { "properties": { "executionMode": { "const": "Sync" } } }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "workflow": { "properties": { "workflowType": { "const": "McpResource" } }, "required": ["workflowType"] } }
+      },
+      "then": {
+        "required": ["workflow", "activities", "mcp"],
+        "properties": {
+          "mcp": { "required": ["uri"] },
+          "workflow": { "properties": { "executionMode": { "const": "Sync" } } }
+        }
       }
     }
   ],

@@ -17,7 +17,9 @@
         "Attachment",
         "OrderCommodity",
         "TrackingEvent",
-        "JobOrder"
+        "JobOrder",
+        "OrderMove",
+        "DispatchRoute"
       ],
       "description": "The entity name whose lifecycle this flow manages"
     },

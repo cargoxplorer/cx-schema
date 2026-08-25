@@ -42,7 +42,9 @@ aggregations: [...]                         # Optional
 Specifies which entity's lifecycle this flow manages.
 
 ### Valid Entity Names
-Order, Commodity, AccountingTransaction, Workflow, OrganizationConfig, Contact, AppModule, Attachment, OrderCommodity, TrackingEvent, JobOrder
+Order, Commodity, AccountingTransaction, Workflow, OrganizationConfig, Contact, AppModule, Attachment, OrderCommodity, TrackingEvent, JobOrder, OrderMove, DispatchRoute
+
+`OrderMove` and `DispatchRoute` flows resolve target statuses by name within the current organization. A transition updates `OrderMoveStatusId` or `DispatchRouteStatusId`; assigning the current status is a no-op.
 
 ### Entity Types (required for specific entities)
 
