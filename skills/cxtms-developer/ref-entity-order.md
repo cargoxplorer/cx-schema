@@ -118,6 +118,8 @@ These are virtual fields that filter `orderEntities` by type:
 | `getModeOfTransportation(idPropertyName)` | `ModeOfTransportation` | |
 | `getCustomCode(idPropertyName)` | `CustomCode` | |
 | `getRelatedOrderByProperty(idPropertyName)` | `Order` | Resolve related order from `customValues[idPropertyName]` |
+| `relatedOrdersV3(filter?, orderBy?)` | `[Order]` | Related orders resolved through `fn_order_related_orders`; scoped to the current organization |
+| `relatedOrderV3(filter?, orderBy?)` | `Order` | First V3 related order after filtering and sorting |
 | `relatedDispatchRoutes(filter, orderBy)` | `[DispatchRoute]` | Routes linked through dispatch route stop order attachments; draft orders return an empty list |
 | `getCharge(chargeDescription)` | `Charge` | Single charge by description |
 | `getChargesByChargeType(chargeType)` | `[Charge]` | Charges filtered by type |
