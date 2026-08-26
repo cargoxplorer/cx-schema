@@ -98,6 +98,7 @@ Dispatch routing covers reusable weekly route templates, daily dispatch routes, 
 |-------|------|-------|
 | `dispatchRouteStopId` | `int` | PK |
 | `dispatchRouteId` | `int` | Parent route |
+| `dispatchRoute` | `DispatchRoute?` | Expandable parent route; available in GraphQL and trigger payload mapping |
 | `stopContactId` | `int?` | Store/location contact (nullable; use with or without `contactAddressId`) |
 | `contactAddressId` | `int?` | Optional stop address |
 | `stopType` | `DispatchRouteType` | Defaults to route route type when omitted |
@@ -162,6 +163,11 @@ Vertical-specific routing details belong in `customValues`.
 | `endDate` | `DateTime?` | UTC end |
 | `customValues` | `Dictionary` | Location, event, appointment, and metric data |
 | `trackingEvents` | `[TrackingEvent]` | Leg-level milestones |
+
+Entity-trigger payloads load the status navigation before mapping when necessary. This
+means `OrderMoveLeg` trigger conditions can rely on the current leg status name after an
+FK-only change, and `DispatchRouteStop` trigger conditions can rely on the current stop
+status and parent route.
 
 `OrderMoveStatus` and `OrderMoveLegStatus` are organization-scoped status dictionaries with
 `statusName`, `statusDescription`, `statusStage`, `priority`, `color`, and `customValues`.

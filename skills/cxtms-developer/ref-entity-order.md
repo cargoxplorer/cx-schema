@@ -75,6 +75,7 @@ Order GraphQL quick search (`orders(search:)` and `orderGroupBy(search:)`) match
 | `dispatchRouteStopOrders` | `[DispatchRouteStopOrder]` | Stop membership links for this order; expand `dispatchRouteStop` to inspect route, stop status, or stop tracking events |
 | `allTags` | `[OrderAllTagsView]` | View: all tags including from commodities |
 | `allRelatedOrders` | `[OrderRelatedOrdersView]` | Orders sharing commodities |
+| `relatedOrdersV3` | `[OrderRelatedOrdersV3View]` | Filter/sort navigation backed by the non-recursive V3 view; use paths such as `relatedOrdersV3[relatedOrder.orderType:BookingOrder].relatedOrder.trackingNumber` |
 | `relatedDispatchRoutes` | `[DispatchRoute]` | Routes linked through dispatch route stop order attachments; supports `filter` and `orderBy`; draft orders return an empty list |
 | `attachmentsSummary` | `OrderAttachmentSummaryView?` | DB view: `.totalCount`, `.hasAny` (active attachments) |
 | `notesSummary` | `OrderNoteSummaryView?` | DB view: `.totalCount`, `.hasAny` (non-deleted notes) |
@@ -118,7 +119,7 @@ These are virtual fields that filter `orderEntities` by type:
 | `getModeOfTransportation(idPropertyName)` | `ModeOfTransportation` | |
 | `getCustomCode(idPropertyName)` | `CustomCode` | |
 | `getRelatedOrderByProperty(idPropertyName)` | `Order` | Resolve related order from `customValues[idPropertyName]` |
-| `relatedOrdersV3(filter?, orderBy?)` | `[Order]` | Related orders resolved through `fn_order_related_orders`; scoped to the current organization |
+| `relatedOrdersV3(filter?, orderBy?)` | `[Order]` | Related orders resolved through `fn_order_related_orders`; scoped to the current organization. Order-list filter/sort paths use the same-named entity navigation backed by `vw_order_related_orders_v3` (maximum three container levels). |
 | `relatedOrderV3(filter?, orderBy?)` | `Order` | First V3 related order after filtering and sorting |
 | `relatedDispatchRoutes(filter, orderBy)` | `[DispatchRoute]` | Routes linked through dispatch route stop order attachments; draft orders return an empty list |
 | `getCharge(chargeDescription)` | `Charge` | Single charge by description |
