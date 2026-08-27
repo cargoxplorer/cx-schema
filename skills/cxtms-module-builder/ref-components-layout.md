@@ -426,6 +426,11 @@ props:
 
 Tabbed interface with MUI TabContext. Tab state stored in URL params.
 
+Tabs may contain a `slot` child as an extension point. The web renderer replaces that child
+in place with the registered extension layouts, ordered by `props.order`. Each extension
+layout must be a `tab`; the slot does not render as an empty tab. Template expressions in
+the slot name are resolved from component variables and store values before lookup.
+
 **Props:**
 | Prop | Type | Description |
 |------|------|-------------|
