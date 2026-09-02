@@ -45,6 +45,7 @@ npx cxtms create workflow <name> --template <template>
 | `api-tracking` | Fetch tracking from carrier API |
 | `webhook` | HTTP endpoint for external callers |
 | `public-api` | REST API endpoint with OpenAPI docs |
+| `mcp-tool` | Synchronous tool exposed through the organization MCP server |
 
 ### Step 2: Read the generated file
 
@@ -69,6 +70,8 @@ npx cxtms create workflow <name> --template <template>
 **`webhook`** — endpoint: `POST /api/v2/orgs/{organizationId}/webhooks/{workflowId}`. The endpoint is anonymous (`[AllowAnonymous]`) and rate-limited (10/sec, 100/min per IP). Two inputs are auto-injected by the controller: `payload` (parsed JSON body or raw string) and `request` (object with `headers`, `body`, `remoteIpAddress`). Control the HTTP response via `response` and `statusCode` outputs. Update `webhookSecret` configName to your app config path. Customize the `ValidateWebhook` step for your auth method (header secret, HMAC signature, etc.). Use `executionMode: Sync` when the caller needs a response; use `Async` for fire-and-forget (returns immediately). Keep `runAs: "system"` since the endpoint is anonymous. Add `additionalProperties.cors.allowedOrigins` to restrict CORS if needed.
 
 **`public-api`** — requires a top-level `api` section defining the REST endpoint. Set `api.path` with route params (e.g., `/orders/{orderId}`), `api.method` (GET/POST/PUT/PATCH/DELETE), `api.authentication` (`none`, `bearer`, `apiKey`), `api.document` (swagger doc name, default `"public"`), and `api.category` (swagger tag). Configure `api.rateLimit` with `perSecond`/`perMinute`. Each input uses `props.in` (`path`, `query`, `header`, `body`) to specify where the parameter comes from, and `props.format` for OpenAPI type hints (e.g., `uuid`, `date-time`). Body inputs may define `props.schema` with recursive OpenAPI schema fields (`type`, `properties`, `required`, `items`, `format`, `description`, `enum`); body inputs without a schema render as an object request body. Prefer `api.responses` for response documentation. Legacy `response` outputs can still use `props.type`, `props.description`, and recursive `props.schema` to describe the single `200` response. Must use `executionMode: Sync`. Control HTTP response via `response` and `statusCode` outputs.
+
+**`mcp-tool`** — scaffolds a synchronous `McpTool` workflow. MCP resources use `workflowType: McpResource` and require `mcp.uri`. The resource URI must be absolute and spell out its scheme (for example, `tms://docs/shipping-terms`); relative and filesystem-style paths are invalid on every operating system. MCP tools and prompts use `mcp.name`, which must match `^[a-zA-Z0-9_-]{1,64}$`.
 
 **All templates** include workflow-level `events` (`onWorkflowStarted`, `onWorkflowCompleted`, `onWorkflowFailed`) and activity-level `events` (`onActivityStarted`, `onActivityCompleted`, `onActivityFailed`) with Log steps. Replace/extend these with notification tasks (Email/Send, HttpRequest, Workflow/Execute) as needed. (`onWorkflowExecuted` is a deprecated alias for `onWorkflowCompleted` — use `onWorkflowCompleted` in new workflows.)
 
@@ -100,7 +103,7 @@ workflow:
   isActive: true
   enableAudit: true
   filePath: "workflows/<name>.yaml"
-  workflowType: Document | Quote | Flow | Webhook | PublicApi  # omit for standard process workflows
+  workflowType: Document | Quote | Flow | Webhook | PublicApi | McpTool | McpResource | McpPrompt  # omit for standard process workflows
   runAs: "system"                           # Optional elevated permissions
   tags: ["tag1", "tag2"]
   concurrency:                              # Optional
