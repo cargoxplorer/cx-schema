@@ -436,6 +436,7 @@ the slot name are resolved from component variables and store values before look
 |------|------|-------------|
 | `options` | `object` | Additional props spread to Tab elements |
 | `toolbar` | `component[]` | Action components next to tab list |
+| `header` | `{icon?, title?, subTitle?, buttons?}` | Component arrays rendered above the tab strip |
 | `useNavigationForTabs` | `boolean` | Push to history instead of replace |
 
 **Tab children props:**
@@ -518,7 +519,7 @@ MUI Card container with optional header, content, and actions.
 | `className` | `string` | — | Additional CSS class |
 | `bgcolor` | `string` | — | Background color |
 | `color` | `string` | — | Text color |
-| `header` | `{title?, subheader?, sx?}` | — | Renders MUI CardHeader |
+| `header` | `{title?, subheader?, icon?, iconColor?, sx?}` | — | Renders MUI CardHeader; icon is its avatar |
 | `disableContentWrapper` | `boolean` | `false` | Skip CardContent wrapper |
 | `contentSx` | `SxProps` | — | CardContent styles |
 | `contentClassName` | `string` | `card-content` | CardContent CSS class |

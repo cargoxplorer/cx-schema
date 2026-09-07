@@ -62,6 +62,7 @@ Functions use two iterator variable names:
 | `reverse([items])` | Reverse collection or string |
 | `contains([source], 'needle')` | String contains, JArray contains, list contains, or dict key/value contains |
 | `removeEmpty([items])` | Remove null and whitespace-only items |
+| `prune([object])` | Recursively omit blank strings and empty object branches; preserve null, false, 0, and arrays |
 | `concat([list1], [list2], ...)` | Concatenate multiple collections into flat list. Variadic args. Skips nulls |
 | `groupBy([items], [item.cat])` | Group by one or more key expressions. Returns `[{key, items}]`. Multi-key: keys joined with `\|` |
 | `join([items], [each.name], ',')` | Join collection with `[each.*]` accessor and separator (3-arg) |
