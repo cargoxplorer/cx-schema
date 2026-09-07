@@ -20,6 +20,8 @@ Core tenant entity. Each organization represents a company/tenant in the system.
 | `slug` | `string?` | URL-friendly identifier for Public API routes (lowercase, hyphenated) |
 | `organizationType` | `OrganizationType` | `Regular` (0) or platform-managed `SystemAdministration` (1) |
 | `isDeleted` | `bool` | Soft delete |
+| `isInactive` | `bool` | Operational inactive flag; remains visible |
+| `activeUserCount` | `int` | GraphQL projection of active licensed people |
 | `customValues` | `Dictionary?` | jsonb, merged on update; incoming keys overwrite existing keys while unrelated keys are preserved |
 | `created` / `lastModified` | `DateTime` | Audit fields (from `AuditableEntity`) |
 | `createdBy` / `lastModifiedBy` | `string` | Audit fields |
@@ -40,4 +42,5 @@ Used by `PublicApiOrganizationResolver` to resolve org by slug or GUID in Public
 - `ChangeCompanyName(string)`, `ChangeAddressLine(string?)`, etc.
 - `ChangeCustomValues(Dictionary?)` — initializes `CustomValues` when needed, merges incoming values into the existing dictionary, and overwrites matching keys without dropping unrelated keys
 - `DeleteOrganization()` — sets `IsDeleted = true`
+- `ChangeIsInactive(bool)` — toggles operational inactivity
 - `ChangeOrganizationType(OrganizationType)` — platform-only; ignored by dynamic update mutations

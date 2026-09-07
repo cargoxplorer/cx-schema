@@ -21,6 +21,21 @@
             "$ref": "../schemas.json#/definitions/component"
           }
         },
+        "header": {
+          "type": "object",
+          "description": "Component areas rendered above the tab strip",
+          "properties": {
+            "icon": { "$ref": "../schemas.json#/definitions/componentChildren" },
+            "title": { "$ref": "../schemas.json#/definitions/componentChildren" },
+            "subTitle": { "$ref": "../schemas.json#/definitions/componentChildren" },
+            "buttons": { "$ref": "../schemas.json#/definitions/componentChildren" }
+          },
+          "additionalProperties": false
+        },
+        "useNavigationForTabs": {
+          "type": "boolean",
+          "description": "Push tab changes into browser history instead of replacing the current entry"
+        },
         "defaultTab": {
           "type": "string",
           "description": "Default active tab name"
