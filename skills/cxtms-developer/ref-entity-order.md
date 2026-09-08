@@ -74,8 +74,8 @@ Order GraphQL quick search (`orders(search:)` and `orderGroupBy(search:)`) match
 | `orderCarriers` | `[OrderCarrier]` | |
 | `dispatchRouteStopOrders` | `[DispatchRouteStopOrder]` | Stop membership links for this order; expand `dispatchRouteStop` to inspect route, stop status, or stop tracking events |
 | `allTags` | `[OrderAllTagsView]` | View: all tags including from commodities |
-| `allRelatedOrders` | `[OrderRelatedOrdersView]` | Orders sharing commodities |
-| `relatedOrdersV3` | `[OrderRelatedOrdersV3View]` | Filter/sort navigation backed by the non-recursive V3 view; use paths such as `relatedOrdersV3[relatedOrder.orderType:BookingOrder].relatedOrder.trackingNumber` |
+| `allRelatedOrders` | `[OrderRelatedOrdersView]` | Organization-scoped related orders backed by the kinship view; preferred filter/sort navigation, e.g. `allRelatedOrders[relatedOrder.orderType:BookingOrder].relatedOrder.trackingNumber` |
+| `relatedOrdersV3` | `[OrderRelatedOrdersV3View]` | Compatibility navigation over the same relation for existing module paths |
 | `relatedDispatchRoutes` | `[DispatchRoute]` | Routes linked through dispatch route stop order attachments; supports `filter` and `orderBy`; draft orders return an empty list |
 | `attachmentsSummary` | `OrderAttachmentSummaryView?` | DB view: `.totalCount`, `.hasAny` (active attachments) |
 | `notesSummary` | `OrderNoteSummaryView?` | DB view: `.totalCount`, `.hasAny` (non-deleted notes) |
