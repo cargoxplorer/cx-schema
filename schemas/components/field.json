@@ -35,6 +35,7 @@
             "number",
             "email",
             "password",
+            "secret",
             "tel",
             "url",
             "date",
