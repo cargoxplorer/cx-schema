@@ -200,6 +200,15 @@
           "type": "string",
           "description": "Default search term seeded once when the grid first loads this view. Supports template expressions; URL search parameters and user input take precedence."
         },
+        "collection": {
+          "type": "object",
+          "properties": {
+            "itemName": { "type": "string" },
+            "children": { "$ref": "#/definitions/componentChildren" },
+            "dragSource": { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" }, "data": {}, "canDrag": {} }, "additionalProperties": false }
+          },
+          "additionalProperties": true
+        },
         "childViews": {
           "type": "array",
           "description": "Nested child views",

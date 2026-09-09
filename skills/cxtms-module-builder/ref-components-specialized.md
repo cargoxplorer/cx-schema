@@ -623,3 +623,6 @@ props:
         variables: { token: "{{ token }}" }
     - notification: { message: { en-US: "Connected!" }, type: success }
 ```
+# Planner drop targets
+
+Planner `props.drop` accepts DataGrid collection drag sources. Configure `accept`, `onlyEmptyCells` (default true), `canDrop`, and `autoScroll` (default true), then handle `events.onItemDrop`. The action receives `dragItem`, `dragType`, `row`, `column`, `rowIndex`, and `columnIndex`. Keep `onCellClick` as the touch and keyboard alternative.

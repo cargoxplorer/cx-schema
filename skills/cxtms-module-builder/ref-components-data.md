@@ -49,6 +49,19 @@ props:
 
 Use `options.items` for already-loaded arrays; use `options.query` for server-side search/sort/pagination.
 
+## dataGrid collection drag sources
+
+Collection views can publish cards to planner drop targets. Configure `collection.dragSource.type`, with optional per-row `data` and `canDrag` templates. Omitted `data` sends the whole row; prefer a small JSON-safe payload. Native drag is desktop-only.
+
+```yaml
+collection:
+  itemName: item
+  dragSource:
+    type: orderMove
+    canDrag: "{{ eval !item.assignedDriverContactId }}"
+    data: { orderMoveId: "{{ item.orderMoveId }}" }
+```
+
 ---
 
 ## dataGrid conditional filter columns

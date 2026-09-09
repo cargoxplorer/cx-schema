@@ -327,6 +327,7 @@ Implicit variable: `iteration` (zero-based).
 | File Transfer | Connect, Disconnect, ListFiles, Download, Upload, Move, Delete | `!cat skills/cxtms-workflow-builder/ref-filetransfer.md` |
 | Accounting | AccountingTransaction, Payment, Number/Generate, SequenceNumber | `!cat skills/cxtms-workflow-builder/ref-accounting.md` |
 | Other | User, Auth, Caching, X12/Parse, EDIFACT, Flow/Transition, Notes, AppModule, ActionEvent | `!cat skills/cxtms-workflow-builder/ref-other.md` |
+| Browser Automation | Browser/Run | `!cat skills/cxtms-workflow-builder/ref-browser.md` |
 
 ## Entity Field Reference (cxtms-developer)
 
