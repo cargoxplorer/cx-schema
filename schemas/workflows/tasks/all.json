@@ -5,6 +5,9 @@
   "type": "object",
   "anyOf": [
     {
+      "$ref": "browser-run.json"
+    },
+    {
       "$ref": "accounting-transaction.json"
     },
     {
