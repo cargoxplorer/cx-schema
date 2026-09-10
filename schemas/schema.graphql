@@ -11038,6 +11038,9 @@ extend type Mutation {
   createOrderMove(input: CreateOrderMoveInput!): CreateOrderMovePayload!
   updateOrderMove(input: UpdateOrderMoveInput!): UpdateOrderMovePayload!
   deleteOrderMove(input: DeleteOrderMoveInput!): DeleteOrderMovePayload!
+  createOrderMoveLeg(input: CreateOrderMoveLegInput!): CreateOrderMoveLegPayload!
+  updateOrderMoveLeg(input: UpdateOrderMoveLegInput!): UpdateOrderMoveLegPayload!
+  deleteOrderMoveLeg(input: DeleteOrderMoveLegInput!): DeleteOrderMoveLegPayload!
 }
 
 type OrderMovesCollectionSegment {
@@ -11093,7 +11096,14 @@ input CreateOrderMoveCommandValuesInput { orderId: Int!, sequence: Int, name: St
 input CreateOrderMoveLegValuesInput { name: String, orderMoveLegStatusId: Int, startDate: DateTime, endDate: DateTime, customValues: MapOfObject }
 input UpdateOrderMoveInput { organizationId: Int!, orderMoveId: Int!, values: MapOfObject! }
 input DeleteOrderMoveInput { organizationId: Int!, orderMoveId: Int! }
+input CreateOrderMoveLegInput { organizationId: Int!, values: CreateOrderMoveLegCommandValuesInput! }
+input CreateOrderMoveLegCommandValuesInput { orderMoveId: Int!, sequence: Int, name: String, orderMoveLegStatusId: Int, startDate: DateTime, endDate: DateTime, customValues: MapOfObject }
+input UpdateOrderMoveLegInput { organizationId: Int!, orderMoveLegId: Int!, values: MapOfObject! }
+input DeleteOrderMoveLegInput { organizationId: Int!, orderMoveLegId: Int! }
 type CreateOrderMovePayload { orderMove: orderMove, query: Query! }
 type UpdateOrderMovePayload { orderMove: orderMove, query: Query! }
 type DeleteOrderMovePayload { deleteResult: DeleteResult, query: Query! }
+type CreateOrderMoveLegPayload { orderMoveLeg: orderMoveLeg, query: Query! }
+type UpdateOrderMoveLegPayload { orderMoveLeg: orderMoveLeg, query: Query! }
+type DeleteOrderMoveLegPayload { deleteResult: DeleteResult, query: Query! }
 
