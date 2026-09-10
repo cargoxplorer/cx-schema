@@ -36,6 +36,8 @@ Available root queries: `orders`, `contacts`, `commodities`, `accountingTransact
 
 Order quick search (`orders.search` and `orderGroupBy.search`) matches order number, bill-to, carriers, tracking numbers, order entities, commodity text/tracking numbers, and InventoryItem values linked through order commodities or child/container commodities. Inventory item matches include `sku`, `productName`, `description`, `modelNumber`, and JSON `customValues` such as color or size.
 
+Order-move quick search (`orderMoves.search`) matches the move name plus its owning order's tracking number and JSON custom values (for example, a container number). Matching is case-insensitive and accepts partial text.
+
 ## App Module Metadata Visibility
 
 GraphQL metadata queries hide rows attached to soft-deleted app modules:

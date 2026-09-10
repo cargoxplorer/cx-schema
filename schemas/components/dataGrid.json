@@ -23,6 +23,12 @@
           "description": "Name of the refresh handler",
           "x-example": "states"
         },
+        "toolbarSx": {
+          "type": "object",
+          "description": "MUI sx overrides merged onto the toolbar CardContent, useful for reducing padding in narrow hosts",
+          "additionalProperties": true,
+          "x-example": { "px": 2, "py": 1 }
+        },
         "enableStore": {
           "type": "boolean",
           "description": "Enable store for the datagrid, row data will be placed in the store"

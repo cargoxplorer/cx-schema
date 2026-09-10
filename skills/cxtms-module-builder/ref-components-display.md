@@ -26,6 +26,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | Prop | Type | Description |
 |------|------|-------------|
 | `toolbar` | `component[]` | Header toolbar components |
+| `toolbarSx` | `object` | MUI `sx` overrides merged onto the toolbar `CardContent`; use this to reduce padding in narrow hosts without hiding toolbar controls |
 | `dotsMenu` | `{items[]}` | Three-dot menu per row |
 | `dotsMenu.items[]` | `{label, icon, onClick, permission, isHidden, disabled}` | Menu item |
 
