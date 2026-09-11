@@ -593,6 +593,9 @@ When `options.allowRemove` is enabled and the item count is above `minItems`, re
 | `addButton.icon` | `string` | `plus` | Add button icon |
 | `addButton.position` | `top \| bottom \| both` | `bottom` | Add button placement |
 | `defaultItem` | `any` | — | Template for new items |
+| `onItemAdd` | `action[]` | — | Fires after add with `parentItem`, new `item`, `index`, and `fieldName` |
+| `onItemRemove` | `action[]` | — | Fires after removal with `parentItem`, removed `item`, `index`, and `fieldName` |
+| `dotsMenu.items` | `{label,disabled?,permission?,onClick?,remove?}[]` | Delete only | Custom per-item menu; `remove: true` invokes built-in soft/hard removal |
 | `layout` | `list \| grid \| accordion` | `list` | Layout mode |
 | `cols` | `number` | `1` | Grid columns (non-responsive). For adaptive item layouts, set `cols: 1` and use a `layout` inside `itemTemplate` with `itemDefaults.size: { xs, md }`. |
 | `groupCols` | `number \| {xs,sm,md,lg,xl}` | `1` | Group columns when `groupMode` is true |
@@ -622,6 +625,11 @@ For compact record lists, use `layout: accordion`. If `label` is set, the add ac
 the header unless its position is explicit. Nested collections collapse by default; blank new
 records expand automatically. `itemIcon`, `itemSubtitle`, and badge/count templates receive the
 parent variables plus `item`, `index`, and the item's own fields.
+
+Add/remove hooks support live persistence rather than waiting for a parent form submit. Custom
+menu actions receive the same row variables. A field's `onBlur` action receives its current value
+as `changedValues`, and placeholders inside item templates can reference `item`, `index`, and
+`parentItem`.
 
 ```yaml
 component: field-collection

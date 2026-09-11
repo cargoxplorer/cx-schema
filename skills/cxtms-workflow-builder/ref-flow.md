@@ -175,7 +175,7 @@ For Order-triggered auto-transitions, `order.orderStatusName` is available in th
 ### From States
 - Single state: `from: Draft`
 - Multiple states: `from: [Draft, Submitted]`
-- Wildcard (any non-final state): `from: "*"`
+- Wildcard (any non-final state other than the transition's own target): `from: "*"`. This prevents a wildcard transition from repeatedly transitioning an entity into its current state; matching is case-insensitive.
 
 ### Execution Order
 1. Validate transition from current state
