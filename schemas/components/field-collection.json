@@ -210,6 +210,35 @@
             "isClosed": false
           }
         },
+        "onItemAdd": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions fired after an item is added. Variables include parentItem, item, index, and fieldName."
+        },
+        "onItemRemove": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions fired after an item is removed. Variables include parentItem, the removed item, index, and fieldName."
+        },
+        "dotsMenu": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["label"],
+                "properties": {
+                  "label": { "type": ["string", "object"] },
+                  "disabled": {},
+                  "permission": { "type": "string" },
+                  "onClick": { "$ref": "../schemas.json#/definitions/actionsList" },
+                  "remove": { "type": "boolean", "default": false }
+                }
+              }
+            }
+          },
+          "description": "Custom per-item menu. Items with remove=true invoke built-in collection removal; other items dispatch onClick."
+        },
         "groupMode": {
           "type": "boolean",
           "default": false,

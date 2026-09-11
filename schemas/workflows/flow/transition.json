@@ -17,7 +17,7 @@
       "oneOf": [
         {
           "type": "string",
-          "description": "Single source state name, or '*' for wildcard (any non-final state)."
+          "description": "Single source state name, or '*' for wildcard (any non-final state except the transition's own target state)."
         },
         {
           "type": "array",
