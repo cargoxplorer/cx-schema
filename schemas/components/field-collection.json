@@ -293,6 +293,13 @@
             }
           ]
         },
+        "itemHeaderFields": {
+          "oneOf": [
+            { "type": "object" },
+            { "type": "array", "items": { "type": "object" } }
+          ],
+          "description": "Interactive components rendered in the always-visible accordion summary. Uses the same item/index/collection variables and field-name prefixing as itemTemplate."
+        },
         "groupTemplate": {
           "type": "object",
           "description": "Custom template for group headers",
@@ -419,7 +426,9 @@
         "showExpandAll": { "type": "boolean", "default": true },
         "collapseNested": { "type": "boolean", "default": true },
         "autoItemTitle": { "type": "boolean", "default": true },
-        "density": { "type": "string", "enum": ["compact", "comfortable"], "default": "compact" }
+        "density": { "type": "string", "enum": ["compact", "comfortable"], "default": "compact" },
+        "rowVariant": { "type": "string", "enum": ["card", "flat"], "default": "card", "description": "Row chrome: card uses a bordered panel; flat uses dividers while retaining the open-row accent." },
+        "nestedVariant": { "type": "string", "enum": ["panel", "rail", "none"], "default": "panel", "description": "Nested collection chrome: panel uses a box, rail uses a left border and indent, and none removes wrapper chrome." }
       }
     }
   },

@@ -4,6 +4,7 @@
   "description": "Schema for datetime input field type",
   "type": "object",
   "properties": {
+    "displayMode": { "type": "string", "enum": ["readEdit"], "description": "Show the formatted value as text until clicked, then return to read display on blur." },
     "type": { "type": "string", "const": "datetime" },
     "label": {
       "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],

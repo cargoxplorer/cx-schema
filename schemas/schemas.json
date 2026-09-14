@@ -291,8 +291,8 @@
           "description": "Enable dynamic grid features"
         },
         "enableViews": {
-          "type": "boolean",
-          "description": "Enable view switching"
+          "type": ["boolean", "string"],
+          "description": "Enable view switching. String templates are resolved against component variables and store state."
         },
         "enableSearch": {
           "type": "boolean",
@@ -307,8 +307,8 @@
           "description": "Enable column management"
         },
         "enableFilter": {
-          "type": "boolean",
-          "description": "Enable filtering"
+          "type": ["boolean", "string"],
+          "description": "Enable filtering. String templates are resolved against component variables and store state."
         },
         "defaultView": {
           "type": "string",

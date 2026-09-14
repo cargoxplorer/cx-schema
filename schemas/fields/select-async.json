@@ -30,6 +30,11 @@
       "description": "Whether field is disabled",
       "x-example": false
     },
+    "displayMode": {
+      "type": "string",
+      "enum": ["readEdit"],
+      "description": "Show the resolved option label as text until clicked, then return to read display on blur."
+    },
     "options": {
       "type": "object",
       "description": "Select-async specific options",

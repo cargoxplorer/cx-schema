@@ -471,6 +471,8 @@ Optional templates cover row headers, empty cells/state, and summaries. Events a
 
 Set `columns.appendEmpty: true` to render one trailing empty ordinal slot beyond the largest group, ensuring every lane has an append target.
 
+Set `props.dragSource` to make planner cards draggable between lanes. It uses the shared `type`, optional `data`, and optional templated `canDrag` contract; target cells receive the payload through `dragItem` and `dragType`. Native dragging is desktop-only, so keep a click-driven equivalent.
+
 ## timeline-grid
 
 CSS Grid-based timeline with swim lanes, drill-down, and virtual scrolling.
