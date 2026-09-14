@@ -45,11 +45,11 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `includeEntityKeysInExport` | `boolean` | `true` | Force `entityKeys`/primary keys into exports even when hidden, preserving ID-first re-import matching. Set `false` for id-less templates or cross-space copies. |
 | `navigationType` | `navigate \| dialog \| store` | — | **Required.** Row click behavior |
 | `enableDynamicGrid` | `boolean` | — | Enable dynamic columns |
-| `enableViews` | `boolean` | — | Show view selector |
+| `enableViews` | `boolean \| template` | — | Show view selector; templates resolve against variables and store |
 | `enableSearch` | `boolean` | — | Show search input |
 | `enablePagination` | `boolean` | — | Show pagination |
 | `enableColumns` | `boolean` | — | Show column selector |
-| `enableFilter` | `boolean` | — | Show filter panel |
+| `enableFilter` | `boolean \| template` | — | Show filter panel; templates resolve against variables and store |
 | `defaultView` | `string` | — | Default view name |
 | `defaultPageSize` | `number` | `20` | Rows per page |
 | `enableRefresh` | `boolean` | — | Auto-refresh |

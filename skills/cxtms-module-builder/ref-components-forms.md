@@ -681,6 +681,10 @@ props:
 
 Grouped collections can render groups in multiple columns. Use a fixed `groupCols` count or responsive breakpoint counts; each count is converted to Material UI's 12-column grid.
 
+Accordion collections support `itemHeaderFields` for interactive fields that remain visible while a row is collapsed. The header fields share `item`, `index`, `collection`, and field-name prefixing with `itemTemplate`; wrap them in a `layout` for grid sizing. Use `rowVariant: flat` and `nestedVariant: rail` or `none` to reduce card chrome in nested collections.
+
+For `datetime`, `time`, and `select-async` fields, `displayMode: readEdit` renders the current value as text until clicked and returns to text on blur.
+
 ```yaml
 component: field-collection
 name: businessHours

@@ -135,7 +135,7 @@
     },
     "defaultData": {
       "type": "array",
-      "description": "Default data imports loaded with the module. Supported entities include reference/master data such as Terminal; Terminal rows match by Name unless keys are provided.",
+      "description": "Default data imports loaded with the module. Supported entities include reference/master data such as Terminal and EquipmentStatus; EquipmentStatus rows match by StatusName unless keys are provided.",
       "items": {
         "type": "object",
         "properties": {
