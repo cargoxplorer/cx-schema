@@ -4742,6 +4742,7 @@ type contact {
     @cost(weight: "10")
   getCustomValuesAttachment(filter: String): AttachmentGqlDto
     @cost(weight: "10")
+  getEquipment(idPropertyName: String!): equipment @cost(weight: "10")
   availableCredit: [AvailableCreditByCurrency] @cost(weight: "10")
   contactId: Int!
   accountNumber: String

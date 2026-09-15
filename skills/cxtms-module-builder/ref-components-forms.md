@@ -683,7 +683,7 @@ Grouped collections can render groups in multiple columns. Use a fixed `groupCol
 
 Accordion collections support `itemHeaderFields` for interactive fields that remain visible while a row is collapsed. The header fields share `item`, `index`, `collection`, and field-name prefixing with `itemTemplate`; wrap them in a `layout` for grid sizing. Use `rowVariant: flat` and `nestedVariant: rail` or `none` to reduce card chrome in nested collections.
 
-For `datetime`, `time`, and `select-async` fields, `displayMode: readEdit` renders the current value as text until clicked and returns to text on blur.
+For `datetime`, `time`, and `select-async` fields, `displayMode: readEdit` renders the current value as text until clicked. Date/time fields stay in edit mode while their calendar popup is open and return to text when it closes; other fields return on blur.
 
 ```yaml
 component: field-collection

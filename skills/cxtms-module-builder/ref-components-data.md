@@ -82,6 +82,14 @@ props:
 
 Dynamic entity fields use the same rule through `fieldDefinition.props.allowFilter`.
 
+View filter `values` are template-aware. They are resolved from the DataGrid's current local variables and store when the view is applied, so a default filter can follow runtime state instead of sending the template literally:
+
+```yaml
+filters:
+  - name: equipmentId
+    values: "{{ selectedEquipmentId }}"
+```
+
 ---
 
 ## dataGrid sticky column state
