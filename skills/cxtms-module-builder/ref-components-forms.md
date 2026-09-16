@@ -359,6 +359,8 @@ Polymorphic form field — renders different input types based on `type` prop.
 
 Password fields receive a stable input id from the field name unless an explicit `id` is provided. This keeps multiple password fields in the same form isolated for browser autocomplete. Use `autoComplete` when a form needs a specific password-manager hint.
 
+For `type: select`, the web renderer forwards the parsed `disabled` value to the underlying select control, so both booleans and template expressions prevent opening or changing the selection.
+
 **Field Types:**
 | Type | Description |
 |------|-------------|
