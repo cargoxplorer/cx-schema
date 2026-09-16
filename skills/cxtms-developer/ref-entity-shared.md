@@ -11,8 +11,29 @@
 - PackageType
 - NoteThread
 - Note
+- OrganizationConnection
 
 EntityField, Tag, Attachment, Division, EquipmentType, Equipment, EquipmentStatus, PackageType, Note/NoteThread.
+
+## OrganizationConnection
+
+Application-defined link between two regular organizations. The owner organization is distinct from the two endpoints and is the tenant in which entity workflows run.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `organizationConnectionId` | `int` | PK |
+| `organizationId` | `int` | Owner/workflow tenant |
+| `sourceOrganizationId` | `int` | First endpoint; must be a regular organization |
+| `targetOrganizationId` | `int` | Second endpoint; must be a different regular organization |
+| `connectionType` | `string` | Required, application-defined, max 50 characters |
+| `isEnabled` | `bool` | Defaults to true |
+| `ediRoutingId` | `string?` | Reserved EDI routing ID, max 15 characters |
+
+**GraphQL:** `organizationConnections(organizationId, filter, search, orderBy)` returns connections where the requested organization is either endpoint. System-admin-only mutations are `linkOrganizations(organizationId, sourceOrganizationId, targetOrganizationId, connectionType)` and `unlinkOrganizations(organizationConnectionId)`. A pair/type combination is unique regardless of endpoint order.
+
+**Entity workflows:** `OrganizationConnection` supports `Added`, `Modified`, and `Deleted` at `Before` and `After` positions in the owner organization. Use `Before Deleted` to veto unlinking when application rules require it.
+
+---
 
 ## EntityField
 
