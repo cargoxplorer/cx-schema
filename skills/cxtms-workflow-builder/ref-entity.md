@@ -18,8 +18,20 @@
 - Notification tasks (Create)
 - Note tasks (Create, Update, Delete, Import, Export, RenameThread)
 - AccountingTransaction/ApplyCredit task
+- Calendar feed tasks (IssueLink, ImportFeed)
 
 All entity tasks follow the `Namespace/Operation@Version` pattern. Outputs are stored as `ActivityName.StepName.outputKey`.
+
+## Calendar feeds
+
+| Task | Description |
+|------|-------------|
+| `Calendar/IssueLink@1` | Issue a user or organization-connection iCalendar feed link |
+| `Calendar/ImportFeed@1` | Reconcile an iCalendar feed into a local mirror calendar |
+
+`Calendar/IssueLink@1` requires `organizationId` and `calendarId`; optional `label` and `organizationConnectionId` create a labeled user link or an idempotent system link. Outputs: `calendarLinkId`, `url`, `isSystem`. The URL contains the token and must be stored securely.
+
+`Calendar/ImportFeed@1` requires `organizationId` and accepts `url`, prior mirror `calendarId`, and prior `etag`. Outputs: `status`, `reason`, `calendarId`, `etag`, `businessHours`, and `availabilityBlocks`. Status is `ok`, `unchanged`, `revoked`, `error`, or `skipped`. Persist the returned calendar ID and ETag after successful calls; do not delete a previous mirror on `error`.
 
 ## PostalCodes
 

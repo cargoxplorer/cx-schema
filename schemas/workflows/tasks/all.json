@@ -26,6 +26,9 @@
       "$ref": "caching.json"
     },
     {
+      "$ref": "calendar.json"
+    },
+    {
       "$ref": "charge.json"
     },
     {

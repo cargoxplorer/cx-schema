@@ -53,6 +53,8 @@ npx cxtms create workflow <name> --template <template>
 
 **All templates** — update `name`, `description`, `tags`, `inputs`, `variables`, replace placeholder steps.
 
+**Workflow overrides** — active workflows in the same organization with the same case-insensitive `workflow.name` form an override group. Only the highest `workflow.priority` is effective (default 50; lowest workflow ID wins ties). Use a higher priority to replace a base-app workflow without modifying it. The rule covers triggers, schedules, execution by name, MCP surfaces, public API routes, and document workflows; deactivating or deleting the winner restores the next-highest definition.
+
 **`entity-trigger`** — set `entityName`, `eventType` (Modified/Created/Deleted), `position` (Before/After), `conditions` on `changes`. Access entity via `{{ entity.* }}`. Before: use `Validation/Validate@1`. After: cascade changes.
 
 **`document`** — keep `file`/`fileName`/`fileDisposition` outputs. Update `Document/Render@1`: `engine` (handlebars/jsrender), `recipe` (chrome-pdf/html-to-xlsx), `content` (HTML template), `data` mapping.
