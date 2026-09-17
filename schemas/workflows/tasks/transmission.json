@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Transmission Tasks",
-  "description": "Create, update, and delete transmission records linked to orders",
+  "description": "Create, update, and delete transmission records linked to orders or addressed to contacts",
   "type": "object",
   "properties": {
     "task": {
@@ -55,7 +55,11 @@
             "orderIds": {
               "type": ["array", "string"],
               "items": { "type": ["integer", "string"] },
-              "description": "Order IDs to link (required for Create, at least one)"
+              "description": "Optional order IDs to link"
+            },
+            "contactId": {
+              "type": ["integer", "string", "null"],
+              "description": "Partner contact used for delivery and channel defaults"
             },
             "channel": {
               "type": "string",
@@ -145,7 +149,31 @@
             },
             "payloadRef": {
               "type": ["string", "null"],
-              "description": "Reference to stored payload (e.g. blob URI)"
+              "description": "Reference to a stored payload; mutually exclusive with payload"
+            },
+            "payload": {
+              "description": "JSON, text, or binary/base64 payload uploaded to storage"
+            },
+            "payloadContentType": {
+              "type": ["string", "null"],
+              "description": "Content type override for payload"
+            },
+            "attachments": {
+              "type": ["array", "string", "null"],
+              "description": "Attachment inputs; each uses exactly one source",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "attachmentId": { "type": ["integer", "string", "null"] },
+                  "attachmentGuid": { "type": ["string", "null"], "format": "uuid" },
+                  "url": { "type": ["string", "null"] },
+                  "data": { "description": "Raw bytes or base64 data" },
+                  "fileName": { "type": ["string", "null"] },
+                  "contentType": { "type": ["string", "null"] },
+                  "metadata": { "type": ["object", "string", "null"] }
+                },
+                "additionalProperties": false
+              }
             },
             "scheduledAt": {
               "type": ["string", "null"],

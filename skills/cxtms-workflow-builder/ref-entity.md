@@ -479,11 +479,11 @@ Output `result`: `{ added, updated, skipped, failed, total, errors[] }`.
 
 | Task | Description |
 |------|-------------|
-| `Transmission/Create` | Create transmission record linked to orders |
+| `Transmission/Create` | Create a transmission, optionally linked to orders or addressed to a contact |
 | `Transmission/Update` | Update transmission fields (dynamic) |
 | `Transmission/Delete` | Delete transmission record |
 
-Records inbound/outbound message transmissions (EDI, API, Email, Webhook) linked to orders.
+Records inbound/outbound message transmissions (EDI, API, Email, Webhook). Contact-addressed outbound records can carry stored payloads and attachments and are queued for delivery.
 
 ```yaml
 - task: "Transmission/Create@1"
@@ -492,14 +492,10 @@ Records inbound/outbound message transmissions (EDI, API, Email, Webhook) linked
     organizationId: "{{ int organizationId }}"
     transmission:
       orderIds: "{{ orderIds }}"
-      channel: "EDI"
-      direction: "Outbound"
+      contactId: "{{ int partnerContactId }}"
       messageType: "214"
-      sender: "{{ senderISA }}"
-      receiver: "{{ receiverISA }}"
-      status: "Pending"
-      endpoint: "{{ endpoint }}"
-      protocol: "SFTP"
+      payload: "{{ orderPayload }}"
+      payloadContentType: "application/json"
   outputs:
     - name: transmission
       mapping: "transmission"
@@ -527,11 +523,13 @@ Records inbound/outbound message transmissions (EDI, API, Email, Webhook) linked
       mapping: "success"
 ```
 
-**Create inputs:** `organizationId` (int, required), `transmission` object — `orderIds` (required, at least one), `channel`, `direction` (Inbound/Outbound), `messageType`, `sender`, `receiver`, `status`, `endpoint`, `protocol`, `correlationId` (auto-generated if omitted), `parentId`, `httpStatus`, `byteSize`, `retryCount`, `maxRetries`, `nextRetryAt`, `errorCode`, `errorMessage`, `customValues`, `headers`, `payloadRef`, `scheduledAt`, `startedAt`, `completedAt`, `durationMs`.
+**Create inputs:** `organizationId` (int, required), `transmission` object — optional `orderIds`; `contactId`; `channel` (required without `contactId`); `direction` (Inbound/Outbound, defaults to Outbound); `messageType`, `sender`, `receiver`, `status`, `endpoint`, `protocol`, `correlationId` (auto-generated if omitted), `parentId`, `httpStatus`, `byteSize`, `retryCount`, `maxRetries`, `nextRetryAt`, `errorCode`, `errorMessage`, `customValues`, `headers`, `payloadRef`, `payload`, `payloadContentType`, `attachments`, `scheduledAt`, `startedAt`, `completedAt`, `durationMs`. `payload` and `payloadRef` are mutually exclusive. Each attachment uses exactly one of `attachmentId`, `attachmentGuid`, `url`, or `data`; URL/data entries require `fileName`.
 
 **Create outputs:** `transmission` (full TransmissionDto).
 **Update inputs:** `organizationId`, `transmissionId`, `transmission` (dynamic partial fields).
 **Delete outputs:** `success` (boolean).
+
+Contact-addressed transmissions with a supported transport are queued through the outbox. Transmission entity triggers expose decoded `entity.payload` (within the server preload limit) and `entity.attachments` with download URLs.
 
 **Status enum:** Pending, InProgress, Sent, Received, Delivered, Acknowledged, Rejected, Error, RetryScheduled, Cancelled, Expired, Accepted.
 
