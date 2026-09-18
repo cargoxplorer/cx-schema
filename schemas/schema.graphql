@@ -11084,6 +11084,7 @@ type orderMoveLeg {
   orderMoveLegStatus: orderMoveLegStatus
   startDate: DateTime
   endDate: DateTime
+  getAddress(idPropertyName: String!): contactAddress
   trackingEvents: [trackingEvent!]
   customValues: MapOfObject
   isDeleted: Boolean!

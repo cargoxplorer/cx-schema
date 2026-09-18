@@ -162,6 +162,7 @@ Vertical-specific routing details belong in `customValues`.
 | `startDate` | `DateTime?` | UTC start |
 | `endDate` | `DateTime?` | UTC end |
 | `customValues` | `Dictionary` | Location, event, appointment, and metric data |
+| `getAddress(idPropertyName)` | `ContactAddress?` | Resolves a contact-address ID from the named `customValues` property; tenant-scoped through the parent move |
 | `trackingEvents` | `[TrackingEvent]` | Leg-level milestones |
 
 Entity-trigger payloads load the status navigation before mapping when necessary. This
@@ -184,6 +185,7 @@ are appended and omitted existing records are not deleted.
 
 - Queries: `dispatchRouteStatus`, `dispatchRouteStatuses`, `dispatchRouteStopStatus`, `dispatchRouteStopStatuses`, `dispatchRouteTemplate`, `dispatchRouteTemplates`, `dispatchRoute`, `dispatchRoutes`.
 - Order move queries: `orderMove`, `orderMoves`, `orderMoveStatus`, `orderMoveStatuses`, `orderMoveLegStatus`, and `orderMoveLegStatuses`.
+- Order-move legs expose `getAddress(idPropertyName: String!)` to resolve an integer contact-address ID from the named `customValues` property. Missing or invalid values return `null`, and cross-organization addresses are never returned.
 - Nested order resolvers: `getOrderMoves(filter, orderBy)` returns pending or statusless moves (defaulted to sequence order), while `getOrderMove(filter, orderBy)` returns the first matching pending or statusless move. Moves whose status stage is no longer `Pending` are excluded.
 - Order move mutations create, sparse-update, and soft-delete moves; create/update accepts nested `orderMoveLegs`, reconciled by ID and array order. Omitted or `isDeleted: true` legs are soft-deleted, new already-deleted legs are ignored, and only active legs consume sequence positions.
 - `createOrderMoveLeg`, `updateOrderMoveLeg`, and `deleteOrderMoveLeg` manage one leg without resending the parent move. Create requires `orderMoveId`, appends after the last active leg when `sequence` is omitted, and accepts name, status, dates, and custom values. Update takes a sparse values map; delete is soft. Each operation is organization-scoped through the parent move.

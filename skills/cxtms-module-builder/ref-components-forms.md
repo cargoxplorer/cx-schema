@@ -729,7 +729,9 @@ Headless barcode/keyboard scanner listener. Captures rapid keystrokes and fires 
 | `maxBarcodes` | `number` | — | Mobile: maximum accepted scans in continuous mode |
 | `onScan` | `action[]` | — | **Required.** Action on scan detection |
 
-**Renders:** Nothing (empty fragment). Web listens on `document` keypress. Mobile supports
+**Renders:** Nothing (empty fragment). Web listens on `document` keydown, ignores form controls
+and non-printable keys, and derives letters, unshifted digits, minus, and period from physical
+key codes to avoid keyboard-layout transformations. Other printable keys use `event.key`. Mobile supports
 native HID scanners with a hidden-input fallback and shares camera-scanner deduplication rules.
 
 **Scan data:** `result: { data: string, format: 'input' }`
