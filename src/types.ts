@@ -111,7 +111,7 @@ export interface YAMLWorkflow {
     enableAudit?: boolean;
     enableTransaction?: boolean;
     tags?: string[];
-    workflowType?: 'Process' | 'Document' | 'Quote' | 'EmailTemplate' | 'Flow';
+    workflowType?: 'Process' | 'Document' | 'Quote' | 'EmailTemplate' | 'Flow' | 'Agent';
     filePath?: string;
     agentInstruction?: string;
     concurrency?: {

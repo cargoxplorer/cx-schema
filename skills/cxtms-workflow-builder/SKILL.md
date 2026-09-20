@@ -45,6 +45,7 @@ npx cxtms create workflow <name> --template <template>
 | `api-tracking` | Fetch tracking from carrier API |
 | `webhook` | HTTP endpoint for external callers |
 | `public-api` | REST API endpoint with OpenAPI docs |
+| `agent` | AI agent that calls other workflows as tools (workflowType: Agent) |
 
 ### Step 2: Read the generated file
 
@@ -100,7 +101,7 @@ workflow:
   isActive: true
   enableAudit: true
   filePath: "workflows/<name>.yaml"
-  workflowType: Document | Quote | Flow | Webhook | PublicApi  # omit for standard process workflows
+  workflowType: Document | Quote | Flow | PublicApi | McpTool | McpResource | McpPrompt | Agent | EmailTemplate | RulesTariff | Webhook  # omit for standard process workflows
   runAs: "system"                           # Optional elevated permissions
   tags: ["tag1", "tag2"]
   concurrency:                              # Optional
@@ -312,6 +313,7 @@ Implicit variable: `iteration` (zero-based).
 | Template Expressions & Value Directives | `!cat skills/cxtms-workflow-builder/ref-expressions-template.md` |
 | NCalc Expressions & Functions | `!cat skills/cxtms-workflow-builder/ref-expressions-ncalc.md` |
 | Flow Workflows (state machines) | `!cat skills/cxtms-workflow-builder/ref-flow.md` |
+| Agent Workflows (LLM agents) | `!cat skills/cxtms-workflow-builder/ref-agent.md` |
 
 ## Dynamic Schema Access (load on demand)
 

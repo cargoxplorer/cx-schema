@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "agent/agent.json",
+  "title": "Agent section",
+  "description": "Configuration for workflowType: Agent. An LLM agent that calls other workflows as tools.",
+  "type": "object",
+  "required": ["instructions"],
+  "properties": {
+    "description": { "type": "string", "description": "What this agent does. Shown to callers and to other agents that may invoke it." },
+    "instructions": { "type": "string", "minLength": 1, "description": "System instructions. Handlebars template over workflow variables and inputs." },
+    "model": {
+      "type": "object",
+      "properties": {
+        "fromConfig": { "type": "string", "description": "Organization config name holding provider, model, apiKey, endpoint. Default ai.default." },
+        "name": { "type": "string", "description": "Overrides the config's model name." },
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2 }
+      },
+      "additionalProperties": false
+    },
+    "session": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["task", "chat"], "default": "task", "description": "task ends when set_result is called; chat is open-ended." },
+        "maxTurns": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+        "timeout": { "type": "integer", "minimum": 1, "default": 300, "description": "Seconds." }
+      },
+      "additionalProperties": false
+    },
+    "result": {
+      "type": "object",
+      "description": "JSON Schema (type: object) for the set_result argument.",
+      "properties": { "type": { "const": "object" } },
+      "required": ["type"]
+    },
+    "skills": { "type": "array", "items": { "type": "string" }, "description": "Installed skill names to enable (runtime in a later release)." },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["workflow"],
+        "properties": {
+          "workflow": { "type": "string", "minLength": 1, "description": "Workflow name or workflowId to expose as a tool." },
+          "instructions": { "type": "string", "description": "When and how the agent should use this tool." }
+        },
+        "additionalProperties": false
+      }
+    },
+    "mcp": {
+      "type": "array",
+      "items": { "type": "object", "required": ["fromConfig"], "properties": { "fromConfig": { "type": "string" } }, "additionalProperties": false },
+      "description": "Outbound MCP connections (runtime in a later release)."
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "agent": { "type": "string", "description": "Name of another Agent workflow in this organization." },
+          "url": { "type": "string", "format": "uri", "description": "Remote A2A agent card URL." },
+          "modes": { "type": "array", "items": { "type": "string", "enum": ["task", "chat"] } }
+        },
+        "oneOf": [{ "required": ["agent"] }, { "required": ["url"] }],
+        "additionalProperties": false
+      },
+      "description": "Allow list of agents this agent may invoke (runtime in a later release)."
+    }
+  },
+  "additionalProperties": false
+}
