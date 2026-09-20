@@ -74,4 +74,26 @@ activities:
 `);
     expect(result.errors.filter(e => /workflowType/.test(e.message))).toEqual([]);
   });
+
+  it('accepts legacy workflow types EmailTemplate and Webhook', async () => {
+    const legacyBase = (type: string) => `
+workflow:
+  name: "Legacy Type Workflow"
+  workflowId: "6f1c2c1e-1b2a-4d3e-9f00-000000000002"
+  workflowType: "${type}"
+  executionMode: "Sync"
+  isActive: true
+activities:
+  - name: main
+    steps:
+      - task: "Utilities/Log@1"
+        name: log
+        inputs: { message: hi }
+`;
+
+    for (const type of ['EmailTemplate', 'Webhook']) {
+      const result = await validate(legacyBase(type));
+      expect(result.errors.filter(e => /workflowType/.test(e.message))).toEqual([]);
+    }
+  });
 });

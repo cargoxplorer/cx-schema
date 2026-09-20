@@ -67,8 +67,8 @@
         },
         "workflowType": {
           "type": "string",
-          "enum": ["Process", "Document", "Quote", "Flow", "PublicApi", "McpTool", "McpResource", "McpPrompt", "Agent"],
-          "description": "Workflow type: Process (standard workflow), Document (PDF/Excel generation), Quote, Flow (declarative state machine), PublicApi (REST API endpoint), McpTool, McpResource, McpPrompt (MCP server exposure), or Agent (LLM agent). Omit for standard process workflows."
+          "enum": ["Process", "Document", "Quote", "Flow", "PublicApi", "McpTool", "McpResource", "McpPrompt", "Agent", "EmailTemplate", "RulesTariff", "Webhook"],
+          "description": "Workflow type: Process (standard workflow), Document (PDF/Excel generation), Quote, Flow (declarative state machine), PublicApi (REST API endpoint), McpTool, McpResource, McpPrompt (MCP server exposure), Agent (LLM agent), EmailTemplate, RulesTariff, or Webhook. Omit for standard process workflows."
         },
         "runAs": {
           "type": "string",
