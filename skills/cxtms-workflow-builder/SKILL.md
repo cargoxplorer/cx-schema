@@ -312,6 +312,7 @@ Implicit variable: `iteration` (zero-based).
 | Template Expressions & Value Directives | `!cat skills/cxtms-workflow-builder/ref-expressions-template.md` |
 | NCalc Expressions & Functions | `!cat skills/cxtms-workflow-builder/ref-expressions-ncalc.md` |
 | Flow Workflows (state machines) | `!cat skills/cxtms-workflow-builder/ref-flow.md` |
+| Agent Workflows (LLM agents) | `!cat skills/cxtms-workflow-builder/ref-agent.md` |
 
 ## Dynamic Schema Access (load on demand)
 

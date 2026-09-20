@@ -67,8 +67,8 @@
         },
         "workflowType": {
           "type": "string",
-          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi"],
-          "description": "Workflow type: Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), or PublicApi (REST API endpoint). Omit for standard process workflows."
+          "enum": ["Process", "Document", "Quote", "Flow", "PublicApi", "McpTool", "McpResource", "McpPrompt", "Agent"],
+          "description": "Workflow type: Process (standard workflow), Document (PDF/Excel generation), Quote, Flow (declarative state machine), PublicApi (REST API endpoint), McpTool, McpResource, McpPrompt (MCP server exposure), or Agent (LLM agent). Omit for standard process workflows."
         },
         "runAs": {
           "type": "string",
@@ -266,6 +266,7 @@
       "required": ["path", "method"],
       "additionalProperties": true
     },
+    "agent": { "$ref": "agent/agent.json" },
     "entity": {
       "$ref": "flow/entity.json",
       "description": "Entity configuration for Flow workflows"
@@ -295,24 +296,12 @@
   "required": ["workflow"],
   "allOf": [
     {
-      "if": {
-        "properties": {
-          "workflow": {
-            "properties": {
-              "workflowType": { "const": "Flow" }
-            },
-            "required": ["workflowType"]
-          }
-        }
-      },
-      "then": {
-        "required": ["workflow", "entity"],
-        "properties": {
-          "activities": false
-        }
-      },
+      "if": { "properties": { "workflow": { "properties": { "workflowType": { "const": "Flow" } }, "required": ["workflowType"] } } },
+      "then": { "required": ["workflow", "entity"], "properties": { "activities": false } },
       "else": {
-        "required": ["workflow", "activities"]
+        "if": { "properties": { "workflow": { "properties": { "workflowType": { "const": "Agent" } }, "required": ["workflowType"] } } },
+        "then": { "required": ["workflow", "agent"], "properties": { "activities": false } },
+        "else": { "required": ["workflow", "activities"] }
       }
     },
     {

@@ -98,6 +98,12 @@ export class WorkflowValidator {
       this.loadSchemasFromDir(flowDir, 'flow', schemas);
     }
 
+    // Load agent schemas from agent/ subdirectory
+    const agentDir = path.join(schemasDir, 'agent');
+    if (fs.existsSync(agentDir)) {
+      this.loadSchemasFromDir(agentDir, 'agent', schemas);
+    }
+
     return schemas;
   }
 
@@ -192,10 +198,14 @@ export class WorkflowValidator {
       }
 
       const isFlowWorkflow = workflowData.workflow?.workflowType === 'Flow';
+      const isAgentWorkflow = workflowData.workflow?.workflowType === 'Agent';
 
       if (isFlowWorkflow) {
         // Validate Flow-specific sections
         this.validateFlowWorkflow(workflowData, errors, warnings);
+      } else if (isAgentWorkflow) {
+        // Validate Agent-specific sections
+        this.validateAgentWorkflow(workflowData, errors);
       } else {
         // Validate activities recursively (standard workflows)
         if (workflowData.activities && Array.isArray(workflowData.activities)) {
@@ -259,6 +269,7 @@ export class WorkflowValidator {
     }
 
     const isFlowWorkflow = workflowData.workflow?.workflowType === 'Flow';
+    const isAgentWorkflow = workflowData.workflow?.workflowType === 'Agent';
 
     if (isFlowWorkflow) {
       if (!workflowData.entity) {
@@ -266,6 +277,14 @@ export class WorkflowValidator {
           type: 'missing_property',
           path: 'entity',
           message: 'Missing required property: entity (required for Flow workflows)'
+        });
+      }
+    } else if (isAgentWorkflow) {
+      if (!workflowData.agent) {
+        errors.push({
+          type: 'missing_property',
+          path: 'agent',
+          message: 'Missing required property: agent (required for Agent workflows)'
         });
       }
     } else {
@@ -546,6 +565,36 @@ export class WorkflowValidator {
           this.validateStep(nestedStep, `${stepPath}.steps[${index}]`, errors, warnings);
         });
       }
+    }
+  }
+
+  /**
+   * Validate Agent workflow sections. Activities are not allowed (mirrors backend AGT_004);
+   * agent.session.type must be "task" or "chat" (mirrors backend AGT_005). Everything else
+   * agent-shaped (instructions, tools[].workflow, result, agents[]) is enforced by agent/agent.json.
+   */
+  private validateAgentWorkflow(
+    workflowData: YAMLWorkflow,
+    errors: ValidationError[]
+  ): void {
+    if (workflowData.activities) {
+      errors.push({
+        type: 'schema_violation',
+        path: 'activities',
+        message: 'Activities are not allowed for Agent workflows (workflowType: Agent); remove the "activities" property'
+      });
+    }
+
+    const agent = workflowData.agent;
+    if (!agent) return;
+
+    const sessionType = agent.session?.type;
+    if (sessionType !== undefined && sessionType !== 'task' && sessionType !== 'chat') {
+      errors.push({
+        type: 'schema_violation',
+        path: 'agent.session.type',
+        message: `Invalid agent.session.type "${sessionType}": must be "task" or "chat"`
+      });
     }
   }
 
