@@ -45,6 +45,7 @@ npx cxtms create workflow <name> --template <template>
 | `api-tracking` | Fetch tracking from carrier API |
 | `webhook` | HTTP endpoint for external callers |
 | `public-api` | REST API endpoint with OpenAPI docs |
+| `agent` | AI agent that calls other workflows as tools (workflowType: Agent) |
 
 ### Step 2: Read the generated file
 
@@ -100,7 +101,7 @@ workflow:
   isActive: true
   enableAudit: true
   filePath: "workflows/<name>.yaml"
-  workflowType: Document | Quote | Flow | Webhook | PublicApi  # omit for standard process workflows
+  workflowType: Document | Quote | Flow | PublicApi | McpTool | McpResource | McpPrompt | Agent | EmailTemplate | RulesTariff | Webhook  # omit for standard process workflows
   runAs: "system"                           # Optional elevated permissions
   tags: ["tag1", "tag2"]
   concurrency:                              # Optional

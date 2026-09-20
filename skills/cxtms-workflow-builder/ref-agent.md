@@ -7,6 +7,7 @@
 - The built-in `set_result` tool and `agent.result`
 - The `__session` override input
 - Outputs: `result`, `transcript`, `sessionId`
+- Triggers: synchronous execution and lock behavior for trigger-bound agents
 - The `ai.default` organization config shape
 - Tool name derivation (workflow name → tool name)
 - AGT_001–AGT_009 validation codes and one-line fixes
@@ -52,7 +53,7 @@ inputs: [...]                               # Becomes the agent's first message
 | `model.name` | string | — | Overrides the config's model name for this workflow only. |
 | `model.temperature` | number (`0`–`2`) | — | Sampling temperature. |
 | `session` | object | — | Session behavior. `additionalProperties: false`. |
-| `session.type` | string, enum `task` \| `chat` | `task` | `task` ends when the agent calls `set_result`; `chat` is open-ended (no automatic end — keeps responding until the caller stops sending turns). |
+| `session.type` | string, enum `task` \| `chat` | `task` | `task` ends when the agent calls `set_result`; `chat` is intended to be open-ended (no automatic end — keeps responding until the caller stops sending turns). **Current release:** `chat` still runs as a `task` session under the hood — it ends the same way `task` does (`set_result`, `maxTurns`, or `timeout`). Multi-turn chat semantics ship in a later release. |
 | `session.maxTurns` | integer (`1`–`100`) | `20` | Maximum agent turns before the session is forced to end. |
 | `session.timeout` | integer (`>= 1`) | `300` | Session timeout in seconds. |
 | `result` | object (JSON Schema, `type` required and must be `object`) | — | The JSON Schema the `set_result` tool's argument must satisfy. Defines the shape of the `result` output. |
@@ -76,23 +77,36 @@ inputs: [...]                               # Becomes the agent's first message
 
 ## `set_result` and `agent.result`
 
-Every Agent workflow gets a built-in `set_result` tool at runtime — you don't declare it under `tools`. Its argument schema is exactly `agent.result` (must be `type: object`). For a `task` session, calling `set_result` ends the session and populates the `result` output with the call's argument. For a `chat` session, `set_result` is optional per turn; the session keeps going until `session.maxTurns`/`session.timeout` or the caller stops.
+Every Agent workflow gets a built-in `set_result` tool at runtime — you don't declare it under `tools`. Its argument schema is exactly `agent.result` (must be `type: object`). For a `task` session, calling `set_result` ends the session and populates the `result` output with the call's argument. `chat` sessions are intended to make `set_result` optional per turn and keep going until `session.maxTurns`/`session.timeout` or the caller stops — but see the current-release note on `session.type` above: every session today runs as a `task` session, so `set_result` ends it immediately regardless of `session.type`.
+
+**Validation note:** at runtime, `set_result`'s argument is checked against `agent.result` by verifying only the top-level `required` array is satisfied — nested property types, formats, and other JSON Schema keywords in `agent.result` are not enforced when the tool is called. (`cxtms` still validates that `agent.result` itself is a well-formed JSON Schema with `type: object` at author time via `AGT_008`.)
 
 ## `__session` Override Input
 
-Pass `__session` as an input (it does not need to be declared in `inputs:`) to attach a call to an existing session instead of starting a new one — the value is the `sessionId` from a prior run's output. This is how a `chat`-type Agent workflow accumulates multi-turn context across separate workflow invocations: the caller stores `sessionId` from the first response and passes it back as `__session` on the next call.
+Pass `__session` as an input (it does not need to be declared in `inputs:`) to override the agent's session limits for this one run. It is an optional object: `{ maxTurns, timeout }` (a `type` field is also accepted but not yet used by the runtime). `__session` is **not** a session id and does **not** resume or attach to a prior session — every run of an Agent workflow creates a brand-new session, whether or not `__session` is passed. Use it to tighten or relax `session.maxTurns`/`session.timeout` for a specific call site (e.g. a trigger-bound agent that needs a shorter timeout than the workflow's own `agent.session` default) without editing the workflow itself.
 
 ## Outputs
 
-Outputs are **fixed** for Agent workflows — the engine always produces exactly these three, regardless of what (if anything) you declare under `outputs:`:
+Outputs are **fixed** for Agent workflows — when the session completes via `set_result`, the engine always produces exactly these three, regardless of what (if anything) you declare under `outputs:`:
 
 | Output | Description |
 |--------|-------------|
-| `result` | The argument the agent passed to `set_result`, matching `agent.result`'s schema. Empty/absent if the session ended without calling `set_result` (e.g. `chat` sessions, or a `task` session that hit `maxTurns`/`timeout`). |
+| `result` | The argument the agent passed to `set_result`, matching `agent.result`'s schema. |
 | `transcript` | The full turn-by-turn conversation log for the session (prompts, tool calls, tool results, model responses). |
-| `sessionId` | The session identifier. Capture this to continue a `chat` session later via the `__session` input. |
+| `sessionId` | The session identifier. |
 
-An `outputs:` section is **not required** for an Agent workflow — the scaffolded template omits it entirely, and `result`/`transcript`/`sessionId` are still produced. The engine ignores `outputs:` for this workflow type: it does not consult it to decide what to produce. If you add an `outputs:` section anyway (e.g. to rename an output for a caller, or because a shared tool expects one), the normal `output.json` rule still applies — each entry still needs a `mapping` — but it has no effect on which outputs the Agent runtime actually populates.
+If a `task` session ends **without** calling `set_result` — it hits `session.maxTurns`, `session.timeout`, or stops responding with tool calls after two nudges — the workflow **fails**: the engine raises an error naming the session id (e.g. `Agent session <sessionId> ended without a result: exhausted its turn budget (20)`), and there are **no** `result`/`transcript`/`sessionId` outputs in that case. Look up the `AgentSession` row by the session id in the error message to inspect the transcript of a failed run.
+
+An `outputs:` section is **not required** for an Agent workflow — the scaffolded template omits it entirely, and `result`/`transcript`/`sessionId` are still produced when the session completes. The engine ignores `outputs:` for this workflow type: it does not consult it to decide what to produce. If you add an `outputs:` section anyway (e.g. to rename an output for a caller, or because a shared tool expects one), the normal `output.json` rule still applies — each entry still needs a `mapping` — but it has no effect on which outputs the Agent runtime actually populates.
+
+## Triggers
+
+An Agent workflow can carry a `triggers:` entry (e.g. `type: Entity`) just like a standard workflow. When it fires, the agent session runs **synchronously inside the saving request** — the request that added/modified/deleted the triggering entity waits for the full agent session (potentially several model round-trips) before it can complete, for up to `session.timeout` (default 300s) — and it holds the workflow lock for that entity/organization for the whole duration.
+
+For a trigger-bound agent, either:
+
+- keep `session.timeout` short and `session.maxTurns` low, so a slow or looping agent can't stall the triggering request for long, or
+- keep the trigger workflow itself lightweight (no `agent:` section) and have it invoke the Agent workflow asynchronously via `Workflow/Execute@1` with `executionMode: Async`, so the triggering request returns immediately and the agent runs out-of-band.
 
 ## The `ai.default` Organization Config
 
@@ -113,7 +127,7 @@ Set up this config once per organization (or per named config for `model.fromCon
 
 When a workflow is exposed as a tool (via another agent's `tools[].workflow`, or via `workflowType: McpTool`), its display name is converted into a tool name matching `^[a-zA-Z0-9_-]{1,64}$`:
 
-- Characters outside `[a-zA-Z0-9_-]` (spaces, `/`, punctuation) become `_`. E.g. `"MCP / Get Order Status"` → `MCP___Get_Order_Status`.
+- Runs of one or more characters outside `[a-zA-Z0-9_-]` (spaces, `/`, punctuation) collapse to a single `_`. E.g. `"MCP / Get Order Status"` → `MCP_Get_Order_Status`.
 - If two workflows collapse to the same tool name, later collisions get a numeric suffix: the second occurrence becomes `_2`, the third `_3`, and so on.
 - Keep workflow names short and distinguishable after this substitution if you're exposing several as tools to the same agent — two names that only differ by punctuation will collide and get suffixed, which is harder for the model to reason about than a small rename up front.
 
