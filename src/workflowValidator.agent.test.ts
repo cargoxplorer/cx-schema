@@ -58,6 +58,11 @@ activities:
     expect(result.errors.some(e => /agent/.test(e.message))).toBe(true);
   });
 
+  it('rejects an Agent workflow with executionMode Async', async () => {
+    const result = await validate(base.replace('executionMode: "Sync"', 'executionMode: "Async"'));
+    expect(result.errors.some(e => /executionMode|Sync/.test(e.message))).toBe(true);
+  });
+
   it('still lists McpTool as a valid type', async () => {
     const result = await validate(base.replace('"Agent"', '"McpTool"').replace(/agent:[\s\S]*?inputs:/, 'mcp:\n  name: t\ninputs:') + `
 activities:

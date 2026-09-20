@@ -569,14 +569,24 @@ export class WorkflowValidator {
   }
 
   /**
-   * Validate Agent workflow sections. Activities are not allowed (mirrors backend AGT_004);
-   * agent.session.type must be "task" or "chat" (mirrors backend AGT_005). Everything else
-   * agent-shaped (instructions, tools[].workflow, result, agents[]) is enforced by agent/agent.json.
+   * Validate Agent workflow sections. executionMode must be Sync (mirrors backend AGT_003);
+   * activities are not allowed (mirrors backend AGT_004); agent.session.type must be "task" or
+   * "chat" (mirrors backend AGT_005). Everything else agent-shaped (instructions, tools[].workflow,
+   * result, agents[]) is enforced by agent/agent.json.
    */
   private validateAgentWorkflow(
     workflowData: YAMLWorkflow,
     errors: ValidationError[]
   ): void {
+    const executionMode = workflowData.workflow?.executionMode;
+    if (executionMode !== undefined && executionMode !== 'Sync') {
+      errors.push({
+        type: 'schema_violation',
+        path: 'workflow.executionMode',
+        message: `Invalid workflow.executionMode "${executionMode}": Agent workflows must use executionMode: Sync`
+      });
+    }
+
     if (workflowData.activities) {
       errors.push({
         type: 'schema_violation',

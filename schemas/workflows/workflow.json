@@ -300,7 +300,13 @@
       "then": { "required": ["workflow", "entity"], "properties": { "activities": false } },
       "else": {
         "if": { "properties": { "workflow": { "properties": { "workflowType": { "const": "Agent" } }, "required": ["workflowType"] } } },
-        "then": { "required": ["workflow", "agent"], "properties": { "activities": false } },
+        "then": {
+          "required": ["workflow", "agent"],
+          "properties": {
+            "activities": false,
+            "workflow": { "properties": { "executionMode": { "const": "Sync" } }, "required": ["executionMode"] }
+          }
+        },
         "else": { "required": ["workflow", "activities"] }
       }
     },
