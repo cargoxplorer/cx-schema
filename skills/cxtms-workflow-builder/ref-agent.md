@@ -38,11 +38,7 @@ agent:                                      # Required (replaces activities)
   agents: [...]
 
 inputs: [...]                               # Becomes the agent's first message
-outputs:
-  - name: result
-    mapping: "agent.result"
-  - name: transcript
-    mapping: "agent.transcript"
+# outputs: not needed — result/transcript/sessionId are fixed and always produced
 ```
 
 ## Agent Section — Property Reference
@@ -88,13 +84,15 @@ Pass `__session` as an input (it does not need to be declared in `inputs:`) to a
 
 ## Outputs
 
+Outputs are **fixed** for Agent workflows — the engine always produces exactly these three, regardless of what (if anything) you declare under `outputs:`:
+
 | Output | Description |
 |--------|-------------|
 | `result` | The argument the agent passed to `set_result`, matching `agent.result`'s schema. Empty/absent if the session ended without calling `set_result` (e.g. `chat` sessions, or a `task` session that hit `maxTurns`/`timeout`). |
 | `transcript` | The full turn-by-turn conversation log for the session (prompts, tool calls, tool results, model responses). |
 | `sessionId` | The session identifier. Capture this to continue a `chat` session later via the `__session` input. |
 
-Declare `result` and `transcript` (and `sessionId` if you need it) under `outputs:` with a `mapping`, same as any other workflow output — see the template's `outputs` section.
+An `outputs:` section is **not required** for an Agent workflow — the scaffolded template omits it entirely, and `result`/`transcript`/`sessionId` are still produced. The engine ignores `outputs:` for this workflow type: it does not consult it to decide what to produce. If you add an `outputs:` section anyway (e.g. to rename an output for a caller, or because a shared tool expects one), the normal `output.json` rule still applies — each entry still needs a `mapping` — but it has no effect on which outputs the Agent runtime actually populates.
 
 ## The `ai.default` Organization Config
 

@@ -35,15 +35,10 @@ agent:
     - workflow: "MCP / Get Order Status"
       instructions: "Call first to load the order before reasoning."
 
+# Outputs are fixed for Agent workflows: result (set_result argument), transcript, sessionId. No outputs: section is needed.
 inputs:
   - name: orderNumber
     type: string
     props:
       required: true
       description: "The order to work on"
-
-outputs:
-  - name: result
-    mapping: "agent.result"
-  - name: transcript
-    mapping: "agent.transcript"
