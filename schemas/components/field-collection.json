@@ -316,6 +316,25 @@
             ]
           }
         },
+        "itemGroups": {
+          "type": "object",
+          "required": ["key"],
+          "properties": {
+            "key": {
+              "type": "string",
+              "description": "Template resolved per visible row. Consecutive rows with the same non-empty key form a visual group."
+            },
+            "headerTemplate": {
+              "type": "object",
+              "description": "Component rendered once above the grouped accordion rows. Receives group and collection variables."
+            },
+            "accent": {
+              "description": "Templated group-frame color: CSS color, palette path, or palette name."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Visually joins adjacent accordion rows with matching keys without reordering or bucketing them."
+        },
         "layout": {
           "type": "string",
           "enum": ["list", "grid", "accordion"],

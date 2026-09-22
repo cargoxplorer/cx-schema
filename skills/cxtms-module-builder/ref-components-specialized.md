@@ -473,6 +473,8 @@ Set `columns.appendEmpty: true` to render one trailing empty ordinal slot beyond
 
 Set `props.dragSource` to make planner cards draggable between lanes. It uses the shared `type`, optional `data`, and optional templated `canDrag` contract; target cells receive the payload through `dragItem` and `dragType`. Native dragging is desktop-only, so keep a click-driven equivalent.
 
+Use `props.itemGroups` to join consecutive cards with the same non-empty templated `key` into one framed block. Optional `headerTemplate`, `accent`, and `dotsMenu` render at group level. Group templates receive `{ key, items, size, startIndex, endIndex }`; card templates receive `group`, `groupPosition`, and `groupOffset`. A grouped drag exposes the complete group to the drop action as `dragGroup` while preserving the individual `dragItem`.
+
 ## timeline-grid
 
 CSS Grid-based timeline with swim lanes, drill-down, and virtual scrolling.

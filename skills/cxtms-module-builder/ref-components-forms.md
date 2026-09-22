@@ -605,6 +605,7 @@ When `options.allowRemove` is enabled and the item count is above `minItems`, re
 | `groupMode` | `boolean` | `false` | Enable grouping |
 | `groupBy` | `string` | — | Field path to group by |
 | `groups` | `{key, label, icon?}[]` | — | Group definitions |
+| `itemGroups` | `{key, headerTemplate?, accent?}` | — | In accordion layout, join consecutive rows whose templated key is equal and non-empty |
 | `showIndex` | `boolean` | `false` | Show item index |
 | `showDragHandle` | `boolean` | `false` | Show drag handles |
 | `showMoveButtons` | `boolean` | `false` | Show up/down move buttons for accessible reordering; requires `options.allowReorder` |
@@ -684,6 +685,8 @@ props:
 Grouped collections can render groups in multiple columns. Use a fixed `groupCols` count or responsive breakpoint counts; each count is converted to Material UI's 12-column grid.
 
 Accordion collections support `itemHeaderFields` for interactive fields that remain visible while a row is collapsed. The header fields share `item`, `index`, `collection`, and field-name prefixing with `itemTemplate`; wrap them in a `layout` for grid sizing. Use `rowVariant: flat` and `nestedVariant: rail` or `none` to reduce card chrome in nested collections.
+
+`itemGroups` is separate from `groupMode`: it preserves order and frames only adjacent runs of two or more matching keys. Its header and accent templates receive `group = { key, items, size, startIndex, endIndex }` and `collection`; grouped row templates additionally receive `groupPosition` and `groupOffset`.
 
 For `datetime`, `time`, and `select-async` fields, `displayMode: readEdit` renders the current value as text until clicked. Date/time fields stay in edit mode while their calendar popup is open and return to text when it closes; other fields return on blur.
 
