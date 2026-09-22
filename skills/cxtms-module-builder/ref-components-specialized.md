@@ -347,6 +347,7 @@ MUI Lab Timeline for chronological events or milestone-based tracking progress.
 | `startDate` / `endDate` | `string` | current week | Initial date range for normal mode |
 | `eventSources` | `EventSource[]` | — | GraphQL/static event sources |
 | `eventTemplate` | `ComponentProps` | — | Custom event template for normal mode |
+| `itemGroups` | `{key, accent?, background?, headerTemplate?}` | — | Mobile normal-mode grouping for consecutive events with the same non-empty key |
 | `milestones` | `Milestone[]` | `[]` | Tracking milestones |
 | `options.height` | `string \| number` | `400`/`auto` | Component height |
 | `options.showTodayMarker` | `boolean` | `true` | Today marker in normal mode |
@@ -363,6 +364,8 @@ MUI Lab Timeline for chronological events or milestone-based tracking progress.
 **Milestone:** `{ key, label?, description?, icon? }`. `label` can be localized (`{ en-US: "Delivered" }`).
 
 **Events:** `onEventClick` (data: `event`)
+
+On mobile vertical timelines, `itemGroups` frames adjacent runs of two or more events whose templated `key` resolves equally. Runs are order-sensitive; isolated or empty keys remain ungrouped. `headerTemplate`, `accent`, and `background` resolve with `group = { key, items, size, startIndex, endIndex }` and `collection`. Grouped event templates also receive `groupPosition` and `groupOffset`. Tracking mode ignores grouping.
 
 ```yaml
 component: timeline

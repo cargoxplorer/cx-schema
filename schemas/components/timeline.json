@@ -115,6 +115,30 @@
           "$ref": "../schemas.json#/definitions/component",
           "description": "Mobile-only component used for normal-mode events whose mapped status is 'active'; receives 'item' bound to the event"
         },
+        "itemGroups": {
+          "type": "object",
+          "description": "Mobile normal-mode visual grouping for adjacent events whose templated key resolves to the same non-empty value",
+          "properties": {
+            "key": {
+              "$ref": "../schemas.json#/definitions/templateExpression",
+              "description": "Resolved per event with item, index, and collection"
+            },
+            "accent": {
+              "$ref": "../schemas.json#/definitions/templateExpression",
+              "description": "Frame color resolved with group and collection"
+            },
+            "background": {
+              "$ref": "../schemas.json#/definitions/templateExpression",
+              "description": "Frame fill resolved with group and collection"
+            },
+            "headerTemplate": {
+              "$ref": "../schemas.json#/definitions/component",
+              "description": "Rendered once above the grouped members; receives group and collection"
+            }
+          },
+          "required": ["key"],
+          "additionalProperties": false
+        },
         "eventSources": {
           "type": "array",
           "description": "Data providers executed for the current visible range or tracking milestone source",
