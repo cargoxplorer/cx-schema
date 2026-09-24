@@ -468,7 +468,7 @@ children:
   - name: advanced
     props:
       label: { en-US: "Advanced" }
-      isHidden: "{{ eval !isAdmin }}"
+      isHidden: "{{ !isAdmin }}"
     children:
       - component: field
         name: config

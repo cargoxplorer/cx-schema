@@ -567,7 +567,7 @@ still control the displayed label and stored value.
     type: textarea
     label: { en-US: "Notes" }
     rows: 4
-    disabled: "{{ eval !canEdit }}"
+    disabled: "{{ !canEdit }}"
 ```
 
 ---

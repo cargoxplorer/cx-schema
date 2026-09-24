@@ -15,7 +15,7 @@
             "type": {
               "type": "string",
               "enum": ["success", "error", "warning", "scan"],
-              "description": "Feedback tone preset. Defaults to success."
+              "description": "Feedback tone preset to play. Defaults to success."
             },
             "volume": {
               "type": "number",
@@ -27,10 +27,11 @@
           "additionalProperties": false
         }
       ],
-      "description": "Play a short browser-generated feedback tone. Unsupported browsers resolve without failing the action chain.",
+      "description": "Play a short browser-generated feedback tone on the client device. String shorthand plays a preset at full volume. Unsupported browsers and playback failures resolve silently and never stop the action chain.",
       "x-examples": [
         "success",
-        { "type": "scan", "volume": 0.5 }
+        { "type": "scan", "volume": 0.5 },
+        { "type": "error", "volume": 0.8 }
       ]
     }
   },

@@ -477,21 +477,6 @@ props:
 
 Compact theme-aware badge. Prefer semantic variants for new modules; the dot is opt-in.
 
-## avatar, infoLine, and progressBar
-
-Use these template-aware display components for compact entity cards and planner headers.
-
-```yaml
-- component: avatar
-  props: { name: '{{ row.record.name }}', colorSeed: '{{ row.record.id }}', size: 40 }
-- component: infoLine
-  props: { icon: tabler-phone, value: '{{ row.record.phone }}', href: 'tel:{{ row.record.phone }}' }
-- component: progressBar
-  props: { items: '{{ row.items }}', completedPath: status, completedValue: Completed }
-```
-
-`avatar` derives initials from names/email and uses `src` as an optional image. `infoLine` renders nothing for an empty value and only links allowlisted URL schemes. `progressBar` accepts direct `value`/`max` or derives counts from `items`; choose `count`/`percent` and `linear`/`circular`/`segmented` display modes. On mobile, `activeColor` and `trackColor` customize segmented progress; `tooltip` is exposed to assistive technology rather than hover UI.
-
 **Props:**
 | Prop | Type | Description |
 |------|------|-------------|
@@ -530,6 +515,104 @@ props:
     - navigate:
         route: order-detail
         params: { id: "{{ order.id }}" }
+```
+
+---
+
+## avatar
+
+Template-aware display component for compact entity cards and planner headers. Circular avatar with automatic two-letter initials. Sources tried in priority order: `src` image → `firstName` + `lastName` → `name` → `email` → placeholder user icon. Color is picked deterministically from the theme palette by hashing `colorSeed`.
+
+**Props (all template-parsed):**
+| Prop | Type | Description |
+|------|------|-------------|
+| `src` | `string` | Image URL; falls back to initials when empty or broken |
+| `name` | `string` | Full name: `Andre Kovac` → AK, `Kovac, Andre` → AK, `Madonna` → MA |
+| `firstName` / `lastName` | `string` | Explicit name parts (organization user form); take priority over `name` |
+| `email` | `string` | Last text fallback: local part, digits dropped (`andre.kovac@…` → AK) |
+| `colorSeed` | `string\|number` | Stable color seed — use an id (`contactId`, user id), not the name |
+| `color` | `string` | Pin a theme color: `primary` \| `secondary` \| `error` \| `warning` \| `info` \| `success` |
+| `bgcolor` / `textColor` | `string` | Explicit CSS color overrides |
+| `size` | `number` | Diameter in px, default 40 |
+| `variant` | `string` | `circular` (default) \| `rounded` \| `square` |
+| `skin` | `string` | `light` (default, tinted bg) \| `filled` \| `light-static` |
+| `tooltip` | `string\|localized` | Tooltip on hover |
+| `onClick` | `Action[]` | Actions on click; when present the avatar is clickable |
+
+```yaml
+component: avatar
+name: driverLaneAvatar
+props:
+  name: '{{ row.record.name }}'
+  colorSeed: '{{ row.record.contactId }}'
+  size: 40
+```
+
+---
+
+## infoLine
+
+Compact "icon + value" line for entity cards (phone, email, truck, container…). Abstract: YAML assembles the value string, the component only renders it. **An empty value renders nothing**, so optional lines can be declared unconditionally.
+
+**Props (all template-parsed):**
+| Prop | Type | Description |
+|------|------|-------------|
+| `icon` | `string` | Icon class: `tabler-phone`, `tabler-mail`, `tabler-truck`, `tabler-container`, FA names |
+| `iconColor` | `string` | Theme path or CSS color, default `text.secondary` |
+| `value` | `string` | The text; assemble separators in YAML: `'{{ n }} • {{ size }}'`. Empty → not rendered |
+| `href` | `string` | Renders the value as a link: `tel:{{ … }}`, `mailto:{{ … }}`, or a URL; only allowlisted URL schemes are linked |
+| `onClick` | `Action[]` | Actions on click (alternative to href) |
+| `truncate` | `boolean` | Ellipsis on overflow; tooltip defaults to the full value |
+| `tooltip` | `string\|localized` | Explicit tooltip, overrides the truncate default |
+| `variant` | `string` | `default` \| `chip` — bordered rounded container |
+
+```yaml
+- component: infoLine
+  name: driverPhone
+  props:
+    icon: tabler-phone
+    value: '{{ row.record.phoneNumber }}'
+    href: 'tel:{{ row.record.phoneNumber }}'
+- component: infoLine
+  name: containerChip
+  props:
+    icon: tabler-container
+    value: '{{ container.number }} • {{ container.size }}'
+    variant: chip
+    truncate: true
+```
+
+---
+
+## progressBar
+
+Abstract progress bar. Feed it `value`/`max` directly, or an `items` array with a declarative completed predicate — what the numbers mean (moves, stops, hours…) is the module's business. **max 0 or missing → nothing renders**, so it can be declared unconditionally.
+
+**Props (all template-parsed):**
+| Prop | Type | Description |
+|------|------|-------------|
+| `value` | `number\|string` | Completed amount; overrides the derived count |
+| `max` | `number\|string` | Total; defaults to `items.length` when `items` is set |
+| `items` | `string` | Single-chunk template → array, e.g. `'{{ row.items }}'` |
+| `completedPath` | `string` | Dot path inside each item, e.g. `orderMove.orderMoveStatus.statusStage` |
+| `completedValue` | `string` | Match at the path counts as completed; omitted → any truthy value |
+| `label` | `string\|localized` | Caption on the left, e.g. `Moves` |
+| `showValue` | `boolean` | Value caption (`2/5`), default true |
+| `valueFormat` | `string` | `count` (default) \| `percent` |
+| `variant` | `string` | `linear` (default) \| `circular` \| `segmented` |
+| `height` / `size` | `number` | Linear thickness (6) / circular diameter (40) |
+| `color` | `string` | Theme name or CSS color; default primary → success at 100% |
+| `activeColor` / `trackColor` | `string` | Mobile: completed-segment color / track or incomplete-segment color for the segmented variant |
+| `tooltip` | `string\|localized` | Tooltip on hover (on mobile it is exposed to assistive technology rather than hover UI) |
+
+```yaml
+- component: progressBar
+  name: laneMovesProgress
+  props:
+    label: Moves
+    items: '{{ row.items }}'
+    completedPath: orderMove.orderMoveStatus.statusStage
+    completedValue: Completed
 ```
 
 ---

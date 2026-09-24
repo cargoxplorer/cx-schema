@@ -24,6 +24,7 @@ schema/
 │   ├── dropdown.json        # Dropdown menu component
 │   ├── datasource.json      # Data source component
 │   ├── calendar.json        # Calendar component
+│   ├── planner.json         # Planner component (grouped & ordered planning grid)
 │   ├── module.json          # Module component
 │   ├── index.json           # Component schema index
 │   └── README.md            # This documentation file

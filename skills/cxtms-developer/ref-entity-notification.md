@@ -13,8 +13,8 @@ Real-time notification system. Notifications are org-scoped with per-user read t
 | `type` | `NotificationType` | System=0, OrderUpdate=1, TaskAssignment=2, Alert=3, Info=4 |
 | `priority` | `NotificationPriority` | Low=0, Normal=1, High=2, Urgent=3 |
 | `targetUserId` | `string?` | If set, targets one user; if null, broadcasts to all active org users |
-| `entityType` | `string?` | Linked entity type (e.g. "Order", "Job") |
-| `entityId` | `int?` | Linked entity PK |
+| `entityType` | `string?` | Linked entity type (e.g. "Order", "Job", "AgentSession") |
+| `entityId` | `string?` | Linked entity id (varchar(64)). Most entity types still store an integer PK as text; `entityType: "AgentSession"` carries the session's GUID (`AgentSessionId.ToString()`) instead. |
 | `expiresAt` | `DateTime?` | Optional expiration |
 | `created` / `lastModified` | `DateTime` | Audit fields (from `AuditableEntity`) |
 | `createdBy` / `lastModifiedBy` | `string` | Audit fields |

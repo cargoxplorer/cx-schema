@@ -67,8 +67,8 @@
         },
         "workflowType": {
           "type": "string",
-          "enum": ["Document", "Quote", "Flow", "Webhook", "PublicApi", "McpTool", "McpResource", "McpPrompt"],
-          "description": "Workflow type, including organization-scoped MCP tools, resources, and prompts. Omit for standard process workflows."
+          "enum": ["Process", "Document", "Quote", "Flow", "Webhook", "PublicApi", "McpTool", "McpResource", "McpPrompt", "Agent", "EmailTemplate", "RulesTariff"],
+          "description": "Workflow type: Process (standard workflow), Document (PDF/Excel generation), Quote, Flow (declarative state machine), Webhook (HTTP endpoint), PublicApi (REST API endpoint), McpTool, McpResource, McpPrompt (organization-scoped MCP tools, resources and prompts), Agent (LLM agent), EmailTemplate or RulesTariff. Omit for standard process workflows."
         },
         "runAs": {
           "type": "string",
@@ -279,6 +279,7 @@
       },
       "additionalProperties": false
     },
+    "agent": { "$ref": "agent/agent.json" },
     "entity": {
       "$ref": "flow/entity.json",
       "description": "Entity configuration for Flow workflows"
@@ -308,24 +309,18 @@
   "required": ["workflow"],
   "allOf": [
     {
-      "if": {
-        "properties": {
-          "workflow": {
-            "properties": {
-              "workflowType": { "const": "Flow" }
-            },
-            "required": ["workflowType"]
-          }
-        }
-      },
-      "then": {
-        "required": ["workflow", "entity"],
-        "properties": {
-          "activities": false
-        }
-      },
+      "if": { "properties": { "workflow": { "properties": { "workflowType": { "const": "Flow" } }, "required": ["workflowType"] } } },
+      "then": { "required": ["workflow", "entity"], "properties": { "activities": false } },
       "else": {
-        "required": ["workflow", "activities"]
+        "if": { "properties": { "workflow": { "properties": { "workflowType": { "const": "Agent" } }, "required": ["workflowType"] } } },
+        "then": {
+          "required": ["workflow", "agent"],
+          "properties": {
+            "activities": false,
+            "workflow": { "properties": { "executionMode": { "const": "Sync" } }, "required": ["executionMode"] }
+          }
+        },
+        "else": { "required": ["workflow", "activities"] }
       }
     },
     {

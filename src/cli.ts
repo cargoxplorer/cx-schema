@@ -604,6 +604,7 @@ ${chalk.bold.yellow('WORKFLOW TEMPLATES:')}
   ${chalk.green('webhook')}         HTTP endpoint for external callers (anonymous, rate-limited)
   ${chalk.green('public-api')}      REST API endpoint with OpenAPI documentation
   ${chalk.green('mcp-tool')}        Expose workflow as MCP tool for AI agents
+  ${chalk.green('agent')}           AI agent that calls other workflows as tools (workflowType: Agent)
   ${chalk.green('ftp-tracking')}    Import tracking events from FTP
   ${chalk.green('ftp-edi')}         Import orders from FTP via EDI
   ${chalk.green('api-tracking')}    Fetch tracking from carrier API
@@ -613,6 +614,7 @@ ${chalk.bold.yellow('EXAMPLES:')}
   ${chalk.cyan(`${PROGRAM_NAME} create workflow invoice-generator`)}
   ${chalk.cyan(`${PROGRAM_NAME} create workflow stripe-events --template webhook`)}
   ${chalk.cyan(`${PROGRAM_NAME} create workflow get-order --template public-api`)}
+  ${chalk.cyan(`${PROGRAM_NAME} create workflow order-triage --template agent`)}
 `;
 
 const EXTRACT_HELP = `

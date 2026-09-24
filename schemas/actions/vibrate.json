@@ -24,22 +24,24 @@
                 "minimum": 0
               },
               "minItems": 1,
-              "description": "Vibration API pattern in milliseconds: even indexes vibrate, odd indexes pause."
+              "description": "Custom vibration sequence in milliseconds using the Web Vibration API convention: even indexes vibrate, odd indexes pause. Overrides type."
             },
             "duration": {
               "type": "number",
               "minimum": 0,
-              "description": "Single vibration duration in milliseconds."
+              "description": "Single vibration pulse length in milliseconds. Used when pattern is omitted."
             }
           },
           "additionalProperties": false
         }
       ],
-      "description": "Trigger device haptic feedback through navigator.vibrate when supported. Unsupported devices resolve without failing the action chain.",
+      "description": "Trigger device haptic feedback through navigator.vibrate when supported. String shorthand triggers a preset. Unsupported devices and failures resolve silently and never stop the action chain.",
       "x-examples": [
         "success",
         { "type": "light" },
-        { "pattern": [50, 60, 50] }
+        { "type": "heavy" },
+        { "pattern": [50, 60, 50] },
+        { "duration": 200 }
       ]
     }
   },
