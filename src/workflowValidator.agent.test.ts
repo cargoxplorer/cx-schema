@@ -75,6 +75,46 @@ activities:
     expect(result.errors.filter(e => /workflowType/.test(e.message))).toEqual([]);
   });
 
+  it('accepts a tool with mode: approval', async () => {
+    const result = await validate(base.replace(
+      '    - workflow: "MCP / Get Order Status"\n      instructions: "Call first."',
+      '    - workflow: "MCP / Get Order Status"\n      instructions: "Call first."\n    - workflow: "MCP / Cancel Shipment"\n      mode: approval'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects an invalid tool mode', async () => {
+    const result = await validate(base.replace(
+      '    - workflow: "MCP / Get Order Status"\n      instructions: "Call first."',
+      '    - workflow: "MCP / Get Order Status"\n      mode: sometimes'
+    ));
+    expect(result.errors.some(e => /mode/.test(e.path))).toBe(true);
+  });
+
+  it('accepts a valid model.contextWindow', async () => {
+    const result = await validate(base.replace(
+      'agent:\n  instructions: "Triage the order."',
+      'agent:\n  instructions: "Triage the order."\n  model:\n    name: "claude-sonnet-4-5"\n    contextWindow: 200000'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects a non-positive model.contextWindow', async () => {
+    const result = await validate(base.replace(
+      'agent:\n  instructions: "Triage the order."',
+      'agent:\n  instructions: "Triage the order."\n  model:\n    contextWindow: 0'
+    ));
+    expect(result.errors.some(e => /contextWindow/.test(e.path))).toBe(true);
+  });
+
+  it('rejects a non-integer model.contextWindow', async () => {
+    const result = await validate(base.replace(
+      'agent:\n  instructions: "Triage the order."',
+      'agent:\n  instructions: "Triage the order."\n  model:\n    contextWindow: 128.5'
+    ));
+    expect(result.errors.some(e => /contextWindow/.test(e.path))).toBe(true);
+  });
+
   it('accepts legacy workflow types EmailTemplate and Webhook', async () => {
     const legacyBase = (type: string) => `
 workflow:
