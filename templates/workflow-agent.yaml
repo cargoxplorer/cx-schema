@@ -21,6 +21,7 @@ agent:
     When you have a decision, call set_result with { action, reason }.
   model:
     fromConfig: "ai.default"
+    # contextWindow: 200000  # set when overriding model.name below: the org config's window describes its own model, not this one
   session:
     type: task
     maxTurns: 20
@@ -34,6 +35,9 @@ agent:
   tools:
     - workflow: "MCP / Get Order Status"
       instructions: "Call first to load the order before reasoning."
+    - workflow: "MCP / Cancel Shipment"
+      instructions: "Cancels the order's shipment. Side-effecting — waits for a person to approve."
+      mode: approval
 
 # Outputs are fixed for Agent workflows: result (set_result argument), transcript, sessionId. No outputs: section is needed.
 inputs:

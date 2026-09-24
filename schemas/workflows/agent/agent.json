@@ -13,7 +13,8 @@
       "properties": {
         "fromConfig": { "type": "string", "description": "Organization config name holding provider, model, apiKey, endpoint. Default ai.default." },
         "name": { "type": "string", "description": "Overrides the config's model name." },
-        "temperature": { "type": "number", "minimum": 0, "maximum": 2 }
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+        "contextWindow": { "type": "integer", "minimum": 1, "description": "The model's context window in tokens. Needed when this agent overrides the model name via model.name: the organization config's window describes the config's model, not this one. Defaults to 256000 when neither the agent nor the resolved model configuration declares one." }
       },
       "additionalProperties": false
     },
@@ -40,7 +41,8 @@
         "required": ["workflow"],
         "properties": {
           "workflow": { "type": "string", "minLength": 1, "description": "Workflow name or workflowId to expose as a tool." },
-          "instructions": { "type": "string", "description": "When and how the agent should use this tool." }
+          "instructions": { "type": "string", "description": "When and how the agent should use this tool." },
+          "mode": { "type": "string", "enum": ["auto", "approval"], "default": "auto", "description": "'auto' runs the tool as soon as the model calls it. 'approval' pauses a chat session until a person approves or declines the call; a task session (no person present) refuses the call outright and tells the agent it needs human approval." }
         },
         "additionalProperties": false
       }
