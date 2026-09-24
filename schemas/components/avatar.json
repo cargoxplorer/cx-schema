@@ -1,1 +1,117 @@
-{"$schema":"http://json-schema.org/draft-07/schema#","title":"Avatar Component","type":"object","required":["component"],"properties":{"component":{"const":"avatar"},"name":{"type":"string"},"props":{"type":"object","properties":{"src":{},"firstName":{},"lastName":{},"name":{},"email":{},"colorSeed":{},"color":{"type":"string"},"bgcolor":{"type":"string"},"textColor":{"type":"string"},"size":{"type":["number","string"]},"skin":{"type":"string"},"variant":{"type":"string"},"tooltip":{},"onClick":{"$ref":"../schemas.json#/definitions/actionsList"}},"additionalProperties":true}},"additionalProperties":true}
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Avatar Component",
+  "type": "object",
+  "required": [
+    "component"
+  ],
+  "properties": {
+    "component": {
+      "const": "avatar"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name identifier for the avatar"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "src": {
+          "description": "Image URL. Falls back to initials when empty or failed to load"
+        },
+        "firstName": {
+          "description": "Explicit first name (organization user form). Takes priority over name"
+        },
+        "lastName": {
+          "description": "Explicit last name (organization user form). Takes priority over name"
+        },
+        "name": {
+          "description": "Full display name, e.g. '{{ row.record.name }}'. 'Andre Kovac' → AK, 'Kovac, Andre' → AK, single word → first two letters"
+        },
+        "email": {
+          "description": "Fallback when no name resolves: initials from the local part, digits dropped ('andre.kovac@…' → AK)"
+        },
+        "colorSeed": {
+          "description": "Stable seed for the deterministic color, e.g. '{{ row.record.contactId }}'. Use an id, not the display name, so renames don't change the color. Defaults to the resolved text"
+        },
+        "color": {
+          "type": "string",
+          "description": "Pin a theme color instead of the colorSeed hash. Theme colors: primary, secondary, error, warning, info, success"
+        },
+        "bgcolor": {
+          "type": "string",
+          "description": "Explicit CSS background color override"
+        },
+        "textColor": {
+          "type": "string",
+          "description": "Explicit CSS text color override"
+        },
+        "size": {
+          "type": [
+            "number",
+            "string"
+          ],
+          "description": "Diameter in pixels, default 40"
+        },
+        "skin": {
+          "type": "string",
+          "description": "Fill style: light (default) is a tinted background with a colored letter, filled is a solid theme color. Values: filled, light, light-static"
+        },
+        "variant": {
+          "type": "string",
+          "description": "Shape, default circular. Values: circular, rounded, square"
+        },
+        "tooltip": {
+          "description": "Tooltip shown on hover"
+        },
+        "onClick": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions to execute on click; when present the avatar is clickable"
+        },
+        "isHidden": {
+          "description": "Conditionally hide the avatar"
+        },
+        "permission": {
+          "description": "Permission(s) required to render the avatar: a permission string or an array of permission strings"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true,
+  "description": "Circular avatar with automatic two-letter initials. Sources are tried in priority order: src image, firstName + lastName, name, email, then a placeholder user icon.",
+  "x-examples": [
+    {
+      "component": "avatar",
+      "name": "driverLaneAvatar",
+      "props": {
+        "name": "{{ row.record.name }}",
+        "colorSeed": "{{ row.record.contactId }}",
+        "size": 40
+      }
+    },
+    {
+      "component": "avatar",
+      "props": {
+        "firstName": "{{ item.user.firstName }}",
+        "lastName": "{{ item.user.lastName }}",
+        "email": "{{ item.user.email }}",
+        "colorSeed": "{{ item.user.id }}",
+        "tooltip": "{{ item.user.email }}",
+        "onClick": [
+          {
+            "dialog": {
+              "name": "updateOrganizationUserDialog",
+              "props": {
+                "employeeContactId": "{{ item.employeeContactId }}"
+              },
+              "component": {
+                "component": "OrganizationUsers/UpdateOrganizationUser"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
