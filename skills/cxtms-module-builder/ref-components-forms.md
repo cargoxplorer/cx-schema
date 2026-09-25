@@ -448,6 +448,32 @@ still control the displayed label and stored value.
           fields: ["name", "address_components", "formatted_address", "geometry", "place_id"]
 ```
 
+**Attachment options (under `options`):**
+| Prop | Type | Description |
+|------|------|-------------|
+| `parentId` / `parentType` | `string` | Primary parent of the uploaded attachment (`parentType` defaults to `Order`) |
+| `links` | `{entityType, entityId}[]` or template | More entities to link the same upload to: `Order`, `Contact`, `Job`, `TrackingEvent`. Entries whose `entityType` or `entityId` resolves empty are skipped |
+| `category` | `string` | Attachment category (web) |
+| `allowMultiple` / `allowCamera` / `clearAfterUpload` | `boolean` | Upload behavior |
+| `maxSize` / `allowedExtensions` | `number` / `string[]` | File limits |
+| `onUploaded` | actions | Runs after each upload; `attachment` is in scope |
+
+```yaml
+# One upload linked to the order (parent) and a tracking event
+- component: field
+  name: eventPhoto
+  props:
+    type: attachment
+    options:
+      parentType: Order
+      parentId: "{{ orderId }}"
+      links:
+        - entityType: TrackingEvent
+          entityId: "{{ trackingEventId }}"
+```
+
+`Attachments/ListAttachments` (cx-app-core) takes the same `links` prop next to `parentId`/`parentType` and passes it to its upload field; its grid still lists by `parentId`/`parentType`.
+
 **Events:**
 | Event | Description |
 |-------|-------------|

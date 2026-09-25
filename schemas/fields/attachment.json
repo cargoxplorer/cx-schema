@@ -84,12 +84,36 @@
           "items": { "type": "string" }
         },
         "parentId": {
-          "oneOf": [{ "type": "string" }, { "type": "integer" }, { "$ref": "../schemas.json#/definitions/templateExpression" }],
+          "anyOf": [{ "type": "string" }, { "type": "integer" }, { "$ref": "../schemas.json#/definitions/templateExpression" }],
           "description": "Parent entity ID for linking attachment"
         },
         "parentType": {
-          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/templateExpression" }],
+          "anyOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/templateExpression" }],
           "description": "Logical parent type/entity for the attachment (e.g., Order, Contact)"
+        },
+        "links": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "entityType": {
+                    "type": "string",
+                    "description": "Linked entity type: Order, Contact, Job or TrackingEvent"
+                  },
+                  "entityId": {
+                    "type": ["string", "integer"],
+                    "description": "Linked entity id (int, or UUID for jobs); templates allowed"
+                  }
+                },
+                "required": ["entityType", "entityId"],
+                "additionalProperties": false
+              }
+            },
+            { "$ref": "../schemas.json#/definitions/templateExpression" }
+          ],
+          "description": "More entities to link the uploaded attachment to, besides parentId/parentType. Entries whose entityType or entityId resolves empty are skipped."
         },
         "onUploaded": {
           "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/actions" }],
@@ -150,6 +174,15 @@
         "clearAfterUpload": true,
         "parentId": "{{ orderId }}",
         "parentType": "Order"
+      }
+    },
+    {
+      "type": "attachment",
+      "label": { "en-US": "Event Photo" },
+      "options": {
+        "parentId": "{{ orderId }}",
+        "parentType": "Order",
+        "links": [{ "entityType": "TrackingEvent", "entityId": "{{ trackingEventId }}" }]
       }
     }
   ]

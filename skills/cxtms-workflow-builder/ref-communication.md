@@ -5,7 +5,7 @@
 - Email/VerifyCode task (send and verify email verification codes)
 - Document/Render task (render PDF or Excel from HTML templates)
 - Document/Send task (send a previously rendered document)
-- Attachment tasks (Create, Update, Thumbnail, PdfThumbnail, RegenerateThumbnails)
+- Attachment tasks (Create, Update, Link, Unlink, Thumbnail, PdfThumbnail, RegenerateThumbnails)
 - PdfDocument/Merge task (merge multiple PDFs into one)
 
 ## Email/Send
@@ -135,22 +135,49 @@ Sends a previously rendered document.
 
 | Task | Description |
 |------|-------------|
-| `Attachment/Create` | Create file attachment on an entity |
-| `Attachment/Update` | Update attachment metadata |
+| `Attachment/Create@1` | Create a file attachment on a primary parent, optionally linked to more entities |
+| `Attachment/Update@1` | Update attachment fields; changing `parentType`/`parentId` moves the primary link |
+| `Attachment/Link@1` | Link an existing attachment to another entity (idempotent) |
+| `Attachment/Unlink@1` | Remove a link; the primary link (current parent) can't be unlinked — re-parent instead |
 | `Attachment/Thumbnail` | Generate image thumbnail |
 | `Attachment/PdfThumbnail` | Generate PDF thumbnail |
 | `Attachment/RegenerateThumbnails` | Regenerate all thumbnails |
 
+One attachment can be linked to many Orders, Contacts, Jobs and TrackingEvents. `parentType`/`parentId` is the primary link; `links` and `Attachment/Link@1` add more. Link `entityType`: `Order`, `Contact`, `Job`, `TrackingEvent`; `entityId`: int id, uuid for Job. A missing link target fails the task.
+
 ```yaml
-- task: "Attachment/Create"
-  name: AttachDocument
+- task: "Attachment/Create@1"
+  name: CreatePhoto
   inputs:
-    entityName: "Order"
-    entityId: "{{ inputs.orderId }}"
-    fileName: "invoice.pdf"
-    content: "{{ GenerateDoc.Render.document }}"
-    contentType: "application/pdf"
+    attachment:
+      fileName: "photo.jpg"
+      attachmentType: "Picture"          # Picture, OtherDocument, Avatar, CustomerDocument
+      parentType: "Order"
+      parentId: "{{ orderId }}"
+      links:                             # optional
+        - entityType: "TrackingEvent"
+          entityId: "{{ trackingEventId }}"
+    fileData: "{{ fileData }}"           # base64 / bytes / stream, or fileUrl: "{{ url }}"
+  outputs:
+    - name: attachment
+      mapping: "attachment"
+
+- task: "Attachment/Link@1"
+  name: LinkToJob
+  inputs:
+    attachmentId: "{{ Main.CreatePhoto.attachment.attachmentId }}"   # activity "Main"
+    entityType: "Job"
+    entityId: "{{ jobId }}"
+
+- task: "Attachment/Unlink@1"
+  name: UnlinkFromJob
+  inputs:
+    attachmentId: "{{ Main.CreatePhoto.attachment.attachmentId }}"
+    entityType: "Job"
+    entityId: "{{ jobId }}"
 ```
+
+`Attachment/Link@1` and `Attachment/Unlink@1` output `attachment`.
 
 ## PdfDocument/Merge
 
