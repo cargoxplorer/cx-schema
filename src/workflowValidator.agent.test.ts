@@ -136,4 +136,40 @@ activities:
       expect(result.errors.filter(e => /workflowType/.test(e.message))).toEqual([]);
     }
   });
+
+  const withUi = (ui: string) => base.replace(
+    'agent:\n  instructions: "Triage the order."',
+    `agent:\n  instructions: "Triage the order."\n  ui:\n${ui}`
+  );
+
+  it('accepts agent.ui display metadata', async () => {
+    const result = await validate(withUi(
+      '    name: "Tracking Agent"\n    shortDescription: "Status, ETAs, exceptions, POD"\n    icon: "map-pin"\n    color: info\n    prompts:\n      - "Which shipments are delayed today?"'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects an unknown agent.ui.color', async () => {
+    const result = await validate(withUi('    color: blue'));
+    expect(result.errors.some(e => /color/.test(e.path))).toBe(true);
+  });
+
+  it('rejects more than 5 agent.ui.prompts', async () => {
+    const prompts = [1, 2, 3, 4, 5, 6].map(i => `      - "Prompt ${i}"`).join('\n');
+    const result = await validate(withUi(`    prompts:\n${prompts}`));
+    expect(result.errors.some(e => /prompts/.test(e.path))).toBe(true);
+  });
+
+  it('rejects an unknown agent.ui property', async () => {
+    const result = await validate(withUi('    theme: dark'));
+    expect(result.errors.some(e => e.path.split('/').includes('ui') || /\btheme\b/.test(e.message))).toBe(true);
+  });
+
+  it('accepts a tool with mode: always', async () => {
+    const result = await validate(base.replace(
+      '    - workflow: "MCP / Get Order Status"\n      instructions: "Call first."',
+      '    - workflow: "MCP / Get Order Status"\n      instructions: "Call first."\n    - workflow: "MCP / Void Invoice"\n      mode: always'
+    ));
+    expect(result.errors).toEqual([]);
+  });
 });

@@ -3,19 +3,20 @@
 ## Contents
 - When to use `workflowType: Agent`
 - Agent top-level structure and the full `agent:` property table
+- Chat display metadata (`agent.ui`)
 - Inputs: how they become the first message, and the tool schema seen by callers
 - The built-in `set_result` tool and `agent.result`
 - The `__session` override input
 - Outputs: `result`, `transcript`, `sessionId`
 - Sessions: how an agent is invoked — a workflow task vs. the Responses API chat
-- Tool approval (`tools[].mode`)
+- Tool approval (`tools[].mode`) and the chat's Ask/Auto approval mode
 - History compression
 - Session ownership and live events
 - Triggers: synchronous execution and lock behavior for trigger-bound agents
 - The `ai.default` organization config shape
 - Tool name derivation (workflow name → tool name)
 - Best practices
-- AGT_001–AGT_010 validation codes and one-line fixes
+- AGT_001–AGT_012 validation codes and one-line fixes
 
 Agent workflows wrap an LLM agent that reasons over a system prompt, calls other workflows as tools, and returns a structured result. Use `workflowType: Agent` in the workflow section. Scaffold with `npx cxtms create workflow <name> --template agent`.
 
@@ -35,6 +36,7 @@ workflow:
 
 agent:                                      # Required (replaces activities)
   instructions: "..."                       # Required
+  ui: { ... }                               # Optional - how the AI Assistant chat shows the agent
   model: { ... }
   session: { ... }
   result: { ... }
@@ -53,6 +55,12 @@ inputs: [...]                               # Becomes the agent's first message
 |----------|------|---------|-------------|
 | `description` | string | — | What this agent does. Shown to callers and to other agents that may invoke it (e.g. as the tool description when this workflow is listed in another agent's `tools[]`). |
 | `instructions` | string (required, `minLength: 1`) | — | System instructions. A Handlebars template evaluated over workflow variables and inputs, same as other template expressions in this schema. |
+| `ui` | object | — | Display metadata for the AI Assistant chat; no runtime effect. `additionalProperties: false`. See [Chat display metadata](#chat-display-metadata-agentui). |
+| `ui.name` | string | workflow name | Display name. |
+| `ui.shortDescription` | string | — | One line under the name. |
+| `ui.icon` | string | `robot` | Tabler icon name without the `tabler-` prefix (e.g. `map-pin`). |
+| `ui.color` | string, enum `primary` \| `secondary` \| `info` \| `success` \| `warning` \| `error` | `primary` | Theme palette color of the agent's icon. Case-sensitive. |
+| `ui.prompts` | array of strings (`maxItems: 5`) | — | Suggested prompts on an empty chat. |
 | `model` | object | — | Model selection. `additionalProperties: false`. |
 | `model.fromConfig` | string | `ai.default` | Organization config name holding `provider`, `model`, `apiKey`, `endpoint`. |
 | `model.name` | string | — | Overrides the config's model name for this workflow only. |
@@ -67,13 +75,34 @@ inputs: [...]                               # Becomes the agent's first message
 | `tools` | array of objects | — | Other workflows exposed to the agent as callable tools. |
 | `tools[].workflow` | string (required, `minLength: 1`) | — | Workflow name or `workflowId` to expose as a tool. |
 | `tools[].instructions` | string | — | When and how the agent should use this tool — folded into the tool's description for the model. |
-| `tools[].mode` | string, enum `auto` \| `approval` | `auto` | `auto` runs the tool as soon as the model calls it. `approval` pauses the call for a person to approve or decline — see [Tool approval](#tool-approval-toolsmode). |
+| `tools[].mode` | string, enum `auto` \| `approval` \| `always` | `auto` | `auto` runs the tool as soon as the model calls it. `approval` pauses the call for a person unless the chat is in Auto mode. `always` pauses for a person in every chat — see [Tool approval](#tool-approval-toolsmode). |
 | `mcp` | array of objects | — | Outbound MCP server connections. Runtime support ships in a later release. |
 | `mcp[].fromConfig` | string (required) | — | Organization config name for the MCP connection. |
 | `agents` | array of objects | — | Allow list of other agents this agent may invoke. Runtime support ships in a later release. |
 | `agents[].agent` | string | — | Name of another Agent workflow in this organization. Exactly one of `agent`/`url` is required per entry. |
 | `agents[].url` | string (`format: uri`) | — | Remote A2A agent card URL. Exactly one of `agent`/`url` is required per entry. |
 | `agents[].modes` | array of strings, enum `task` \| `chat` | — | Which session modes this agent may be invoked in. |
+
+## Chat Display Metadata (`agent.ui`)
+
+The AI Assistant lists an organization's agents from `GET .../ai/models`, which includes each agent's
+`agent.description` and `agent.ui`. Set `ui` on any agent people will chat with:
+
+```yaml
+agent:
+  description: Looks up shipment status, ETAs and exceptions across carriers.
+  ui:
+    name: Tracking Agent                  # optional; defaults to the workflow name
+    shortDescription: Status, ETAs, exceptions, POD
+    icon: map-pin                         # Tabler icon name without prefix
+    color: info                           # primary | secondary | info | success | warning | error
+    prompts:                              # at most 5
+      - Which shipments are delayed today?
+      - What is the ETA for order ORD-1?
+```
+
+Keep `shortDescription` to a few words and write `prompts` as questions a user would actually type —
+each is sent as-is when clicked.
 
 ## Inputs: First Message and Tool Schema
 
@@ -130,10 +159,18 @@ Mark a tool `mode: approval` when the model calling it unattended is a risk you 
 tools:
   - workflow: "Orders / Get Status"        # auto (default): runs immediately
   - workflow: "Orders / Cancel Shipment"
-    mode: approval                          # waits for a person
+    mode: approval                          # waits for a person, unless the chat is in Auto mode
+  - workflow: "Invoices / Void"
+    mode: always                            # waits for a person in every chat
 ```
 
 **In a chat session:** the model calls the tool, the conversation pauses with an `mcp_approval_request` output item, and the session status becomes `AwaitingApproval`. A person (anyone who can see the session, per its ownership scope) approves or declines by continuing the conversation with a decision instead of new text. On approval, the tool runs and the agent continues; on decline, the model is told the user declined (and why) and carries on without running it. Sending an ordinary chat message instead of a decision declines every pending request automatically. Full request/response shapes are in `docs/agent-api.md` §8 in `tms-backend-api`.
+
+**Approval mode (Ask / Auto):** each chat has an approval mode the user picks in the chat UI (sent as
+`metadata.approval_mode`). In `Ask` (the default) every `approval` and `always` call pauses. In `Auto`,
+`approval` calls run without pausing and are recorded on the transcript as approved by
+`auto:<userId>`; `always` calls still pause. Use `always` for the few actions that must never run
+without an explicit click, whatever the user's mode — voiding an invoice, charging a card.
 
 **In a task session** (no person is present to ask): an approval tool is **refused** the moment the model calls it — the agent is told it needs human approval for that call and continues reasoning from there (typically escalating via `set_result` rather than completing the original action). Don't rely on `mode: approval` to gate a tool inside a task-only agent; a task session can never satisfy it. If an agent needs to run in both modes, write its `instructions` to handle the "this needs a person" outcome explicitly (see `AGT_010` below for the schema-level check on `mode`'s value; there is no schema check for whether an agent using `mode: approval` will ever run as a chat).
 
@@ -188,11 +225,13 @@ When a workflow is exposed as a tool (via another agent's `tools[].workflow`, or
 ## Best Practices
 
 - **Put side-effecting tools under `mode: approval` in chat agents.** Anything destructive, external-facing, or hard to undo (cancel, charge, send, delete) should pause for a person rather than run the instant the model decides to call it. Read-only or easily-reversible tools (status lookups, previews) can stay `auto`. See [Tool approval](#tool-approval-toolsmode).
+- **Use `mode: always` for actions a person must confirm every time.** `approval` tools run unattended once a user switches the chat to Auto; `always` tools never do.
+- **Give chat agents `agent.ui`.** A `shortDescription`, an `icon`, a `color` and a few `prompts` make the agent recognizable in the AI Assistant's agent menu and empty state.
 - **Set `model.contextWindow` whenever you set `model.name`.** Otherwise a smaller model than the org default silently gets the 256K default window, and history compression won't kick in until it's already over budget (or a larger model gets compressed too eagerly). See the `model.contextWindow` row above.
 - **Design `agent.result`/`agent.instructions` around whichever session type(s) the agent is actually used in.** A chat-only agent doesn't need `agent.result` (it has no `set_result` tool); a task-only agent should tell the model explicitly to call `set_result` exactly once (the scaffolded template's instructions already do this).
 - **Keep trigger-bound agents fast**, or move them off the triggering request entirely (see [Triggers](#triggers)) — a slow agent session holds the entity's workflow lock for its whole duration.
 
-## Validation Codes (AGT_001–AGT_010)
+## Validation Codes (AGT_001–AGT_012)
 
 These are backend validation codes; `cxtms` validates the same constraints client-side via `agent/agent.json` and `workflow.json` so you catch them before deploying.
 
@@ -207,4 +246,6 @@ These are backend validation codes; `cxtms` validates the same constraints clien
 | `AGT_007` | `tools[].workflow` required | Add `workflow` (name or `workflowId`) to every entry in `agent.tools[]`. |
 | `AGT_008` | `result` must be a JSON Schema with `type: object` | Set `agent.result.type` to `object`. |
 | `AGT_009` | `agents[]` needs exactly one of `agent`/`url`, and `modes` from `task`/`chat` | Give each `agent.agents[]` entry exactly one of `agent` or `url`, and only `task`/`chat` values in `modes`. |
-| `AGT_010` | `tools[].mode` must be `auto` or `approval` | Set `agent.tools[].mode` to `auto` or `approval` (or omit it — `auto` is the default). |
+| `AGT_010` | `tools[].mode` must be `auto`, `approval` or `always` | Set `agent.tools[].mode` to `auto`, `approval` or `always` (or omit it — `auto` is the default). |
+| `AGT_011` | `ui.color` must be one of `primary`, `secondary`, `info`, `success`, `warning`, `error` | Set `agent.ui.color` to one of the six palette names, lowercase, or omit it. |
+| `AGT_012` | `ui.prompts` has more than 5 entries | Keep at most 5 `agent.ui.prompts`. |
