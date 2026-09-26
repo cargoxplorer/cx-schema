@@ -136,4 +136,67 @@ activities:
       expect(result.errors.filter(e => /workflowType/.test(e.message))).toEqual([]);
     }
   });
+
+  const withUi = (ui: string) => base.replace(
+    'agent:\n  instructions: "Triage the order."',
+    `agent:\n  instructions: "Triage the order."\n  ui:\n${ui}`
+  );
+
+  it('accepts agent.ui display metadata', async () => {
+    const result = await validate(withUi(
+      '    name: "Tracking Agent"\n    shortDescription: "Status, ETAs, exceptions, POD"\n    icon: "map-pin"\n    color: info\n    prompts:\n      - "Which shipments are delayed today?"'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects an unknown agent.ui.color', async () => {
+    const result = await validate(withUi('    color: blue'));
+    expect(result.errors.some(e => /color/.test(e.path))).toBe(true);
+  });
+
+  it('rejects more than 5 agent.ui.prompts', async () => {
+    const prompts = [1, 2, 3, 4, 5, 6].map(i => `      - "Prompt ${i}"`).join('\n');
+    const result = await validate(withUi(`    prompts:\n${prompts}`));
+    expect(result.errors.some(e => /prompts/.test(e.path))).toBe(true);
+  });
+
+  it('rejects an unknown agent.ui property', async () => {
+    const result = await validate(withUi('    theme: dark'));
+    expect(result.errors.some(e => e.path.split('/').includes('ui') || /\btheme\b/.test(e.message))).toBe(true);
+  });
+
+  it('accepts a tool with mode: always', async () => {
+    const result = await validate(base.replace(
+      '    - workflow: "MCP / Get Order Status"\n      instructions: "Call first."',
+      '    - workflow: "MCP / Get Order Status"\n      instructions: "Call first."\n    - workflow: "MCP / Void Invoice"\n      mode: always'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
+  const withTools = (tools: string) => base.replace(
+    '    - workflow: "MCP / Get Order Status"\n      instructions: "Call first."',
+    tools
+  );
+
+  it('accepts built-in data tools alongside a workflow tool', async () => {
+    const result = await validate(withTools(
+      '    - builtin: data.query\n    - builtin: data.schema\n    - builtin: data.type\n      instructions: "Look up field types before writing a query."\n      mode: approval\n    - workflow: "MCP / Get Order Status"'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects an unknown built-in', async () => {
+    const result = await validate(withTools('    - builtin: data.delete'));
+    expect(result.errors.some(e => /tools/.test(e.path))).toBe(true);
+  });
+
+  it('rejects a tool entry with both workflow and builtin', async () => {
+    const result = await validate(withTools('    - workflow: "MCP / Get Order Status"\n      builtin: data.query'));
+    expect(result.errors.some(e => /tools/.test(e.path))).toBe(true);
+  });
+
+  it('rejects a tool entry with neither workflow nor builtin', async () => {
+    const result = await validate(withTools('    - instructions: "Orphan."'));
+    expect(result.errors.some(e => /tools/.test(e.path))).toBe(true);
+  });
 });
