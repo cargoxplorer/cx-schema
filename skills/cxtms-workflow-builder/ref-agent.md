@@ -10,13 +10,14 @@
 - Outputs: `result`, `transcript`, `sessionId`
 - Sessions: how an agent is invoked — a workflow task vs. the Responses API chat
 - Tool approval (`tools[].mode`) and the chat's Ask/Auto approval mode
+- Built-in data tools (`tools[].builtin`): `data.query`, `data.schema`, `data.type`
 - History compression
 - Session ownership and live events
 - Triggers: synchronous execution and lock behavior for trigger-bound agents
 - The `ai.default` organization config shape
 - Tool name derivation (workflow name → tool name)
 - Best practices
-- AGT_001–AGT_012 validation codes and one-line fixes
+- AGT_001–AGT_015 validation codes and one-line fixes
 
 Agent workflows wrap an LLM agent that reasons over a system prompt, calls other workflows as tools, and returns a structured result. Use `workflowType: Agent` in the workflow section. Scaffold with `npx cxtms create workflow <name> --template agent`.
 
@@ -72,8 +73,9 @@ inputs: [...]                               # Becomes the agent's first message
 | `session.timeout` | integer (`>= 1`) | `300` | Session timeout in seconds. |
 | `result` | object (JSON Schema, `type` required and must be `object`) | — | The JSON Schema the `set_result` tool's argument must satisfy. Defines the shape of the `result` output. |
 | `skills` | array of strings | — | Installed skill names to enable. Runtime support ships in a later release; safe to declare now. |
-| `tools` | array of objects | — | Other workflows exposed to the agent as callable tools. |
-| `tools[].workflow` | string (required, `minLength: 1`) | — | Workflow name or `workflowId` to expose as a tool. |
+| `tools` | array of objects | — | Tools the agent may call: other workflows (`workflow`) or built-in data tools (`builtin`). Each entry has exactly one of the two. |
+| `tools[].workflow` | string (`minLength: 1`) | — | Workflow name or `workflowId` to expose as a tool. Exactly one of `workflow`/`builtin` per entry. |
+| `tools[].builtin` | string, enum `data.query` \| `data.schema` \| `data.type` | — | A built-in, read-only data tool — see [Built-in data tools](#built-in-data-tools-toolsbuiltin). Exactly one of `workflow`/`builtin` per entry. |
 | `tools[].instructions` | string | — | When and how the agent should use this tool — folded into the tool's description for the model. |
 | `tools[].mode` | string, enum `auto` \| `approval` \| `always` | `auto` | `auto` runs the tool as soon as the model calls it. `approval` pauses the call for a person unless the chat is in Auto mode. `always` pauses for a person in every chat — see [Tool approval](#tool-approval-toolsmode). |
 | `mcp` | array of objects | — | Outbound MCP server connections. Runtime support ships in a later release. |
@@ -174,6 +176,33 @@ without an explicit click, whatever the user's mode — voiding an invoice, char
 
 **In a task session** (no person is present to ask): an approval tool is **refused** the moment the model calls it — the agent is told it needs human approval for that call and continues reasoning from there (typically escalating via `set_result` rather than completing the original action). Don't rely on `mode: approval` to gate a tool inside a task-only agent; a task session can never satisfy it. If an agent needs to run in both modes, write its `instructions` to handle the "this needs a person" outcome explicitly (see `AGT_010` below for the schema-level check on `mode`'s value; there is no schema check for whether an agent using `mode: approval` will ever run as a chat).
 
+## Built-in Data Tools (`tools[].builtin`)
+
+Three built-in tools let an agent read the organization's data through GraphQL without a workflow per question:
+
+```yaml
+agent:
+  instructions: |
+    Answer questions about this organization's orders and shipments.
+  tools:
+    - builtin: data.schema
+    - builtin: data.type
+      instructions: "Look up field types before writing a query."
+    - builtin: data.query
+    - workflow: "Assistant / Cancel Shipment"   # changing data still goes through a workflow tool
+      mode: approval
+```
+
+| `builtin` | Tool name the model sees | What it does |
+|---|---|---|
+| `data.query` | `data_query` | Runs one GraphQL **query** (`query`, optional `variables`, `operationName`) in the agent's organization and returns `{ data, errors? }`. |
+| `data.schema` | `data_schema` | Lists query fields (`category: queries`, the default), types (`types`) or both (`all`), with an optional case-insensitive `filter`. Mutations are not listed. |
+| `data.type` | `data_type` | Describes one type (`typeName`): fields, types, arguments, descriptions, enum values; an unknown name returns up to 5 suggestions. |
+
+Guards, enforced by the backend: query operations only (mutations and subscriptions return `read_only` — change data with a workflow tool, ideally `mode: approval`); every `organizationId` in the query must be the session's organization and fields that take it must pass it (`organization_scope`); selection depth at most 12 (`depth_exceeded`; `__schema`/`__type`-only queries are exempt); results over 64 KB are cut and marked `truncated` with a hint to page with `take`/`skip`. The runner also tells the model which organization it is in whenever a data tool is enabled.
+
+`mode` and `instructions` work as for workflow tools. Built-ins run as the session user, so row-level security applies. A workflow tool whose derived name would collide with `data_query`/`data_schema`/`data_type` is suffixed (`data_query_2`).
+
 ## History Compression
 
 Each chat turn adds to a growing conversation history, bounded by the model's context window. When the previous call's reported input-plus-output tokens reach **80% of `model.contextWindow`** (or the 256,000-token default — see the `model.contextWindow` row above), the runtime summarizes the older messages into a single `summary` transcript entry before the next turn, and the turn proceeds on the shorter history. This is automatic — nothing in `agent:` YAML opts in or out of it.
@@ -231,7 +260,7 @@ When a workflow is exposed as a tool (via another agent's `tools[].workflow`, or
 - **Design `agent.result`/`agent.instructions` around whichever session type(s) the agent is actually used in.** A chat-only agent doesn't need `agent.result` (it has no `set_result` tool); a task-only agent should tell the model explicitly to call `set_result` exactly once (the scaffolded template's instructions already do this).
 - **Keep trigger-bound agents fast**, or move them off the triggering request entirely (see [Triggers](#triggers)) — a slow agent session holds the entity's workflow lock for its whole duration.
 
-## Validation Codes (AGT_001–AGT_012)
+## Validation Codes (AGT_001–AGT_015)
 
 These are backend validation codes; `cxtms` validates the same constraints client-side via `agent/agent.json` and `workflow.json` so you catch them before deploying.
 
@@ -243,9 +272,12 @@ These are backend validation codes; `cxtms` validates the same constraints clien
 | `AGT_004` | `activities` not allowed | Remove the `activities` property — Agent workflows can't have activities. |
 | `AGT_005` | `session.type` must be `task` or `chat` | Set `agent.session.type` to `task` or `chat`. |
 | `AGT_006` | `maxTurns` must be 1–100, `timeout` must be positive, `model.contextWindow` must be positive | Set `agent.session.maxTurns` to a value between 1 and 100, `agent.session.timeout` to a positive number of seconds, and `agent.model.contextWindow` (if set) to a positive number of tokens. |
-| `AGT_007` | `tools[].workflow` required | Add `workflow` (name or `workflowId`) to every entry in `agent.tools[]`. |
+| `AGT_007` | Retired — replaced by `AGT_013` | — |
 | `AGT_008` | `result` must be a JSON Schema with `type: object` | Set `agent.result.type` to `object`. |
 | `AGT_009` | `agents[]` needs exactly one of `agent`/`url`, and `modes` from `task`/`chat` | Give each `agent.agents[]` entry exactly one of `agent` or `url`, and only `task`/`chat` values in `modes`. |
 | `AGT_010` | `tools[].mode` must be `auto`, `approval` or `always` | Set `agent.tools[].mode` to `auto`, `approval` or `always` (or omit it — `auto` is the default). |
 | `AGT_011` | `ui.color` must be one of `primary`, `secondary`, `info`, `success`, `warning`, `error` | Set `agent.ui.color` to one of the six palette names, lowercase, or omit it. |
 | `AGT_012` | `ui.prompts` has more than 5 entries | Keep at most 5 `agent.ui.prompts`. |
+| `AGT_013` | a `tools[]` entry needs exactly one of `workflow`/`builtin` | Give each `agent.tools[]` entry either `workflow` (name or `workflowId`) or `builtin`, not both and not neither. |
+| `AGT_014` | unknown `tools[].builtin` | Use `data.query`, `data.schema` or `data.type` (case-sensitive). |
+| `AGT_015` | the same `builtin` listed twice | List each built-in tool once. |

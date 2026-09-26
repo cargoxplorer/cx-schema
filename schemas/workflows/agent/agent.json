@@ -48,15 +48,30 @@
     "skills": { "type": "array", "items": { "type": "string" }, "description": "Installed skill names to enable (runtime in a later release)." },
     "tools": {
       "type": "array",
+      "description": "Tools the agent may call: other workflows, or built-in tools. Each entry has exactly one of 'workflow' or 'builtin'.",
       "items": {
-        "type": "object",
-        "required": ["workflow"],
-        "properties": {
-          "workflow": { "type": "string", "minLength": 1, "description": "Workflow name or workflowId to expose as a tool." },
-          "instructions": { "type": "string", "description": "When and how the agent should use this tool." },
-          "mode": { "type": "string", "enum": ["auto", "approval", "always"], "default": "auto", "description": "'auto' runs the tool as soon as the model calls it. 'approval' pauses a chat session until a person approves or declines the call, unless the chat is in Auto approval mode, where it runs and is recorded as auto-approved. 'always' pauses a chat session for a person in every approval mode. A task session (no person present) refuses 'approval' and 'always' calls outright and tells the agent it needs human approval." }
-        },
-        "additionalProperties": false
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["workflow"],
+            "properties": {
+              "workflow": { "type": "string", "minLength": 1, "description": "Workflow name or workflowId to expose as a tool." },
+              "instructions": { "type": "string", "description": "When and how the agent should use this tool." },
+              "mode": { "type": "string", "enum": ["auto", "approval", "always"], "default": "auto", "description": "'auto' runs the tool as soon as the model calls it. 'approval' pauses a chat session until a person approves or declines the call, unless the chat is in Auto approval mode, where it runs and is recorded as auto-approved. 'always' pauses a chat session for a person in every approval mode. A task session (no person present) refuses 'approval' and 'always' calls outright and tells the agent it needs human approval." }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": ["builtin"],
+            "properties": {
+              "builtin": { "type": "string", "enum": ["data.query", "data.schema", "data.type"], "description": "A built-in, read-only data tool. data.query runs a GraphQL query in the agent's organization (tool data_query); data.schema lists query fields and types (data_schema); data.type describes one type (data_type)." },
+              "instructions": { "type": "string", "description": "When and how the agent should use this tool." },
+              "mode": { "type": "string", "enum": ["auto", "approval", "always"], "default": "auto", "description": "Same meaning as for workflow tools." }
+            },
+            "additionalProperties": false
+          }
+        ]
       }
     },
     "mcp": {
