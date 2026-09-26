@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Attachment Tasks",
-  "description": "Attachment entity CRUD operations",
+  "description": "Attachment entity CRUD operations and entity links",
   "type": "object",
   "properties": {
     "task": {
@@ -9,6 +9,8 @@
       "enum": [
         "Attachment/Create@1",
         "Attachment/Update@1",
+        "Attachment/Link@1",
+        "Attachment/Unlink@1",
         "Attachment/Delete@1",
         "Attachment/Get@1",
         "Attachment/Thumbnail",
@@ -48,13 +50,67 @@
           "type": "string",
           "description": "Attachment ID"
         },
+        "attachment": {
+          "type": "object",
+          "description": "Attachment values (Attachment/Create@1, Attachment/Update@1)",
+          "properties": {
+            "fileName": {
+              "type": "string"
+            },
+            "attachmentType": {
+              "type": "string",
+              "description": "Picture, OtherDocument, Avatar, CustomerDocument"
+            },
+            "description": {
+              "type": "string"
+            },
+            "parentType": {
+              "type": "string",
+              "description": "Primary parent type: Order, Contact, AccountingTransaction, EquipmentType, Job, Commodity, Route, TrackingEvent"
+            },
+            "parentId": {
+              "type": "string",
+              "description": "Primary parent ID"
+            },
+            "links": {
+              "type": "array",
+              "description": "Additional entity links on create (Attachment/Create@1)",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "entityType": {
+                    "type": "string",
+                    "description": "Linked entity type: Order, Contact, Job, TrackingEvent"
+                  },
+                  "entityId": {
+                    "type": "string",
+                    "description": "Linked entity ID (int id; uuid for Job)"
+                  }
+                },
+                "required": ["entityType", "entityId"]
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        "fileData": {
+          "description": "File content: base64 string, byte array or stream (Attachment/Create@1)"
+        },
+        "fileUrl": {
+          "type": "string",
+          "description": "URL to download the file from (Attachment/Create@1)"
+        },
         "entityName": {
           "type": "string",
           "description": "Parent entity name"
         },
+        "entityType": {
+          "type": "string",
+          "description": "Entity type to link/unlink: Order, Contact, Job, TrackingEvent (Attachment/Link@1, Attachment/Unlink@1)"
+        },
         "entityId": {
           "type": "string",
-          "description": "Parent entity ID"
+          "description": "Entity ID to link/unlink: int id, uuid for Job (Attachment/Link@1, Attachment/Unlink@1)"
         },
         "fileName": {
           "type": "string",

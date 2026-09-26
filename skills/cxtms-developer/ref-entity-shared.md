@@ -77,7 +77,7 @@ Tagging system for orders, commodities, inventory items.
 
 ## Attachment
 
-File attachments linked to orders, contacts, jobs, etc.
+File attachments. `parentType`/`parentId` is the primary parent; an attachment can also be linked to more Orders, Contacts, Jobs and TrackingEvents (link tables).
 
 | Field | Type | Notes |
 |-------|------|-------|
@@ -91,7 +91,7 @@ File attachments linked to orders, contacts, jobs, etc.
 | `description` | `string?` | |
 | `attachmentType` | `AttachmentType` enum | Picture=1, OtherDocument, Avatar, CustomerDocument |
 | `parentId` | `string?` | Polymorphic FK (entity ID as string) |
-| `parentType` | `AttachmentParentType` enum | None=0, Order=1, Contact=2, AccountingTransaction=3, EquipmentType=4, Job=5, Commodity=6 |
+| `parentType` | `AttachmentParentType` enum | None=0, Order=1, Contact=2, AccountingTransaction=3, EquipmentType=4, Job=5, Commodity=6, Route=7, TrackingEvent=8 |
 | `status` | `AttachmentStatus` enum | Active=0, PendingUpload=1, UploadFailed=2 |
 | `category` | `AttachmentCategory` enum | General=0, FieldValue=1 |
 | `organizationId` | `int` | |
@@ -103,6 +103,10 @@ File attachments linked to orders, contacts, jobs, etc.
 - `presignedFileUri`, `presignedPreviewUri`, `presignedThumbnailUri` — signed URLs
 - `getPresignedUri(expiresInDays, uriType)` — custom resolver
 - `getParentOrder` — resolve parent Order
+- `links { entityType entityId }` — all links, including the primary one
+- Filter by link: `attachments(filter: "orderLinks.orderId:123")` — also `contactLinks.contactId`, `jobLinks.jobId`, `trackingEventLinks.trackingEventId`
+- `job { getJobAttachments }`, `trackingEvent { getTrackingEventAttachments }` — attachments linked to the entity
+- Mutations: `linkAttachment` / `unlinkAttachment` (`attachmentId`, `entityType`, `entityId`); `createAttachment` `values.links: [{ entityType, entityId }]`. Workflows: `Attachment/Link@1`, `Attachment/Unlink@1`
 
 ---
 
