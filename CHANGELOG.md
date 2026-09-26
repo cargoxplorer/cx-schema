@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `schemas/workflows/agent/agent.json` — `agent.tools[].mode` (enum `auto` \| `approval`, default `auto`) and `agent.model.contextWindow` (positive integer) properties, matching the backend's tool approval (CXTMS-346) and session/context-window support (CXTMS-331). A tool marked `mode: approval` pauses a chat session for a person's decision and is refused outright in a task session. Backed by new `AGT_010` (invalid `mode`) validation and a `model.contextWindow` check folded into the existing `AGT_006`.
 - `schemas/workflows/agent/agent.json` — `agent.ui` (`name`, `shortDescription`, `icon`, `color` enum `primary`\|`secondary`\|`info`\|`success`\|`warning`\|`error`, `prompts` with at most 5 items), the AI Assistant's display metadata served by `GET .../ai/models` (CXTMS-351). Backed by backend validation codes `AGT_011` (invalid `ui.color`) and `AGT_012` (more than 5 `ui.prompts`).
 - `agent.tools[].mode: always` — pauses a chat for a person in every approval mode; refused in a task session like `approval` (CXTMS-351).
+- `schemas/workflows/agent/agent.json` — `agent.tools[]` entries are now `oneOf` a workflow tool (`workflow`, `instructions?`, `mode?`) or a built-in tool (`builtin`: `data.query` \| `data.schema` \| `data.type`, `instructions?`, `mode?`): read-only GraphQL data access for agents as the tools `data_query`, `data_schema`, `data_type` (CXTMS-354). Backed by backend validation codes `AGT_013` (both or neither of `workflow`/`builtin`), `AGT_014` (unknown `builtin`) and `AGT_015` (the same `builtin` listed twice); `AGT_007` is retired.
 
 ### Changed
 - `cxtms-workflow-builder/ref-entity.md` now documents commodity auto-link precedence for `OrderTrackingEvent/Create@1` and guides users between `OrderTrackingEvent/Create@1` vs `TrackingEvent/Create@1`.
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `templates/workflow-agent.yaml` — scaffolded agent template now includes an example `mode: approval` tool and a commented `model.contextWindow` note.
 - `cxtms-developer/ref-entity-notification.md` — `Notification.entityId` corrected from `int?` to `string?` (`varchar(64)`, following the backend's `NotificationEntityIdToString` migration); documents `entityType: "AgentSession"` carrying the session's GUID instead of an integer PK.
 - `cxtms-workflow-builder/ref-agent.md` — documents `agent.ui`, `tools[].mode: always`, the chat's Ask/Auto approval mode (an `approval` tool runs in Auto and is audited as `auto:<userId>`; an `always` tool still pauses), and validation codes `AGT_011`/`AGT_012`.
+- `cxtms-workflow-builder/ref-agent.md` — documents built-in data tools (`tools[].builtin`): the three tools, their inputs, the backend guards (query-only, organization scope, depth 12, 64 KB cap) and validation codes `AGT_013`–`AGT_015`; marks `AGT_007` retired.
 
 ## [1.0.0] - 2025-10-29
 

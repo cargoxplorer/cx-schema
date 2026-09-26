@@ -172,4 +172,31 @@ activities:
     ));
     expect(result.errors).toEqual([]);
   });
+
+  const withTools = (tools: string) => base.replace(
+    '    - workflow: "MCP / Get Order Status"\n      instructions: "Call first."',
+    tools
+  );
+
+  it('accepts built-in data tools alongside a workflow tool', async () => {
+    const result = await validate(withTools(
+      '    - builtin: data.query\n    - builtin: data.schema\n    - builtin: data.type\n      instructions: "Look up field types before writing a query."\n      mode: approval\n    - workflow: "MCP / Get Order Status"'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects an unknown built-in', async () => {
+    const result = await validate(withTools('    - builtin: data.delete'));
+    expect(result.errors.some(e => /tools/.test(e.path))).toBe(true);
+  });
+
+  it('rejects a tool entry with both workflow and builtin', async () => {
+    const result = await validate(withTools('    - workflow: "MCP / Get Order Status"\n      builtin: data.query'));
+    expect(result.errors.some(e => /tools/.test(e.path))).toBe(true);
+  });
+
+  it('rejects a tool entry with neither workflow nor builtin', async () => {
+    const result = await validate(withTools('    - instructions: "Orphan."'));
+    expect(result.errors.some(e => /tools/.test(e.path))).toBe(true);
+  });
 });
