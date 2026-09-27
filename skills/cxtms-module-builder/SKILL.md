@@ -305,6 +305,7 @@ onClick:
       onSuccess: [...]
       onError: [...]
   - fileDownload: { url: "...", fileName: "..." }
+  - printLabel: { link: "{{ labelUrl }}", type: "pdf" }  # web: print template-resolved content with print-js
   - forEach:
       items: "{{ selectedItems }}"
       item: "currentItem"

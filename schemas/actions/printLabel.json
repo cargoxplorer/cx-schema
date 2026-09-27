@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "printLabel Action",
+  "type": "object",
+  "required": ["printLabel"],
+  "properties": {
+    "printLabel": {
+      "type": "object",
+      "required": ["link", "type"],
+      "properties": {
+        "link": { "type": "string", "description": "Template-resolved URL or printable content" },
+        "type": { "type": "string", "description": "print-js content type, such as pdf, image, html, or raw-html" }
+      },
+      "additionalProperties": false,
+      "x-examples": [{ "link": "{{ labelUrl }}", "type": "pdf" }]
+    }
+  },
+  "additionalProperties": false
+}
+
