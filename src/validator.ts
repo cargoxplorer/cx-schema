@@ -28,6 +28,7 @@ export class ModuleValidator {
   private schemasDir: string;
   private options: Required<ValidatorOptions>;
   private quickSearchKinds: QuickSearchKinds | null;
+  private quickSearchKindsError: string | null;
 
   constructor(options: ValidatorOptions = {}) {
     this.schemasDir = options.schemasPath || path.join(__dirname, '../schemas');
@@ -56,9 +57,15 @@ export class ModuleValidator {
     this.registerSchemas();
 
     const kindsPath = path.join(this.schemasDir, 'quick-search-kinds.json');
-    this.quickSearchKinds = fs.existsSync(kindsPath)
-      ? JSON.parse(fs.readFileSync(kindsPath, 'utf-8'))
-      : null;
+    this.quickSearchKinds = null;
+    this.quickSearchKindsError = null;
+    if (fs.existsSync(kindsPath)) {
+      try {
+        this.quickSearchKinds = JSON.parse(fs.readFileSync(kindsPath, 'utf-8'));
+      } catch (error: any) {
+        this.quickSearchKindsError = `quick-search-kinds.json in ${this.schemasDir} is invalid (${error.message}). Reinstall @cxtms/cx-schema.`;
+      }
+    }
   }
 
   /**
@@ -460,10 +467,12 @@ export class ModuleValidator {
     }
 
     if (!this.quickSearchKinds) {
+      const reason = this.quickSearchKindsError
+        ?? `quick-search-kinds.json not found in ${this.schemasDir}. Reinstall @cxtms/cx-schema.`;
       errors.push({
         type: 'invalid_quick_search',
         path: basePath,
-        message: `Cannot validate quickSearch: quick-search-kinds.json not found in ${this.schemasDir}. Reinstall @cxtms/cx-schema.`
+        message: `Cannot validate quickSearch: ${reason}`
       });
       return;
     }

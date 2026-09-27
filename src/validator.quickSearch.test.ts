@@ -76,4 +76,23 @@ describe('ModuleValidator quickSearch', () => {
       fs.rmSync(schemasCopy, { recursive: true, force: true });
     }
   });
+
+  it('MalformedKindsFile_ReportsClearError_AndOtherModulesStillValidate', async () => {
+    const schemasCopy = fs.mkdtempSync(path.join(os.tmpdir(), 'cx-qs-schemas-'));
+    fs.cpSync(path.join(__dirname, '../schemas'), schemasCopy, { recursive: true });
+    fs.writeFileSync(path.join(schemasCopy, 'quick-search-kinds.json'), '{ bad');
+    try {
+      const validator = new ModuleValidator({ schemasPath: schemasCopy });
+
+      const r = await validate(good, validator);
+      const errs = quickSearchErrors(r);
+      expect(errs).toHaveLength(1);
+      expect(errs[0].message).toContain('quick-search-kinds.json');
+
+      const other = await validator.validateModule(path.join(__dirname, '../examples/sample-module.yaml'));
+      expect(other.errors).toEqual([]);
+    } finally {
+      fs.rmSync(schemasCopy, { recursive: true, force: true });
+    }
+  });
 });
