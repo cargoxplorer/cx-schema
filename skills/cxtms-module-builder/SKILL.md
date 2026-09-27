@@ -250,8 +250,6 @@ entities:
       open:
         navigate: "consolidatedShipments/AirShipmentOrder/{{ orderId }}"   # or dialog: { ... } like grid onRowClick
 
-**Quick search (`quickSearch`).** Supported `entityKind` values: `Order`, `Contact`, `AccountingTransaction`, `Job`, `Commodity`. `matchFields` must come from that kind's list in `schemas/quick-search-kinds.json` (identifier columns only; `customValues` cannot be matched); `select` from the same file, plus any `customValues.<key>`. `display.title`, `icon` and exactly one of `open.navigate` / `open.dialog` are required. `npx cxtms` checks all of this; the backend additionally rejects an invalid `filter` when the module is saved.
-
 permissions:
   - name: "ModuleName/Read"                   # PascalCase with slashes
     displayName: { en-US: "..." }
@@ -284,6 +282,8 @@ components:
       component: layout                    # Root must be a component
       # ... component tree
 ```
+
+**Quick search (`quickSearch`).** Supported `entityKind` values: `Order`, `Contact`, `AccountingTransaction`, `Job`, `Commodity`. `matchFields` must come from that kind's list in `schemas/quick-search-kinds.json` (identifier columns only; `customValues` cannot be matched); `select` from the same file, plus any `customValues.<key>`. `display.title`, `icon` and exactly one of `open.navigate` / `open.dialog` are required. `npx cxtms` checks all of this; the backend additionally rejects an invalid `filter` when the module is saved.
 
 ## Action Types
 
