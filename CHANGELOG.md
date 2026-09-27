@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cxtms-developer/ref-entity-notification.md` — `Notification.entityId` corrected from `int?` to `string?` (`varchar(64)`, following the backend's `NotificationEntityIdToString` migration); documents `entityType: "AgentSession"` carrying the session's GUID instead of an integer PK.
 - `cxtms-workflow-builder/ref-agent.md` — documents `agent.ui`, `tools[].mode: always`, the chat's Ask/Auto approval mode (an `approval` tool runs in Auto and is audited as `auto:<userId>`; an `always` tool still pauses), and validation codes `AGT_011`/`AGT_012`.
 - `cxtms-workflow-builder/ref-agent.md` — documents built-in data tools (`tools[].builtin`): the three tools, their inputs, the backend guards (query-only, organization scope, depth 12, 64 KB cap) and validation codes `AGT_013`–`AGT_015`; marks `AGT_007` retired.
+- `cxtms-workflow-builder/ref-agent.md` — documents files in chat (CXTMS-362): the supported types and limits, what the model receives (labelled, fenced as data, re-sent within a 16 MB per-call budget, placeholders for unreadable files), session attachments and the Library, and the model config's optional `supportsFiles` flag (default `true` for `anthropic`/`openai`, reported per agent as `supports_files`), plus a best practice to set it for models without file support. No YAML schema change: agents do not opt in.
 
 ## [1.0.0] - 2025-10-29
 
