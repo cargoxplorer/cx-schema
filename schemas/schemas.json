@@ -541,7 +541,7 @@
         "name": { "type": "string" },
         "entityKind": {
           "type": "string",
-          "enum": ["Order", "Contact", "OrderEntity", "AccountingTransaction", "Calendar", "CalendarEvent", "Other"]
+          "enum": ["Order", "Contact", "OrderEntity", "AccountingTransaction", "Calendar", "CalendarEvent", "CalendarAvailabilityBlock", "Other", "AuditChangeEntry", "Job", "Commodity"]
         },
         "extension": { "type": "boolean", "description": "Whether this entity extends an existing type" },
         "displayName": { "$ref": "#/definitions/localized" },
@@ -549,9 +549,48 @@
         "fields": {
           "type": "array",
           "items": { "$ref": "#/definitions/entityField" }
-        }
+        },
+        "quickSearch": { "$ref": "#/definitions/quickSearch" }
       },
       "required": ["name", "entityKind"]
+    },
+
+    "quickSearch": {
+      "type": "object",
+      "description": "Opts the entity into the global quick search (Ctrl+K). The backend validates the same rules at module save; see skills/cxtms-module-builder.",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "filter": { "type": "string", "description": "Lucene filter narrowing the kind's table to this entity, e.g. 'orderType: AirShipmentOrder'." },
+        "permission": { "type": "string", "description": "Permission required to see this group. Not enforced by the backend yet (HasPermission stub)." },
+        "matchFields": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Identifier fields matched exact > prefix > contains. Allowed values per entityKind: schemas/quick-search-kinds.json." },
+        "select": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Dotted paths fetched for display/open templates; customValues.<key> allowed." },
+        "groupLabel": { "$ref": "#/definitions/localized", "description": "Defaults to the entity displayName." },
+        "icon": { "type": "string", "description": "Tabler icon class, e.g. ti-plane." },
+        "order": { "type": "integer", "description": "Tab/group position, ascending; default 100." },
+        "display": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "subtitle": { "type": "string" },
+            "badge": { "type": "string" }
+          },
+          "required": ["title"],
+          "additionalProperties": false
+        },
+        "open": {
+          "type": "object",
+          "description": "Exactly one of navigate (route template) or dialog (same shape as a grid onRowClick dialog).",
+          "properties": {
+            "navigate": { "type": "string" },
+            "dialog": { "type": "object" }
+          },
+          "minProperties": 1,
+          "maxProperties": 1,
+          "additionalProperties": false
+        }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
     },
 
     "calendarEvent": {
