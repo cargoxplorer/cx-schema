@@ -50,16 +50,16 @@ describe('quickSearch schema', () => {
     expect(validate(rest)).toBe(false);
   });
 
-  it('rejects an open with both navigate and dialog', () => {
-    expect(validate({ ...valid, open: { navigate: 'x', dialog: { name: 'd' } } })).toBe(false);
+  it('accepts an open with both navigate and dialog (semantic layer\'s job)', () => {
+    expect(validate({ ...valid, open: { navigate: 'x', dialog: { name: 'd' } } })).toBe(true);
   });
 
-  it('rejects an empty open', () => {
-    expect(validate({ ...valid, open: {} })).toBe(false);
+  it('accepts an empty open (semantic layer\'s job)', () => {
+    expect(validate({ ...valid, open: {} })).toBe(true);
   });
 
-  it('rejects display without title', () => {
-    expect(validate({ ...valid, display: { subtitle: 'x' } })).toBe(false);
+  it('accepts display without title (semantic layer\'s job)', () => {
+    expect(validate({ ...valid, display: { subtitle: 'x' } })).toBe(true);
   });
 
   it('rejects non-integer order', () => {

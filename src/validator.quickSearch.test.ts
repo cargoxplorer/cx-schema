@@ -77,6 +77,35 @@ describe('ModuleValidator quickSearch', () => {
     }
   });
 
+  it('DisabledDraft_WithIncompleteSettings_Passes', async () => {
+    const draft = `  - name: AirShipment
+    quickSearch:
+      enabled: false
+      matchFields: []
+      open: {}
+`;
+    const r = await validate(draft);
+    expect(quickSearchErrors(r)).toEqual([]);
+  });
+
+  it('EnabledIncomplete_ReportsSemanticErrors', async () => {
+    const draft = `  - name: AirShipment
+    entityKind: Order
+    quickSearch:
+      enabled: true
+      matchFields: []
+      open: {}
+`;
+    const errs = quickSearchErrors(await validate(draft));
+    expect(errs.every((e: any) => e.type === 'invalid_quick_search')).toBe(true);
+    const messages = errs.map((e: any) => e.message).join('\n');
+    expect(messages).toContain('matchFields must list at least one field');
+    expect(messages).toContain('select must list at least one path');
+    expect(messages).toContain('display.title is required');
+    expect(messages).toContain('icon is required');
+    expect(messages).toContain('open must define exactly one of navigate or dialog');
+  });
+
   it('MalformedKindsFile_ReportsClearError_AndOtherModulesStillValidate', async () => {
     const schemasCopy = fs.mkdtempSync(path.join(os.tmpdir(), 'cx-qs-schemas-'));
     fs.cpSync(path.join(__dirname, '../schemas'), schemasCopy, { recursive: true });

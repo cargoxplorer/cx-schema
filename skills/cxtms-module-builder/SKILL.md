@@ -238,7 +238,7 @@ entities:
       enabled: true
       filter: "orderType: AirShipmentOrder" # Lucene, same syntax as grid filters
       permission: AirShipments/Read          # Not enforced by the backend yet
-      matchFields: [orderNumber, trackingNumber]   # Allowed per entityKind: schemas/quick-search-kinds.json
+      matchFields: [orderNumber, trackingNumber]   # Allowed per entityKind: .cx-schema/quick-search-kinds.json
       select: [orderNumber, trackingNumber, billToContact.name, orderStatus.orderStatusName, customValues.hawb]
       groupLabel: { en-US: "Air Shipments" } # Defaults to displayName
       icon: ti-plane
@@ -283,7 +283,7 @@ components:
       # ... component tree
 ```
 
-**Quick search (`quickSearch`).** Supported `entityKind` values: `Order`, `Contact`, `AccountingTransaction`, `Job`, `Commodity`. `matchFields` must come from that kind's list in `schemas/quick-search-kinds.json` (identifier columns only; `customValues` cannot be matched); `select` from the same file, plus any `customValues.<key>`. `display.title`, `icon` and exactly one of `open.navigate` / `open.dialog` are required. `npx cxtms` checks all of this; the backend additionally rejects an invalid `filter` when the module is saved.
+**Quick search (`quickSearch`).** Supported `entityKind` values: `Order`, `Contact`, `AccountingTransaction`, `Job`, `Commodity`. `matchFields` must come from that kind's list in `.cx-schema/quick-search-kinds.json` (copied into your project at install; also available at `node_modules/@cxtms/cx-schema/schemas/quick-search-kinds.json`) — identifier columns only; `customValues` cannot be matched. `select` from the same file, plus any `customValues.<key>`. `display.title`, `icon` and exactly one of `open.navigate` / `open.dialog` are required. `npx cxtms` checks all of this; the backend additionally rejects an invalid `filter` when the module is saved.
 
 ## Action Types
 
