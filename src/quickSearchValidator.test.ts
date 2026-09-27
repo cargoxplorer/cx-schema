@@ -69,7 +69,7 @@ describe('validateQuickSearch', () => {
     expect(run(c)).toHaveLength(2);
   });
 
-  it.each([[{}], [{ navigate: 'a', dialog: { name: 'd' } }]])('requires exactly one open action %j', open => {
+  it.each([[{}], [{ navigate: 'a', dialog: 'Orders/UpdateOrder' }]])('requires exactly one open action %j', open => {
     const c: any = valid(); c.open = open;
     expect(run(c).filter(e => e.includes('open must define exactly one of navigate or dialog'))).toHaveLength(1);
   });
@@ -77,5 +77,26 @@ describe('validateQuickSearch', () => {
   it('checks navigate template paths', () => {
     const c: any = valid(); c.open = { navigate: 'orders/{{ trackingNumber }}' };
     expect(run(c)[0]).toContain("template path 'trackingNumber'");
+  });
+
+  it('rejects an object dialog', () => {
+    const c: any = valid(); c.open = { dialog: { name: 'd' } };
+    const errors = run(c);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain("open.dialog must be a component name like 'Orders/UpdateOrder'");
+  });
+
+  it('rejects a dialog name without a slash', () => {
+    const c: any = valid(); c.open = { dialog: 'UpdateOrder' };
+    const errors = run(c);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain("open.dialog must be a component name like 'Orders/UpdateOrder'");
+  });
+
+  it('rejects a non-string navigate', () => {
+    const c: any = valid(); c.open = { navigate: 123 };
+    const errors = run(c);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('open.navigate must be a route path');
   });
 });

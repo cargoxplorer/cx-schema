@@ -578,10 +578,14 @@
         },
         "open": {
           "type": "object",
-          "description": "Exactly one of navigate (route template) or dialog (same shape as a grid onRowClick dialog).",
+          "description": "Exactly one of navigate (route path template, unchanged) or dialog (component name opened in a dialog, e.g. Orders/UpdateOrder).",
           "properties": {
             "navigate": { "type": "string" },
-            "dialog": { "type": "object" }
+            "dialog": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9]+(/[A-Za-z0-9]+)+$",
+              "description": "Component name opened in a dialog, e.g. Orders/UpdateOrder. It receives the record key (e.g. orderId), organizationId and the title."
+            }
           },
           "additionalProperties": false
         }

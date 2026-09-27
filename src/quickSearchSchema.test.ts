@@ -38,7 +38,15 @@ describe('quickSearch schema', () => {
   });
 
   it('accepts a dialog open action', () => {
-    expect(validate({ ...valid, open: { dialog: { name: 'updateCustomerDialog', props: { contactId: '{{ contactId }}' } } } })).toBe(true);
+    expect(validate({ ...valid, open: { dialog: 'Orders/UpdateOrder' } })).toBe(true);
+  });
+
+  it('rejects an object dialog', () => {
+    expect(validate({ ...valid, open: { dialog: { name: 'updateCustomerDialog', props: { contactId: '{{ contactId }}' } } } })).toBe(false);
+  });
+
+  it('rejects a dialog component name without a slash', () => {
+    expect(validate({ ...valid, open: { dialog: 'UpdateOrder' } })).toBe(false);
   });
 
   it('rejects unknown properties', () => {
@@ -51,7 +59,7 @@ describe('quickSearch schema', () => {
   });
 
   it('accepts an open with both navigate and dialog (semantic layer\'s job)', () => {
-    expect(validate({ ...valid, open: { navigate: 'x', dialog: { name: 'd' } } })).toBe(true);
+    expect(validate({ ...valid, open: { navigate: 'x', dialog: 'Orders/UpdateOrder' } })).toBe(true);
   });
 
   it('accepts an empty open (semantic layer\'s job)', () => {

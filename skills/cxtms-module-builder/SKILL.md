@@ -248,7 +248,7 @@ entities:
         subtitle: "{{ billToContact.name }} · {{ trackingNumber }}"
         badge: "{{ orderStatus.orderStatusName }}"
       open:
-        navigate: "consolidatedShipments/AirShipmentOrder/{{ orderId }}"   # or dialog: { ... } like grid onRowClick
+        navigate: "consolidatedShipments/AirShipmentOrder/{{ orderId }}"   # or dialog: Module/Component (opened in a dialog with the record key)
 
 permissions:
   - name: "ModuleName/Read"                   # PascalCase with slashes
@@ -283,7 +283,7 @@ components:
       # ... component tree
 ```
 
-**Quick search (`quickSearch`).** Supported `entityKind` values: `Order`, `Contact`, `AccountingTransaction`, `Job`, `Commodity`. `matchFields` must come from that kind's list in `.cx-schema/quick-search-kinds.json` (copied into your project at install; also available at `node_modules/@cxtms/cx-schema/schemas/quick-search-kinds.json`) — identifier columns only; `customValues` cannot be matched. `select` from the same file, plus any `customValues.<key>`. `display.title`, `icon` and exactly one of `open.navigate` / `open.dialog` are required. `npx cxtms` checks all of this; the backend additionally rejects an invalid `filter` when the module is saved.
+**Quick search (`quickSearch`).** Supported `entityKind` values: `Order`, `Contact`, `AccountingTransaction`, `Job`, `Commodity`. `matchFields` must come from that kind's list in `.cx-schema/quick-search-kinds.json` (copied into your project at install; also available at `node_modules/@cxtms/cx-schema/schemas/quick-search-kinds.json`) — identifier columns only; `customValues` cannot be matched. `select` from the same file, plus any `customValues.<key>`. `display.title`, `icon` and exactly one of `open.navigate` / `open.dialog` are required. `npx cxtms` checks all of this; the backend additionally rejects an invalid `filter` when the module is saved. To change how a core entity opens (or hide it with `enabled: false`), redeclare the entity in your app module with its own full `quickSearch` block — the most recently saved block wins.
 
 ## Action Types
 

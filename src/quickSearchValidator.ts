@@ -15,6 +15,8 @@ export type QuickSearchKinds = Record<string, QuickSearchKind>;
 const CUSTOM_VALUES_PREFIX = 'customValues.';
 // {{ path }} or {{helper path }}
 const TEMPLATE_PATH = /\{\{\s*(?:[A-Za-z]+\s+)?([A-Za-z_][\w.]*)\s*\}\}/g;
+// Component name, e.g. Orders/UpdateOrder
+const DIALOG_COMPONENT = /^[A-Za-z0-9]+(\/[A-Za-z0-9]+)+$/;
 
 export function validateQuickSearch(
   entityName: string,
@@ -52,6 +54,13 @@ export function validateQuickSearch(
   const open = config.open && typeof config.open === 'object' ? config.open : {};
   const actions = ['navigate', 'dialog'].filter(a => a in open).length;
   if (actions !== 1) errors.push(`${prefix} open must define exactly one of navigate or dialog.`);
+
+  if ('dialog' in open && (typeof open.dialog !== 'string' || !DIALOG_COMPONENT.test(open.dialog))) {
+    errors.push(`${prefix} open.dialog must be a component name like 'Orders/UpdateOrder'.`);
+  }
+  if ('navigate' in open && typeof open.navigate !== 'string') {
+    errors.push(`${prefix} open.navigate must be a route path.`);
+  }
 
   const allowed = new Set<string>([...select, kind.key]);
   const templates = [config.display?.title, config.display?.subtitle, config.display?.badge, open.navigate]
