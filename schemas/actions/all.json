@@ -19,6 +19,7 @@
     { "$ref": "dialog.json" },
     { "$ref": "workflow.json" },
     { "$ref": "fileDownload.json" },
+    { "$ref": "printLabel.json" },
     { "$ref": "forEach.json" },
     { "$ref": "if.json" },
     { "$ref": "consoleLog.json" },
