@@ -216,7 +216,7 @@ module:
 
 entities:
   - name: <EntityName>
-    entityKind: Order | Contact | OrderEntity | AccountingTransaction | Calendar | CalendarEvent | Other
+    entityKind: Order | Contact | OrderEntity | AccountingTransaction | Job | Commodity | Calendar | CalendarEvent | CalendarAvailabilityBlock | AuditChangeEntry | Other
     extension: false                       # true if extending existing entity
     displayName: { en-US: "..." }
     fields:
@@ -233,6 +233,22 @@ entities:
             props:
               filter: "contactType: Customer"
               options: { baseName: "contactId" }
+
+    quickSearch:                           # Optional: show this entity in the global quick search (Ctrl+K)
+      enabled: true
+      filter: "orderType: AirShipmentOrder" # Lucene, same syntax as grid filters
+      permission: AirShipments/Read          # Not enforced by the backend yet
+      matchFields: [orderNumber, trackingNumber]   # Allowed per entityKind: .cx-schema/quick-search-kinds.json
+      select: [orderNumber, trackingNumber, billToContact.name, orderStatus.orderStatusName, customValues.hawb]
+      groupLabel: { en-US: "Air Shipments" } # Defaults to displayName
+      icon: ti-plane
+      order: 20
+      display:
+        title: "{{ orderNumber }}"           # Templates may use only select paths and the key (orderId)
+        subtitle: "{{ billToContact.name }} · {{ trackingNumber }}"
+        badge: "{{ orderStatus.orderStatusName }}"
+      open:
+        navigate: "consolidatedShipments/AirShipmentOrder/{{ orderId }}"   # or dialog: Module/Component (opened in a dialog with the record key)
 
 permissions:
   - name: "ModuleName/Read"                   # PascalCase with slashes
@@ -266,6 +282,8 @@ components:
       component: layout                    # Root must be a component
       # ... component tree
 ```
+
+**Quick search (`quickSearch`).** Supported `entityKind` values: `Order`, `Contact`, `AccountingTransaction`, `Job`, `Commodity`. `matchFields` must come from that kind's list in `.cx-schema/quick-search-kinds.json` (copied into your project at install; also available at `node_modules/@cxtms/cx-schema/schemas/quick-search-kinds.json`) — identifier columns only; `customValues` cannot be matched. `select` from the same file, plus any `customValues.<key>`. `display.title`, `icon` and exactly one of `open.navigate` / `open.dialog` are required. `npx cxtms` checks all of this; the backend additionally rejects an invalid `filter` when the module is saved. To change how a core entity opens (or hide it with `enabled: false`), redeclare the entity in your app module with its own full `quickSearch` block — the most recently saved block wins.
 
 ## Action Types
 
@@ -554,7 +572,7 @@ npx cxtms app release -m "Add warehouse locations module" --org 42
    - Permission names: PascalCase with slashes (e.g., `WarehouseLocations/Read`, `System/Contacts/Update`)
 4. **Template expressions** use `{{ expression }}` syntax (double curly braces); prefer built-in functions (`isEqual`, `any`, `isNullOrEmpty`, `format`, …) over `eval`, and write non-trivial `eval` expressions as multiline block scalars (`>-`) — see Template expressions
 5. **Include filePath** property pointing to the YAML file location
-6. **Set proper entityKind** when defining entities (Order, Contact, OrderEntity, AccountingTransaction, Calendar, CalendarEvent, Other)
+6. **Set proper entityKind** when defining entities (Order, Contact, OrderEntity, AccountingTransaction, Job, Commodity, Calendar, CalendarEvent, CalendarAvailabilityBlock, AuditChangeEntry, Other); it is required for `quickSearch`
 7. **DataGrid options** requires ALL properties: query, rootEntityName, entityKeys, navigationType, enableDynamicGrid, enableViews, enableSearch, enablePagination, enableColumns, enableFilter, defaultView, onRowClick
 8. **Form component** requires `validationSchema` in props
 9. **Adaptive (mobile/tablet/desktop) design by default** — every form and layout must work on phones (`xs`), tablets (`sm`/`md`), and desktops (`lg+`):

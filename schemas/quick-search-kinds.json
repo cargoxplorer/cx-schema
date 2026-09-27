@@ -1,0 +1,27 @@
+{
+  "AccountingTransaction": {
+    "key": "accountingTransactionId",
+    "matchFields": ["transactionNumber"],
+    "select": ["accountingTransactionStatus", "accountingTransactionType", "applyToContact.name", "created", "customValues.*", "dueDate", "transactionDate", "transactionNumber"]
+  },
+  "Commodity": {
+    "key": "commodityId",
+    "matchFields": ["description", "serialNumber", "trackingNumbers.trackingNumber"],
+    "select": ["billToContact.name", "commodityStatus.statusName", "created", "customValues.*", "description", "serialNumber"]
+  },
+  "Contact": {
+    "key": "contactId",
+    "matchFields": ["accountNumber", "name"],
+    "select": ["accountNumber", "contactStatus.statusName", "contactType", "created", "customValues.*", "name"]
+  },
+  "Job": {
+    "key": "jobId",
+    "matchFields": ["jobNumber"],
+    "select": ["created", "customValues.*", "customer.name", "description", "employee.name", "jobNumber", "jobStatus.jobStatusName"]
+  },
+  "Order": {
+    "key": "orderId",
+    "matchFields": ["orderNumber", "trackingNumber"],
+    "select": ["billToContact.name", "created", "customValues.*", "employeeContact.name", "orderNumber", "orderStatus.orderStatusName", "orderType", "salespersonContact.name", "trackingNumber"]
+  }
+}
