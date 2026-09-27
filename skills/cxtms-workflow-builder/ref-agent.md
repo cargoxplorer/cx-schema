@@ -12,6 +12,7 @@
 - Tool approval (`tools[].mode`) and the chat's Ask/Auto approval mode
 - Built-in data tools (`tools[].builtin`): `data.query`, `data.schema`, `data.type`
 - History compression
+- Files in chat: what the model receives, and the model config's `supportsFiles` flag
 - Session ownership and live events
 - Triggers: synchronous execution and lock behavior for trigger-bound agents
 - The `ai.default` organization config shape
@@ -212,6 +213,41 @@ Each chat turn adds to a growing conversation history, bounded by the model's co
 - On the client side, the internal Responses route announces a compression with a `response.tms.history_compressed` stream event; the transcript (GraphQL) always shows the `summary` message and a `usage` entry with `kind: "summary"`, on both routes.
 - If an agent frequently needs long conversations against a small model, either raise `model.contextWindow` to match the model actually in use (see the property table above) or keep `agent.instructions` terse so more of the window is available for turns.
 
+## Files in Chat
+
+People can attach files to a chat message in the AI Assistant: up to 5 per message, 25 MB each, of these types:
+
+| Kind | Types | What the model receives |
+|---|---|---|
+| Documents | PDF | The file itself: inline bytes up to 4 MB, above that a presigned URL (PDF URLs only for the `anthropic` provider — other providers refuse a PDF over 4 MB) |
+| Images | PNG, JPG/JPEG | The image: inline bytes up to 4 MB, above that a presigned URL |
+| Text | TXT, CSV, JSON, MD | The text, decoded as UTF-8 and cut at 200,000 characters with a truncation note |
+
+Nothing in `agent:` YAML opts in or out — every chat agent accepts files, and there is no YAML schema change. What
+the agent sees:
+
+- Each file arrives in the user's turn after a label such as `[Attached file: bol.pdf (PDF, 1.2 MB)]`, so the model
+  can refer to it by name. Text content is fenced as data, not instructions — like a tool result — so a file that
+  says "ignore your instructions" is just text in a file.
+- Files stay in the conversation: every later turn can still read them (they are re-sent on each model call, within a
+  16 MB inline budget per call; older files beyond it go by URL or as a note asking the user to attach them again).
+  When history is compressed, the summary names the files but their content leaves the history.
+- A file that can't be read when a turn runs reaches the model as `[File <name> could not be read.]` instead of
+  failing the turn.
+- Every chat upload becomes an Attachment linked to the session (parent type `AgentSession`, category
+  `AgentSession`), visible only to people who can see the chat, and listed in the AI Assistant's Library. Task
+  sessions (workflow runs) never receive files.
+
+**Which models read PDFs and images** is decided by the model config's `supportsFiles` flag (see
+[The `ai.default` Organization Config](#the-aidefault-organization-config)). When it is `false`, the chat refuses PDFs
+and images when they are attached — before the message is sent — and text files still work. `GET .../ai/models`
+reports it per agent as `supports_files`, which the chat uses to validate a file before uploading it.
+
+Write `agent.instructions` for chat agents that will receive documents to say what to do with them (e.g. "When the
+user attaches a bill of lading, read the shipper, consignee and pallet count from it"), and to answer only from
+what the file shows. Full request shapes and error messages are in `docs/agent-api.md` §4 "Attaching files" in
+`tms-backend-api`.
+
 ## Session Ownership and Live Events
 
 Every agent session (task or chat) has an owner scope — `User`, `Division`, or `Organization` — that governs who may see it, continue it, decide its approvals, and watch it live. A chat session defaults to `User` (its starter); a task session defaults to `Organization` (it has no starter). Ownership can be changed afterward (e.g. shared with a division) via a GraphQL mutation, and every session change publishes a live event.
@@ -237,9 +273,15 @@ For a trigger-bound agent, either:
   "model": "claude-sonnet-4-5",
   "apiKey": "...",
   "endpoint": "https://api.anthropic.com",
-  "contextWindow": 200000
+  "contextWindow": 200000,
+  "supportsFiles": true
 }
 ```
+
+`supportsFiles` (optional) says whether the model reads PDFs and images attached in chat (see
+[Files in chat](#files-in-chat)). When it is absent, it defaults to `true` for the `anthropic` and `openai`
+providers and to `false` for any other provider. Set it to `false` for a model without vision or PDF support, and
+to `true` for a file-capable model behind another provider. Text attachments work either way.
 
 Set up this config once per organization (or per named config for `model.fromConfig` overrides); every Agent workflow that doesn't override `model.name`/`model.temperature` shares it. The config's own `contextWindow` (if set) is the fallback used when the agent's YAML doesn't declare `model.contextWindow` — but only while the agent doesn't also override `model.name`; overriding the model name without also setting `agent.model.contextWindow` falls straight through to the runtime default of 256,000 tokens, since the config's window describes the config's model, not the override.
 
@@ -257,6 +299,7 @@ When a workflow is exposed as a tool (via another agent's `tools[].workflow`, or
 - **Use `mode: always` for actions a person must confirm every time.** `approval` tools run unattended once a user switches the chat to Auto; `always` tools never do.
 - **Give chat agents `agent.ui`.** A `shortDescription`, an `icon`, a `color` and a few `prompts` make the agent recognizable in the AI Assistant's agent menu and empty state.
 - **Set `model.contextWindow` whenever you set `model.name`.** Otherwise a smaller model than the org default silently gets the 256K default window, and history compression won't kick in until it's already over budget (or a larger model gets compressed too eagerly). See the `model.contextWindow` row above.
+- **Set `supportsFiles` on the model config to match the model.** A model that can't read PDFs or images should say so (`"supportsFiles": false`), so the chat refuses those files up front instead of the provider failing the turn. See [Files in chat](#files-in-chat).
 - **Design `agent.result`/`agent.instructions` around whichever session type(s) the agent is actually used in.** A chat-only agent doesn't need `agent.result` (it has no `set_result` tool); a task-only agent should tell the model explicitly to call `set_result` exactly once (the scaffolded template's instructions already do this).
 - **Keep trigger-bound agents fast**, or move them off the triggering request entirely (see [Triggers](#triggers)) — a slow agent session holds the entity's workflow lock for its whole duration.
 
