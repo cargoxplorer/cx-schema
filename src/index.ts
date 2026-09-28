@@ -4,6 +4,7 @@
 
 export { ModuleValidator } from './validator';
 export { WorkflowValidator } from './workflowValidator';
+export { validateQuickSearch, QuickSearchKind, QuickSearchKinds } from './quickSearchValidator';
 export {
   ValidationResult,
   ValidationError,

@@ -123,6 +123,7 @@ Used in module `entityKind` and Flow workflow `entity.name`:
 | `OrderEntity` | OrderEntity (Shipper, Consignee, Carrier roles on an order) |
 | `AccountingTransaction` | Invoice, Bill, CreditMemo |
 | `Commodity` | Commodity |
+| `Job` | Job |
 | `Calendar` | CalendarEntity |
 | `CalendarEvent` | CalendarEvent |
 | `Other` | Any custom entity |

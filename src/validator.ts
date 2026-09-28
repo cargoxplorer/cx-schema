@@ -20,12 +20,15 @@ import {
   resolveSchemaRef,
   extractExampleFromSchema
 } from './utils/schemaLoader';
+import { validateQuickSearch, QuickSearchKinds } from './quickSearchValidator';
 
 export class ModuleValidator {
   private ajv: Ajv;
   private schemas: Map<string, SchemaEntry>;
   private schemasDir: string;
   private options: Required<ValidatorOptions>;
+  private quickSearchKinds: QuickSearchKinds | null;
+  private quickSearchKindsError: string | null;
 
   constructor(options: ValidatorOptions = {}) {
     this.schemasDir = options.schemasPath || path.join(__dirname, '../schemas');
@@ -52,6 +55,17 @@ export class ModuleValidator {
 
     // Register schemas with Ajv
     this.registerSchemas();
+
+    const kindsPath = path.join(this.schemasDir, 'quick-search-kinds.json');
+    this.quickSearchKinds = null;
+    this.quickSearchKindsError = null;
+    if (fs.existsSync(kindsPath)) {
+      try {
+        this.quickSearchKinds = JSON.parse(fs.readFileSync(kindsPath, 'utf-8'));
+      } catch (error: any) {
+        this.quickSearchKindsError = `quick-search-kinds.json in ${this.schemasDir} is invalid (${error.message}). Reinstall @cxtms/cx-schema.`;
+      }
+    }
   }
 
   /**
@@ -434,7 +448,38 @@ export class ModuleValidator {
           message: 'Entity must have a name property'
         });
       }
+
+      if (entity.quickSearch !== undefined) {
+        this.validateQuickSearch(entity, `${entityPath}.quickSearch`, errors);
+      }
     });
+  }
+
+  /**
+   * Validate an entity's quickSearch block: shape via schemas.json#/definitions/quickSearch,
+   * then the semantic rules the backend also enforces at module save.
+   */
+  private validateQuickSearch(entity: any, basePath: string, errors: ValidationError[]): void {
+    const validate = this.ajv.getSchema('schemas.json#/definitions/quickSearch');
+    if (validate && !validate(entity.quickSearch)) {
+      this.addAjvErrors(validate.errors, basePath, errors);
+      return;
+    }
+
+    if (!this.quickSearchKinds) {
+      const reason = this.quickSearchKindsError
+        ?? `quick-search-kinds.json not found in ${this.schemasDir}. Reinstall @cxtms/cx-schema.`;
+      errors.push({
+        type: 'invalid_quick_search',
+        path: basePath,
+        message: `Cannot validate quickSearch: ${reason}`
+      });
+      return;
+    }
+
+    for (const message of validateQuickSearch(entity.name, entity.entityKind, entity.quickSearch, this.quickSearchKinds)) {
+      errors.push({ type: 'invalid_quick_search', path: basePath, message });
+    }
   }
 
   /**
