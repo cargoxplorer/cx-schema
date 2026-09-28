@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CXTMS App Manifest (app.yaml)",
+  "description": "Top-level app.yaml manifest for a CXTMS app repo. See docs/superpowers/specs/2026-09-27-apps-directory-design.md §2.2 (cx-workspace) for the listing block this feeds into AppDirectoryEntry.Listing.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Stable app identifier. Equals AppManifest.AppManifestId and, when the app is listed, AppDirectoryEntry.AppManifestId."
+    },
+    "name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "author": {
+      "type": ["string", "null"]
+    },
+    "icon": {
+      "description": "Names a repo-relative image file that the directory sync uploads to S3 (PNG, JPEG, SVG or WebP, ≤ 256 KB), or is an absolute http(s) URL used as-is. Empty/unset is common in real app.yaml files.",
+      "anyOf": [
+        { "type": "null" },
+        { "type": "string", "maxLength": 0 },
+        { "type": "string", "pattern": "^https?://" },
+        { "type": "string", "pattern": "\\.([pP][nN][gG]|[jJ][pP][gG]|[jJ][pP][eE][gG]|[sS][vV][gG]|[wW][eE][bB][pP])$" }
+      ]
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri",
+      "description": "GitHub repository URL."
+    },
+    "branch": {
+      "type": "string"
+    },
+    "listing": {
+      "type": "object",
+      "description": "Apps Directory card/listing metadata, copied into AppDirectoryEntry.Listing on sync.",
+      "properties": {
+        "vendor": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "configName": {
+          "type": "string",
+          "pattern": "^apps\\.",
+          "description": "OrganizationConfig configName rendered on the app page's Configuration tab."
+        },
+        "permissions": {
+          "type": "array",
+          "description": "Descriptive permission lines shown in the install dialog. Not enforced.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "icon": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": ["title"],
+            "additionalProperties": false
+          }
+        },
+        "brand": {
+          "type": "object",
+          "description": "Card mark shown when icon is unset: short mark text on a brand-colored background.",
+          "properties": {
+            "mark": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 6,
+              "description": "Card mark text, e.g. vendor initials or wordmark abbreviation (up to 6 chars; generated initials fall back to 2)."
+            },
+            "bg": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$",
+              "description": "Background hex color for the mark."
+            },
+            "fg": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$",
+              "description": "Foreground (text) hex color for the mark."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["id", "name", "version"],
+  "additionalProperties": true
+}
