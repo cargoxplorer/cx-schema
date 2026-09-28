@@ -10807,6 +10807,70 @@ scalar TimeSpanScalar
 
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 
+scalar Long
+
+extend type Query {
+  quickSearch(organizationId: Int!, query: String!, entityNames: [String!], take: Int! = 5): QuickSearchResult!
+  quickSearchEntities(organizationId: Int!): [QuickSearchEntity!]!
+  agentSessionAttachments(skip: Int, take: Int, organizationId: Int!, agentSessionId: UUID, contentKind: AttachmentContentKind): AgentSessionAttachmentsCollectionSegment @cost(weight: "10")
+}
+
+type QuickSearchResult {
+  groups: [QuickSearchGroup!]!
+}
+
+type QuickSearchGroup {
+  entityName: String!
+  items: [QuickSearchItem!]!
+  total: Int!
+  hasMore: Boolean!
+  partial: Boolean!
+}
+
+type QuickSearchItem {
+  key: String!
+  matchRank: Int!
+  data: MapOfObject
+}
+
+type QuickSearchEntity {
+  entityName: String!
+  entityKind: String!
+  groupLabel: MapOfObject
+  icon: String!
+  order: Int!
+  display: MapOfObject
+  open: MapOfObject
+}
+
+type AgentSessionAttachmentGqlDto {
+  attachmentId: Int!
+  fileName: String!
+  contentType: String
+  size: Long
+  origin: AgentSessionAttachmentOrigin!
+  createdAt: DateTime!
+  agentSessionId: UUID!
+  sessionTitle: String
+  workflowId: UUID!
+}
+
+type AgentSessionAttachmentsCollectionSegment {
+  pageInfo: CollectionSegmentInfo!
+  items: [AgentSessionAttachmentGqlDto!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+enum AttachmentContentKind {
+  Image
+  Document
+}
+
+enum AgentSessionAttachmentOrigin {
+  Uploaded
+  Produced
+}
+
 extend type Query {
   dispatchRouteStopStatus(
     organizationId: Int!
