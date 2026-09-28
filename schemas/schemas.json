@@ -565,7 +565,7 @@
         "matchFields": { "type": "array", "items": { "type": "string" }, "description": "Identifier fields matched exact > prefix > contains. Allowed values per entityKind: schemas/quick-search-kinds.json." },
         "select": { "type": "array", "items": { "type": "string" }, "description": "Dotted paths fetched for display/open templates; customValues.<key> allowed." },
         "groupLabel": { "$ref": "#/definitions/localized", "description": "Defaults to the entity displayName." },
-        "icon": { "type": "string", "description": "Tabler icon class, e.g. ti-plane." },
+        "icon": { "type": "string", "description": "Tabler icon class as used by the web app, e.g. tabler-plane." },
         "order": { "type": "integer", "description": "Tab/group position, ascending; default 100." },
         "display": {
           "type": "object",

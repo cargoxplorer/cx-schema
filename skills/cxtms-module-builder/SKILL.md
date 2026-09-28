@@ -241,7 +241,7 @@ entities:
       matchFields: [orderNumber, trackingNumber]   # Allowed per entityKind: .cx-schema/quick-search-kinds.json
       select: [orderNumber, trackingNumber, billToContact.name, orderStatus.orderStatusName, customValues.hawb]
       groupLabel: { en-US: "Air Shipments" } # Defaults to displayName
-      icon: ti-plane
+      icon: tabler-plane
       order: 20
       display:
         title: "{{ orderNumber }}"           # Templates may use only select paths and the key (orderId)
