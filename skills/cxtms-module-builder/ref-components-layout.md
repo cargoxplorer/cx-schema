@@ -665,6 +665,32 @@ Extensions are the app's own components, so they disappear when the app is unins
 cached for 15 minutes in the browser; after uninstalling and reinstalling an app, reload the page to see
 changed extensions.
 
+**`app.yaml` `listing:` block.** Optional. Populates the app's Apps Directory card
+(`AppDirectoryEntry.Listing`; schema: `schemas/app.json`). All fields optional:
+
+| Field | Type | Notes |
+|---|---|---|
+| `vendor` | string | |
+| `summary` | string | ≤200 chars |
+| `configName` | string | Must start with `apps.`; tells the app page's Configuration tab which `OrganizationConfig` to render |
+| `permissions` | string[] | Descriptive text shown in the install dialog, not enforced |
+| `features` | array of `{ icon, title, description }` | `title` required |
+| `brand` | `{ mark, bg, fg }` | Card mark shown when `icon` is unset: the card mark text (up to 6 chars; generated initials fall back to 2), `bg`/`fg` are hex colors (`#RRGGBB`); else generated initials |
+
+```yaml
+listing:
+  vendor: CargoXplorer
+  summary: Rate, ship and track FedEx. Labels and POD directly from shipments.
+  configName: apps.fedex
+  permissions:
+    - Read shipments, packages and addresses
+  features:
+    - { icon: currency-dollar, title: Rate Shopping, description: Live rates at quote time }
+  brand: { mark: FedEx, bg: "#4D148C", fg: "#FFFFFF" }
+```
+
+Validate with `npx cxtms app.yaml` (detected by filename).
+
 ```yaml
 components:
   - name: FedEx/AppPage/TestConnection
