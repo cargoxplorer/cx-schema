@@ -23,8 +23,7 @@
     },
     "icon": {
       "type": ["string", "null"],
-      "format": "uri",
-      "description": "URL to the app icon."
+      "description": "App icon: a URL or a repo-relative filename (e.g. icon.png). AppManifestDocument.Icon has no URI rule, just a max length."
     },
     "repository": {
       "type": "string",
@@ -103,6 +102,6 @@
       "additionalProperties": false
     }
   },
-  "required": ["id"],
+  "required": ["id", "name", "version"],
   "additionalProperties": true
 }

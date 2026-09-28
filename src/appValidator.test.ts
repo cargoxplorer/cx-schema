@@ -44,11 +44,20 @@ describe('AppValidator', () => {
     expect(result.errors).toEqual([]);
   });
 
-  it('accepts a minimal app.yaml (id + name only)', async () => {
+  it('accepts a minimal app.yaml (id + name + version only)', async () => {
     const result = await validate(`
 id: "4f29c257-e8e1-47ea-8cbd-2a112375de42"
 name: cx-app-minimal
+version: 1.0.0
 `);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('accepts a relative (non-URL) icon, e.g. icon.png', async () => {
+    const result = await validate(full.replace(
+      'icon: https://cdn.example.com/fedex.svg',
+      'icon: icon.png'
+    ));
     expect(result.errors).toEqual([]);
   });
 
@@ -59,6 +68,24 @@ version: 1.0.0
 `);
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.errors.some(e => /id/.test(e.message))).toBe(true);
+  });
+
+  it('rejects an app.yaml missing name', async () => {
+    const result = await validate(`
+id: "4f29c257-e8e1-47ea-8cbd-2a112375de42"
+version: 1.0.0
+`);
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors.some(e => /name/.test(e.message))).toBe(true);
+  });
+
+  it('rejects an app.yaml missing version', async () => {
+    const result = await validate(`
+id: "4f29c257-e8e1-47ea-8cbd-2a112375de42"
+name: cx-app-no-version
+`);
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors.some(e => /version/.test(e.message))).toBe(true);
   });
 
   it('rejects a listing.features item without a title', async () => {
