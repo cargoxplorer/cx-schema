@@ -649,6 +649,41 @@ props:
 
 **How extensions target slots:** Other modules register extension components using `appComponent` with `targetSlot` and optional `order` to control rendering position within the slot. See `appComponent.json` schema for details.
 
+### App page slots (Apps Directory)
+
+The Apps Directory app page (`AppDirectory/AppPage`, cx-app-core) exposes two slots per app, keyed by the
+app's `app.yaml` `id`:
+
+| Slot name | Placement | Extension layout |
+|---|---|---|
+| `AppDirectory/AppPage/<appManifestId>/Actions` | Header buttons, before Uninstall | any component, typically `button` |
+| `AppDirectory/AppPage/<appManifestId>/Tabs` | Inside the page `tabs`, after Overview and Configuration | must be a `tab` |
+
+Extensions receive `organizationId`, `appManifestId` and `app` (the page's query result;
+`app.appDirectoryEntry` is the directory entry, including `listing` and `installedAppManifest`).
+Extensions are the app's own components, so they disappear when the app is uninstalled. Slot results are
+cached for 15 minutes in the browser; after uninstalling and reinstalling an app, reload the page to see
+changed extensions.
+
+```yaml
+components:
+  - name: FedEx/AppPage/TestConnection
+    props:
+      targetSlot: "AppDirectory/AppPage/4f29c257-0000-0000-0000-000000000000/Actions"
+      order: 10
+    layout:
+      component: button
+      props:
+        label: { en-US: Test Connection }
+        icon: plug-connected
+        onClick:
+          - workflow:
+              workflowId: "<test-connection workflow id>"
+              onSuccess:
+                - notification: { message: { en-US: "Connection OK" }, type: success }
+              onError:
+                - notification: { message: { en-US: "Connection failed" }, type: error }
+```
 
 ## dashboard persistence
 
