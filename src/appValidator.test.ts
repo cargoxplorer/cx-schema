@@ -61,6 +61,39 @@ version: 1.0.0
     expect(result.errors).toEqual([]);
   });
 
+  it('accepts a relative icon with another allowed image extension, e.g. logo.svg', async () => {
+    const result = await validate(full.replace(
+      'icon: https://cdn.example.com/fedex.svg',
+      'icon: logo.svg'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects a relative icon with a disallowed extension, e.g. logo.gif', async () => {
+    const result = await validate(full.replace(
+      'icon: https://cdn.example.com/fedex.svg',
+      'icon: logo.gif'
+    ));
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors.some(e => /icon/.test(e.message))).toBe(true);
+  });
+
+  it('accepts an absolute http(s) icon URL regardless of extension', async () => {
+    const result = await validate(full.replace(
+      'icon: https://cdn.example.com/fedex.svg',
+      'icon: https://example.com/x.png'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
+  it('accepts an empty icon', async () => {
+    const result = await validate(full.replace(
+      'icon: https://cdn.example.com/fedex.svg',
+      'icon:'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
   it('rejects an app.yaml missing id', async () => {
     const result = await validate(`
 name: cx-app-no-id

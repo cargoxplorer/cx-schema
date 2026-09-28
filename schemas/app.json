@@ -22,8 +22,13 @@
       "type": ["string", "null"]
     },
     "icon": {
-      "type": ["string", "null"],
-      "description": "App icon: a URL or a repo-relative filename (e.g. icon.png). AppManifestDocument.Icon has no URI rule, just a max length."
+      "description": "Names a repo-relative image file that the directory sync uploads to S3 (PNG, JPEG, SVG or WebP, ≤ 256 KB), or is an absolute http(s) URL used as-is. Empty/unset is common in real app.yaml files.",
+      "anyOf": [
+        { "type": "null" },
+        { "type": "string", "maxLength": 0 },
+        { "type": "string", "pattern": "^https?://" },
+        { "type": "string", "pattern": "\\.([pP][nN][gG]|[jJ][pP][gG]|[jJ][pP][eE][gG]|[sS][vV][gG]|[wW][eE][bB][pP])$" }
+      ]
     },
     "repository": {
       "type": "string",

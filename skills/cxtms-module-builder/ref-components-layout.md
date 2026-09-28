@@ -691,6 +691,12 @@ listing:
 
 Validate with `npx cxtms app.yaml` (detected by filename).
 
+**Logo (`icon`).** Either commit an image file next to `app.yaml` in the app repo and name it
+in `icon` (e.g. `icon: icon.png`) — PNG, JPEG, SVG or WebP, ≤ 256 KB — or set `icon` to an
+absolute `http(s)` URL used as-is. The directory sync uploads the committed file to S3 and
+re-uploads it whenever the file changes; most existing app.yaml files leave `icon` empty,
+which is also valid (falls back to the `listing.brand` mark or generated initials, see above).
+
 ```yaml
 components:
   - name: FedEx/AppPage/TestConnection
