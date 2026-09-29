@@ -77,7 +77,7 @@
             },
             "header": {
               "type": "object",
-              "description": "Card header configuration",
+              "description": "Card header configuration. title and subheader accept localized values; title, subheader, and icon are template-aware",
               "additionalProperties": true
             },
             "actions": {

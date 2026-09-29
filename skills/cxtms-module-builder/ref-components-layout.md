@@ -519,12 +519,14 @@ MUI Card container with optional header, content, and actions.
 | `className` | `string` | — | Additional CSS class |
 | `bgcolor` | `string` | — | Background color |
 | `color` | `string` | — | Text color |
-| `header` | `{title?, subheader?, icon?, iconColor?, sx?}` | — | Renders MUI CardHeader; icon is its avatar |
+| `header` | `{title?, subheader?, icon?, iconColor?, sx?}` | — | Renders MUI CardHeader; title/subheader may be localized and title, subheader, and icon are template-aware |
 | `disableContentWrapper` | `boolean` | `false` | Skip CardContent wrapper |
 | `contentSx` | `SxProps` | — | CardContent styles |
 | `contentClassName` | `string` | `card-content` | CardContent CSS class |
 
 **Children:** Yes — wrapped in CardContent (unless `disableContentWrapper`).
+
+When `onClick` is present, the card is keyboard accessible: Enter and Space activate it and a focus outline is shown. Actions receive the card name as `sender`; keyboard events from nested interactive controls are ignored.
 
 ```yaml
 component: card

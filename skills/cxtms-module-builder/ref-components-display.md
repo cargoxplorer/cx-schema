@@ -521,12 +521,13 @@ props:
 
 ## avatar
 
-Template-aware display component for compact entity cards and planner headers. Circular avatar with automatic two-letter initials. Sources tried in priority order: `src` image → `firstName` + `lastName` → `name` → `email` → placeholder user icon. Color is picked deterministically from the theme palette by hashing `colorSeed`.
+Template-aware display component for compact entity cards and planner headers. Circular avatar with explicit text or automatic two-letter initials. Sources tried in priority order: `src` image → `text` → `firstName` + `lastName` → `name` → `email` → placeholder user icon. Color is picked deterministically from the theme palette by hashing `colorSeed`.
 
 **Props (all template-parsed):**
 | Prop | Type | Description |
 |------|------|-------------|
 | `src` | `string` | Image URL; falls back to initials when empty or broken |
+| `text` | `string` | Explicit fallback text after `src`; values longer than two characters scale to fit |
 | `name` | `string` | Full name: `Andre Kovac` → AK, `Kovac, Andre` → AK, `Madonna` → MA |
 | `firstName` / `lastName` | `string` | Explicit name parts (organization user form); take priority over `name` |
 | `email` | `string` | Last text fallback: local part, digits dropped (`andre.kovac@…` → AK) |
@@ -624,7 +625,7 @@ Icon renderer. Supports FontAwesome, Tabler, and Feather icons.
 **Props:**
 | Prop | Type | Description |
 |------|------|-------------|
-| `icon` | `string` | Icon name: FontAwesome name, `tabler-*` class, or `activity` |
+| `icon` | `string` | Template-aware icon name: FontAwesome name, `tabler-*` class, or `activity`; resolves against variables and store values |
 | `color` | `string` | MUI palette color (e.g., `primary`, `error.light`) or CSS color |
 | `iconColor` | `string` | Higher-priority color override |
 | `style` | `object` | Inline styles |
@@ -633,7 +634,7 @@ Icon renderer. Supports FontAwesome, Tabler, and Feather icons.
 component: icon
 name: statusIcon
 props:
-  icon: check-circle
+  icon: "{{ item.statusIcon }}"
   color: success
 ```
 

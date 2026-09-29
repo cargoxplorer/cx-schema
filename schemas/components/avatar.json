@@ -19,6 +19,9 @@
         "src": {
           "description": "Image URL. Falls back to initials when empty or failed to load"
         },
+        "text": {
+          "description": "Explicit fallback text displayed after src and before generated initials. Template-aware; text longer than two characters scales to fit"
+        },
         "firstName": {
           "description": "Explicit first name (organization user form). Takes priority over name"
         },
@@ -79,7 +82,7 @@
     }
   },
   "additionalProperties": true,
-  "description": "Circular avatar with automatic two-letter initials. Sources are tried in priority order: src image, firstName + lastName, name, email, then a placeholder user icon.",
+  "description": "Circular avatar with explicit text or automatic initials. Sources are tried in priority order: src image, text, firstName + lastName, name, email, then a placeholder user icon.",
   "x-examples": [
     {
       "component": "avatar",
