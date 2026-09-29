@@ -383,6 +383,8 @@ the common cases — use them first. Reach for `eval` only when nothing below fi
 | `dateDiff` | `{{ dateDiff dueDate startDate }}` | Whole days, first minus second |
 | `daysBetween` | `{{ daysBetween pickupDate deliveryDate }}` | Absolute day difference |
 | `daysUntil` / `daysAgo` | `{{ daysUntil dueDate }}` | Days between now and the date |
+| `minutesAgo` | `{{ minutesAgo arrivedAt }}` | Whole minutes from the date to now; null for missing/invalid dates |
+| `elapsed` | `{{ elapsed arrivedAt departedAt }}` | Elapsed hours/minutes (`1h 05m`); optional end path, otherwise now |
 | `isDateBefore` / `isDateAfter` | `{{ isDateBefore pickupDate deliveryDate }}` | Date comparison |
 | `hasPermission` | `{{ hasPermission Orders/Update }}` | Current user permission check |
 | `fromConfig` | `{{ fromConfig apps.myFeature key }}` | Organization config lookup |
