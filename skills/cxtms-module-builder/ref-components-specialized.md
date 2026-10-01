@@ -588,6 +588,22 @@ props:
 
 ---
 
+## passkeys
+
+Web-only WebAuthn credential manager for the authenticated user. It lists registered passkeys and supports registration, rename, and deletion.
+
+The component has no type-specific props. It renders its children above the credential manager, but renders nothing—including its children—when the tenant disables `enablePasskeys` or the browser lacks WebAuthn support. Native mobile does not currently render this component.
+
+```yaml
+component: passkeys
+name: AccountPasskeys
+children:
+  - component: text
+    name: Heading
+    props:
+      text: Passkeys
+```
+
 ## oauth2
 
 OAuth2 authorization flow button. Opens popup for auth, exchanges code for token.

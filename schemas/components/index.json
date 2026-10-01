@@ -82,6 +82,7 @@
     "avatar": { "$ref": "avatar.json" },
     "infoLine": { "$ref": "infoLine.json" },
     "progressBar": { "$ref": "progressBar.json" },
-    "planner": { "$ref": "planner.json" }
+    "planner": { "$ref": "planner.json" },
+    "passkeys": { "$ref": "passkeys.json" }
   }
 }
