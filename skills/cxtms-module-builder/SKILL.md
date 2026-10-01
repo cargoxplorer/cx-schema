@@ -175,7 +175,7 @@ Read the relevant category ref file when building specific component types:
 | **Data Display** | `dataGrid`, `text`, `markup`, `badge`, `avatar`, `infoLine`, `progressBar`, `icon`, `image`, `photo`, `summary`, `diff`, `viewer`, `embed` | `skills/cxtms-module-builder/ref-components-display.md` |
 | **Interactive & Nav** | `button`, `dropdown`, `menuButton`, `link`, `redirect`, `navbar`, `navbarItem`, `navbarLink`, `navDropdown` | `skills/cxtms-module-builder/ref-components-interactive.md` |
 | **Data & Collections** | `collection`, `list`, `listItem`, `datasource`, `script` | `skills/cxtms-module-builder/ref-components-data.md` |
-| **Specialized** | `calendar`, `notes`, `dashboard`, `dashboard-widget`, `widget`, `timeline`, `timeline-grid`, `planner`, `oauth2` | `skills/cxtms-module-builder/ref-components-specialized.md` |
+| **Specialized** | `calendar`, `notes`, `dashboard`, `dashboard-widget`, `widget`, `timeline`, `timeline-grid`, `planner`, `oauth2`, `passkeys` | `skills/cxtms-module-builder/ref-components-specialized.md` |
 
 ### Templates
 

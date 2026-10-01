@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Passkeys Component",
+  "description": "WebAuthn passkey credential manager for the authenticated user",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "const": "passkeys"
+    },
+    "name": {
+      "type": "string",
+      "description": "Component name identifier"
+    },
+    "props": {
+      "type": "object",
+      "description": "Standard component properties; passkeys has no type-specific properties",
+      "additionalProperties": true
+    },
+    "children": {
+      "$ref": "../schemas.json#/definitions/componentChildren"
+    }
+  },
+  "required": ["component"],
+  "additionalProperties": false
+}
