@@ -51,8 +51,8 @@
         },
         "configName": {
           "type": "string",
-          "pattern": "^apps\\.",
-          "description": "OrganizationConfig configName rendered on the app page's Configuration tab."
+          "pattern": "^[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)+$",
+          "description": "OrganizationConfig configName rendered on the app page's Configuration tab: a dotted name such as apps.fedex, ai.default or tms.browser.default, matching a configurations entry the app ships."
         },
         "permissions": {
           "type": "array",
