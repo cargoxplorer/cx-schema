@@ -28,7 +28,7 @@ The browser comes from the organization first, then the server:
 An organization config is a Browserbase account and never falls back to the server's browsers:
 
 ```yaml
-# Organization config "tms.browser.default" (Browser Automation screen in cx-app-core)
+# Organization config "tms.browser.default" (Browser Automation screen in cx-app-browser-automation)
 type: browserbase                 # the only type allowed in organization config
 apiKey: "${secret:org/<organizationId>/tms.browser.default.apiKey}"
 projectId: "<optional>"
