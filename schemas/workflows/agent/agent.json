@@ -65,7 +65,7 @@
             "type": "object",
             "required": ["builtin"],
             "properties": {
-              "builtin": { "type": "string", "enum": ["data.query", "data.schema", "data.type"], "description": "A built-in, read-only data tool. data.query runs a GraphQL query in the agent's organization (tool data_query); data.schema lists query fields and types (data_schema); data.type describes one type (data_type)." },
+              "builtin": { "type": "string", "enum": ["data.query", "data.schema", "data.type", "file.create"], "description": "A built-in tool. data.query runs a GraphQL query in the agent's organization (tool data_query), read-only; data.schema lists query fields and types (data_schema), read-only; data.type describes one type (data_type), read-only; file.create creates a PDF, Word, Excel or CSV file the user can download (tool file_create)." },
               "instructions": { "type": "string", "description": "When and how the agent should use this tool." },
               "mode": { "type": "string", "enum": ["auto", "approval", "always"], "default": "auto", "description": "Same meaning as for workflow tools." }
             },
