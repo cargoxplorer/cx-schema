@@ -142,6 +142,22 @@ name: cx-app-no-version
     expect(result.errors.some(e => /mark/.test(e.message))).toBe(true);
   });
 
+  it.each(['ai.default', 'tms.browser.default'])(
+    'accepts listing.configName outside the apps. prefix, e.g. %s',
+    async (configName) => {
+      const result = await validate(full.replace('configName: apps.fedex', `configName: ${configName}`));
+      expect(result.errors).toEqual([]);
+    }
+  );
+
+  it.each(['fedex', 'apps.', '.fedex', 'apps fedex'])(
+    'rejects a listing.configName that is not a dotted config name, e.g. "%s"',
+    async (configName) => {
+      const result = await validate(full.replace('configName: apps.fedex', `configName: "${configName}"`));
+      expect(result.errors.some(e => /configName/.test(e.path ?? e.message))).toBe(true);
+    }
+  );
+
   it('rejects an unknown listing property (strict inside listing)', async () => {
     const result = await validate(full.replace('vendor: CargoXplorer', 'vendor: CargoXplorer\n  bogus: nope'));
     expect(result.errors.length).toBeGreaterThan(0);
