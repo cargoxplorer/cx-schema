@@ -589,6 +589,27 @@ npx cxtms app release -m "Add warehouse locations module" --org 42
     - **No bare `spacing: <number>` for adaptive layouts** — use a breakpoint map (`spacing: { xs: 1, md: 3 }`) or split into `columnSpacing`/`rowSpacing`.
 11. **Do not change `appModuleId` or `filePath`** — set correctly by CLI scaffold
 12. **Always validate** the final YAML: `npx cxtms <file.yaml>`
+13. **Component key placement** — `cxtms` does not currently check component keys, and the renderer silently ignores keys it does not read:
+    - A component's top level holds only `component`, `name`, `props` and `children`. Everything that configures the component goes under `props` (`inputs` on `layout`, `tabs`, `form`, `dataGrid` is legacy — do not add it to new components).
+    - `props.options` is only for settings passed straight through to the underlying UI element (`variant`, `size`, `sx`). Never put an area the renderer lays out (header, toolbar, menu) in `options`.
+    - Header and toolbar areas are lists of components under `props`, e.g. `tabs.props.header` with `icon`, `title`, `subTitle`, `buttons`. `card.props.options.header` (plain `title`/`subheader`/`icon`) is a legacy exception — keep it for cards, do not copy its shape.
+
+    ```yaml
+    # ❌ header beside props — validates, but renders no header
+    component: tabs
+    name: orderTabs
+    header: { title: [...] }
+    props: {}
+    # ✅ header under props
+    component: tabs
+    name: orderTabs
+    props:
+      header:
+        title:
+          - component: text
+            name: orderTitle
+            props: { value: "{{ order.orderNumber }}", type: h5 }
+    ```
 
 
 ## Reactive page titles

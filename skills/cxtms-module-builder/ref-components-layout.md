@@ -434,15 +434,18 @@ the slot name are resolved from component variables and store values before look
 **Props:**
 | Prop | Type | Description |
 |------|------|-------------|
-| `options` | `object` | Additional props spread to Tab elements |
 | `toolbar` | `component[]` | Action components next to tab list |
-| `header` | `{icon?, title?, subTitle?, buttons?}` | Component arrays rendered above the tab strip |
+| `header` | `{icon?, title?, subTitle?, buttons?}` | Component arrays rendered above the tab strip. Hidden children are left out; an area (or the whole header) with nothing visible is not rendered. On narrow screens the buttons wrap below the title. |
+| `defaultTab` | `string` | Name of the tab to open when the URL has no tab param |
 | `useNavigationForTabs` | `boolean` | Push to history instead of replace |
+
+The active tab is kept in the `tabs_<name>_ix` URL param (zero-based index of the visible tabs).
 
 **Tab children props:**
 | Prop | Type | Description |
 |------|------|-------------|
 | `label` | `ILocalizeString` | Tab label (localized, template-parsed) |
+| `icon` | `string` | Icon name shown before the label |
 | `isVisible` | `string` | Template expression — show when truthy |
 | `isHidden` | `string` | Template expression — hide when truthy |
 | `options` | `object` | Additional Tab element props |
