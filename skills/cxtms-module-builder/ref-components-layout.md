@@ -438,11 +438,13 @@ the slot name are resolved from component variables and store values before look
 | `toolbar` | `component[]` | Action components next to tab list |
 | `header` | `{icon?, title?, subTitle?, buttons?}` | Component arrays rendered above the tab strip |
 | `useNavigationForTabs` | `boolean` | Push to history instead of replace |
+| `defaultTab` | `string` | Initial tab, matched against the child tab `name`; falls back to the first visible tab |
 
 **Tab children props:**
 | Prop | Type | Description |
 |------|------|-------------|
 | `label` | `ILocalizeString` | Tab label (localized, template-parsed) |
+| `icon` | `string` | Icon name rendered beside the label on web and mobile, including overflow menus |
 | `isVisible` | `string` | Template expression — show when truthy |
 | `isHidden` | `string` | Template expression — hide when truthy |
 | `options` | `object` | Additional Tab element props |
@@ -453,6 +455,11 @@ the slot name are resolved from component variables and store values before look
 component: tabs
 name: detailTabs
 props:
+  defaultTab: general
+  header:
+    title:
+      - component: text
+        props: { value: { en-US: "Details" } }
   toolbar:
     - component: button
       name: refreshBtn
@@ -461,6 +468,7 @@ children:
   - name: general
     props:
       label: { en-US: "General" }
+      icon: info
     children:
       - component: field
         name: name
