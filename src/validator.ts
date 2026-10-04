@@ -330,7 +330,10 @@ export class ModuleValidator {
           this.addAjvErrors(validate.errors, componentPath, errors);
         }
       } catch (error: any) {
-        // Schema not found or validation error
+        // Most component schemas reference ../schemas.json, which Ajv cannot resolve from their
+        // ids, so they never compile. Still enforce a declared top-level key list, so a key
+        // placed beside `props` instead of under it is reported rather than silently ignored.
+        this.checkTopLevelKeys(component, this.schemas.get(schemaKey)!.schema, componentPath, errors);
       }
     }
 
@@ -354,6 +357,28 @@ export class ModuleValidator {
         errors,
         warnings
       );
+    }
+  }
+
+  /**
+   * Report top-level keys a component schema does not allow (additionalProperties: false)
+   */
+  private checkTopLevelKeys(
+    component: any,
+    schema: any,
+    componentPath: string,
+    errors: ValidationError[]
+  ): void {
+    if (schema?.additionalProperties !== false || !schema.properties) return;
+
+    for (const key of Object.keys(component)) {
+      if (!(key in schema.properties)) {
+        errors.push({
+          type: 'schema_violation',
+          path: `${componentPath}.${key}`,
+          message: `'${key}' is not allowed on a ${component.component} component; move it under props`
+        });
+      }
     }
   }
 
