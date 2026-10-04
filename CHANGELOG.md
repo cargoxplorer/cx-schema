@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `file.create` barcodes: in `pdf`/`docx` markdown, `![alt](barcode:<format>/<value>?width=…&height=…&text=false)` draws a barcode (15 ZXing formats: Code 128/39/93, Codabar, ITF, MSI, Plessey, EAN-13/8, UPC-A/E, QR, Data Matrix, Aztec, PDF417), documented in ref-agent.md "Barcodes" (CXTMS-328).
 - `quickSearch` on module entities (`schemas/schemas.json#/definitions/quickSearch`) and `schemas/quick-search-kinds.json` (per-kind match/select allow-lists): opts an entity into the global quick search. `npx cxtms` validates the block's shape (`schema_violation`) and rules (`invalid_quick_search`); the backend enforces the same rules at module save (CXTMS-365). `entityKind` gains `Job`, `Commodity`, `CalendarAvailabilityBlock` and `AuditChangeEntry`.
 - `OrderTrackingEvent/Create@1` — new inputs `autoLinkToCommodities` (per-task override of `tms.trackingEvents.autoLinkToCommodities` org config) and `commodityIds` (explicit list of commodity IDs to link, overriding the auto-link behavior entirely).
 - `TrackingEvent/Create@1` — added to the `tracking-event.json` schema and to the `cxtms-workflow-builder` skill (`ref-entity.md`). Exposes `organizationId`, `orderId`, `commodityId`, `commodityIds`, `eventDefinitionId`, `eventDefinitionName`, `eventDate`, `description`, `location`, `includeInTracking`, `sendEmail`, `customValues`, `skipIfExists`, `eventDefinitionValues`.

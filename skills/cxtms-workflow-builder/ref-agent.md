@@ -289,6 +289,54 @@ A successful call returns `{ fileName, attachmentId, format, size, rows?, trunca
 only for `xlsx`/`csv`). The file itself is never sent back to the model — tell the user it's attached rather
 than repeating its contents as text. See [Producing files](#producing-files) for where the file ends up.
 
+#### Barcodes
+
+In `pdf` and `docx` documents, a Markdown image whose URL starts with `barcode:` is drawn as a barcode on the
+server (nothing is fetched). It works in paragraphs, list items and table cells. Barcodes are not supported in
+`xlsx`/`csv`.
+
+```markdown
+![ORD-1001](barcode:code128/ORD-1001)
+![P-01](barcode:qr/P-01?width=1in)
+![PLT-77](barcode:pdf417/PLT-77?width=3in&height=1in)
+| Order | Label |
+|---|---|
+| ORD-1001 | ![ORD-1001](barcode:code128/ORD-1001?width=50mm&text=false) |
+```
+
+- **Address:** `barcode:<format>/<value>`, with the value URL-encoded. The alt text becomes the image's
+  alternative text.
+- **Formats** (case-insensitive; ZXing enum names such as `CODE_128` also work):
+  - linear: `code128`, `code39`, `code93`, `codabar`, `itf`, `msi`, `plessey`, `ean13`, `ean8`, `upca`, `upce`;
+  - 2D: `qr`, `datamatrix`, `aztec`, `pdf417`.
+- **Options** (all optional):
+  - `width` and `height`, as a number plus `in`, `mm` or `cm`, each 5–200 mm;
+  - `text=false` hides the value printed under linear codes (2D codes never print it).
+
+**Sizes:**
+
+| Kind | Default | Only one dimension given | Both given |
+|---|---|---|---|
+| Linear | 2.5 in × 0.6 in | the other keeps the ratio (height = width × 0.24) | used as given |
+| QR, Data Matrix, Aztec | 1.2 in square | stays square | square, using the smaller |
+| PDF417 | 2.5 in × 1 in | the other keeps the ratio (height = width × 0.4) | used as given |
+
+- Every module (bar or cell) is at least 0.17 mm, so the code prints and scans.
+- When no `width` is given, a code too dense for the default width grows just wide enough, up to 200 mm.
+- An explicit size that is too small, or content needing more than 200 mm, is an error naming the minimum width.
+- In a PDF, a barcode wider than its table cell shrinks proportionally to fit.
+- QR, Data Matrix, Aztec and PDF417 encode UTF-8.
+- EAN-13, UPC-A and EAN-8 values given without their check digit print it.
+
+**Limits:** a value can be at most 1,000 characters, and a document can hold at most 200 barcodes.
+
+**Errors:** a bad barcode fails the call with `invalid_arguments` naming the problem, and no file is saved, so the
+model can fix it and retry. Examples:
+- `unknown barcode format 'code11'`
+- `width '500mm' is larger than 200mm`
+- `ean13 cannot encode 'ABC'`
+- `code128 value '…' needs a width of at least 23mm`
+
 ## Producing Files
 
 A file an agent hands the user — from `file.create` or from a workflow tool — is captured automatically as a
