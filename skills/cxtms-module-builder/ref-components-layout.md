@@ -445,7 +445,7 @@ The active tab is kept in the `tabs_<name>_ix` URL param (zero-based index of th
 | Prop | Type | Description |
 |------|------|-------------|
 | `label` | `ILocalizeString` | Tab label (localized, template-parsed) |
-| `icon` | `string` | Icon name shown before the label |
+| `icon` | `string` | Icon name shown before the label (`info`, an old scaffold default, is ignored) |
 | `isVisible` | `string` | Template expression — show when truthy |
 | `isHidden` | `string` | Template expression — hide when truthy |
 | `options` | `object` | Additional Tab element props |
