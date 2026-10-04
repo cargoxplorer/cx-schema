@@ -168,7 +168,7 @@ type ApplicationUserRolesCollectionSegment {
 
 type AttachmentGqlDto {
   getParentOrder: order @cost(weight: "10")
-  getPresignedUri(expiresInDays: Int!, uriType: String!): String
+  getPresignedUri(expiresInDays: Int!, uriType: String!, download: Boolean = false): String
     @cost(weight: "10")
   attachmentId: Int!
   attachmentGuid: UUID
