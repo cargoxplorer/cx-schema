@@ -655,7 +655,7 @@ components:
 - **Template scope:** route params, query values, `currentUser`, configs, and each form's values under the form's name — write `{{ orderForm.orderNumber }}`, not `{{ orderNumber }}`, for loaded entity data.
 - **Readiness:** a context is ready only when every `{{ }}` expression in `name` resolves to a non-empty value and the result is not blank. Until then (data still loading, or a field missing on this record) there is no tag — `"{{ a }} · {{ b }}"` with either value missing registers nothing. Build `name` only from fields that are always present on a loaded record (e.g. `orderNumber`, not `billToContact.name`); put optional fields in `data`.
 - **Deployment:** the backend must be deployed with its `assistantContext` passthrough on `ModuleComponentDefinition`; against an older backend the key is dropped when the module is deployed, and no tag appears.
-- **Cleaning and limits:** empty, `null` and `undefined` leaves in `data` are dropped. `name` is clipped to 200 characters. `data` over 4 KB as JSON is not sent (the tag still is). A thread holds at most 8 tags.
+- **Cleaning and limits:** empty, `null` and `undefined` leaves in `data` are dropped. `name` is clipped to 200 characters. `data` over 4 KB as JSON is not sent (the tag still is). A thread holds at most 8 tags. At 8 tags the live page suggestion is hidden.
 - **No declaration:** a route screen without `assistantContext` gets an automatic page tag from its title; a dialog gets one from its title.
 
 ### The `assistantContext` action
@@ -676,4 +676,6 @@ onClick:
 - **New chat** (the target agent's thread has no messages): the tag is added next to the existing tags; a tag with the same key is replaced.
 - **Active chat:** the tag is proposed as the dashed suggestion; the user adds or dismisses it. A later action replaces the proposal; navigating away clears it.
 - **`agent`:** targets that agent's thread instead of the active one; an unknown or unavailable agent falls back to the active agent.
+- **Readiness, cleaning and limits** apply to the action too: if any `{{ }}` in the action's `name` doesn't resolve to a non-empty value, the action does nothing. Blank questions are dropped after templating.
+- **At 8 tags:** in a new chat the action is ignored; in an active chat its proposal still shows, with its add disabled.
 - An action tag is a snapshot: it is not refreshed when a message is sent.

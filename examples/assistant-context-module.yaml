@@ -30,21 +30,44 @@ components:
         title:
           en-US: "Orders"
       children:
-        - component: button
+        - component: dataGrid
+          name: orderGrid
           props:
-            text:
-              en-US: "Ask AI about this order"
-            onClick:
-              - assistantContext:
-                  kind: record
-                  name: "Order {{ orderNumber }}"
-                  data:
-                    orderId: "{{ orderId }}"
-                    orderNumber: "{{ orderNumber }}"
-                  questions:
-                    - "Where is {{ orderNumber }} now?"
-                  agent: tracking-agent
-                  open: true
+            views:
+              - name: all
+                displayName:
+                  en-US: "All"
+                columns:
+                  - name: orderId
+                    isHidden: true
+                  - name: orderNumber
+                    label:
+                      en-US: "Order #"
+            options:
+              query: orders
+              rootEntityName: Order
+              entityKeys:
+                - orderId
+              navigationType: navigate
+              enableDynamicGrid: true
+              enableViews: true
+              enableSearch: true
+              enablePagination: true
+              enableColumns: true
+              enableFilter: true
+              defaultView: all
+              # The clicked row's fields (orderId, orderNumber) are the event data the templates resolve against.
+              onRowClick:
+                - assistantContext:
+                    kind: record
+                    name: "Order {{ orderNumber }}"
+                    data:
+                      orderId: "{{ orderId }}"
+                      orderNumber: "{{ orderNumber }}"
+                    questions:
+                      - "Where is {{ orderNumber }} now?"
+                    agent: tracking-agent
+                    open: true
 
   - name: AssistantContextExample/OrderEdit
     displayName:

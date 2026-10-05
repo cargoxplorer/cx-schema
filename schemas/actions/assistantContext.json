@@ -5,7 +5,7 @@
   "properties": {
     "assistantContext": {
       "type": "object",
-      "description": "Sets an AI Assistant context tag, or proposes it when a chat is already in progress. With no messages in the target agent's thread the tag is added (a tag with the same key is replaced); otherwise it is shown as a dashed suggestion the user can add or dismiss. Templates resolve against the action's scope (store values plus event data, e.g. a grid row). The tag is a snapshot and is never refreshed.",
+      "description": "Sets an AI Assistant context tag, or proposes it when a chat is already in progress. With no messages in the target agent's thread the tag is added (a tag with the same key is replaced); otherwise it is shown as a dashed suggestion the user can add or dismiss. Templates resolve against the action's scope (store values plus event data, e.g. a grid row). The tag is a snapshot and is never refreshed. The action does nothing until every expression in `name` resolves to a non-empty value.",
       "properties": {
         "kind": { "$ref": "../schemas.json#/definitions/assistantContext/properties/kind" },
         "icon": { "$ref": "../schemas.json#/definitions/assistantContext/properties/icon" },
