@@ -52,6 +52,9 @@
     },
     "layout": {
       "$ref": "../schemas.json#/definitions/component"
+    },
+    "assistantContext": {
+      "$ref": "../schemas.json#/definitions/assistantContext"
     }
   },
   "required": ["name", "layout"]

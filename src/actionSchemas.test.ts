@@ -77,3 +77,45 @@ describe('sound and vibrate action schemas', () => {
     expect(result.isValid).toBe(true);
   });
 });
+
+describe('assistantContext action schema', () => {
+  const validate = compileAllActions();
+
+  it.each([
+    { assistantContext: { name: 'Order {{ orderNumber }}' } },
+    { assistantContext: { name: { 'en-US': 'Order {{ orderNumber }}' } } },
+    {
+      assistantContext: {
+        kind: 'record',
+        icon: 'tabler-truck',
+        name: 'Order {{ orderNumber }}',
+        data: { orderId: '{{ orderId }}', nested: { status: '{{ status }}' } },
+        questions: ['Where is {{ orderNumber }} now?', { 'en-US': 'Summarize charges' }],
+        agent: 'tracking-agent',
+        open: true
+      }
+    },
+    { assistantContext: { kind: 'page', name: 'Orders', open: false } },
+    { assistantContext: { kind: 'dialog', name: 'Edit order' } }
+  ])('accepts %j', (action) => {
+    expect(validate(action)).toBe(true);
+  });
+
+  it.each([
+    { assistantContext: {} },
+    { assistantContext: { data: { orderId: 1 } } },
+    { assistantContext: { name: 'Order', kind: 'screen' } },
+    { assistantContext: { name: 'Order', prompt: 'Where is it?' } },
+    { assistantContext: { name: 'Order', open: 'true' } },
+    { assistantContext: { name: 'Order', agent: 42 } },
+    { assistantContext: { name: 'Order', data: '{{ row }}' } },
+    { assistantContext: { name: 'Order', questions: ['a', 'b', 'c', 'd', 'e', 'f'] } },
+    { assistantContext: 'Order' }
+  ])('rejects %j', (action) => {
+    expect(validate(action)).toBe(false);
+  });
+
+  it('other actions still validate alongside it', () => {
+    expect(validate({ refresh: 'ordersGrid' })).toBe(true);
+  });
+});
