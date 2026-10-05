@@ -287,6 +287,17 @@ components:
 
 ## Action Types
 
+Use `assistantContext` to add structured AI context from an event. It requires `name`; supports `kind` (`page`, `record`, or `dialog`), `icon`, template-resolved `data`, up to five `questions`, an optional agent model ID, and `open: true`. It adds immediately to an empty chat and proposes the context once messages exist.
+
+```yaml
+- assistantContext:
+    kind: record
+    name: "Order {{ orderNumber }}"
+    data: { entityType: Order, entityId: "{{ orderId }}" }
+    questions: ["Summarize this order"]
+    open: true
+```
+
 Actions are used in event handlers (onClick, onSubmit, etc.) as arrays:
 
 ```yaml

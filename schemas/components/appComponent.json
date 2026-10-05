@@ -33,6 +33,23 @@
             "order": {
               "type": "integer",
               "description": "Order of the component in the target slot"
+            },
+            "assistantContext": {
+              "type": "object",
+              "description": "Live structured context published to the AI Assistant while this component is mounted",
+              "properties": {
+                "kind": { "type": "string", "enum": ["page", "record", "dialog"] },
+                "name": { "$ref": "../schemas.json#/definitions/localized" },
+                "icon": { "type": "string" },
+                "data": { "type": "object", "additionalProperties": true },
+                "questions": {
+                  "type": "array",
+                  "maxItems": 5,
+                  "items": { "$ref": "../schemas.json#/definitions/localized" }
+                }
+              },
+              "required": ["name"],
+              "additionalProperties": false
             }
           },
           "additionalProperties": true

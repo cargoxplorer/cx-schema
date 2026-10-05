@@ -39,6 +39,12 @@
         "defaultTab": {
           "type": "string",
           "description": "Default active tab name"
+        },
+        "layout": {
+          "type": "string",
+          "enum": ["cards", "classic"],
+          "default": "cards",
+          "description": "cards separates the tab strip and active content; classic keeps them in one card"
         }
       }
     },
