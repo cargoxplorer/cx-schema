@@ -94,24 +94,31 @@ MUI Button with icon, label, loading state, and action dispatch.
 
 ## dropdown
 
-Action dropdown menu (not a form select). MUI Button + Menu with permission-gated items.
+Action dropdown menu (not a form select), with matching web and mobile behavior.
 
 **Props:**
 | Prop | Type | Description |
 |------|------|-------------|
-| `label` | `ILocalizeString` | Trigger button label |
-| `icon` | `string` | Trigger button icon |
+| `label` | `ILocalizeString` | Optional trigger label; omit for a 40x40 icon-only more-actions button |
+| `ariaLabel` | `ILocalizeString` | Accessible label for an icon-only trigger (default: `More actions`) |
+| `icon` | `string` | Trigger icon (icon-only default: `tabler-dots-vertical`) |
 | `name` | `string` | Component name |
 | `items` | `MenuItem[]` | Menu items |
 | `items[].label` | `ILocalizeString` | Item label |
 | `items[].value` | `any` | Item key |
 | `items[].disabled` | `string \| boolean` | Disable (template expression) |
 | `items[].permission` | `string` | Permission gate — hidden if not granted |
+| `items[].isVisible` / `isHidden` | expression | Visibility gates evaluated with variables, store, and form values |
+| `items[].icon` | `string` | Leading item icon |
+| `items[].color` | `string` | Semantic color; use `error` for destructive actions |
+| `items[].divider` | `boolean` | Render a separator instead of an action |
 | `items[].onClick` | `action[]` | Per-item action |
 | `options.size` | `string` | Button size (default: `medium`) |
 | `options.variant` | `string` | Button variant (default: `outlined`) |
 
 **Events:** `onClick` (button level), `items[].onClick` (per item)
+
+Leading, trailing, and duplicate dividers are removed after visibility filtering. If no actionable items remain, the trigger is not rendered.
 
 ```yaml
 component: dropdown

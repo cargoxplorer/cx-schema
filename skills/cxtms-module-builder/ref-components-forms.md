@@ -455,6 +455,8 @@ still control the displayed label and stored value.
 | `links` | `{entityType, entityId}[]` or template | More entities to link the same upload to: `Order`, `Contact`, `Job`, `TrackingEvent`. Entries whose `entityType` or `entityId` resolves empty are skipped |
 | `category` | `string` | Attachment category (web) |
 | `allowMultiple` / `allowCamera` / `clearAfterUpload` | `boolean` | Upload behavior |
+| `enableZoom` | `boolean` | Mobile: show camera zoom controls and remember the selected zoom per field |
+| `cameraZoom` | `number` | Mobile: initial/fixed camera zoom factor; device capabilities determine the available range |
 | `maxSize` / `allowedExtensions` | `number` / `string[]` | File limits |
 | `onUploaded` | actions | Runs after each upload; `attachment` is in scope |
 
