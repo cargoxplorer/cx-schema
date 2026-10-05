@@ -23,6 +23,11 @@
         },
         "isHidden": {
           "$ref": "../schemas.json#/definitions/templateExpression"
+        },
+        "contentCard": {
+          "type": "boolean",
+          "default": true,
+          "description": "Wrap this tab's content in a card when the parent tabs layout is cards"
         }
       }
     },

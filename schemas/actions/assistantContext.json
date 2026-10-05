@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "assistantContext Action",
+  "type": "object",
+  "properties": {
+    "assistantContext": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["page", "record", "dialog"], "default": "record" },
+        "name": { "$ref": "../schemas.json#/definitions/localized" },
+        "icon": { "type": "string" },
+        "data": { "type": "object", "additionalProperties": true },
+        "questions": {
+          "type": "array",
+          "maxItems": 5,
+          "items": { "$ref": "../schemas.json#/definitions/localized" }
+        },
+        "agent": { "type": "string", "description": "Agent model ID; falls back to the active agent when unavailable" },
+        "open": { "type": "boolean", "default": false }
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["assistantContext"],
+  "additionalProperties": false
+}

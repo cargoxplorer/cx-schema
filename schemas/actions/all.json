@@ -27,6 +27,7 @@
     { "$ref": "resetDirtyState.json" },
     { "$ref": "clipboard.json" },
     { "$ref": "sound.json" },
-    { "$ref": "vibrate.json" }
+    { "$ref": "vibrate.json" },
+    { "$ref": "assistantContext.json" }
   ]
 }

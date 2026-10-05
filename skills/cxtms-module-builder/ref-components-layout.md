@@ -424,6 +424,8 @@ props:
 
 ## tabs
 
+Tabs use separate cards for the tab strip and active content by default. Set `props.layout: classic` to keep the header, strip, and content in one card. In the default card layout, a tab may set `props.contentCard: false` when its child (such as a data grid) already supplies its own frame.
+
 Tabbed interface with MUI TabContext. Tab state stored in URL params.
 
 Tabs may contain a `slot` child as an extension point. The web renderer replaces that child
