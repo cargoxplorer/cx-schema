@@ -21,6 +21,10 @@
           "type": "string",
           "description": "Icon class name"
         },
+        "contentCard": {
+          "type": "boolean",
+          "description": "Render the tab content on its own card (default true). Set false when the content draws its own frame, such as a data grid, and wrap it in a card in YAML if needed"
+        },
         "isHidden": {
           "$ref": "../schemas.json#/definitions/templateExpression"
         }
