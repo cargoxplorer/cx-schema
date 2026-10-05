@@ -103,7 +103,7 @@ File attachments. `parentType`/`parentId` is the primary parent; an attachment c
 - `presignedFileUri`, `presignedPreviewUri`, `presignedThumbnailUri` — signed URLs
 - `getPresignedUri(expiresInDays, uriType)` — custom resolver
 - `getParentOrder` — resolve parent Order
-- `links { entityType entityId }` — all links, including the primary one
+- `orders { orderId trackingNumber }` — all linked orders, including the primary parent; `order { attachments { ... } }` is the reverse. Both read link rows only, return every status, and take `where:` filtering
 - Filter by link: `attachments(filter: "orderLinks.orderId:123")` — also `contactLinks.contactId`, `jobLinks.jobId`, `trackingEventLinks.trackingEventId`
 - `job { getJobAttachments }`, `trackingEvent { getTrackingEventAttachments }` — attachments linked to the entity
 - Mutations: `linkAttachment` / `unlinkAttachment` (`attachmentId`, `entityType`, `entityId`); `createAttachment` `values.links: [{ entityType, entityId }]`. Workflows: `Attachment/Link@1`, `Attachment/Unlink@1`
