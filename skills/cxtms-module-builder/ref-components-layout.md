@@ -437,6 +437,7 @@ the slot name are resolved from component variables and store values before look
 | `toolbar` | `component[]` | Action components next to tab list |
 | `header` | `{icon?, title?, subTitle?, buttons?}` | Component arrays rendered above the tab strip. Hidden children are left out; an area (or the whole header) with nothing visible is not rendered. On narrow screens the buttons wrap below the title. |
 | `defaultTab` | `string` | Name of the tab to open when the URL has no tab param |
+| `layout` | `"cards" \| "classic"` | `cards` (default): header and tab strip on one card, tab content on its own card below. `classic`: the original single-card layout |
 | `useNavigationForTabs` | `boolean` | Push to history instead of replace |
 
 The active tab is kept in the `tabs_<name>_ix` URL param (zero-based index of the visible tabs).
@@ -446,6 +447,7 @@ The active tab is kept in the `tabs_<name>_ix` URL param (zero-based index of th
 |------|------|-------------|
 | `label` | `ILocalizeString` | Tab label (localized, template-parsed) |
 | `icon` | `string` | Icon name shown before the label (`info`, an old scaffold default, is ignored) |
+| `contentCard` | `boolean` | Content on its own card below the tab strip (default `true`; ignored with `layout: classic`). Set `false` when the content draws its own frame, e.g. a `dataGrid` |
 | `isVisible` | `string` | Template expression — show when truthy |
 | `isHidden` | `string` | Template expression — hide when truthy |
 | `options` | `object` | Additional Tab element props |
