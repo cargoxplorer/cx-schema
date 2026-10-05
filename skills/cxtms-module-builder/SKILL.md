@@ -278,6 +278,11 @@ components:
   - name: "ModuleName/ComponentName"       # Pattern: Module/Component
     displayName: { en-US: "..." }
     permissions: "permission-name"         # String or array
+    assistantContext:                      # Optional: what the AI Assistant knows here (see "AI Assistant context")
+      kind: record                         # page | record | dialog
+      name: "Order {{ orderForm.orderNumber }}"
+      data: { orderId: "{{ orderId }}" }
+      questions: ["Where is {{ orderForm.orderNumber }} now?"]
     layout:
       component: layout                    # Root must be a component
       # ... component tree
@@ -336,6 +341,11 @@ onClick:
   - sound: success                    # audible cue: success|error|warning|scan (or { type, volume: 0-1 })
   - vibrate: success                  # haptic: success|error|warning|light|medium|heavy
   - vibrate: { pattern: [100, 50, 100] }   # custom ms pattern (web Vibration API convention) or { duration: 200 }
+  - assistantContext:                 # set (new chat) or propose (active chat) an AI Assistant context tag
+      name: "Order {{ orderNumber }}"
+      data: { orderId: "{{ orderId }}" }
+      agent: tracking-agent           # optional: target that agent's thread
+      open: true                      # optional: open the panel on that agent
 ```
 
 ## Common Patterns
@@ -619,3 +629,51 @@ Route `props.title` and root component `displayName` may be template expressions
 ## Screen route variables
 
 Matched route parameters are raw strings and are available on the component's first render, including when a cached component definition mounts. Query-string values that look numeric are converted to numbers. When names collide, the matched route parameter wins over the query string. Screen variables also include `organizationId`, `locale`, and `currentUser`.
+
+## AI Assistant context
+
+An app component can tell the AI Assistant what the user is looking at. The chat shows it as a context tag, sends the tag's `name` and `data` with every message in the thread, and suggests its `questions`.
+
+```yaml
+components:
+  - name: AirShipments/UpdateAirShipment
+    assistantContext:
+      kind: record                  # page | record | dialog. Default: dialog when rendered in a dialog, else page
+      icon: tabler-plane            # optional; defaults by kind
+      name: "Air Shipment {{ orderForm.orderNumber }}"    # required; string or { en-US: ... }
+      data:                         # optional; any object
+        orderId: "{{ orderId }}"
+        orderNumber: "{{ orderForm.orderNumber }}"
+        status: "{{ orderForm.orderStatus.orderStatusName }}"
+      questions:                    # optional; at most 5; string or { en-US: ... }
+        - "Where is {{ orderForm.orderNumber }} now?"
+        - "Summarize charges on {{ orderForm.orderNumber }}"
+    layout: ...
+```
+
+- **Where:** only on an app component (a sibling of `layout`). Only the component a route renders and the one a dialog renders register a tag; nested or embedded app components do not. On an inner component (or in a form's `props`) it is ignored, and `npx cxtms` warns `misplaced_assistant_context`.
+- **Template scope:** route params, query values, `currentUser`, configs, and each form's values under the form's name — write `{{ orderForm.orderNumber }}`, not `{{ orderNumber }}`, for loaded entity data.
+- **Readiness:** a context is ready only when every `{{ }}` expression in `name` resolves to a non-empty value and the result is not blank. Until then (data still loading, or a field missing on this record) there is no tag — `"{{ a }} · {{ b }}"` with either value missing registers nothing. Build `name` only from fields that are always present on a loaded record (e.g. `orderNumber`, not `billToContact.name`); put optional fields in `data`.
+- **Deployment:** the backend must be deployed with its `assistantContext` passthrough on `ModuleComponentDefinition`; against an older backend the key is dropped when the module is deployed, and no tag appears.
+- **Cleaning and limits:** empty, `null` and `undefined` leaves in `data` are dropped. `name` is clipped to 200 characters. `data` over 4 KB as JSON is not sent (the tag still is). A thread holds at most 8 tags.
+- **No declaration:** a route screen without `assistantContext` gets an automatic page tag from its title; a dialog gets one from its title.
+
+### The `assistantContext` action
+
+The same fields as an action, plus `agent` and `open`, templated against the action's scope (store values and event data such as a grid row):
+
+```yaml
+onClick:
+  - assistantContext:
+      kind: record                  # default: record
+      name: "Order {{ orderNumber }}"
+      data: { orderId: "{{ orderId }}", orderNumber: "{{ orderNumber }}" }
+      questions: ["Where is {{ orderNumber }} now?"]
+      agent: tracking-agent         # optional: the agent's model id (its workflow name)
+      open: true                    # optional: open the panel on that agent and focus the composer
+```
+
+- **New chat** (the target agent's thread has no messages): the tag is added next to the existing tags; a tag with the same key is replaced.
+- **Active chat:** the tag is proposed as the dashed suggestion; the user adds or dismisses it. A later action replaces the proposal; navigating away clears it.
+- **`agent`:** targets that agent's thread instead of the active one; an unknown or unavailable agent falls back to the active agent.
+- An action tag is a snapshot: it is not refreshed when a message is sent.

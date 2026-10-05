@@ -102,4 +102,11 @@ describe('ModuleValidator assistantContext', () => {
       path: 'components[0].layout.children[0].props.assistantContext'
     }));
   });
+
+  it('the assistant context example passes full validation', async () => {
+    const r = await new ModuleValidator().validateModule(path.join(__dirname, '../examples/assistant-context-module.yaml'));
+    expect(r.errors).toEqual([]);
+    expect(r.warnings.filter((w: any) => w.type === 'misplaced_assistant_context')).toEqual([]);
+    expect(r.isValid).toBe(true);
+  });
 });
