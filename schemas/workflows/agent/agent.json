@@ -45,7 +45,7 @@
       "properties": { "type": { "const": "object" } },
       "required": ["type"]
     },
-    "skills": { "type": "array", "items": { "type": "string" }, "description": "Installed skill names to enable (runtime in a later release)." },
+    "skills": { "type": "array", "items": { "type": "string" }, "description": "Installed skill names to enable. The agent sees each skill's name and description and reads a skill with the built-in skill_load tool. Names that are not installed are skipped with a warning." },
     "tools": {
       "type": "array",
       "description": "Tools the agent may call: other workflows, or built-in tools. Each entry has exactly one of 'workflow' or 'builtin'.",

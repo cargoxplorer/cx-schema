@@ -72,7 +72,7 @@ inputs: [...]                               # Becomes the agent's first message
 | `session.maxTurns` | integer (`1`–`100`) | `20` | Maximum agent turns before the session is forced to end. |
 | `session.timeout` | integer (`>= 1`) | `300` | Session timeout in seconds. |
 | `result` | object (JSON Schema, `type` required and must be `object`) | — | The JSON Schema the `set_result` tool's argument must satisfy. Defines the shape of the `result` output. |
-| `skills` | array of strings | — | Installed skill names to enable. Runtime support ships in a later release; safe to declare now. |
+| `skills` | array of strings | — | Installed skill names to enable (see **Skills** below). Names not installed in the organization are skipped with a logged warning. |
 | `tools` | array of objects | — | Tools the agent may call: other workflows (`workflow`) or built-in data tools (`builtin`). Each entry has exactly one of the two. |
 | `tools[].workflow` | string (`minLength: 1`) | — | Workflow name or `workflowId` to expose as a tool. Exactly one of `workflow`/`builtin` per entry. |
 | `tools[].builtin` | string, enum `data.query` \| `data.schema` \| `data.type` | — | A built-in, read-only data tool — see [Built-in data tools](#built-in-data-tools-toolsbuiltin). Exactly one of `workflow`/`builtin` per entry. |
@@ -202,6 +202,45 @@ agent:
 Guards, enforced by the backend: query operations only (mutations and subscriptions return `read_only` — change data with a workflow tool, ideally `mode: approval`); every root Query field must declare `organizationId` and pass the session's organization, except `currentUser`, `personalAccessToken`/`personalAccessTokens`, `hasUserSecret` and introspection (`__schema`/`__type`/`__typename`) — anything else is refused as `organization_scope` ("Field {name} is not scoped to an organization and cannot be queried."), which fails closed for new resolvers; `organizations` is refused too, even though it takes `organizationId` — its resolver ignores the argument; `exportRates` (uploads an export file) and `uploadUrl` (issues a presigned upload URL) take `organizationId` but have side effects, so they are refused as `read_only`, even in the session's organization — use a workflow tool for them; `organizationConfig`, `organizationConfigs`, `contactPaymentMethod`, `contactPaymentMethods`, `outboxMessages`, `deadLetterMessages` and `outboxStatus` hold secrets, payment data or internal infrastructure data and are refused as `restricted` ("Field {name} holds sensitive data and cannot be queried by agents."), whatever alias or fragment is used; inside `where:` filters, `organizationId` accepts only `{ eq: <org> }` or `{ in: [<org>] }`; selection depth at most 12 (`depth_exceeded`; `__schema`/`__type`-only queries are exempt); duplicate keys in `variables` are rejected as `syntax`; results over 64 KB are cut and marked `truncated` with a hint to page with `take`/`skip`. The runner also tells the model which organization it is in whenever a data tool is enabled.
 
 `mode` and `instructions` work as for workflow tools. Built-ins run as the session user, so row-level security applies. A workflow tool whose derived name would collide with `data_query`/`data_schema`/`data_type` is suffixed (`data_query_2`).
+
+## Skills
+
+A skill is knowledge an agent reads on demand. Skills ship in the app repo and install with the app:
+
+```
+skills/<name>/SKILL.md
+skills/<name>/references/<file>.md        # optional
+features/<feature>/skills/<name>/...      # same layout inside a feature
+```
+
+`SKILL.md` starts with frontmatter:
+
+```yaml
+---
+name: storevista-overview          # must equal the folder name; lowercase words joined by hyphens, ≤ 64 chars
+description: How StoreVista works end to end ... Use for any StoreVista process question.   # ≤ 1024 chars
+---
+```
+
+Limits: `SKILL.md` ≤ 32 KB, each reference ≤ 64 KB, at most 20 references, only `.md` files directly under
+`references/`. Problems are reported as app install warnings; a skill that fails to read keeps its previously
+installed version. A skill name belongs to one app per organization.
+
+Enable skills on the agent:
+
+```yaml
+agent:
+  skills: [storevista-overview, storevista-customer-guide]
+```
+
+At run time the system prompt lists each enabled skill's name and description, and the agent gets the built-in
+`skill_load` tool automatically (do not list it under `tools`):
+
+- `skill_load({ name })` → `{ name, content, references: [paths] }`
+- `skill_load({ name, reference: "references/org-sync.md" })` → `{ name, reference, content }`
+- errors: `skill_not_enabled`, `reference_not_found`
+
+Skills are read-only in the TMS: change them in the repo and upgrade the app.
 
 ## History Compression
 
