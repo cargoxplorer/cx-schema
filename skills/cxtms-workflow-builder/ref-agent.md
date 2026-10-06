@@ -55,6 +55,7 @@ inputs: [...]                               # Becomes the agent's first message
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `description` | string | — | What this agent does. Shown to callers and to other agents that may invoke it (e.g. as the tool description when this workflow is listed in another agent's `tools[]`). |
+| `permission` | string (optional) | — | App permission name, e.g. `StoreVista/AI/CustomerAssistant`. Users without it don't see the agent; requests for it return `model_not_found`. Omit for an agent everyone in the organization may use. |
 | `instructions` | string (required, `minLength: 1`) | — | System instructions. A Handlebars template evaluated over workflow variables and inputs, same as other template expressions in this schema. |
 | `ui` | object | — | Display metadata for the AI Assistant chat; no runtime effect. `additionalProperties: false`. See [Chat display metadata](#chat-display-metadata-agentui). |
 | `ui.name` | string | workflow name | Display name. |

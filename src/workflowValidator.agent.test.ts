@@ -199,4 +199,14 @@ activities:
     const result = await validate(withTools('    - instructions: "Orphan."'));
     expect(result.errors.some(e => /tools/.test(e.path))).toBe(true);
   });
+
+  it('accepts an agent permission', async () => {
+    const result = await validate(base.replace('agent:\n', 'agent:\n  permission: "StoreVista/AI/CustomerAssistant"\n'));
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects an empty agent permission', async () => {
+    const result = await validate(base.replace('agent:\n', 'agent:\n  permission: ""\n'));
+    expect(result.errors.some(e => /permission|minLength|fewer/.test(e.message))).toBe(true);
+  });
 });

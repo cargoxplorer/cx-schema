@@ -7,6 +7,11 @@
   "required": ["instructions"],
   "properties": {
     "description": { "type": "string", "description": "What this agent does. Shown to callers and to other agents that may invoke it." },
+    "permission": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional app permission. Users without it do not see this agent in the AI Assistant and cannot start a conversation with it. Omit to show the agent to every user of the organization."
+    },
     "ui": {
       "type": "object",
       "description": "How the AI Assistant chat shows this agent. Display-only; no runtime effect.",
