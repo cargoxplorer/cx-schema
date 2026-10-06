@@ -19,6 +19,7 @@ FullCalendar integration with GraphQL event sources, timezone support, and progr
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `calendarId` | `string` | — | Calendar ID (template-parsed), used for timezone fetch |
+| `toolbar` | `component[]` | — | Components rendered right-aligned above the calendar with inherited context and variables |
 | `initialView` | `string` | `dayGridMonth` | View: `dayGridMonth`, `timeGridWeek`, `timeGridDay`, `listMonth` |
 | `height` | `number` | `600` | Calendar height |
 | `aspectRatio` | `number` | `1.35` | Calendar aspect ratio |
@@ -45,12 +46,14 @@ FullCalendar integration with GraphQL event sources, timezone support, and progr
 |-------|------|-------------|
 | `onDateClick` | `date, dateStr, allDay, view` | Date cell clicked |
 | `onEventClick` | `event{id,title,start,end,allDay,extendedProps}, view` | Event clicked |
-| `onSelect` | `start, end, startStr, endStr, allDay, view` | Date range selected |
-| `onEventDrop` | `event, oldEvent, delta, revert` | Event drag-dropped |
-| `onEventResize` | `event, oldEvent, revert` | Event resized |
+| `onSelect` | `start, end, startStr, endStr, startTz, endTz, allDay, view` | Date range selected; `startTz`/`endTz` use the calendar time zone |
+| `onEventDrop` | `event, oldEvent, delta, revert` | Event drag-dropped; event dates use the calendar time zone |
+| `onEventResize` | `event, oldEvent, revert` | Event resized; event dates use the calendar time zone |
 | `onDatesSet` | `start, end, startStr, endStr, view` | Visible range changed |
 
 **Store API:** Stores `calendar_{calendarId}` in context store with: `refresh()`, `changeView()`, `gotoDate()`, `prev()`, `next()`, `today()`.
+
+For calendars configured with a non-local IANA time zone, offset-less FullCalendar values in selection, drag, resize, and change payloads are interpreted as wall-clock time in that calendar time zone. Values that already include an offset or `Z` are preserved.
 
 ```yaml
 component: calendar
