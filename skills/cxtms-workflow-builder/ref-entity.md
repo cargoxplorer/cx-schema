@@ -30,7 +30,7 @@ All entity tasks follow the `Namespace/Operation@Version` pattern. Outputs are s
 | `Calendar/RevokeLink@1` | Revoke the system feed link of an organization connection for a calendar |
 | `Calendar/ImportFeed@1` | Reconcile an iCalendar feed into a local mirror calendar |
 
-`Calendar/IssueLink@1` requires `organizationId` and `calendarId`; optional `label` and `organizationConnectionId` create a labeled user link or an idempotent system link. Outputs: `calendarLinkId`, `url`, `isSystem`. The URL contains the token and must be stored securely.
+`Calendar/IssueLink@1` requires `organizationId` and `calendarId`; optional `label` and `organizationConnectionId` create a labeled user link or an idempotent system link. Outputs: `calendarLinkId`, `url`, `isSystem`. A user link's URL contains the token and must be stored securely; a system link's URL names the connection instead (`/orgs/{org}/connections/{id}/calendar_{calendarId}.ics`), resolved only by the peer's `Calendar/ImportFeed@1`.
 
 `Calendar/RevokeLink@1` requires `organizationId`, `calendarId` and `organizationConnectionId`. Output: `revoked` (false when there was no active link). The peer's next feed fetch gets 403.
 
