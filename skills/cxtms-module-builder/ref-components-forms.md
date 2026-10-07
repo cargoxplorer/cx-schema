@@ -399,7 +399,7 @@ For `type: select`, the web renderer forwards the parsed `disabled` value to the
 **Select/Async options (under `options`):**
 | Prop | Type | Description |
 |------|------|-------------|
-| `items` | `{label, value}[]` | Static select items |
+| `items` | `{label, value}[]` or template | Select items. On web, templates resolve against the screen store, current form values, and component variables and must produce an array |
 | `allowMultiple` | `boolean` | Multi-select mode |
 | `allowClear` | `boolean` | Show clear button |
 | `allowSearch` | `boolean` | Searchable dropdown |
