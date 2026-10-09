@@ -18,6 +18,16 @@
     "props": {
       "type": "object",
       "properties": {
+        "title": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "description": "Optional localized or templated heading rendered in the toolbar row"
+        },
+        "titleType": {
+          "type": "string",
+          "enum": ["h1", "h2", "h3", "h4", "h5", "h6"],
+          "default": "h2",
+          "description": "Semantic heading level for the DataGrid title"
+        },
         "refreshHandler": {
           "type": "string",
           "description": "Name of the refresh handler",

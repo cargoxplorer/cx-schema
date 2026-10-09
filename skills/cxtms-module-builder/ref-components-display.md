@@ -25,6 +25,8 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 **Props:**
 | Prop | Type | Description |
 |------|------|-------------|
+| `title` | `string \| ILocalizeString` | Optional heading in the toolbar row; supports templates |
+| `titleType` | `h1`–`h6` | Semantic heading level; defaults to `h2` |
 | `toolbar` | `component[]` | Header toolbar components |
 | `toolbarSx` | `object` | MUI `sx` overrides merged onto the toolbar `CardContent`; use this to reduce padding in narrow hosts without hiding toolbar controls |
 | `dotsMenu` | `{items[]}` | Three-dot menu per row |
@@ -35,6 +37,8 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `enableSelect` | `Single \| Multiple` | Row selection mode |
 | `isInDialog` | `boolean` | Optimize for dialog (10 rows) |
 | `refreshHandler` | `string` | Refresh handler name |
+
+A non-empty `title` renders even when `enableToolbar: false`; `options.showHeader: false` hides the title and toolbar together.
 
 **Options (under `props.options`):**
 | Prop | Type | Default | Description |
