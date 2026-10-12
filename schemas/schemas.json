@@ -681,6 +681,47 @@
         }
       },
       "required": ["title", "start"]
+    },
+
+    "assistantContextText": {
+      "description": "A templated string, or a localized object of templated strings.",
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "#/definitions/localized" }
+      ]
+    },
+
+    "assistantContext": {
+      "type": "object",
+      "description": "What the AI Assistant is told about this screen or dialog while it is shown. Templates resolve against the component's variables and store values (forms by name, e.g. orderForm.orderNumber). No tag is registered until every expression in name resolves to a non-empty value. See skills/cxtms-module-builder.",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["page", "record", "dialog"],
+          "description": "Tag kind. On an app component the default is dialog when rendered in a dialog, else page; on the assistantContext action the default is record."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Tabler icon class for the tag, e.g. tabler-plane. Defaults by kind."
+        },
+        "name": {
+          "$ref": "#/definitions/assistantContextText",
+          "description": "Tag label shown in the chat and sent to the agent. At most 200 characters after templating."
+        },
+        "data": {
+          "type": "object",
+          "description": "Templated JSON sent to the agent with the tag. Empty, null and undefined leaves are dropped; at most 4 KB as JSON after templating.",
+          "additionalProperties": true
+        },
+        "questions": {
+          "type": "array",
+          "description": "Common questions suggested in the chat for this context.",
+          "maxItems": 5,
+          "items": { "$ref": "#/definitions/assistantContextText" }
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false
     }
   },
 

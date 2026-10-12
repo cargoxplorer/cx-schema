@@ -4,13 +4,49 @@
   "type": "object",
   "properties": {
     "navigate": {
-      "type": "string",
-      "description": "Navigation path",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Navigation path"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "Navigation path, the same as the string form"
+            },
+            "clearHistory": {
+              "type": ["boolean", "string"],
+              "description": "true replaces the history instead of pushing, so Back no longer returns to the page being left. Web replaces the current history entry. Mobile resets the app history: true makes the target the only screen; a path keeps that page under the target, so Back lands on it (web treats a path like true)."
+            },
+            "externalLink": {
+              "type": "string",
+              "description": "External URL to open (web)"
+            },
+            "target": {
+              "type": "string",
+              "description": "Browser target for externalLink, such as _blank. Defaults to _self."
+            },
+            "delay": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Milliseconds to wait after opening externalLink before the next action runs"
+            }
+          },
+          "anyOf": [{ "required": ["path"] }, { "required": ["externalLink"] }],
+          "additionalProperties": false
+        }
+      ],
+      "description": "Navigation path, or an object with path and clearHistory (replace the history instead of pushing) or externalLink",
       "x-examples": [
         "~/team-calendars/view/{{ calendarId }}",
         "warehouseReceipts/{{ orderId }}",
         "receiving/{{ encodedTrackingNumber }}",
-        "vessels/{{ vesselId }}"
+        "vessels/{{ vesselId }}",
+        { "path": "~/stores/{{ createContact.contact.contactId }}", "clearHistory": true },
+        { "path": "~/dispatchRoutes/{{ dispatchRouteId }}", "clearHistory": "~/dispatchRoutes" },
+        { "externalLink": "https://tracking.example.com/{{ trackingNumber }}", "target": "_blank" }
       ]
     }
   },

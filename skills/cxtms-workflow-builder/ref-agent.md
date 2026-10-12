@@ -57,6 +57,7 @@ inputs: [...]                               # Becomes the agent's first message
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `description` | string | — | What this agent does. Shown to callers and to other agents that may invoke it (e.g. as the tool description when this workflow is listed in another agent's `tools[]`). |
+| `permission` | string (optional) | — | App permission name, e.g. `StoreVista/AI/CustomerAssistant`. Users without it don't see the agent; requests for it return `model_not_found`. Omit for an agent everyone in the organization may use. |
 | `instructions` | string (required, `minLength: 1`) | — | System instructions. A Handlebars template evaluated over workflow variables and inputs, same as other template expressions in this schema. |
 | `ui` | object | — | Display metadata for the AI Assistant chat; no runtime effect. `additionalProperties: false`. See [Chat display metadata](#chat-display-metadata-agentui). |
 | `ui.name` | string | workflow name | Display name. |
@@ -74,7 +75,7 @@ inputs: [...]                               # Becomes the agent's first message
 | `session.maxTurns` | integer (`1`–`100`) | `20` | Maximum agent turns before the session is forced to end. |
 | `session.timeout` | integer (`>= 1`) | `300` | Session timeout in seconds. |
 | `result` | object (JSON Schema, `type` required and must be `object`) | — | The JSON Schema the `set_result` tool's argument must satisfy. Defines the shape of the `result` output. |
-| `skills` | array of strings | — | Installed skill names to enable. Runtime support ships in a later release; safe to declare now. |
+| `skills` | array of strings | — | Installed skill names to enable (see **Skills** below). Names not installed in the organization are skipped with a logged warning. |
 | `tools` | array of objects | — | Tools the agent may call: other workflows (`workflow`) or built-in data tools (`builtin`). Each entry has exactly one of the two. |
 | `tools[].workflow` | string (`minLength: 1`) | — | Workflow name or `workflowId` to expose as a tool. Exactly one of `workflow`/`builtin` per entry. |
 | `tools[].builtin` | string, enum `data.query` \| `data.schema` \| `data.type` \| `file.create` | — | A built-in tool: the three read-only data tools, or `file.create`, which creates a PDF, Word, Excel or CSV file the user can download — see [Built-in tools](#built-in-tools-toolsbuiltin). Exactly one of `workflow`/`builtin` per entry. |
@@ -362,6 +363,45 @@ Produced files are **never re-sent to the model** on later turns — the block i
 rebuilt for a fresh model context, so render a produced file from the transcript, not from anything the model
 says about it. See [Outputs](#outputs) for the `files` a task run returns, and `docs/agent-api.md` §14 "Built-in
 tools" and §10 (transcript `attachment` blocks) in `tms-backend-api` for the full shapes.
+
+## Skills
+
+A skill is knowledge an agent reads on demand. Skills ship in the app repo and install with the app:
+
+```
+skills/<name>/SKILL.md
+skills/<name>/references/<file>.md        # optional
+features/<feature>/skills/<name>/...      # same layout inside a feature
+```
+
+`SKILL.md` starts with frontmatter:
+
+```yaml
+---
+name: storevista-overview          # must equal the folder name; lowercase words joined by hyphens, ≤ 64 chars
+description: How StoreVista works end to end ... Use for any StoreVista process question.   # ≤ 1024 chars
+---
+```
+
+Limits: `SKILL.md` ≤ 32 KB, each reference ≤ 64 KB, at most 20 references, only `.md` files directly under
+`references/`. Problems are reported as app install warnings; a skill that fails to read keeps its previously
+installed version. A skill name belongs to one app per organization.
+
+Enable skills on the agent:
+
+```yaml
+agent:
+  skills: [storevista-overview, storevista-customer-guide]
+```
+
+At run time the system prompt lists each enabled skill's name and description, and the agent gets the built-in
+`skill_load` tool automatically (do not list it under `tools`):
+
+- `skill_load({ name })` → `{ name, content, references: [paths] }`
+- `skill_load({ name, reference: "references/org-sync.md" })` → `{ name, reference, content }`
+- errors: `skill_not_enabled`, `reference_not_found`
+
+Skills are read-only in the TMS: change them in the repo and upgrade the app.
 
 ## History Compression
 

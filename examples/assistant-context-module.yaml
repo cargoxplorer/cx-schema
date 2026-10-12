@@ -1,0 +1,106 @@
+# Assistant Context Example
+# Demonstrates assistantContext on app components and the assistantContext action.
+
+module:
+  name: AssistantContextExample
+  appModuleId: 7d3e1a9b-5c2f-4e8a-b6d1-0f9a8c7e6d50
+  displayName:
+    en-US: "Assistant Context Example"
+  description:
+    en-US: "Demonstrates assistantContext declarations and the assistantContext action"
+  application: CXTMS
+
+components:
+  - name: AssistantContextExample/OrderList
+    displayName:
+      en-US: "Orders"
+    platforms:
+      - web
+    assistantContext:
+      kind: page
+      icon: tabler-table
+      name: { en-US: "Orders list" }
+      questions:
+        - "Which orders are delayed today?"
+        - "List orders without a carrier"
+    layout:
+      component: layout
+      name: orderListLayout
+      props:
+        title:
+          en-US: "Orders"
+      children:
+        - component: dataGrid
+          name: orderGrid
+          props:
+            views:
+              - name: all
+                displayName:
+                  en-US: "All"
+                columns:
+                  - name: orderId
+                    isHidden: true
+                  - name: orderNumber
+                    label:
+                      en-US: "Order #"
+            options:
+              query: orders
+              rootEntityName: Order
+              entityKeys:
+                - orderId
+              navigationType: navigate
+              enableDynamicGrid: true
+              enableViews: true
+              enableSearch: true
+              enablePagination: true
+              enableColumns: true
+              enableFilter: true
+              defaultView: all
+              # The clicked row's fields (orderId, orderNumber) are the event data the templates resolve against.
+              onRowClick:
+                - assistantContext:
+                    kind: record
+                    name: "Order {{ orderNumber }}"
+                    data:
+                      orderId: "{{ orderId }}"
+                      orderNumber: "{{ orderNumber }}"
+                    questions:
+                      - "Where is {{ orderNumber }} now?"
+                    agent: tracking-agent
+                    open: true
+
+  - name: AssistantContextExample/OrderEdit
+    displayName:
+      en-US: "Order"
+    platforms:
+      - web
+    assistantContext:
+      kind: record
+      icon: tabler-package
+      name: "Order {{ orderForm.orderNumber }}"
+      data:
+        orderId: "{{ orderId }}"
+        orderNumber: "{{ orderForm.orderNumber }}"
+        status: "{{ orderForm.orderStatus.orderStatusName }}"
+        customer: "{{ orderForm.billToContact.name }}"
+      questions:
+        - "Where is {{ orderForm.orderNumber }} now?"
+        - "Why is {{ orderForm.orderNumber }} delayed?"
+        - "Summarize charges on {{ orderForm.orderNumber }}"
+    layout:
+      component: layout
+      name: orderEditLayout
+      props:
+        title:
+          en-US: "Order"
+
+routes:
+  - name: AssistantContextExample/OrderList
+    path: /assistant-context-example
+    component: AssistantContextExample/OrderList
+  - name: AssistantContextExample/OrderEdit
+    path: /assistant-context-example/:orderId
+    component: AssistantContextExample/OrderEdit
+
+permissions:
+  - assistantContextExample.view

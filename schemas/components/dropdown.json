@@ -15,11 +15,16 @@
       "type": "object",
       "properties": {
         "label": {
-          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "description": "Trigger button label. Omit for an icon-only (more actions) trigger"
         },
         "icon": {
           "type": "string",
-          "description": "Icon class name"
+          "description": "Icon class name. On an icon-only trigger defaults to tabler-dots-vertical"
+        },
+        "ariaLabel": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "description": "Accessible name of an icon-only trigger. Defaults to 'More actions'"
         },
         "options": {
           "type": "object",
@@ -34,15 +39,38 @@
         },
         "items": {
           "type": "array",
-          "description": "Dropdown menu items",
+          "description": "Dropdown menu items. Hidden items are left out; dividers left at an edge or next to another divider are dropped, and a dropdown with no visible items is not rendered",
           "items": {
             "type": "object",
             "properties": {
               "label": {
                 "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
               },
+              "icon": {
+                "type": "string",
+                "description": "Icon shown before the label"
+              },
+              "color": {
+                "type": "string",
+                "enum": ["error"],
+                "description": "Item color; use error for destructive items"
+              },
+              "divider": {
+                "type": "boolean",
+                "description": "Render a divider line instead of an item"
+              },
               "onClick": {
                 "$ref": "../schemas.json#/definitions/actionsList"
+              },
+              "permission": {
+                "type": "string",
+                "description": "Hide the item unless the user has this permission"
+              },
+              "disabled": {
+                "description": "Disable the item (boolean or template expression)"
+              },
+              "isVisible": {
+                "$ref": "../schemas.json#/definitions/templateExpression"
               },
               "isHidden": {
                 "$ref": "../schemas.json#/definitions/templateExpression"

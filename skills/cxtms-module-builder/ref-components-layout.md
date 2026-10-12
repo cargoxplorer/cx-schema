@@ -436,17 +436,20 @@ the slot name are resolved from component variables and store values before look
 **Props:**
 | Prop | Type | Description |
 |------|------|-------------|
-| `options` | `object` | Additional props spread to Tab elements |
 | `toolbar` | `component[]` | Action components next to tab list |
-| `header` | `{icon?, title?, subTitle?, buttons?}` | Component arrays rendered above the tab strip |
+| `header` | `{icon?, title?, subTitle?, buttons?}` | Component arrays rendered above the tab strip. Hidden children are left out; an area (or the whole header) with nothing visible is not rendered. On narrow screens the buttons wrap below the title. |
+| `defaultTab` | `string` | Name of the tab to open when the URL has no tab param, matched against the child tab `name`; falls back to the first visible tab |
+| `layout` | `"cards" \| "classic"` | `cards` (default): header and tab strip on one card, tab content on its own card below. `classic`: the original single-card layout |
 | `useNavigationForTabs` | `boolean` | Push to history instead of replace |
-| `defaultTab` | `string` | Initial tab, matched against the child tab `name`; falls back to the first visible tab |
+
+The active tab is kept in the `tabs_<name>_ix` URL param (zero-based index of the visible tabs).
 
 **Tab children props:**
 | Prop | Type | Description |
 |------|------|-------------|
 | `label` | `ILocalizeString` | Tab label (localized, template-parsed) |
-| `icon` | `string` | Icon name rendered beside the label on web and mobile, including overflow menus |
+| `icon` | `string` | Icon name shown before the label on web and mobile, including overflow menus (`info`, an old scaffold default, is ignored) |
+| `contentCard` | `boolean` | Content on its own card below the tab strip (default `true`; ignored with `layout: classic`). Set `false` when the content draws its own frame, e.g. a `dataGrid` |
 | `isVisible` | `string` | Template expression — show when truthy |
 | `isHidden` | `string` | Template expression — hide when truthy |
 | `options` | `object` | Additional Tab element props |
@@ -661,6 +664,73 @@ props:
 
 **How extensions target slots:** Other modules register extension components using `appComponent` with `targetSlot` and optional `order` to control rendering position within the slot. See `appComponent.json` schema for details.
 
+### App page slots (Apps Directory)
+
+The Apps Directory app page (`AppDirectory/AppPage`, cx-app-core) exposes two slots per app, keyed by the
+app's `app.yaml` `id`:
+
+| Slot name | Placement | Extension layout |
+|---|---|---|
+| `AppDirectory/AppPage/<appManifestId>/Actions` | Header buttons, before Uninstall | any component, typically `button` |
+| `AppDirectory/AppPage/<appManifestId>/Tabs` | Inside the page `tabs`, after Overview and Configuration | must be a `tab` |
+
+Extensions receive `organizationId`, `appManifestId` and `app` (the page's query result;
+`app.appDirectoryEntry` is the directory entry, including `listing` and `installedAppManifest`).
+Extensions are the app's own components, so they disappear when the app is uninstalled. Slot results are
+cached for 15 minutes in the browser; after uninstalling and reinstalling an app, reload the page to see
+changed extensions.
+
+**`app.yaml` `listing:` block.** Optional. Populates the app's Apps Directory card
+(`AppDirectoryEntry.Listing`; schema: `schemas/app.json`). All fields optional:
+
+| Field | Type | Notes |
+|---|---|---|
+| `vendor` | string | |
+| `summary` | string | ≤200 chars |
+| `configName` | string | Must start with `apps.`; tells the app page's Configuration tab which `OrganizationConfig` to render |
+| `permissions` | string[] | Descriptive text shown in the install dialog, not enforced |
+| `features` | array of `{ icon, title, description }` | `title` required |
+| `brand` | `{ mark, bg, fg }` | Card mark shown when `icon` is unset: the card mark text (up to 6 chars; generated initials fall back to 2), `bg`/`fg` are hex colors (`#RRGGBB`); else generated initials |
+
+```yaml
+listing:
+  vendor: CargoXplorer
+  summary: Rate, ship and track FedEx. Labels and POD directly from shipments.
+  configName: apps.fedex
+  permissions:
+    - Read shipments, packages and addresses
+  features:
+    - { icon: currency-dollar, title: Rate Shopping, description: Live rates at quote time }
+  brand: { mark: FedEx, bg: "#4D148C", fg: "#FFFFFF" }
+```
+
+Validate with `npx cxtms app.yaml` (detected by filename).
+
+**Logo (`icon`).** Either commit an image file next to `app.yaml` in the app repo and name it
+in `icon` (e.g. `icon: icon.png`) — PNG, JPEG, SVG or WebP, ≤ 256 KB — or set `icon` to an
+absolute `http(s)` URL used as-is. The directory sync uploads the committed file to S3 and
+re-uploads it whenever the file changes; most existing app.yaml files leave `icon` empty,
+which is also valid (falls back to the `listing.brand` mark or generated initials, see above).
+
+```yaml
+components:
+  - name: FedEx/AppPage/TestConnection
+    props:
+      targetSlot: "AppDirectory/AppPage/4f29c257-0000-0000-0000-000000000000/Actions"
+      order: 10
+    layout:
+      component: button
+      props:
+        label: { en-US: Test Connection }
+        icon: plug-connected
+        onClick:
+          - workflow:
+              workflowId: "<test-connection workflow id>"
+              onSuccess:
+                - notification: { message: { en-US: "Connection OK" }, type: success }
+              onError:
+                - notification: { message: { en-US: "Connection failed" }, type: error }
+```
 
 ## dashboard persistence
 

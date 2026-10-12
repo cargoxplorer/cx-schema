@@ -294,6 +294,10 @@ export class ModuleValidator {
       );
     }
 
+    if (component.assistantContext !== undefined) {
+      this.validateAssistantContext(component.assistantContext, `${componentPath}.assistantContext`, errors);
+    }
+
     // Check for deprecated properties
     this.checkDeprecatedProperties(component, componentPath, warnings);
   }
@@ -321,6 +325,16 @@ export class ModuleValidator {
       return;
     }
 
+    for (const [key, value] of [['assistantContext', component.assistantContext], ['props.assistantContext', component.props?.assistantContext]]) {
+      if (value !== undefined) {
+        warnings.push({
+          type: 'misplaced_assistant_context',
+          path: `${componentPath}.${key}`,
+          message: 'assistantContext is only read on an app component (components[].assistantContext), not on an inner component'
+        });
+      }
+    }
+
     // Try to validate against specific component schema
     const schemaKey = `components/${componentType}.json`;
     if (this.schemas.has(schemaKey)) {
@@ -330,7 +344,10 @@ export class ModuleValidator {
           this.addAjvErrors(validate.errors, componentPath, errors);
         }
       } catch (error: any) {
-        // Schema not found or validation error
+        // Most component schemas reference ../schemas.json, which Ajv cannot resolve from their
+        // ids, so they never compile. Still enforce a declared top-level key list, so a key
+        // placed beside `props` instead of under it is reported rather than silently ignored.
+        this.checkTopLevelKeys(component, this.schemas.get(schemaKey)!.schema, componentPath, errors);
       }
     }
 
@@ -354,6 +371,28 @@ export class ModuleValidator {
         errors,
         warnings
       );
+    }
+  }
+
+  /**
+   * Report top-level keys a component schema does not allow (additionalProperties: false)
+   */
+  private checkTopLevelKeys(
+    component: any,
+    schema: any,
+    componentPath: string,
+    errors: ValidationError[]
+  ): void {
+    if (schema?.additionalProperties !== false || !schema.properties) return;
+
+    for (const key of Object.keys(component)) {
+      if (!(key in schema.properties)) {
+        errors.push({
+          type: 'schema_violation',
+          path: `${componentPath}.${key}`,
+          message: `'${key}' is not allowed on a ${component.component} component; move it under props`
+        });
+      }
     }
   }
 
@@ -453,6 +492,17 @@ export class ModuleValidator {
         this.validateQuickSearch(entity, `${entityPath}.quickSearch`, errors);
       }
     });
+  }
+
+  /**
+   * Validate an app component's assistantContext block against schemas.json#/definitions/assistantContext.
+   * The runtime limits (200-character name, 4 KB data after templating) are enforced by the frontend.
+   */
+  private validateAssistantContext(assistantContext: any, basePath: string, errors: ValidationError[]): void {
+    const validate = this.ajv.getSchema('schemas.json#/definitions/assistantContext');
+    if (validate && !validate(assistantContext)) {
+      this.addAjvErrors(validate.errors, basePath, errors);
+    }
   }
 
   /**

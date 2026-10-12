@@ -36,15 +36,27 @@
           "type": "boolean",
           "description": "Push tab changes into browser history instead of replacing the current entry"
         },
-        "defaultTab": {
-          "type": "string",
-          "description": "Default active tab name"
-        },
         "layout": {
           "type": "string",
           "enum": ["cards", "classic"],
           "default": "cards",
-          "description": "cards separates the tab strip and active content; classic keeps them in one card"
+          "description": "cards (default): header and tab strip on one card, each tab's content on its own card below. classic: the original layout, header, tab strip and content in one card"
+        },
+        "defaultTab": {
+          "type": "string",
+          "description": "Name of the tab to open when the URL has no tab param"
+        }
+      }
+    },
+    "inputs": {
+      "type": ["array", "null"],
+      "description": "Legacy input parameters, kept for existing modules (often written as a bare `inputs:`)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "props": { "type": "object", "additionalProperties": true }
         }
       }
     },
@@ -52,5 +64,6 @@
       "$ref": "../schemas.json#/definitions/componentChildren"
     }
   },
-  "required": ["component"]
+  "required": ["component"],
+  "additionalProperties": false
 }
