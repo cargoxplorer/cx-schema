@@ -297,6 +297,7 @@ Actions are used in event handlers (onClick, onSubmit, etc.) as arrays:
 ```yaml
 onClick:
   - navigate: "~/path/{{ id }}"                           # Navigate to route
+  - navigate: { path: "~/path/{{ id }}", clearHistory: true }  # Replace history instead of pushing: Back skips the current page (e.g. create form → saved record). Mobile also takes a base path: clearHistory: "~/path"
   - navigateBack: { fallback: "/home" }                    # Go back in history
   - navigateBackOrClose: { fallback: "/home" }             # Go back or close dialog
   - refresh: "componentName"                               # Refresh a component
