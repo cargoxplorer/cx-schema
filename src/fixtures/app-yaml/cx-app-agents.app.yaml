@@ -1,0 +1,6 @@
+id: "c14eb776-3654-4248-9ef4-d763f51dbec3"
+name: "@cxtms/cx-app-agents"
+description: "CargoXplorer Agents App"
+author: "CargoX"
+version: "1.0.0"
+repository: "https://github.com/cargoxplorer/cx-app-agents"

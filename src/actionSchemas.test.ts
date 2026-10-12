@@ -40,6 +40,28 @@ function compileAllActions() {
   return validate;
 }
 
+describe('navigate action schema', () => {
+  const validate = compileAllActions();
+
+  it.each([
+    { navigate: 'orders/{{ orderId }}' },
+    { navigate: { path: '~/stores/{{ id }}' } },
+    { navigate: { path: '~/stores/{{ id }}', clearHistory: true } },
+    { navigate: { path: '~/dispatchRoutes/{{ id }}', clearHistory: '~/dispatchRoutes' } },
+    { navigate: { externalLink: 'https://tracking.example.com/{{ n }}', target: '_blank', delay: 500 } }
+  ])('accepts %j', (action) => {
+    expect(validate(action)).toBe(true);
+  });
+
+  it.each([
+    { navigate: { clearHistory: true } },
+    { navigate: { path: 'orders', clearHistory: 1 } },
+    { navigate: { path: 'orders', replace: true } }
+  ])('rejects %j', (action) => {
+    expect(validate(action)).toBe(false);
+  });
+});
+
 describe('sound and vibrate action schemas', () => {
   const validate = compileAllActions();
 
@@ -75,5 +97,47 @@ describe('sound and vibrate action schemas', () => {
     const result = await validator.validateModule(EXAMPLE);
     expect(result.errors).toEqual([]);
     expect(result.isValid).toBe(true);
+  });
+});
+
+describe('assistantContext action schema', () => {
+  const validate = compileAllActions();
+
+  it.each([
+    { assistantContext: { name: 'Order {{ orderNumber }}' } },
+    { assistantContext: { name: { 'en-US': 'Order {{ orderNumber }}' } } },
+    {
+      assistantContext: {
+        kind: 'record',
+        icon: 'tabler-truck',
+        name: 'Order {{ orderNumber }}',
+        data: { orderId: '{{ orderId }}', nested: { status: '{{ status }}' } },
+        questions: ['Where is {{ orderNumber }} now?', { 'en-US': 'Summarize charges' }],
+        agent: 'tracking-agent',
+        open: true
+      }
+    },
+    { assistantContext: { kind: 'page', name: 'Orders', open: false } },
+    { assistantContext: { kind: 'dialog', name: 'Edit order' } }
+  ])('accepts %j', (action) => {
+    expect(validate(action)).toBe(true);
+  });
+
+  it.each([
+    { assistantContext: {} },
+    { assistantContext: { data: { orderId: 1 } } },
+    { assistantContext: { name: 'Order', kind: 'screen' } },
+    { assistantContext: { name: 'Order', prompt: 'Where is it?' } },
+    { assistantContext: { name: 'Order', open: 'true' } },
+    { assistantContext: { name: 'Order', agent: 42 } },
+    { assistantContext: { name: 'Order', data: '{{ row }}' } },
+    { assistantContext: { name: 'Order', questions: ['a', 'b', 'c', 'd', 'e', 'f'] } },
+    { assistantContext: 'Order' }
+  ])('rejects %j', (action) => {
+    expect(validate(action)).toBe(false);
+  });
+
+  it('other actions still validate alongside it', () => {
+    expect(validate({ refresh: 'ordersGrid' })).toBe(true);
   });
 });

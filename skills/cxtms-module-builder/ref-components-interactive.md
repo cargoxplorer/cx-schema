@@ -94,27 +94,33 @@ MUI Button with icon, label, loading state, and action dispatch.
 
 ## dropdown
 
-Action dropdown menu (not a form select), with matching web and mobile behavior.
+Action dropdown menu (not a form select), with matching web and mobile behavior. MUI Button + Menu with permission-gated items.
+Without a `label` it renders an icon-only "more actions" trigger (⋮, 40×40) — use it as the last
+entry in a tabs `header.buttons` for secondary and destructive actions.
 
 **Props:**
 | Prop | Type | Description |
 |------|------|-------------|
-| `label` | `ILocalizeString` | Optional trigger label; omit for a 40x40 icon-only more-actions button |
-| `ariaLabel` | `ILocalizeString` | Accessible label for an icon-only trigger (default: `More actions`) |
-| `icon` | `string` | Trigger icon (icon-only default: `tabler-dots-vertical`) |
+| `label` | `ILocalizeString` | Trigger button label. Omit for an icon-only trigger |
+| `icon` | `string` | Trigger button icon (icon-only default: `tabler-dots-vertical`) |
+| `ariaLabel` | `ILocalizeString` | Accessible name of an icon-only trigger (default: "More actions") |
 | `name` | `string` | Component name |
 | `items` | `MenuItem[]` | Menu items |
 | `items[].label` | `ILocalizeString` | Item label |
+| `items[].icon` | `string` | Icon before the label |
+| `items[].color` | `"error"` | Destructive item color |
+| `items[].divider` | `boolean` | Render a divider instead of an item |
 | `items[].value` | `any` | Item key |
 | `items[].disabled` | `string \| boolean` | Disable (template expression) |
 | `items[].permission` | `string` | Permission gate — hidden if not granted |
-| `items[].isVisible` / `isHidden` | expression | Visibility gates evaluated with variables, store, and form values |
-| `items[].icon` | `string` | Leading item icon |
-| `items[].color` | `string` | Semantic color; use `error` for destructive actions |
-| `items[].divider` | `boolean` | Render a separator instead of an action |
+| `items[].isVisible` / `isHidden` | `string` | Template expressions evaluated with variables, store, and form values that hide the item |
 | `items[].onClick` | `action[]` | Per-item action |
 | `options.size` | `string` | Button size (default: `medium`) |
 | `options.variant` | `string` | Button variant (default: `outlined`) |
+
+Hidden items are left out, dividers left at an edge or next to another divider are dropped, and a
+dropdown with no visible items renders nothing. Put destructive items last, after a divider, with
+`color: error` and a `confirm` action.
 
 **Events:** `onClick` (button level), `items[].onClick` (per item)
 
@@ -141,6 +147,27 @@ props:
       disabled: "{{ !any selectedItems }}"
       onClick:
         - confirm: { title: { en-US: "Archive?" }, message: { en-US: "Archive selected items?" } }
+```
+
+Header "more actions" menu:
+
+```yaml
+component: dropdown
+name: moreActions
+props:
+  items:
+    - label: { en-US: "Configure" }
+      icon: tabler-adjustments
+      onClick:
+        - setParams: { tabs_appTabs_ix: 1 }
+    - divider: true
+    - label: { en-US: "Uninstall" }
+      icon: tabler-trash
+      color: error
+      permission: "Apps/Uninstall"
+      onClick:
+        - confirm: { title: { en-US: "Uninstall?" }, message: { en-US: "Remove this app?" } }
+        - mutation: { command: "...", variables: {} }
 ```
 
 ---

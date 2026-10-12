@@ -5,21 +5,35 @@
   "properties": {
     "assistantContext": {
       "type": "object",
+      "description": "Sets an AI Assistant context tag, or proposes it when a chat is already in progress. With no messages in the target agent's thread the tag is added (a tag with the same key is replaced); otherwise it is shown as a dashed suggestion the user can add or dismiss. Templates resolve against the action's scope (store values plus event data, e.g. a grid row). The tag is a snapshot and is never refreshed. The action does nothing until every expression in `name` resolves to a non-empty value.",
       "properties": {
-        "kind": { "type": "string", "enum": ["page", "record", "dialog"], "default": "record" },
-        "name": { "$ref": "../schemas.json#/definitions/localized" },
-        "icon": { "type": "string" },
-        "data": { "type": "object", "additionalProperties": true },
-        "questions": {
-          "type": "array",
-          "maxItems": 5,
-          "items": { "$ref": "../schemas.json#/definitions/localized" }
+        "kind": { "$ref": "../schemas.json#/definitions/assistantContext/properties/kind" },
+        "icon": { "$ref": "../schemas.json#/definitions/assistantContext/properties/icon" },
+        "name": { "$ref": "../schemas.json#/definitions/assistantContext/properties/name" },
+        "data": { "$ref": "../schemas.json#/definitions/assistantContext/properties/data" },
+        "questions": { "$ref": "../schemas.json#/definitions/assistantContext/properties/questions" },
+        "agent": {
+          "type": "string",
+          "description": "Model id of the agent whose thread the action targets (the agent workflow's name). Defaults to the active agent; an unknown or unavailable agent falls back to the active agent."
         },
-        "agent": { "type": "string", "description": "Agent model ID; falls back to the active agent when unavailable" },
-        "open": { "type": "boolean", "default": false }
+        "open": {
+          "type": "boolean",
+          "description": "Open the AI Assistant panel, switch it to the target agent and focus the composer. Default false."
+        }
       },
       "required": ["name"],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-examples": [
+        { "name": "Order {{ orderNumber }}", "data": { "orderId": "{{ orderId }}" }, "open": true },
+        {
+          "kind": "record",
+          "agent": "billing-agent",
+          "name": "Invoice {{ invoiceNumber }}",
+          "data": { "invoiceId": "{{ invoiceId }}" },
+          "questions": ["Is {{ invoiceNumber }} fully paid?"],
+          "open": true
+        }
+      ]
     }
   },
   "required": ["assistantContext"],

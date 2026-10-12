@@ -15,6 +15,7 @@ import updateNotifier from 'update-notifier';
 import YAML, { isSeq, isMap, YAMLSeq, Document as YAMLDocument } from 'yaml';
 import { ModuleValidator } from './validator';
 import { WorkflowValidator } from './workflowValidator';
+import { AppValidator } from './appValidator';
 import { ValidationResult, ValidationError } from './types';
 import { computeExtractPriority } from './extractUtils';
 
@@ -133,7 +134,7 @@ loadEnvFile();
 // Types
 // ============================================================================
 
-type ValidationType = 'module' | 'workflow' | 'auto';
+type ValidationType = 'module' | 'workflow' | 'app' | 'auto';
 type OutputFormat = 'pretty' | 'json' | 'compact';
 type ReportFormat = 'html' | 'markdown' | 'json';
 
@@ -4075,10 +4076,10 @@ function parseArgs(args: string[]): ParsedArgs {
       options.schemasPath = args[++i];
     } else if (arg === '--type' || arg === '-t') {
       const typeArg = args[++i];
-      if (['module', 'workflow', 'auto'].includes(typeArg)) {
+      if (['module', 'workflow', 'app', 'auto'].includes(typeArg)) {
         options.type = typeArg as ValidationType;
       } else {
-        console.error(chalk.red(`Invalid type: ${typeArg}. Use: module, workflow, or auto`));
+        console.error(chalk.red(`Invalid type: ${typeArg}. Use: module, workflow, app, or auto`));
         process.exit(2);
       }
     } else if (arg === '--format' || arg === '-f') {
@@ -4226,6 +4227,11 @@ function findSchemasPath(): string | undefined {
 // ============================================================================
 
 function detectFileType(filePath: string): ValidationType {
+  // app.yaml (any directory) is always the app manifest, never a module/workflow
+  if (path.basename(filePath).toLowerCase() === 'app.yaml') {
+    return 'app';
+  }
+
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
     const data = YAML.parse(content) as any;
@@ -5015,6 +5021,9 @@ async function validateFile(
       schemasPath: path.join(schemasPath, 'workflows')
     });
     return validator.validateWorkflow(filePath);
+  } else if (fileType === 'app') {
+    const validator = new AppValidator({ schemasPath });
+    return validator.validateApp(filePath);
   } else {
     const validator = new ModuleValidator({ schemasPath });
     return validator.validateModule(filePath);

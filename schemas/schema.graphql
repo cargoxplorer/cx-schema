@@ -192,6 +192,7 @@ type AttachmentGqlDto {
   isPdf: Boolean
   updatedUser: user!
   createdUser: user!
+  orders(where: orderFilterInput @cost(weight: "10")): [order!]!
   customValues: MapOfObject
 }
 
@@ -5997,6 +5998,7 @@ input AttachmentGqlDtoFilterInput {
   isPdf: BooleanOperationFilterInput
   updatedUser: userFilterInput
   createdUser: userFilterInput
+  orders: ListFilterInputTypeOforderFilterInput
   customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
 }
 
