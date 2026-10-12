@@ -40,6 +40,28 @@ function compileAllActions() {
   return validate;
 }
 
+describe('navigate action schema', () => {
+  const validate = compileAllActions();
+
+  it.each([
+    { navigate: 'orders/{{ orderId }}' },
+    { navigate: { path: '~/stores/{{ id }}' } },
+    { navigate: { path: '~/stores/{{ id }}', clearHistory: true } },
+    { navigate: { path: '~/dispatchRoutes/{{ id }}', clearHistory: '~/dispatchRoutes' } },
+    { navigate: { externalLink: 'https://tracking.example.com/{{ n }}', target: '_blank', delay: 500 } }
+  ])('accepts %j', (action) => {
+    expect(validate(action)).toBe(true);
+  });
+
+  it.each([
+    { navigate: { clearHistory: true } },
+    { navigate: { path: 'orders', clearHistory: 1 } },
+    { navigate: { path: 'orders', replace: true } }
+  ])('rejects %j', (action) => {
+    expect(validate(action)).toBe(false);
+  });
+});
+
 describe('sound and vibrate action schemas', () => {
   const validate = compileAllActions();
 
