@@ -47,6 +47,11 @@ describe('workflow.permission and file inputs', () => {
     expect(result.errors.some(e => /permission/.test(e.path ?? '') || /permission|minLength|fewer than 1/.test(e.message))).toBe(true);
   });
 
+  it('rejects a whitespace-only permission', async () => {
+    const result = await validate(base('  permission: "   "'));
+    expect(result.errors.some(e => /permission/.test(e.path ?? '') || /permission|pattern/.test(e.message))).toBe(true);
+  });
+
   it('accepts a file input', async () => {
     const result = await validate(base('', 'file'));
     expect(result.errors).toEqual([]);
