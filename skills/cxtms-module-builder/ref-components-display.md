@@ -69,6 +69,10 @@ A non-empty `title` renders even when `enableToolbar: false`; `options.showHeade
 
 **Pagination display:** when `totalCount` is `0`, DataGrid shows `Showing 0 to 0 of 0 entries` instead of starting at row `1`.
 
+**Jump to page:** selecting a pagination ellipsis (`…`) opens a numeric field for jumping directly to any valid page.
+
+**Title summaries:** `props.subtitle` renders muted localized/template text beside a non-empty title. `props.footer` is a component list below the rows and above bottom pagination; use a `stats` component there for totals.
+
 **Store navigation state:** with `navigationType: store`, DataGrid keeps `{gridName}_limit`, `{gridName}_offset`, and search state in the local UI context store, not URL variables. Use it for embedded/stateful grids where dialogs or parent re-renders must not reset pagination back to page 1.
 
 **View definition:**

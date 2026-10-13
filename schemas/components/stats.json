@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "stats-component",
+  "title": "Stats Component",
+  "description": "Read-only totals, counts, and headline values.",
+  "type": "object",
+  "required": ["component", "props"],
+  "properties": {
+    "component": { "type": "string", "const": "stats" },
+    "name": { "type": "string" },
+    "props": {
+      "type": "object",
+      "required": ["items"],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
+              "value": {},
+              "unit": {},
+              "caption": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
+              "decimals": { "type": "number", "minimum": 0 },
+              "emphasis": { "type": "boolean" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "variant": { "type": "string", "enum": ["row", "list"], "default": "row" },
+        "size": { "type": "string", "enum": ["md", "lg"], "default": "md" },
+        "align": { "type": "string", "enum": ["start", "end"], "default": "start" },
+        "className": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
