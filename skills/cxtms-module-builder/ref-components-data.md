@@ -281,7 +281,7 @@ Composable MUI ListItem with component slots and built-in popover menu.
 | `secondaryComponent` | `ComponentProps` | Secondary text area component |
 | `avatarComponent` | `ComponentProps` | Avatar slot component |
 | `secondaryAction` | `ComponentProps` | Right-side action component |
-| `selected` | `boolean` | Visual selection state |
+| `selected` | `boolean \| template string` | Visual selection state; templates resolve against props, variables, and store values |
 | `disabled` | `boolean` | Disabled state |
 | `divider` | `boolean` | Bottom divider |
 | `button` | `boolean` | Render as ListItemButton |
@@ -290,6 +290,8 @@ Composable MUI ListItem with component slots and built-in popover menu.
 | `menu.items[]` | `{label, icon, onClick, disabled}` | Menu items |
 
 **Events:** `onClick`, `menu.items[].onClick`
+
+Both event forms receive `sender`, the component's named `actions`, and the active React Hook Form/custom form context (with Formik retained for compatibility), so list-item actions can read or update the surrounding form.
 
 **Children:** Fallback — rendered when no primary/secondary components.
 

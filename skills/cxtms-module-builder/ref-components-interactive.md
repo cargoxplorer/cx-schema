@@ -94,7 +94,7 @@ MUI Button with icon, label, loading state, and action dispatch.
 
 ## dropdown
 
-Action dropdown menu (not a form select). MUI Button + Menu with permission-gated items.
+Action dropdown menu (not a form select), with matching web and mobile behavior. MUI Button + Menu with permission-gated items.
 Without a `label` it renders an icon-only "more actions" trigger (⋮, 40×40) — use it as the last
 entry in a tabs `header.buttons` for secondary and destructive actions.
 
@@ -113,16 +113,18 @@ entry in a tabs `header.buttons` for secondary and destructive actions.
 | `items[].value` | `any` | Item key |
 | `items[].disabled` | `string \| boolean` | Disable (template expression) |
 | `items[].permission` | `string` | Permission gate — hidden if not granted |
-| `items[].isVisible` / `isHidden` | `string` | Template expressions that hide the item |
+| `items[].isVisible` / `isHidden` | `string` | Template expressions evaluated with variables, store, and form values that hide the item |
 | `items[].onClick` | `action[]` | Per-item action |
+| `options.size` | `string` | Button size (default: `medium`) |
+| `options.variant` | `string` | Button variant (default: `outlined`) |
 
 Hidden items are left out, dividers left at an edge or next to another divider are dropped, and a
 dropdown with no visible items renders nothing. Put destructive items last, after a divider, with
 `color: error` and a `confirm` action.
-| `options.size` | `string` | Button size (default: `medium`) |
-| `options.variant` | `string` | Button variant (default: `outlined`) |
 
 **Events:** `onClick` (button level), `items[].onClick` (per item)
+
+Leading, trailing, and duplicate dividers are removed after visibility filtering. If no actionable items remain, the trigger is not rendered.
 
 ```yaml
 component: dropdown

@@ -101,7 +101,7 @@ File attachments. `parentType`/`parentId` is the primary parent; an attachment c
 
 - `isImage`, `isPdf` — computed from extension
 - `presignedFileUri`, `presignedPreviewUri`, `presignedThumbnailUri` — signed URLs
-- `getPresignedUri(expiresInDays, uriType)` — custom resolver
+- `getPresignedUri(expiresInDays, uriType, download: false)` — custom resolver; pass `download: true` to return a signed URL with an attachment disposition and preserve the original file name
 - `getParentOrder` — resolve parent Order
 - `orders { orderId trackingNumber }` — all linked orders, including the primary parent; `order { attachments { ... } }` is the reverse. Both read link rows only, return every status, and take `where:` filtering
 - Filter by link: `attachments(filter: "orderLinks.orderId:123")` — also `contactLinks.contactId`, `jobLinks.jobId`, `trackingEventLinks.trackingEventId`

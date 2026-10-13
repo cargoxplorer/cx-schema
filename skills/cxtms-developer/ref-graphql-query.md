@@ -38,6 +38,14 @@ Order quick search (`orders.search` and `orderGroupBy.search`) matches order num
 
 Order-move quick search (`orderMoves.search`) matches the move name plus its owning order's tracking number and JSON custom values (for example, a container number). Matching is case-insensitive and accepts partial text.
 
+## Cross-entity quick search
+
+`quickSearchEntities(organizationId)` returns the organization's searchable entity configuration: entity name/kind, localized group label, icon and ordering, display templates, and the route or dialog used to open a result. Load this configuration before rendering a search palette.
+
+`quickSearch(organizationId, query, entityNames?, take: 5)` searches all configured entities or an optional subset. Results are grouped by `entityName`; each group includes `total`, `hasMore`, `partial`, and ranked items with a stable string `key` and `data` map. Apply the matching entity configuration's display and open templates to `data`.
+
+`agentSessionAttachments(organizationId, agentSessionId?, contentKind?, skip?, take?)` lists attachments from agent sessions visible to the caller. Omit the session id for an all-visible-sessions library; filter `contentKind` by `Image` or `Document`. Each item identifies its attachment, source session/workflow, file metadata, and whether its `origin` is `Uploaded` or `Produced`.
+
 ## App Module Metadata Visibility
 
 GraphQL metadata queries hide rows attached to soft-deleted app modules:

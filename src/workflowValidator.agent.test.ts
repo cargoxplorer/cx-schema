@@ -185,6 +185,18 @@ activities:
     expect(result.errors).toEqual([]);
   });
 
+  it('accepts builtin: file.create', async () => {
+    const result = await validate(withTools('    - builtin: file.create'));
+    expect(result.errors).toEqual([]);
+  });
+
+  it('accepts builtin: file.create with instructions and mode', async () => {
+    const result = await validate(withTools(
+      '    - builtin: file.create\n      instructions: "Export the results as a spreadsheet."\n      mode: approval'
+    ));
+    expect(result.errors).toEqual([]);
+  });
+
   it('rejects an unknown built-in', async () => {
     const result = await validate(withTools('    - builtin: data.delete'));
     expect(result.errors.some(e => /tools/.test(e.path))).toBe(true);

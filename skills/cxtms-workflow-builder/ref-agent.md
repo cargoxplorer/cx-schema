@@ -7,11 +7,13 @@
 - Inputs: how they become the first message, and the tool schema seen by callers
 - The built-in `set_result` tool and `agent.result`
 - The `__session` override input
-- Outputs: `result`, `transcript`, `sessionId`
+- Outputs: `result`, `transcript`, `sessionId`, `files`
 - Sessions: how an agent is invoked — a workflow task vs. the Responses API chat
 - Tool approval (`tools[].mode`) and the chat's Ask/Auto approval mode
-- Built-in data tools (`tools[].builtin`): `data.query`, `data.schema`, `data.type`
+- Built-in tools (`tools[].builtin`): `data.query`, `data.schema`, `data.type`, `file.create`
+- Producing files: `file.create`, captured workflow-tool files, where they appear
 - History compression
+- Files in chat: what the model receives, and the model config's `supportsFiles` flag
 - Session ownership and live events
 - Triggers: synchronous execution and lock behavior for trigger-bound agents
 - The `ai.default` organization config shape
@@ -47,7 +49,7 @@ agent:                                      # Required (replaces activities)
   agents: [...]
 
 inputs: [...]                               # Becomes the agent's first message
-# outputs: not needed — result/transcript/sessionId are fixed and always produced
+# outputs: not needed — result/transcript/sessionId/files are fixed and always produced
 ```
 
 ## Agent Section — Property Reference
@@ -76,7 +78,7 @@ inputs: [...]                               # Becomes the agent's first message
 | `skills` | array of strings | — | Installed skill names to enable (see **Skills** below). Names not installed in the organization are skipped with a logged warning. |
 | `tools` | array of objects | — | Tools the agent may call: other workflows (`workflow`) or built-in data tools (`builtin`). Each entry has exactly one of the two. |
 | `tools[].workflow` | string (`minLength: 1`) | — | Workflow name or `workflowId` to expose as a tool. Exactly one of `workflow`/`builtin` per entry. |
-| `tools[].builtin` | string, enum `data.query` \| `data.schema` \| `data.type` | — | A built-in, read-only data tool — see [Built-in data tools](#built-in-data-tools-toolsbuiltin). Exactly one of `workflow`/`builtin` per entry. |
+| `tools[].builtin` | string, enum `data.query` \| `data.schema` \| `data.type` \| `file.create` | — | A built-in tool: the three read-only data tools, or `file.create`, which creates a PDF, Word, Excel or CSV file the user can download — see [Built-in tools](#built-in-tools-toolsbuiltin). Exactly one of `workflow`/`builtin` per entry. |
 | `tools[].instructions` | string | — | When and how the agent should use this tool — folded into the tool's description for the model. |
 | `tools[].mode` | string, enum `auto` \| `approval` \| `always` | `auto` | `auto` runs the tool as soon as the model calls it. `approval` pauses the call for a person unless the chat is in Auto mode. `always` pauses for a person in every chat — see [Tool approval](#tool-approval-toolsmode). |
 | `mcp` | array of objects | — | Outbound MCP server connections. Runtime support ships in a later release. |
@@ -126,17 +128,18 @@ Pass `__session` as an input (it does not need to be declared in `inputs:`) to o
 
 ## Outputs
 
-Outputs are **fixed** for Agent workflows — when the session completes via `set_result`, the engine always produces exactly these three, regardless of what (if anything) you declare under `outputs:`:
+Outputs are **fixed** for Agent workflows — when the session completes via `set_result`, the engine always produces exactly these four, regardless of what (if anything) you declare under `outputs:`:
 
 | Output | Description |
 |--------|-------------|
 | `result` | The argument the agent passed to `set_result`, matching `agent.result`'s schema. |
 | `transcript` | The full turn-by-turn conversation log for the session (prompts, tool calls, tool results, model responses). |
 | `sessionId` | The session identifier. |
+| `files` | Every file the session produced (`file.create`, or a captured workflow-tool file — see [Producing files](#producing-files)), each `{ attachmentId, fileName, contentType, size, url }`. `url` is presigned for 24 hours, or `null` if signing it failed (logged; the task still completes). `[]`, not omitted, when nothing was produced. |
 
-If a `task` session ends **without** calling `set_result` — it hits `session.maxTurns`, `session.timeout`, or stops responding with tool calls after two nudges — the workflow **fails**: the engine raises an error naming the session id (e.g. `Agent session <sessionId> ended without a result: exhausted its turn budget (20)`), and there are **no** `result`/`transcript`/`sessionId` outputs in that case. Look up the `AgentSession` row by the session id in the error message to inspect the transcript of a failed run.
+If a `task` session ends **without** calling `set_result` — it hits `session.maxTurns`, `session.timeout`, or stops responding with tool calls after two nudges — the workflow **fails**: the engine raises an error naming the session id (e.g. `Agent session <sessionId> ended without a result: exhausted its turn budget (20)`), and there are **no** `result`/`transcript`/`sessionId`/`files` outputs in that case. Look up the `AgentSession` row by the session id in the error message to inspect the transcript of a failed run.
 
-An `outputs:` section is **not required** for an Agent workflow — the scaffolded template omits it entirely, and `result`/`transcript`/`sessionId` are still produced when the session completes. The engine ignores `outputs:` for this workflow type: it does not consult it to decide what to produce. If you add an `outputs:` section anyway (e.g. to rename an output for a caller, or because a shared tool expects one), the normal `output.json` rule still applies — each entry still needs a `mapping` — but it has no effect on which outputs the Agent runtime actually populates.
+An `outputs:` section is **not required** for an Agent workflow — the scaffolded template omits it entirely, and `result`/`transcript`/`sessionId`/`files` are still produced when the session completes. The engine ignores `outputs:` for this workflow type: it does not consult it to decide what to produce. If you add an `outputs:` section anyway (e.g. to rename an output for a caller, or because a shared tool expects one), the normal `output.json` rule still applies — each entry still needs a `mapping` — but it has no effect on which outputs the Agent runtime actually populates.
 
 ## Sessions: How an Agent Is Invoked
 
@@ -145,7 +148,7 @@ The same `agent:` YAML backs two different ways of running an agent, and the cal
 | | **Task session** | **Chat session** |
 |---|---|---|
 | Started by | A workflow run: direct invocation, a trigger, `Workflow/Execute@1`, or another agent's `tools[]`/`agents[]` | A conversation held over the OpenAI-Responses-compatible API (`POST /api/organizations/{id}/ai/responses`, or the public-api equivalent) |
-| `set_result` tool | Registered; calling it ends the session and produces `result`/`transcript`/`sessionId` (see [Outputs](#outputs)) | Not registered at all |
+| `set_result` tool | Registered; calling it ends the session and produces `result`/`transcript`/`sessionId`/`files` (see [Outputs](#outputs)) | Not registered at all |
 | Ends when | `set_result` is called, or `session.maxTurns`/`session.timeout` is hit | The client stops sending turns, or `session.maxTurns`/`session.timeout` is hit — there is no `set_result` to end it early |
 | Approval tools | Refused outright — see [Tool approval](#tool-approval-toolsmode) | Pause the conversation for a person to decide |
 | Owner default | `Organization` (no person is present to default to) | `User` — the session's starter |
@@ -177,9 +180,11 @@ without an explicit click, whatever the user's mode — voiding an invoice, char
 
 **In a task session** (no person is present to ask): an approval tool is **refused** the moment the model calls it — the agent is told it needs human approval for that call and continues reasoning from there (typically escalating via `set_result` rather than completing the original action). Don't rely on `mode: approval` to gate a tool inside a task-only agent; a task session can never satisfy it. If an agent needs to run in both modes, write its `instructions` to handle the "this needs a person" outcome explicitly (see `AGT_010` below for the schema-level check on `mode`'s value; there is no schema check for whether an agent using `mode: approval` will ever run as a chat).
 
-## Built-in Data Tools (`tools[].builtin`)
+## Built-in Tools (`tools[].builtin`)
 
-Three built-in tools let an agent read the organization's data through GraphQL without a workflow per question:
+Four built-in tools cover reading the organization's data and handing the user a file, without a workflow per
+use case: three read-only data tools over GraphQL, and `file.create`, which writes a PDF, Word, Excel or CSV
+file to the session.
 
 ```yaml
 agent:
@@ -190,6 +195,8 @@ agent:
     - builtin: data.type
       instructions: "Look up field types before writing a query."
     - builtin: data.query
+    - builtin: file.create
+      instructions: "Use this to export results the user asks to download."
     - workflow: "Assistant / Cancel Shipment"   # changing data still goes through a workflow tool
       mode: approval
 ```
@@ -199,10 +206,163 @@ agent:
 | `data.query` | `data_query` | Runs one GraphQL **query** (`query`, optional `variables`, `operationName`) in the agent's organization and returns `{ data, errors? }`. |
 | `data.schema` | `data_schema` | Lists query fields (`category: queries`, the default), types (`types`) or both (`all`), with an optional case-insensitive `filter`. Mutations are not listed. |
 | `data.type` | `data_type` | Describes one type (`typeName`): fields, types, arguments, descriptions, enum values; an unknown name returns up to 5 suggestions. |
+| `file.create` | `file_create` | Writes a file to the session: `markdown` renders to `pdf`/`docx`; `rows` or `query` renders to `xlsx`/`csv`. Returns `{ fileName, attachmentId, format, size, rows?, truncated? }` — never the file's content. See [`file.create`](#filecreate-toolsbuiltin-filecreate) below. |
 
-Guards, enforced by the backend: query operations only (mutations and subscriptions return `read_only` — change data with a workflow tool, ideally `mode: approval`); every root Query field must declare `organizationId` and pass the session's organization, except `currentUser`, `personalAccessToken`/`personalAccessTokens`, `hasUserSecret` and introspection (`__schema`/`__type`/`__typename`) — anything else is refused as `organization_scope` ("Field {name} is not scoped to an organization and cannot be queried."), which fails closed for new resolvers; `organizations` is refused too, even though it takes `organizationId` — its resolver ignores the argument; `exportRates` (uploads an export file) and `uploadUrl` (issues a presigned upload URL) take `organizationId` but have side effects, so they are refused as `read_only`, even in the session's organization — use a workflow tool for them; `organizationConfig`, `organizationConfigs`, `contactPaymentMethod`, `contactPaymentMethods`, `outboxMessages`, `deadLetterMessages` and `outboxStatus` hold secrets, payment data or internal infrastructure data and are refused as `restricted` ("Field {name} holds sensitive data and cannot be queried by agents."), whatever alias or fragment is used; inside `where:` filters, `organizationId` accepts only `{ eq: <org> }` or `{ in: [<org>] }`; selection depth at most 12 (`depth_exceeded`; `__schema`/`__type`-only queries are exempt); duplicate keys in `variables` are rejected as `syntax`; results over 64 KB are cut and marked `truncated` with a hint to page with `take`/`skip`. The runner also tells the model which organization it is in whenever a data tool is enabled.
+Guards, enforced by the backend, on `data.query` (and on `file.create`'s `query` mode, which runs through the
+same gateway): query operations only (mutations and subscriptions return `read_only` — change data with a
+workflow tool, ideally `mode: approval`); every root Query field must declare `organizationId` and pass the
+session's organization, except `currentUser`, `personalAccessToken`/`personalAccessTokens`, `hasUserSecret`
+and introspection (`__schema`/`__type`/`__typename`) — anything else is refused as `organization_scope`
+("Field {name} is not scoped to an organization and cannot be queried."), which fails closed for new
+resolvers; `organizations` is refused too, even though it takes `organizationId` — its resolver ignores the
+argument; `exportRates` (uploads an export file) and `uploadUrl` (issues a presigned upload URL) take
+`organizationId` but have side effects, so they are refused as `read_only`, even in the session's organization
+— use a workflow tool for them; `organizationConfig`, `organizationConfigs`, `contactPaymentMethod`,
+`contactPaymentMethods`, `outboxMessages`, `deadLetterMessages` and `outboxStatus` hold secrets, payment data
+or internal infrastructure data and are refused as `restricted` ("Field {name} holds sensitive data and cannot
+be queried by agents."), whatever alias or fragment is used; inside `where:` filters, `organizationId` accepts
+only `{ eq: <org> }` or `{ in: [<org>] }`; selection depth at most 12 (`depth_exceeded`; `__schema`/`__type`-only
+queries are exempt); duplicate keys in `variables` are rejected as `syntax`; `data.query` results over 64 KB
+are cut and marked `truncated` with a hint to page with `take`/`skip` (`file.create`'s `query` mode pages
+itself instead — see below). The runner also tells the model which organization it is in whenever a data tool
+is enabled.
 
-`mode` and `instructions` work as for workflow tools. Built-ins run as the session user, so row-level security applies. A workflow tool whose derived name would collide with `data_query`/`data_schema`/`data_type` is suffixed (`data_query_2`).
+`mode` and `instructions` work as for workflow tools. Built-ins run as the session user, so row-level security
+applies. A workflow tool whose derived name would collide with `data_query`/`data_schema`/`data_type`/
+`file_create` is suffixed (`data_query_2`).
+
+### `file.create` (`tools[].builtin: file.create`)
+
+Pass exactly one of `markdown` (renders to `pdf`/`docx`) or `rows`/`query` (renders to `xlsx`/`csv`):
+
+```yaml
+agent:
+  tools:
+    - builtin: file.create
+      instructions: "Export query results to Excel when the user asks to download them."
+```
+
+| Argument | Type | Meaning |
+|---|---|---|
+| `format` | string, enum `pdf` \| `docx` \| `xlsx` \| `csv` | Required. |
+| `fileName` | string | Required. The name without an extension — it is sanitized, and the extension comes from `format`. |
+| `markdown` | string | For `pdf`/`docx`: the document body — a Markdown subset (pipe tables, autolinks, strikethrough/emphasis extras). |
+| `title` | string | Optional, `pdf`/`docx`: the header title, at most 200 characters. Defaults to `fileName`. |
+| `rows` | array of objects | For `xlsx`/`csv`: one object per row; its keys are the columns. |
+| `query` | string | For `xlsx`/`csv`, instead of `rows`: a GraphQL query the server runs and pages through — same guards as `data.query` (read-only, organization-scoped, depth-limited). |
+| `variables` | object | Optional, with `query`. May also arrive as a JSON string holding an object; blank or absent means no variables. |
+| `itemsPath` | string | Required with `query`: the path to the list in the result, e.g. `orders.items`. |
+| `columns` | array of `{ field, label? }` | Optional, `rows`/`query`: the column order and headings. `field` may be a dot path into a nested object (`orderStatus.orderStatusName`). Omit it to use every property found on the rows, in encounter order. |
+
+**Rules:**
+
+- Exactly one of `markdown`, `rows` or `query`, matching the format (`markdown` for `pdf`/`docx`; `rows` or
+  `query` for `xlsx`/`csv`) — a mismatch is `invalid_arguments`.
+- In `query` mode the query **must declare `$skip: Int` and `$take: Int`** and pass them to the list field —
+  the server pages through the results itself (500 rows a page); a query missing either variable is
+  `invalid_arguments`.
+- Raw HTML in `markdown` is disabled and stays literal text (never executed or templated); images are
+  replaced by their alt text, so rendering never fetches a remote URL.
+- In `csv`, every string cell and column label starting with `=`, `+`, `-`, `@`, a tab or a carriage return is
+  prefixed with `'`, so spreadsheet apps open it as text instead of running it as a formula. `xlsx` stores
+  strings as text values, which never run as formulas, so they're written unchanged.
+
+**Limits:**
+
+| Limit | Value |
+|---|---|
+| `markdown` length | 200,000 characters (`too_large` past that) |
+| `rows` entries | 50,000 (`too_large` past that; use `query` for a bigger export) |
+| `query` row cap | 50,000 rows, or 64 MB of JSON read, whichever comes first — paging stops and the result's `truncated` is `true` rather than the call failing |
+| `title` length | 200 characters |
+| Rendered file size | 25 MB |
+
+**Errors**, on top of the `data.query` guards when `query` is used:
+
+| Case | Result |
+|---|---|
+| Unknown `format`, missing `fileName`, `title` over 200 characters, none or more than one of `markdown`/`rows`/`query`, `rows` not an array, `query` missing `itemsPath` or `$skip`/`$take`, `itemsPath` not pointing at a list | `{ "error": { "code": "invalid_arguments", "message": "…" } }` |
+| `markdown` over 200,000 characters, `rows` over 50,000 entries, a `query` page over 8 MB even at 50 rows, or the rendered file over 25 MB | `{ "error": { "code": "too_large", "message": "…" } }` |
+| Rendering the PDF/Word/spreadsheet threw | `{ "error": { "code": "render_failed", "message": "Could not create {fileName}." } }` |
+| Saving the file threw, or the `query` itself failed | `{ "error": { "code": "failed", "message": "…" } }` |
+
+A successful call returns `{ fileName, attachmentId, format, size, rows?, truncated? }` (`rows`/`truncated`
+only for `xlsx`/`csv`). The file itself is never sent back to the model — tell the user it's attached rather
+than repeating its contents as text. See [Producing files](#producing-files) for where the file ends up.
+
+#### Barcodes
+
+In `pdf` and `docx` documents, a Markdown image whose URL starts with `barcode:` is drawn as a barcode on the
+server (nothing is fetched). It works in paragraphs, list items and table cells. Barcodes are not supported in
+`xlsx`/`csv`.
+
+```markdown
+![ORD-1001](barcode:code128/ORD-1001)
+![P-01](barcode:qr/P-01?width=1in)
+![PLT-77](barcode:pdf417/PLT-77?width=3in&height=1in)
+| Order | Label |
+|---|---|
+| ORD-1001 | ![ORD-1001](barcode:code128/ORD-1001?width=50mm&text=false) |
+```
+
+- **Address:** `barcode:<format>/<value>`, with the value URL-encoded. The alt text becomes the image's
+  alternative text.
+- **Formats** (case-insensitive; ZXing enum names such as `CODE_128` also work):
+  - linear: `code128`, `code39`, `code93`, `codabar`, `itf`, `msi`, `plessey`, `ean13`, `ean8`, `upca`, `upce`;
+  - 2D: `qr`, `datamatrix`, `aztec`, `pdf417`.
+- **Options** (all optional):
+  - `width` and `height`, as a number plus `in`, `mm` or `cm`, each 5–200 mm;
+  - `text=false` hides the value printed under linear codes (2D codes never print it).
+
+**Sizes:**
+
+| Kind | Default | Only one dimension given | Both given |
+|---|---|---|---|
+| Linear | 2.5 in × 0.6 in | the other keeps the ratio (height = width × 0.24) | used as given |
+| QR, Data Matrix, Aztec | 1.2 in square | stays square | square, using the smaller |
+| PDF417 | 2.5 in × 1 in | the other keeps the ratio (height = width × 0.4) | used as given |
+
+- Every module (bar or cell) is at least 0.17 mm, so the code prints and scans.
+- When no `width` is given, a code too dense for the default width grows just wide enough, up to 200 mm.
+- An explicit size that is too small, or content needing more than 200 mm, is an error naming the minimum width.
+- In a PDF, a barcode wider than its table cell shrinks proportionally to fit.
+- QR, Data Matrix, Aztec and PDF417 encode UTF-8.
+- EAN-13, UPC-A and EAN-8 values given without their check digit print it.
+
+**Limits:** a value can be at most 1,000 characters, and a document can hold at most 200 barcodes.
+
+**Errors:** a bad barcode fails the call with `invalid_arguments` naming the problem, and no file is saved, so the
+model can fix it and retry. Examples:
+- `unknown barcode format 'code11'`
+- `width '500mm' is larger than 200mm`
+- `ean13 cannot encode 'ABC'`
+- `code128 value '…' needs a width of at least 23mm`
+
+## Producing Files
+
+A file an agent hands the user — from `file.create` or from a workflow tool — is captured automatically as a
+produced file on the session; you don't wire up storage or the transcript yourself.
+
+**Where files come from:**
+
+- `builtin: file.create` (above).
+- A workflow tool's own output, captured the same way: a Document workflow's `file`/`fileName` output, or
+  `Utilities/Export`'s `fileStream`/`fileUrl`. The runner reads the file, saves it, and replaces it in what the
+  model sees with `{ fileName, attachmentId }` — or `{ fileName, skipped: "<reason>" }` if it couldn't be kept
+  (over 25 MB, unreadable, or couldn't be saved). The rest of the tool's result is untouched either way. When
+  the tool returns a `response` output, the model sees `{ response, files: [<entries>] }`.
+
+**Where files appear:**
+
+- As cards on the agent's reply in chat.
+- In the AI Assistant's Library, listed as "Produced in *chat*".
+- In the transcript, as `attachment` blocks (`attachmentId`, `fileName`, `contentType`, `size`) on the tool's
+  message, carrying `"origin": "produced"` — unlike a user-uploaded file, which has no `origin` key.
+
+Produced files are **never re-sent to the model** on later turns — the block is dropped when history is
+rebuilt for a fresh model context, so render a produced file from the transcript, not from anything the model
+says about it. See [Outputs](#outputs) for the `files` a task run returns, and `docs/agent-api.md` §14 "Built-in
+tools" and §10 (transcript `attachment` blocks) in `tms-backend-api` for the full shapes.
 
 ## Skills
 
@@ -252,6 +412,41 @@ Each chat turn adds to a growing conversation history, bounded by the model's co
 - On the client side, the internal Responses route announces a compression with a `response.tms.history_compressed` stream event; the transcript (GraphQL) always shows the `summary` message and a `usage` entry with `kind: "summary"`, on both routes.
 - If an agent frequently needs long conversations against a small model, either raise `model.contextWindow` to match the model actually in use (see the property table above) or keep `agent.instructions` terse so more of the window is available for turns.
 
+## Files in Chat
+
+People can attach files to a chat message in the AI Assistant: up to 5 per message, 25 MB each, of these types:
+
+| Kind | Types | What the model receives |
+|---|---|---|
+| Documents | PDF | The file itself: inline bytes up to 4 MB, above that a presigned URL (PDF URLs only for the `anthropic` provider — other providers refuse a PDF over 4 MB) |
+| Images | PNG, JPG/JPEG | The image: inline bytes up to 4 MB, above that a presigned URL |
+| Text | TXT, CSV, JSON, MD | The text, decoded as UTF-8 and cut at 200,000 characters with a truncation note |
+
+Nothing in `agent:` YAML opts in or out — every chat agent accepts files, and there is no YAML schema change. What
+the agent sees:
+
+- Each file arrives in the user's turn after a label such as `[Attached file: bol.pdf (PDF, 1.2 MB)]`, so the model
+  can refer to it by name. Text content is fenced as data, not instructions — like a tool result — so a file that
+  says "ignore your instructions" is just text in a file.
+- Files stay in the conversation: every later turn can still read them (they are re-sent on each model call, within a
+  16 MB inline budget per call; older files beyond it go by URL or as a note asking the user to attach them again).
+  When history is compressed, the summary names the files but their content leaves the history.
+- A file that can't be read when a turn runs reaches the model as `[File <name> could not be read.]` instead of
+  failing the turn.
+- Every chat upload becomes an Attachment linked to the session (parent type `AgentSession`, category
+  `AgentSession`), visible only to people who can see the chat, and listed in the AI Assistant's Library. Task
+  sessions (workflow runs) never receive files.
+
+**Which models read PDFs and images** is decided by the model config's `supportsFiles` flag (see
+[The `ai.default` Organization Config](#the-aidefault-organization-config)). When it is `false`, the chat refuses PDFs
+and images when they are attached — before the message is sent — and text files still work. `GET .../ai/models`
+reports it per agent as `supports_files`, which the chat uses to validate a file before uploading it.
+
+Write `agent.instructions` for chat agents that will receive documents to say what to do with them (e.g. "When the
+user attaches a bill of lading, read the shipper, consignee and pallet count from it"), and to answer only from
+what the file shows. Full request shapes and error messages are in `docs/agent-api.md` §4 "Attaching files" in
+`tms-backend-api`.
+
 ## Session Ownership and Live Events
 
 Every agent session (task or chat) has an owner scope — `User`, `Division`, or `Organization` — that governs who may see it, continue it, decide its approvals, and watch it live. A chat session defaults to `User` (its starter); a task session defaults to `Organization` (it has no starter). Ownership can be changed afterward (e.g. shared with a division) via a GraphQL mutation, and every session change publishes a live event.
@@ -277,9 +472,15 @@ For a trigger-bound agent, either:
   "model": "claude-sonnet-4-5",
   "apiKey": "...",
   "endpoint": "https://api.anthropic.com",
-  "contextWindow": 200000
+  "contextWindow": 200000,
+  "supportsFiles": true
 }
 ```
+
+`supportsFiles` (optional) says whether the model reads PDFs and images attached in chat (see
+[Files in chat](#files-in-chat)). When it is absent, it defaults to `true` for the `anthropic` and `openai`
+providers and to `false` for any other provider. Set it to `false` for a model without vision or PDF support, and
+to `true` for a file-capable model behind another provider. Text attachments work either way.
 
 Set up this config once per organization (or per named config for `model.fromConfig` overrides); every Agent workflow that doesn't override `model.name`/`model.temperature` shares it. The config's own `contextWindow` (if set) is the fallback used when the agent's YAML doesn't declare `model.contextWindow` — but only while the agent doesn't also override `model.name`; overriding the model name without also setting `agent.model.contextWindow` falls straight through to the runtime default of 256,000 tokens, since the config's window describes the config's model, not the override.
 
@@ -297,6 +498,7 @@ When a workflow is exposed as a tool (via another agent's `tools[].workflow`, or
 - **Use `mode: always` for actions a person must confirm every time.** `approval` tools run unattended once a user switches the chat to Auto; `always` tools never do.
 - **Give chat agents `agent.ui`.** A `shortDescription`, an `icon`, a `color` and a few `prompts` make the agent recognizable in the AI Assistant's agent menu and empty state.
 - **Set `model.contextWindow` whenever you set `model.name`.** Otherwise a smaller model than the org default silently gets the 256K default window, and history compression won't kick in until it's already over budget (or a larger model gets compressed too eagerly). See the `model.contextWindow` row above.
+- **Set `supportsFiles` on the model config to match the model.** A model that can't read PDFs or images should say so (`"supportsFiles": false`), so the chat refuses those files up front instead of the provider failing the turn. See [Files in chat](#files-in-chat).
 - **Design `agent.result`/`agent.instructions` around whichever session type(s) the agent is actually used in.** A chat-only agent doesn't need `agent.result` (it has no `set_result` tool); a task-only agent should tell the model explicitly to call `set_result` exactly once (the scaffolded template's instructions already do this).
 - **Keep trigger-bound agents fast**, or move them off the triggering request entirely (see [Triggers](#triggers)) — a slow agent session holds the entity's workflow lock for its whole duration.
 
@@ -319,5 +521,5 @@ These are backend validation codes; `cxtms` validates the same constraints clien
 | `AGT_011` | `ui.color` must be one of `primary`, `secondary`, `info`, `success`, `warning`, `error` | Set `agent.ui.color` to one of the six palette names, lowercase, or omit it. |
 | `AGT_012` | `ui.prompts` has more than 5 entries | Keep at most 5 `agent.ui.prompts`. |
 | `AGT_013` | a `tools[]` entry needs exactly one of `workflow`/`builtin` | Give each `agent.tools[]` entry either `workflow` (name or `workflowId`) or `builtin`, not both and not neither. |
-| `AGT_014` | unknown `tools[].builtin` | Use `data.query`, `data.schema` or `data.type` (case-sensitive). |
+| `AGT_014` | unknown `tools[].builtin` | Use `data.query`, `data.schema`, `data.type` or `file.create` (case-sensitive). |
 | `AGT_015` | the same `builtin` listed twice | List each built-in tool once. |

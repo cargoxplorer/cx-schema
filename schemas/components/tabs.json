@@ -39,6 +39,7 @@
         "layout": {
           "type": "string",
           "enum": ["cards", "classic"],
+          "default": "cards",
           "description": "cards (default): header and tab strip on one card, each tab's content on its own card below. classic: the original layout, header, tab strip and content in one card"
         },
         "defaultTab": {

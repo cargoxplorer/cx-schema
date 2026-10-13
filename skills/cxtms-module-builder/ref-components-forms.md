@@ -374,6 +374,7 @@ For `type: select`, the web renderer forwards the parsed `disabled` value to the
 | `checkbox` | Boolean checkbox |
 | `radio` | Radio button (use `value` prop) |
 | `toggle` | Segmented toggle button group. `allowMultiple: true` gives array values; MUI props (size, color, orientation) live under `options`. Supports icons, disabled items, `enforceValue`, and `defaultValue`. |
+| `color` | Color value input with palette presets and an optional custom picker. Use `options.presets` for `{value,label?}[]` (or a template resolving to that array) and `options.allowCustom: false` to restrict selection to presets. |
 | `date` | Date picker |
 | `datetime` | Date + time picker |
 | `rangedatetime` | Date range picker |
@@ -399,7 +400,7 @@ For `type: select`, the web renderer forwards the parsed `disabled` value to the
 **Select/Async options (under `options`):**
 | Prop | Type | Description |
 |------|------|-------------|
-| `items` | `{label, value}[]` | Static select items |
+| `items` | `{label, value}[]` or template | Select items. On web, templates resolve against the screen store, current form values, and component variables and must produce an array |
 | `allowMultiple` | `boolean` | Multi-select mode |
 | `allowClear` | `boolean` | Show clear button |
 | `allowSearch` | `boolean` | Searchable dropdown |
@@ -455,6 +456,8 @@ still control the displayed label and stored value.
 | `links` | `{entityType, entityId}[]` or template | More entities to link the same upload to: `Order`, `Contact`, `Job`, `TrackingEvent`. Entries whose `entityType` or `entityId` resolves empty are skipped |
 | `category` | `string` | Attachment category (web) |
 | `allowMultiple` / `allowCamera` / `clearAfterUpload` | `boolean` | Upload behavior |
+| `enableZoom` | `boolean` | Mobile: show camera zoom controls and remember the selected zoom per field |
+| `cameraZoom` | `number` | Mobile: initial/fixed camera zoom factor; device capabilities determine the available range |
 | `maxSize` / `allowedExtensions` | `number` / `string[]` | File limits |
 | `onUploaded` | actions | Runs after each upload; `attachment` is in scope |
 

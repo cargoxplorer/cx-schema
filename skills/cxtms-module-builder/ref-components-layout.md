@@ -424,6 +424,8 @@ props:
 
 ## tabs
 
+Tabs use separate cards for the tab strip and active content by default. Set `props.layout: classic` to keep the header, strip, and content in one card. In the default card layout, a tab may set `props.contentCard: false` when its child (such as a data grid) already supplies its own frame.
+
 Tabbed interface with MUI TabContext. Tab state stored in URL params.
 
 Tabs may contain a `slot` child as an extension point. The web renderer replaces that child
@@ -436,7 +438,7 @@ the slot name are resolved from component variables and store values before look
 |------|------|-------------|
 | `toolbar` | `component[]` | Action components next to tab list |
 | `header` | `{icon?, title?, subTitle?, buttons?}` | Component arrays rendered above the tab strip. Hidden children are left out; an area (or the whole header) with nothing visible is not rendered. On narrow screens the buttons wrap below the title. |
-| `defaultTab` | `string` | Name of the tab to open when the URL has no tab param |
+| `defaultTab` | `string` | Name of the tab to open when the URL has no tab param, matched against the child tab `name`; falls back to the first visible tab |
 | `layout` | `"cards" \| "classic"` | `cards` (default): header and tab strip on one card, tab content on its own card below. `classic`: the original single-card layout |
 | `useNavigationForTabs` | `boolean` | Push to history instead of replace |
 
@@ -446,7 +448,7 @@ The active tab is kept in the `tabs_<name>_ix` URL param (zero-based index of th
 | Prop | Type | Description |
 |------|------|-------------|
 | `label` | `ILocalizeString` | Tab label (localized, template-parsed) |
-| `icon` | `string` | Icon name shown before the label (`info`, an old scaffold default, is ignored) |
+| `icon` | `string` | Icon name shown before the label on web and mobile, including overflow menus (`info`, an old scaffold default, is ignored) |
 | `contentCard` | `boolean` | Content on its own card below the tab strip (default `true`; ignored with `layout: classic`). Set `false` when the content draws its own frame, e.g. a `dataGrid` |
 | `isVisible` | `string` | Template expression — show when truthy |
 | `isHidden` | `string` | Template expression — hide when truthy |
@@ -458,6 +460,11 @@ The active tab is kept in the `tabs_<name>_ix` URL param (zero-based index of th
 component: tabs
 name: detailTabs
 props:
+  defaultTab: general
+  header:
+    title:
+      - component: text
+        props: { value: { en-US: "Details" } }
   toolbar:
     - component: button
       name: refreshBtn
@@ -466,6 +473,7 @@ children:
   - name: general
     props:
       label: { en-US: "General" }
+      icon: info
     children:
       - component: field
         name: name
@@ -524,12 +532,14 @@ MUI Card container with optional header, content, and actions.
 | `className` | `string` | — | Additional CSS class |
 | `bgcolor` | `string` | — | Background color |
 | `color` | `string` | — | Text color |
-| `header` | `{title?, subheader?, icon?, iconColor?, sx?}` | — | Renders MUI CardHeader; icon is its avatar |
+| `header` | `{title?, subheader?, icon?, iconColor?, sx?}` | — | Renders MUI CardHeader; title/subheader may be localized and title, subheader, and icon are template-aware |
 | `disableContentWrapper` | `boolean` | `false` | Skip CardContent wrapper |
 | `contentSx` | `SxProps` | — | CardContent styles |
 | `contentClassName` | `string` | `card-content` | CardContent CSS class |
 
 **Children:** Yes — wrapped in CardContent (unless `disableContentWrapper`).
+
+When `onClick` is present, the card is keyboard accessible: Enter and Space activate it and a focus outline is shown. Actions receive the card name as `sender`; keyboard events from nested interactive controls are ignored.
 
 ```yaml
 component: card

@@ -51,6 +51,16 @@
           "description": "Camera capture quality setting",
           "default": "high"
         },
+        "enableZoom": {
+          "type": "boolean",
+          "description": "On mobile, show camera zoom controls and remember the selected zoom per field",
+          "default": false
+        },
+        "cameraZoom": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Initial camera zoom factor; on mobile it is clamped to the device-supported range"
+        },
         "captureFormat": {
           "type": "string",
           "enum": ["jpeg", "png"],
