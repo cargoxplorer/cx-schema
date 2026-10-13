@@ -77,7 +77,7 @@ inputs: [...]                               # Becomes the agent's first message
 | `result` | object (JSON Schema, `type` required and must be `object`) | — | The JSON Schema the `set_result` tool's argument must satisfy. Defines the shape of the `result` output. |
 | `skills` | array of strings | — | Installed skill names to enable (see **Skills** below). Names not installed in the organization are skipped with a logged warning. |
 | `tools` | array of objects | — | Tools the agent may call: other workflows (`workflow`) or built-in data tools (`builtin`). Each entry has exactly one of the two. |
-| `tools[].workflow` | string (`minLength: 1`) | — | Workflow name or `workflowId` to expose as a tool. Exactly one of `workflow`/`builtin` per entry. |
+| `tools[].workflow` | string (`minLength: 1`) | — | Workflow name or `workflowId` to expose as a tool. Exactly one of `workflow`/`builtin` per entry. A workflow whose `workflow.permission` the user lacks is left out of the session, so the model never sees it; a refused call returns `{ "error": { "code": "permission_denied", "message": "You do not have permission to run '<name>'." } }`. |
 | `tools[].builtin` | string, enum `data.query` \| `data.schema` \| `data.type` \| `file.create` | — | A built-in tool: the three read-only data tools, or `file.create`, which creates a PDF, Word, Excel or CSV file the user can download — see [Built-in tools](#built-in-tools-toolsbuiltin). Exactly one of `workflow`/`builtin` per entry. |
 | `tools[].instructions` | string | — | When and how the agent should use this tool — folded into the tool's description for the model. |
 | `tools[].mode` | string, enum `auto` \| `approval` \| `always` | `auto` | `auto` runs the tool as soon as the model calls it. `approval` pauses the call for a person unless the chat is in Auto mode. `always` pauses for a person in every chat — see [Tool approval](#tool-approval-toolsmode). |
@@ -421,11 +421,12 @@ People can attach files to a chat message in the AI Assistant: up to 5 per messa
 | Documents | PDF | The file itself: inline bytes up to 4 MB, above that a presigned URL (PDF URLs only for the `anthropic` provider — other providers refuse a PDF over 4 MB) |
 | Images | PNG, JPG/JPEG | The image: inline bytes up to 4 MB, above that a presigned URL |
 | Text | TXT, CSV, JSON, MD | The text, decoded as UTF-8 and cut at 200,000 characters with a truncation note |
+| Spreadsheets | XLSX, XLS | Only a note: `Spreadsheet <name> (file id <id>). Its rows are not shown to you; pass the file id to a tool that takes a file.` Needs no model file support |
 
 Nothing in `agent:` YAML opts in or out — every chat agent accepts files, and there is no YAML schema change. What
 the agent sees:
 
-- Each file arrives in the user's turn after a label such as `[Attached file: bol.pdf (PDF, 1.2 MB)]`, so the model
+- Each file arrives in the user's turn after a label such as `[Attached file: bol.pdf (PDF, 1.2 MB), file id 41]`, so the model
   can refer to it by name. Text content is fenced as data, not instructions — like a tool result — so a file that
   says "ignore your instructions" is just text in a file.
 - Files stay in the conversation: every later turn can still read them (they are re-sent on each model call, within a
@@ -446,6 +447,23 @@ Write `agent.instructions` for chat agents that will receive documents to say wh
 user attaches a bill of lading, read the shipper, consignee and pallet count from it"), and to answer only from
 what the file shows. Full request shapes and error messages are in `docs/agent-api.md` §4 "Attaching files" in
 `tms-backend-api`.
+
+### Passing a chat file to a workflow tool
+
+Declare the workflow input as `type: file`:
+
+```yaml
+inputs:
+  - name: importedFileUrl
+    type: file
+    props: { required: true, description: "The manifest file" }
+```
+
+The agent sees it as an integer **file id** and passes the id of a file the user attached or that it created with
+`file_create`. Before the workflow runs, the server checks the file belongs to this chat and replaces the id with a
+presigned URL valid for one hour, so the workflow reads `{{ importedFileUrl }}` as a URL (for example as
+`Utilities/Import@1` `fileUrl`). Any other value returns `{ "error": { "code": "file_not_in_chat", … } }` listing the
+chat's files, and the workflow does not run. MCP callers pass a file URL directly.
 
 ## Session Ownership and Live Events
 

@@ -74,6 +74,11 @@
           "type": "string",
           "description": "Username or user ID for workflow execution context"
         },
+        "permission": {
+          "type": "string",
+          "minLength": 1,
+          "description": "App permission a user needs to run this workflow, e.g. System/Store/Create. Checked on every execution path against the calling user; runs without a user (schedules, background jobs) are not affected. Callers without it do not see the workflow as an MCP or agent tool. Avoid it on workflows with entity triggers or anonymous webhook/public API callers: they are refused."
+        },
         "concurrency": {
           "type": "object",
           "properties": {
