@@ -821,6 +821,7 @@
       "avatar": { "$ref": "components/avatar.json" },
       "infoLine": { "$ref": "components/infoLine.json" },
       "progressBar": { "$ref": "components/progressBar.json" },
+      "stats": { "$ref": "components/stats.json" },
       "planner": { "$ref": "components/planner.json" }
     }
   }

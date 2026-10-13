@@ -78,6 +78,20 @@
             "header": {
               "type": "object",
               "description": "Card header configuration. title and subheader accept localized values; title, subheader, and icon are template-aware",
+              "properties": {
+                "title": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
+                "subheader": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
+                "icon": { "type": "string" },
+                "iconColor": { "type": "string" },
+                "titleType": { "type": "string", "enum": ["h1", "h2", "h3", "h4", "h5", "h6"] },
+                "badge": { "type": "object", "description": "Badge component props rendered after the title", "additionalProperties": true },
+                "action": {
+                  "type": "array",
+                  "description": "Components rendered at the right of the header",
+                  "items": { "$ref": "../schemas.json#/definitions/component" }
+                },
+                "sx": { "type": "object", "additionalProperties": true }
+              },
               "additionalProperties": true
             },
             "actions": {

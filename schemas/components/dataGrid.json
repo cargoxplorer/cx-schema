@@ -28,6 +28,15 @@
           "default": "h2",
           "description": "Semantic heading level for the DataGrid title"
         },
+        "subtitle": {
+          "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+          "description": "Optional localized or templated muted text rendered beside a non-empty title"
+        },
+        "footer": {
+          "type": "array",
+          "description": "Components rendered below the rows and above bottom-positioned pagination",
+          "items": { "$ref": "../schemas.json#/definitions/component" }
+        },
         "refreshHandler": {
           "type": "string",
           "description": "Name of the refresh handler",

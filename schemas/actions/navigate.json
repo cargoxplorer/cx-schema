@@ -20,6 +20,10 @@
               "type": ["boolean", "string"],
               "description": "true replaces the history instead of pushing, so Back no longer returns to the page being left. Web replaces the current history entry. Mobile resets the app history: true makes the target the only screen; a path keeps that page under the target, so Back lands on it (web treats a path like true)."
             },
+            "replace": {
+              "type": "boolean",
+              "description": "Web: replace the current browser history entry instead of pushing a new one"
+            },
             "externalLink": {
               "type": "string",
               "description": "External URL to open (web)"
@@ -38,13 +42,13 @@
           "additionalProperties": false
         }
       ],
-      "description": "Navigation path, or an object with path and clearHistory (replace the history instead of pushing) or externalLink",
+      "description": "Navigation path, or an object with path plus replace/clearHistory, or externalLink",
       "x-examples": [
         "~/team-calendars/view/{{ calendarId }}",
         "warehouseReceipts/{{ orderId }}",
         "receiving/{{ encodedTrackingNumber }}",
         "vessels/{{ vesselId }}",
-        { "path": "~/stores/{{ createContact.contact.contactId }}", "clearHistory": true },
+        { "path": "~/stores/{{ createContact.contact.contactId }}", "replace": true },
         { "path": "~/dispatchRoutes/{{ dispatchRouteId }}", "clearHistory": "~/dispatchRoutes" },
         { "externalLink": "https://tracking.example.com/{{ trackingNumber }}", "target": "_blank" }
       ]
