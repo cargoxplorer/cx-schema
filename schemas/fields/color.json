@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Color Field Type",
+  "description": "Schema for a color input with presets and an optional custom picker",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "color" },
+    "label": {
+      "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+      "description": "Field label"
+    },
+    "placeholder": {
+      "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
+      "description": "Field placeholder text"
+    },
+    "required": { "type": "boolean", "description": "Whether the field is required" },
+    "disabled": { "type": "boolean", "description": "Whether the field is disabled" },
+    "options": {
+      "type": "object",
+      "properties": {
+        "allowCustom": {
+          "type": "boolean",
+          "description": "Allow free-form text and the native custom color picker",
+          "default": true
+        },
+        "presets": {
+          "description": "Preset colors or a template expression resolving to them",
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string", "description": "Stored color value" },
+                  "label": {
+                    "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+                  }
+                },
+                "required": ["value"]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "onChange": { "$ref": "../schemas.json#/definitions/actionsList" },
+    "onBlur": { "$ref": "../schemas.json#/definitions/actionsList" },
+    "onFocus": { "$ref": "../schemas.json#/definitions/actionsList" }
+  },
+  "required": ["type"]
+}

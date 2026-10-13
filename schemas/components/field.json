@@ -48,6 +48,7 @@
             "checkbox",
             "radio",
             "toggle",
+            "color",
             "textarea",
             "attachment",
             "secret",
@@ -88,6 +89,29 @@
             "allowMultiple": { "type": "boolean" },
             "allowClear": { "type": "boolean" },
             "allowSearch": { "type": "boolean" },
+            "allowCustom": {
+              "type": "boolean",
+              "description": "For color fields, allow free-form text and the native custom color picker"
+            },
+            "presets": {
+              "description": "For color fields, a template or array of selectable color values",
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "value": { "type": "string" },
+                      "label": {
+                        "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }]
+                      }
+                    },
+                    "required": ["value"]
+                  }
+                }
+              ]
+            },
             "placeholder": {
               "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }],
               "description": "Select placeholder text. Supports plain strings or localized values."

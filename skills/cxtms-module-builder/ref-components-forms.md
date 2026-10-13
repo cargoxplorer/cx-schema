@@ -374,6 +374,7 @@ For `type: select`, the web renderer forwards the parsed `disabled` value to the
 | `checkbox` | Boolean checkbox |
 | `radio` | Radio button (use `value` prop) |
 | `toggle` | Segmented toggle button group. `allowMultiple: true` gives array values; MUI props (size, color, orientation) live under `options`. Supports icons, disabled items, `enforceValue`, and `defaultValue`. |
+| `color` | Color value input with palette presets and an optional custom picker. Use `options.presets` for `{value,label?}[]` (or a template resolving to that array) and `options.allowCustom: false` to restrict selection to presets. |
 | `date` | Date picker |
 | `datetime` | Date + time picker |
 | `rangedatetime` | Date range picker |
