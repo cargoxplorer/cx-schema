@@ -35,6 +35,8 @@
         },
         "timeIntervals": { "type": "number", "description": "Time selection intervals in minutes", "x-example": 30 },
         "timeCaption": { "type": "string", "description": "Label displayed for the time section", "x-example": "Time" },
+        "minTime": { "type": "string", "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$", "description": "Earliest selectable time in HH:mm format; applied only when maxTime is also set", "x-example": "06:00" },
+        "maxTime": { "type": "string", "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$", "description": "Latest selectable time in HH:mm format; applied only when minTime is also set", "x-example": "18:00" },
         "useTimezone": { "type": "boolean", "description": "Enable timezone-aware date handling", "x-example": false },
         "storeAsUTC": {
           "type": "boolean",

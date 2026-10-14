@@ -382,6 +382,8 @@ For `type: select`, the web renderer forwards the parsed `disabled` value to the
 
 **Timezone-aware datetime fields:** For appointment or terminal times that must be stored as UTC but displayed as a fixed local wall clock, set `options.useTimezone: true`, `options.storeAsUTC: true`, and an IANA `options.timezone` such as `America/New_York`. The picker treats the selected time as being in that configured timezone, not the user's browser timezone, so saving `11:00 PM` in New York stores the matching UTC instant and reads back as `11:00 PM` on machines in any timezone.
 
+**Restricted time windows:** On `datetime` and `time` fields, set both `options.minTime` and `options.maxTime` as `HH:mm` strings (for example, `06:00` and `18:00`). The web picker hides times outside the range and rejects out-of-range typed values. If only one bound is supplied, no range is applied.
+
 **Enhanced rangedatetime filter behavior:** `more_than` emits bracketed Lucene ranges such as `field:[* TO NOW-7DAYS]`; boolean/number falsy values (`false`, `0`) are preserved as real filter values; and switching away from Empty/Not Empty clears the previous `NULL` term instead of latching it.
 | `time` | Time picker |
 | `select` | Dropdown select from `items[]` |
