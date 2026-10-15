@@ -433,6 +433,8 @@ still control the displayed label and stored value.
 
 **Google Places autocomplete:** `autocomplete-googleplaces` uses the organization-level Google Maps API key from `apps.google.googleMapsApiKey`. Do not put API keys in module YAML. Configure `searchQuery.params` and `valueQuery.params` only:
 
+If the key is missing or the Maps SDK fails to load, suggestions are unavailable but the free-form field stays editable so the user can type the address manually.
+
 ```yaml
 - component: field
   name: pickupAddress

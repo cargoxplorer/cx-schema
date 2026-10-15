@@ -22,12 +22,19 @@
               "unit": {},
               "caption": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
               "decimals": { "type": "number", "minimum": 0 },
-              "emphasis": { "type": "boolean" }
+              "emphasis": { "type": "boolean" },
+              "icon": { "type": "string", "description": "Cards variant: Tabler icon name or template." },
+              "color": {
+                "type": "string",
+                "enum": ["primary", "secondary", "success", "info", "warning", "error"],
+                "default": "primary",
+                "description": "Cards variant: icon tile color."
+              }
             },
             "additionalProperties": false
           }
         },
-        "variant": { "type": "string", "enum": ["row", "list"], "default": "row" },
+        "variant": { "type": "string", "enum": ["row", "list", "cards"], "default": "row" },
         "size": { "type": "string", "enum": ["md", "lg"], "default": "md" },
         "align": { "type": "string", "enum": ["start", "end"], "default": "start" },
         "className": { "type": "string" }
