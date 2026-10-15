@@ -71,7 +71,30 @@ A non-empty `title` renders even when `enableToolbar: false`; `options.showHeade
 
 **Jump to page:** selecting a pagination ellipsis (`…`) opens a numeric field for jumping directly to any valid page.
 
-**Title summaries:** `props.subtitle` renders muted localized/template text beside a non-empty title. `props.footer` is a component list below the rows and above bottom pagination; use a `stats` component there for totals.
+**Title summaries:** `props.subtitle` renders muted localized/template text beside a non-empty title. `props.footer` is a component list below the rows and above bottom pagination. For totals, place a `stats` component with `variant: cards` immediately above the grid.
+
+## stats
+
+`stats` renders read-only totals. Its `items` accept `label`, `value`, `unit`, `caption`, and `decimals`; `list` also supports `emphasis`. Use `variant: cards` for a responsive totals strip above a grid. Each card may set a templated Tabler `icon` and `color` (`primary`, `secondary`, `success`, `info`, `warning`, or `error`).
+
+```yaml
+- component: stats
+  name: orderTotals
+  props:
+    variant: cards
+    items:
+      - label: Pieces
+        value: "{{ orderSummary.totalPieces }}"
+        icon: tabler-package
+      - label: Weight
+        value: "{{ orderSummary.totalWeight }}"
+        unit: lb
+        icon: tabler-weight
+        color: info
+- component: dataGrid
+  name: ordersGrid
+  # ...
+```
 
 **Store navigation state:** with `navigationType: store`, DataGrid keeps `{gridName}_limit`, `{gridName}_offset`, and search state in the local UI context store, not URL variables. Use it for embedded/stateful grids where dialogs or parent re-renders must not reset pagination back to page 1.
 

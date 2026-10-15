@@ -421,6 +421,7 @@ People can attach files to a chat message in the AI Assistant: up to 5 per messa
 | Documents | PDF | The file itself: inline bytes up to 4 MB, above that a presigned URL (PDF URLs only for the `anthropic` provider — other providers refuse a PDF over 4 MB) |
 | Images | PNG, JPG/JPEG | The image: inline bytes up to 4 MB, above that a presigned URL |
 | Text | TXT, CSV, JSON, MD | The text, decoded as UTF-8 and cut at 200,000 characters with a truncation note |
+| Spreadsheets | XLSX, XLS | The file name is exposed to workflow tools; the model does not read the spreadsheet directly |
 
 Nothing in `agent:` YAML opts in or out — every chat agent accepts files, and there is no YAML schema change. What
 the agent sees:
@@ -439,7 +440,7 @@ the agent sees:
 
 **Which models read PDFs and images** is decided by the model config's `supportsFiles` flag (see
 [The `ai.default` Organization Config](#the-aidefault-organization-config)). When it is `false`, the chat refuses PDFs
-and images when they are attached — before the message is sent — and text files still work. `GET .../ai/models`
+and images when they are attached — before the message is sent — and text and spreadsheet files still work. `GET .../ai/models`
 reports it per agent as `supports_files`, which the chat uses to validate a file before uploading it.
 
 Write `agent.instructions` for chat agents that will receive documents to say what to do with them (e.g. "When the
