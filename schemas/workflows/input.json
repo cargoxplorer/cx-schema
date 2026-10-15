@@ -11,7 +11,7 @@
     },
     "type": {
       "type": "string",
-      "description": "Input parameter type (e.g., text, number, integer, boolean, date, datetime, options, object, array, or custom entity types)"
+      "description": "Input parameter type (e.g., text, number, integer, boolean, date, datetime, options, object, array, file, or custom entity types). A file input is a URL to the file; an agent passes the id of a file in its chat, which the server turns into the file's URL."
     },
     "props": {
       "type": "object",

@@ -74,6 +74,12 @@
           "type": "string",
           "description": "Username or user ID for workflow execution context"
         },
+        "permission": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
+          "description": "App permission a user needs to run this workflow, e.g. System/Store/Create. Checked against the calling user whenever the workflow is executed (screens/GraphQL, MCP, agent tools and agent chat, Public API, webhooks, triggers, child workflows); not checked for Flow transitions (validator warning STRUCT_010). Runs without a user (schedules, background jobs) are not affected. Children started by an asynchronous parent run in the background and are not checked. An asynchronous entity trigger without the permission does not run, and the save still succeeds. Callers without it do not see the workflow as an MCP or agent tool. Avoid it on workflows with entity triggers (users without the permission are refused) and on anonymous webhook/public API workflows (anonymous callers are always refused)."
+        },
         "concurrency": {
           "type": "object",
           "properties": {

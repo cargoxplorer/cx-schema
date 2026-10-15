@@ -108,6 +108,7 @@ workflow:
   filePath: "workflows/<name>.yaml"
   workflowType: Document | Quote | Flow | Webhook | PublicApi | McpTool | McpResource | McpPrompt | Agent | EmailTemplate | RulesTariff  # omit for standard process workflows
   runAs: "system"                           # Optional elevated permissions
+  permission: "System/Store/Create"         # Optional app permission the caller needs; tools are hidden from users without it
   tags: ["tag1", "tag2"]
   concurrency:                              # Optional
     enabled: true
@@ -116,7 +117,7 @@ workflow:
 
 inputs:
   - name: inputName                         # Valid identifier [a-zA-Z_][a-zA-Z0-9_]*
-    type: text | number | integer | boolean | date | datetime | options | object | array
+    type: text | number | integer | boolean | date | datetime | options | object | array | file
     props:
       displayName: "Input Label"
       description: "Help text"
@@ -173,6 +174,14 @@ events:                                     # Workflow-level event handlers
   onWorkflowCompleted: [...]
   onWorkflowFailed: [...]
 ```
+
+### `workflow.permission` and `type: file` inputs
+
+- `permission` is an app permission name the **calling user** must hold. It is checked whenever the workflow is executed (screens/GraphQL, MCP, agent tools and agent chat, Public API, webhooks, triggers, child workflows), before `runAs` is applied, so `runAs` does not bypass it. It is not checked for Flow transitions: on a `Flow` workflow the backend validator warns (`STRUCT_010`) that the property has no effect, so put the permission on the workflows users call directly. Runs without a user (scheduled cron runs, background jobs) pass. Refusal text: `You do not have permission to run '<workflow name>'.` (GraphQL `FORBIDDEN`, Public API 403, MCP `isError: true`, agent tool `permission_denied`). MCP and agent tool lists omit workflows the caller cannot run.
+- Known limits: Children started by an asynchronous parent run in the background and are not checked. An asynchronous entity trigger without the permission does not run, and the save still succeeds.
+- Do **not** put `permission` on anonymous webhook or Public API workflows: an anonymous call has no user, so it is refused even with `runAs: "system"`.
+- Do not put `permission` on workflows with an `Entity` trigger: the trigger runs as the user whose change fires it. For a user without the permission, a synchronous trigger fails their save and an asynchronous one does not run. The backend validator warns (`STRUCT_009`); a blank `permission` is an error (`STRUCT_008`).
+- `type: file` (matched case-insensitively, so `File` works too) is a URL inside the workflow (`{{ importedFileUrl }}`). As an MCP tool it is `{ "type": "string", "format": "uri" }` and the caller passes a file URL. As an agent tool it is an integer chat file id, which the server swaps for a one-hour presigned URL; see `ref-agent.md` "Passing a chat file to a workflow tool".
 
 ---
 
