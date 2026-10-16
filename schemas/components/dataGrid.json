@@ -48,6 +48,11 @@
           "additionalProperties": true,
           "x-example": { "px": 2, "py": 1 }
         },
+        "variant": {
+          "type": "string",
+          "enum": ["compact"],
+          "description": "Opt-in narrow-host layout with inset card/list rows, compact toolbar spacing, aligned filter controls, and condensed pagination"
+        },
         "enableStore": {
           "type": "boolean",
           "description": "Enable store for the datagrid, row data will be placed in the store"
