@@ -21,6 +21,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 - **Toolbar**: ViewSelector and search input stack full-width on mobile (`xs`), then collapse to auto-width on `sm` and above. Search input enforces a `20ch` minimum width on `sm+`.
 - **Filters**: Filter inputs use a responsive grid — 1 per row on `xs`/`sm`, 2 per row on `md`, 3 per row on `lg`, 4 per row on `xl`.
 - **Pagination**: Below the MUI `sm` breakpoint, the pager tightens inline padding and narrows the page-size select so short pagers stay on one row inside dialogs. Do not add extra mobile-only wrapper padding around embedded grids unless the content needs it.
+- **Narrow hosts**: Set `variant: compact` for side panels and other constrained containers. It uses consistent 16 px toolbar/card insets, aligns the clear-filter control with the filter input, and condenses pagination into a status row plus right-aligned controls. The regular layout remains the default.
 
 **Props:**
 | Prop | Type | Description |
@@ -29,6 +30,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `titleType` | `h1`–`h6` | Semantic heading level; defaults to `h2` |
 | `toolbar` | `component[]` | Header toolbar components |
 | `toolbarSx` | `object` | MUI `sx` overrides merged onto the toolbar `CardContent`; use this to reduce padding in narrow hosts without hiding toolbar controls |
+| `variant` | `compact` | Opt-in layout for narrow hosts; compacts the toolbar, collection/list gutters, filter controls, and pagination |
 | `dotsMenu` | `{items[]}` | Three-dot menu per row |
 | `dotsMenu.items[]` | `{label, icon, onClick, permission, isHidden, disabled}` | Menu item |
 
