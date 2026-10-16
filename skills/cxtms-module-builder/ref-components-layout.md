@@ -532,10 +532,24 @@ MUI Card container with optional header, content, and actions.
 | `className` | `string` | — | Additional CSS class |
 | `bgcolor` | `string` | — | Background color |
 | `color` | `string` | — | Text color |
-| `header` | `{title?, subheader?, icon?, iconColor?, sx?}` | — | Renders MUI CardHeader; title/subheader may be localized and title, subheader, and icon are template-aware |
+| `header` | object | — | Header row, see below |
 | `disableContentWrapper` | `boolean` | `false` | Skip CardContent wrapper |
 | `contentSx` | `SxProps` | — | CardContent styles |
 | `contentClassName` | `string` | `card-content` | CardContent CSS class |
+
+`options.style` takes only `light` and `dark`; flat CSS keys under `style` are ignored by the renderer and rejected by `cxtms`. Use `sx` for styles that do not depend on the theme.
+
+**Header (`options.header`)** — a section heading belongs here, not in a `text` above the card. Unknown header keys are rejected.
+| Key | Type | Description |
+|-----|------|-------------|
+| `title`, `subheader` | string, template or localized map | Header text |
+| `titleType` | `h1`–`h6` | Renders the title as a section heading of that level; without it the title keeps the small card-header style |
+| `icon`, `iconColor` | `string` | Header avatar icon (template-aware); color defaults to `text.secondary` |
+| `badge` | [badge](ref-components-display.md#badge) props | Status pill right after the title; `label` is required, nothing renders when it resolves empty |
+| `action` | component list | Rendered on the right of the header row, e.g. a `dropdown` Actions menu or a `stats` amount |
+| `sx` | `SxProps` | Header styles |
+
+Do not combine `onClick` with a `header.action` menu: clicks in the action currently bubble up and also run the card's `onClick`.
 
 **Children:** Yes — wrapped in CardContent (unless `disableContentWrapper`).
 
@@ -559,6 +573,34 @@ children:
   - component: text
     name: total
     props: { value: "Total: {{ totalAmount }}", type: h4 }
+```
+
+Header with a heading level, a status badge and an amount on the right:
+
+```yaml
+component: card
+name: invoiceCard
+props:
+  options:
+    header:
+      title: "Invoice {{ invoiceForm.transactionNumber }}"
+      titleType: h2
+      subheader: "{{ invoiceForm.division.name }}"
+      badge:
+        label: "{{ invoiceForm.accountingTransactionStatus }}"
+        options:
+          colors: { open: primary, paid: success }
+      action:
+        - component: stats
+          name: amountDue
+          props:
+            size: lg
+            align: end
+            items:
+              - label: Amount Due
+                value: "{{ format invoiceForm.amountDue currency USD }}"
+                caption: "Due {{ format invoiceForm.dueDate L }}"
+children: []
 ```
 
 ---

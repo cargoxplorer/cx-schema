@@ -1,46 +1,114 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "stats-component",
   "title": "Stats Component",
-  "description": "Read-only totals, counts, and headline values.",
+  "description": "Read-only totals, counts and headline values: a row (default), a receipt-like list, or a strip of equal cards. Templates resolve against the store, the enclosing form's values and the component variables (variables win).",
   "type": "object",
   "required": ["component", "props"],
   "properties": {
-    "component": { "type": "string", "const": "stats" },
-    "name": { "type": "string" },
+    "component": {
+      "type": "string",
+      "const": "stats"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name; also the data-testid of the rendered row"
+    },
     "props": {
       "type": "object",
       "required": ["items"],
       "properties": {
         "items": {
           "type": "array",
+          "description": "Values to show, in order",
           "items": {
             "type": "object",
             "properties": {
-              "label": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
-              "value": {},
-              "unit": {},
-              "caption": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
-              "decimals": { "type": "number", "minimum": 0 },
-              "emphasis": { "type": "boolean" },
-              "icon": { "type": "string", "description": "Cards variant: Tabler icon name or template." },
+              "label": {
+                "type": ["string", "object"],
+                "description": "Caption for the value. String, template or localized map ({ en-US: ... })"
+              },
+              "value": {
+                "description": "The value, usually a template. An empty value shows an em dash; 0 is shown as 0"
+              },
+              "unit": {
+                "type": ["string", "number"],
+                "description": "Shown muted after the value. Hidden when the value is empty"
+              },
+              "decimals": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Rounds a numeric value to at most this many fraction digits. Non-numeric values are shown as is"
+              },
+              "caption": {
+                "type": ["string", "object"],
+                "description": "Small muted line under the value, e.g. a due date. String, template or localized map"
+              },
+              "emphasis": {
+                "type": "boolean",
+                "description": "variant list only: bold line set off by a rule, for a grand total"
+              },
+              "icon": {
+                "type": "string",
+                "description": "variant cards only: icon in a tinted tile, e.g. tabler-package. May be a template"
+              },
               "color": {
                 "type": "string",
                 "enum": ["primary", "secondary", "success", "info", "warning", "error"],
                 "default": "primary",
-                "description": "Cards variant: icon tile color."
+                "description": "variant cards only: tint of the icon tile"
               }
             },
             "additionalProperties": false
           }
         },
-        "variant": { "type": "string", "enum": ["row", "list", "cards"], "default": "row" },
-        "size": { "type": "string", "enum": ["md", "lg"], "default": "md" },
-        "align": { "type": "string", "enum": ["start", "end"], "default": "start" },
-        "className": { "type": "string" }
+        "variant": {
+          "type": "string",
+          "enum": ["row", "list", "cards"],
+          "default": "row",
+          "description": "row: value over label, side by side. list: label left, value right, one per line. cards: a wrapping strip of equal cards with icon, label, value and caption"
+        },
+        "size": {
+          "type": "string",
+          "enum": ["md", "lg"],
+          "default": "md",
+          "description": "lg makes the value a headline figure with its label above it, e.g. the amount due in a card header"
+        },
+        "align": {
+          "type": "string",
+          "enum": ["start", "end"],
+          "default": "start",
+          "description": "end aligns a row to the right edge"
+        },
+        "className": {
+          "type": "string",
+          "description": "Extra CSS classes on the container"
+        }
       },
       "additionalProperties": true
     }
   },
-  "additionalProperties": true
+  "x-examples": [
+    {
+      "component": "stats",
+      "name": "cartonTotals",
+      "props": {
+        "variant": "cards",
+        "items": [
+          { "label": "Cartons", "value": "{{ orderSummary.totalPieces }}", "icon": "tabler-package" },
+          { "label": "Weight", "value": "{{ orderSummary.totalWeight }}", "unit": "Lb", "decimals": 2, "icon": "tabler-weight", "color": "info" }
+        ]
+      }
+    },
+    {
+      "component": "stats",
+      "name": "invoiceTotals",
+      "props": {
+        "variant": "list",
+        "items": [
+          { "label": "Tax", "value": "{{ format invoiceForm.tax currency USD }}" },
+          { "label": "Amount Due", "value": "{{ format invoiceForm.amountDue currency USD }}", "emphasis": true }
+        ]
+      }
+    }
+  ]
 }

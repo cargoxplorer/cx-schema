@@ -9,6 +9,7 @@
 - Image component
 - Photo component
 - Summary component
+- Stats component
 - Diff component
 - Viewer component
 - Embed component
@@ -71,30 +72,7 @@ A non-empty `title` renders even when `enableToolbar: false`; `options.showHeade
 
 **Jump to page:** selecting a pagination ellipsis (`…`) opens a numeric field for jumping directly to any valid page.
 
-**Title summaries:** `props.subtitle` renders muted localized/template text beside a non-empty title. `props.footer` is a component list below the rows and above bottom pagination. For totals, place a `stats` component with `variant: cards` immediately above the grid.
-
-## stats
-
-`stats` renders read-only totals. Its `items` accept `label`, `value`, `unit`, `caption`, and `decimals`; `list` also supports `emphasis`. Use `variant: cards` for a responsive totals strip above a grid. Each card may set a templated Tabler `icon` and `color` (`primary`, `secondary`, `success`, `info`, `warning`, or `error`).
-
-```yaml
-- component: stats
-  name: orderTotals
-  props:
-    variant: cards
-    items:
-      - label: Pieces
-        value: "{{ orderSummary.totalPieces }}"
-        icon: tabler-package
-      - label: Weight
-        value: "{{ orderSummary.totalWeight }}"
-        unit: lb
-        icon: tabler-weight
-        color: info
-- component: dataGrid
-  name: ordersGrid
-  # ...
-```
+**Title summaries:** `props.subtitle` renders muted localized/template text beside a non-empty title. `props.footer` is a component list below the rows and above bottom pagination. For totals, place a `stats` component with `variant: cards` immediately above the grid (see [stats](#stats)).
 
 **Store navigation state:** with `navigationType: store`, DataGrid keeps `{gridName}_limit`, `{gridName}_offset`, and search state in the local UI context store, not URL variables. Use it for embedded/stateful grids where dialogs or parent re-renders must not reset pagination back to page 1.
 
@@ -746,6 +724,61 @@ props:
     allowExpand: true
     defaultExpanded: false
 ```
+
+---
+
+## stats
+
+Read-only totals, counts and headline values. Use it for figures the user reads, not edits — never disabled number fields used as totals. Templates resolve against the store, the enclosing form's values and the component variables (variables win).
+
+**Props:**
+| Prop | Type | Description |
+|------|------|-------------|
+| `items` | array | **Required.** Values to show, in order |
+| `items[].label` | string, template or localized map | Caption for the value |
+| `items[].value` | template | The value. Empty shows `—`; `0` shows `0` |
+| `items[].unit` | string or template | Muted, after the value; hidden when the value is empty |
+| `items[].decimals` | integer | Rounds a numeric value to at most this many fraction digits. For other formatting use the template (`format`) |
+| `items[].caption` | string, template or localized map | Small muted line under the value |
+| `items[].emphasis` | boolean | `list` only: bold line set off by a rule (grand total) |
+| `items[].icon` | string or template | `cards` only: icon in a tinted tile, e.g. `tabler-package` |
+| `items[].color` | `primary \| secondary \| success \| info \| warning \| error` | `cards` only: icon tile tint, default `primary` |
+| `variant` | `row \| list \| cards` | `row` (default): value over label, side by side. `list`: label left, value right, like a receipt. `cards`: a wrapping strip of equal cards |
+| `size` | `md \| lg` | `lg`: headline value with its label above, e.g. an amount in a card header |
+| `align` | `start \| end` | `end` aligns a `row` to the right |
+| `className` | string | Extra CSS classes |
+
+Item keys are checked: a misspelled key (e.g. `colr`) fails validation.
+
+**Children:** No.
+
+Totals for a grid — a `cards` strip right above it:
+
+```yaml
+- component: stats
+  name: cartonTotals
+  props:
+    variant: cards
+    items:
+      - { label: Cartons, value: "{{ orderSummary.totalPieces }}", icon: tabler-package }
+      - { label: Weight, value: "{{ orderSummary.totalWeight }}", unit: Lb, decimals: 2, icon: tabler-weight, color: info }
+- component: dataGrid
+  # ...
+```
+
+A totals column ending in a grand total:
+
+```yaml
+component: stats
+name: invoiceTotals
+props:
+  variant: list
+  items:
+    - { label: Tax, value: "{{ format invoiceForm.tax currency USD }}" }
+    - { label: Amount Due, value: "{{ format invoiceForm.amountDue currency USD }}", emphasis: true }
+```
+
+For an amount in a card header, see `card` → `header.action` in `ref-components-layout.md`.
 
 ---
 

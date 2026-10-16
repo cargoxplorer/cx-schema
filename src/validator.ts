@@ -434,10 +434,13 @@ export class ModuleValidator {
 
     for (const error of ajvErrors) {
       const errorPath = `${basePath}${error.instancePath}`;
+      // Name the offending key, so a typo like `colr` is findable from the message alone
+      const extraKey = (error.params as any)?.additionalProperty;
+      const message = error.message || 'Schema validation failed';
       errors.push({
         type: 'schema_violation',
         path: errorPath,
-        message: error.message || 'Schema validation failed',
+        message: extraKey ? `${message}: '${extraKey}'` : message,
         schemaPath: error.schemaPath
       });
     }
