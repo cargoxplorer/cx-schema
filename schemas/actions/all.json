@@ -28,6 +28,8 @@
     { "$ref": "clipboard.json" },
     { "$ref": "sound.json" },
     { "$ref": "vibrate.json" },
-    { "$ref": "assistantContext.json" }
+    { "$ref": "assistantContext.json" },
+    { "$ref": "ensureClockedIn.json" },
+    { "$ref": "timePunch.json" }
   ]
 }

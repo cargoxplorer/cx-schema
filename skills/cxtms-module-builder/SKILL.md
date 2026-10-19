@@ -359,6 +359,9 @@ onClick:
       data: { orderId: "{{ orderId }}" }
       agent: tracking-agent           # optional: target that agent's thread
       open: true                      # optional: open the panel on that agent
+  - ensureClockedIn: leg.arrive       # mobile time clock: clock in if off / end break / record activity; never stops the chain
+  - ensureClockedIn: { trigger: "{{ stopType }}.arrive" }   # object form; trigger is a template, default "action"
+  - timePunch: { type: BreakStart, note: "{{ breakNote }}" } # mobile manual punch: ClockIn|ClockOut|BreakStart|BreakEnd; stops the chain on an invalid transition
 ```
 
 ## Common Patterns
@@ -644,6 +647,46 @@ Route `props.title` and root component `displayName` may be template expressions
 ## Screen route variables
 
 Matched route parameters are raw strings and are available on the component's first render, including when a cached component definition mounts. Query-string values that look numeric are converted to numbers. When names collide, the matched route parameter wins over the query string. Screen variables also include `organizationId`, `locale`, and `currentUser`.
+
+## Time clock (mobile)
+
+The mobile app keeps the employee's clock state and exposes it as the global template variable `clockState`, available in every template:
+
+| Field | Description |
+|-------|-------------|
+| `state` | `Off` \| `Working` \| `OnBreak`; `Off` when nothing is known |
+| `stateSince` | When the current state started (ISO 8601) |
+| `clockedInAt` | When the current shift was clocked in (ISO 8601); null while `Off` |
+| `tracking` | `true` while location updates run (Working, `apps.telemetry` enabled, permission granted) |
+| `pending` | `true` while the employee's own punches are still queued on the device |
+| `shiftDuration` | Time since clock-in, breaks included (e.g. `"4 h 12 min"`); null while `Off`, refreshed every minute |
+| `stateDuration` | Time in the current state; null while `Off`, refreshed every minute |
+
+Two actions change it. Both work offline (punches are queued):
+
+- **`ensureClockedIn`** — put in front of data-changing actions (arrive, complete, scan). Clocks the employee in when `Off` (with a toast; location tracking starts where `apps.telemetry` enables it), ends the break when `OnBreak`, otherwise only records activity. Never stops the chain. Value: the trigger string (`ensureClockedIn: leg.arrive`) or `{ trigger }`; templates allowed; default trigger `action`.
+- **`timePunch`** — manual punch: `{ type: ClockIn | ClockOut | BreakStart | BreakEnd, note? }` (both templates allowed). Valid transitions: `Off` → `ClockIn`; `Working` → `BreakStart` / `ClockOut`; `OnBreak` → `BreakEnd` / `ClockOut`. Any other punch shows a toast and stops the chain, as does a punch that could not be saved.
+
+```yaml
+- component: text
+  props:
+    value: "Working since {{ format clockState.clockedInAt HH:mm }}"
+    isHidden: "{{ eval clockState.state !== 'Working' }}"
+- component: button
+  props:
+    label: Break
+    isHidden: "{{ eval clockState.state !== 'Working' }}"
+    onClick:
+      - timePunch: { type: BreakStart }
+- component: button
+  props:
+    label: Arrive
+    onClick:
+      - ensureClockedIn: leg.arrive
+      - workflow: { workflowId: "<uuid>", inputs: { legId: "{{ legId }}" } }
+```
+
+Full example: `examples/time-clock-module.yaml`.
 
 ## AI Assistant context
 

@@ -1,0 +1,111 @@
+# Time Clock Example
+# Demonstrates the ensureClockedIn and timePunch actions, the clockState
+# template variable (mobile) and a map with a recorded GPS track (web).
+
+module:
+  name: TimeClockExample
+  appModuleId: 4b7e2c91-6a3d-4f08-8e15-9d2a7c3b5f61
+  displayName:
+    en-US: "Time Clock Example"
+  description:
+    en-US: "Demonstrates time clock actions, clockState and map paths"
+  application: CXTMS
+
+components:
+  - name: TimeClockExample/Clock
+    displayName:
+      en-US: "Time Clock"
+    platforms:
+      - mobile
+    layout:
+      component: layout
+      props:
+        title:
+          en-US: "Time Clock"
+      children:
+        - component: text
+          props:
+            value: "Working since {{ format clockState.clockedInAt HH:mm }} ({{ clockState.shiftDuration }})"
+            isHidden: "{{ eval clockState.state !== 'Working' }}"
+        - component: button
+          props:
+            label:
+              en-US: "Clock in"
+            isHidden: "{{ eval clockState.state !== 'Off' }}"
+            onClick:
+              - timePunch:
+                  type: ClockIn
+        - component: button
+          props:
+            label:
+              en-US: "Break"
+            isHidden: "{{ eval clockState.state !== 'Working' }}"
+            onClick:
+              - timePunch:
+                  type: BreakStart
+                  note: "{{ breakNote }}"
+        - component: button
+          props:
+            label:
+              en-US: "End break"
+            isHidden: "{{ eval clockState.state !== 'OnBreak' }}"
+            onClick:
+              - timePunch:
+                  type: BreakEnd
+        - component: button
+          props:
+            label:
+              en-US: "Clock out"
+            isHidden: "{{ eval clockState.state === 'Off' }}"
+            onClick:
+              - timePunch:
+                  type: ClockOut
+        - component: button
+          props:
+            label:
+              en-US: "Arrive"
+            onClick:
+              - ensureClockedIn: leg.arrive
+              - workflow:
+                  workflowId: 2f6c1d84-9b3e-4a57-8c20-7e1f5a9d3b46
+                  inputs:
+                    orderMoveLegId: "{{ number legId }}"
+
+  - name: TimeClockExample/ShiftTrack
+    displayName:
+      en-US: "Shift Track"
+    platforms:
+      - web
+    layout:
+      component: layout
+      props:
+        title:
+          en-US: "Shift Track"
+      children:
+        - component: map
+          name: shiftTrackMap
+          props:
+            height: 480
+            refreshInterval: 60
+            paths:
+              - points: "{{ shiftTrack.points }}"
+                color: primary
+                width: 4
+                gapMinutes: 10
+                label: Shift track
+            markers:
+              - id: start
+                label: Clocked in
+                lat: 33.749
+                lng: -84.388
+                color: success
+                text: S
+
+routes:
+  - path: /time-clock-example
+    component: TimeClockExample/Clock
+  - path: /time-clock-example/track
+    component: TimeClockExample/ShiftTrack
+
+permissions:
+  - timeClockExample.view

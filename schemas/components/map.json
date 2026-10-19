@@ -91,8 +91,86 @@
                   },
                   "stopType": {
                     "type": ["string", "null"]
+                  },
+                  "color": {
+                    "type": "string",
+                    "description": "Pin color: a CSS color (e.g. \"#1e88e5\", \"teal\") or a theme palette key (primary, secondary, success, warning, error, info). Defaults to the standard pin color."
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "Short text shown inside the pin instead of the sequence number (e.g. a stop code or an initial)."
                   }
                 },
+                "additionalProperties": true
+              }
+            },
+            { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+          ]
+        },
+        "paths": {
+          "description": "Polylines drawn on the map (e.g. a recorded GPS track or a planned route), or a template expression that resolves to such an array. Path points are included in fitBounds.",
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "points": {
+                    "description": "Ordered path points, or a template expression that resolves to them.",
+                    "oneOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "lat": { "type": "number", "description": "Latitude" },
+                            "lng": { "type": "number", "description": "Longitude" },
+                            "recordedAt": {
+                              "type": "string",
+                              "description": "ISO 8601 time the point was recorded. Used by gapMinutes to detect gaps."
+                            }
+                          },
+                          "required": ["lat", "lng"],
+                          "additionalProperties": true
+                        }
+                      },
+                      { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+                    ]
+                  },
+                  "color": {
+                    "type": "string",
+                    "default": "primary",
+                    "description": "Line color: a CSS color (e.g. \"#1e88e5\", \"teal\") or a theme palette key (primary, secondary, success, warning, error, info)."
+                  },
+                  "width": {
+                    "oneOf": [
+                      { "type": "number", "minimum": 0 },
+                      { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+                    ],
+                    "default": 4,
+                    "description": "Line width in pixels"
+                  },
+                  "dashed": {
+                    "oneOf": [
+                      { "type": "boolean" },
+                      { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+                    ],
+                    "default": false,
+                    "description": "Draw the whole path as a dashed line"
+                  },
+                  "gapMinutes": {
+                    "oneOf": [
+                      { "type": "number", "minimum": 0 },
+                      { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+                    ],
+                    "description": "When two consecutive points are more than this many minutes apart (by recordedAt), they are joined by a dashed warning-colored segment that marks the gap in the data. Omit to draw every segment the same way."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "Path name (e.g. \"Shift track\")"
+                  }
+                },
+                "required": ["points"],
                 "additionalProperties": true
               }
             },
@@ -122,6 +200,13 @@
           ],
           "default": true,
           "description": "Open an info window when a marker is clicked"
+        },
+        "refreshInterval": {
+          "oneOf": [
+            { "type": "number", "minimum": 0 },
+            { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+          ],
+          "description": "Refresh the map's data every N seconds (e.g. to follow a live GPS track). Omit or 0 to disable."
         },
         "onMarkerClick": {
           "$ref": "../schemas.json#/definitions/actionsList",
@@ -160,6 +245,27 @@
             "lng": -84.388,
             "address": "Atlanta, GA"
           }
+        ]
+      }
+    },
+    {
+      "component": "map",
+      "name": "shiftTrackMap",
+      "props": {
+        "height": 480,
+        "refreshInterval": 60,
+        "paths": [
+          {
+            "points": "{{ shiftTrack.points }}",
+            "color": "primary",
+            "width": 4,
+            "gapMinutes": 10,
+            "label": "Shift track"
+          }
+        ],
+        "markers": [
+          { "id": "start", "label": "Clocked in", "lat": 33.749, "lng": -84.388, "color": "success", "text": "S" },
+          { "id": "now", "label": "Last position", "lat": 33.79, "lng": -84.32, "color": "#e53935", "text": "D" }
         ]
       }
     }
