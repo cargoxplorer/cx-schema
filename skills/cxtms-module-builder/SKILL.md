@@ -334,10 +334,12 @@ onClick:
       name: "dialogName"
       props: { title: { en-US: "Title" } }
       component: { component: "Module/Component" }
+      onLoad: [...]                     # Runs once in the dialog's own store context
       onClose: [...]
   - workflow:
       workflowId: "<uuid>"
       inputs: { key: "value" }
+      waitForCompletion: true           # Poll async execution; supports onStart/pollInterval/timeout
       onSuccess: [...]
       onError: [...]
   - fileDownload: { url: "...", fileName: "..." }

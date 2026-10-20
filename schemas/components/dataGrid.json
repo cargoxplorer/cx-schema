@@ -149,6 +149,11 @@
             "$ref": "../schemas.json#/definitions/component"
           }
         },
+        "selectionToolbar": {
+          "type": "array",
+          "description": "Components shown while rows are selected; children receive selectedItems",
+          "items": { "$ref": "../schemas.json#/definitions/component" }
+        },
         "isHidden": {
           "$ref": "../schemas.json#/definitions/templateExpression",
           "description": "Boolean expression for conditional rendering"

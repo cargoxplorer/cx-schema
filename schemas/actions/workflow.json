@@ -8,6 +8,10 @@
       "properties": {
         "workflowId": { "type": "string", "description": "Workflow identifier" },
         "inputs": { "type": "object", "description": "Workflow inputs" },
+        "waitForCompletion": { "type": "boolean", "description": "Wait for an asynchronous execution to finish before resolving the action" },
+        "pollInterval": { "oneOf": [{ "type": "number" }, { "type": "string" }], "description": "Polling interval in milliseconds or as a duration such as 2s" },
+        "timeout": { "oneOf": [{ "type": "number" }, { "type": "string" }], "description": "Maximum wait in milliseconds or as a duration such as 5m" },
+        "onStart": { "$ref": "../schemas.json#/definitions/actionsList", "description": "Actions run after the execution is created; receives executionId" },
         "onSuccess": { "$ref": "../schemas.json#/definitions/actionsList" },
         "onError": { "$ref": "../schemas.json#/definitions/actionsList" }
       },
