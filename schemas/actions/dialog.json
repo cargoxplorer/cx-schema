@@ -9,7 +9,11 @@
         "name": { "type": "string", "description": "Dialog identifier" },
         "props": { "type": "object", "description": "Props to pass to dialog" },
         "component": { "$ref": "../schemas.json#/definitions/component" },
-        "onClose": { "$ref": "../schemas.json#/definitions/actionsList" }
+        "onClose": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onLoad": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions run once when the dialog opens, in the dialog's own context (its props and store). Close the dialog from them with navigateBackOrClose."
+        }
       },
       "x-examples": [
         { "name": "addCommoditiesDialog", "props": { "title": { "en-US": "Add Commodities" } } },
@@ -17,6 +21,22 @@
           "component": "States/CreateState",
           "props": { "title": "Create New State" },
           "onClose": [{ "selectValue": "{{ result }}" }]
+        },
+        {
+          "component": "Contacts/GenerateReportProgress",
+          "props": { "title": "Generating report", "name": "{{ name }}", "email": "{{ email }}" },
+          "onLoad": [
+            {
+              "workflow": {
+                "workflowId": "f07103ce-d0b4-40fe-8a59-33eb851c8691",
+                "inputs": { "name": "{{ name }}", "email": "{{ email }}" },
+                "waitForCompletion": true,
+                "onStart": [{ "setStore": { "status": "Working on it" } }],
+                "onSuccess": [{ "setStore": { "status": "Completed" } }, { "navigateBackOrClose": {} }],
+                "onError": [{ "notification": { "message": "Workflow failed" } }]
+              }
+            }
+          ]
         }
       ]
     }

@@ -333,10 +333,15 @@ onClick:
       name: "dialogName"
       props: { title: { en-US: "Title" } }
       component: { component: "Module/Component" }
+      onLoad: [...]                                        # Run once when the dialog opens, in the dialog's context
       onClose: [...]
   - workflow:
       workflowId: "<uuid>"
       inputs: { key: "value" }
+      waitForCompletion: true                              # Optional: poll an async workflow until it finishes
+      pollInterval: 5000                                   # waitForCompletion only, ms (default 5000)
+      timeout: 300000                                      # waitForCompletion only, ms (default 5 min) → onError
+      onStart: [...]                                       # waitForCompletion only: after the execution starts
       onSuccess: [...]
       onError: [...]
   - fileDownload: { url: "...", fileName: "..." }
@@ -359,6 +364,44 @@ onClick:
       data: { orderId: "{{ orderId }}" }
       agent: tracking-agent           # optional: target that agent's thread
       open: true                      # optional: open the panel on that agent
+```
+
+### Progress dialog for an async workflow
+
+A dialog can start a workflow as it opens and wait for it. `waitForCompletion` starts the
+workflow, takes the `executionId` the backend returns and polls the execution until it finishes:
+`onSuccess` then runs with the workflow outputs, `onError` on failure or after `timeout` (the
+error is in `{{ error }}`). A failed status request (network blip, 502) does not fail the wait,
+polling continues until `timeout`. For a workflow with `executionMode: Sync` the call itself
+waits, so `onSuccess` follows `onStart` at once. Closing the dialog stops polling, and no further
+actions run.
+
+The workflow must have `enableAudit: true`: the backend records the outcome of an async
+execution only through its audit, so without it the wait always ends in a timeout (also where
+audit logging is disabled, e.g. a local stack with `DISABLE_AUDIT_LOGGING=true`).
+
+`onStart`, `onSuccess` and `onError` see the store as it is when they run, so after the wait
+`{{ status }}` in `onSuccess` is what `onStart` (or the user) wrote meanwhile.
+
+`setStore` in `onLoad` re-renders the dialog content, so a text bound to the store key shows
+progress. Close the dialog from its own actions with `navigateBackOrClose: {}`.
+
+```yaml
+- dialog:
+    component: "Reports/GenerateReportProgress"   # renders e.g. a text with value "{{ status }}"
+    props: { title: "Generating report", name: "{{ name }}", email: "{{ email }}" }
+    onLoad:
+      - workflow:
+          workflowId: "f07103ce-d0b4-40fe-8a59-33eb851c8691"
+          inputs: { name: "{{ name }}", email: "{{ email }}" }
+          waitForCompletion: true
+          onStart:
+            - setStore: { status: "Working on it" }
+          onSuccess:
+            - setStore: { status: "Completed" }
+            - navigateBackOrClose: {}
+          onError:
+            - notification: { message: "Workflow failed", type: error }
 ```
 
 ## Common Patterns

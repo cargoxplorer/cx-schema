@@ -8,6 +8,26 @@
       "properties": {
         "workflowId": { "type": "string", "description": "Workflow identifier" },
         "inputs": { "type": "object", "description": "Workflow inputs" },
+        "waitForCompletion": {
+          "type": "boolean",
+          "description": "Poll the async execution, by the executionId the backend returns, until it finishes: onSuccess then runs with its outputs, onError on failure or timeout. A failed status request does not fail the wait, polling continues until timeout. onStart, onSuccess and onError see the store as it is when they run. The workflow needs enableAudit: true, otherwise the backend keeps no execution record and the wait ends in a timeout. Polling stops when the hosting dialog or screen closes. Without it the action behaves as before."
+        },
+        "pollInterval": {
+          "type": "number",
+          "minimum": 1,
+          "default": 5000,
+          "description": "waitForCompletion only: milliseconds between status checks"
+        },
+        "timeout": {
+          "type": "number",
+          "minimum": 1,
+          "default": 300000,
+          "description": "waitForCompletion only: milliseconds to wait before giving up and running onError"
+        },
+        "onStart": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "waitForCompletion only: actions run right after the execution is created, before polling starts; executionId is available"
+        },
         "onSuccess": { "$ref": "../schemas.json#/definitions/actionsList" },
         "onError": { "$ref": "../schemas.json#/definitions/actionsList" }
       },
@@ -16,6 +36,14 @@
           "workflowId": "b7c4ffa9-bf7e-4e2c-8e57-8f24f4a2b8a8",
           "inputs": { "request": { "message": "Hello, World!" } },
           "onSuccess": [{ "notification": { "message": "Echo executed successfully. {{ response.echo.message }}" } }]
+        },
+        {
+          "workflowId": "f07103ce-d0b4-40fe-8a59-33eb851c8691",
+          "inputs": { "name": "{{ name }}" },
+          "waitForCompletion": true,
+          "onStart": [{ "setStore": { "status": "Working on it" } }],
+          "onSuccess": [{ "setStore": { "status": "Completed" } }],
+          "onError": [{ "notification": { "message": "Workflow failed" } }]
         }
       ]
     }
