@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Ports Import Task",
+  "description": "Import ports from file, URL, or direct data",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "Ports/Import@1"
+      ],
+      "description": "Task type identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Step name identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Step description"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "expression"
+        ]
+      }
+    },
+    "continueOnError": {
+      "type": "boolean"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Ports/Import inputs — provide fileUrl, stream, or ports",
+      "properties": {
+        "fileUrl": {
+          "type": "string",
+          "description": "URL to import file (CSV, XLSX, JSON, XML). File type is auto-detected from URL extension."
+        },
+        "fileType": {
+          "type": "string",
+          "enum": [
+            "Csv",
+            "Xlsx",
+            "Json",
+            "Xml",
+            "Html"
+          ],
+          "description": "File format. Required when using stream input; auto-detected from fileUrl otherwise."
+        },
+        "stream": {
+          "description": "Raw stream data (binary). Requires fileType to be set."
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "portId": {
+                "type": "string",
+                "description": "Port code, e.g. UN/LOCODE USNYC (max 20)"
+              },
+              "countryCode": {
+                "type": "string",
+                "description": "Country code; the country must exist in the organization"
+              },
+              "name": {
+                "type": "string",
+                "description": "Port name (max 50)"
+              },
+              "stateCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "State code; must exist for the country, or null"
+              },
+              "isMariTime": {
+                "type": "boolean"
+              },
+              "isRail": {
+                "type": "boolean"
+              },
+              "isRoad": {
+                "type": "boolean"
+              },
+              "isAir": {
+                "type": "boolean"
+              },
+              "isMail": {
+                "type": "boolean"
+              },
+              "isBorderCrossingPoint": {
+                "type": "boolean"
+              },
+              "isMyCompany": {
+                "type": "boolean"
+              },
+              "portRemarks": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "customValues": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "portId",
+              "countryCode",
+              "name"
+            ]
+          },
+          "description": "Direct port objects for import"
+        },
+        "matchByFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Fields to match existing records for upsert (default ['portId'])"
+        },
+        "updateIfExists": {
+          "type": "boolean",
+          "description": "Update matched ports (default true); false skips them"
+        }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "mapping"
+        ]
+      },
+      "description": "Outputs: result.success (boolean), result.added (int), result.updated (int), result.totalProcessed (int), result.errors (string[]), result.hasErrors (boolean)"
+    }
+  },
+  "required": [
+    "task",
+    "name",
+    "inputs"
+  ],
+  "additionalProperties": true
+}

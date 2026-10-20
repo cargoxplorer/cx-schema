@@ -19,6 +19,7 @@
 - Note tasks (Create, Update, Delete, Import, Export, RenameThread)
 - AccountingTransaction/ApplyCredit task
 - Calendar feed tasks (IssueLink, ImportFeed)
+- Ports task (Import)
 
 All entity tasks follow the `Namespace/Operation@Version` pattern. Outputs are stored as `ActivityName.StepName.outputKey`.
 
@@ -58,6 +59,34 @@ Imports postal codes (CSV, JSON, Excel). Supports upsert via `matchByFields`.
 **Inputs:** `organizationId` (int, required), `fileUrl` (string?), `fileType` (FileType?), `stream` (Stream?), `postalCodes` (List?), `matchByFields` (string[]?)
 **Outputs:** `result.success`, `result.added`, `result.updated`, `result.errors`, `result.totalProcessed`, `result.hasErrors`
 Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions and returns them in `result.errors`.
+
+## Ports
+
+| Task | Description |
+|------|-------------|
+| `Ports/Import@1` | Import ports from file URL, stream, or inline data |
+
+### Ports/Import@1
+
+Imports ports (CSV, JSON, Excel). Supports upsert via `matchByFields` (default `["portId"]`); matching by `portId` alone uses a dictionary lookup, so large imports (e.g. the full UN/LOCODE list) stay fast. A `portId` repeated within one import updates the port added earlier instead of adding a duplicate.
+
+```yaml
+- task: "Ports/Import@1"
+  name: ImportPorts
+  inputs:
+    organizationId: "{{ int organizationId }}"
+    ports: "{{ ports }}"
+    matchByFields: ["portId"]
+    updateIfExists: true
+  outputs:
+    - name: result
+      mapping: "result?"
+```
+
+**Inputs:** `organizationId` (int, required), `fileUrl` (string?), `fileType` (FileType?), `stream` (Stream?), `ports` (List?), `matchByFields` (string[]?), `updateIfExists` (bool, default true)
+**Port fields:** `portId`, `countryCode`, `name` (required for new ports, `name` max 50), `stateCode`, `isMariTime`, `isRail`, `isRoad`, `isAir`, `isMail`, `isBorderCrossingPoint`, `isMyCompany`, `portRemarks`, `customValues`. `countryCode` must exist in the organization's Countries and `stateCode` must exist for that country or be `null`; one FK violation fails the whole import, so filter rows before the task.
+**Outputs:** `result.success`, `result.added`, `result.updated`, `result.errors`, `result.totalProcessed`, `result.hasErrors`
+Input priority: `stream` > `fileUrl` > `ports`; an empty `ports` list with no other input throws, so guard the step with `count([ports]) > 0`. Task catches import exceptions and returns them in `result.errors`. Inputs left out of the step are read from workflow variables of the same name, so do not name a workflow input `fileUrl`, `stream` or `ports` unless it is meant for this task (`port-import.yaml` uses `sourceUrl` for its zip). See `cx-app-core` `workflows/port-import.yaml` for the UN/LOCODE pipeline.
 
 ## Dispatch Routes
 

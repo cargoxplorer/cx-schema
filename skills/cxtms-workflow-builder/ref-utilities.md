@@ -359,7 +359,7 @@ Use `columnMappings` when inbound CSV/XLSX headers do not match the internal fie
       mapping: "data?"
 ```
 
-**`file://` URL support**: Import, Order/Import, PostalCodes/Import, and Notes/Import all accept `file://` URLs via UrlStreamHelper. This enables pipeline patterns: HttpRequest (saveToFile) → UnzipFile → Import (file://).
+**`file://` URL support**: Import, Order/Import, PostalCodes/Import, Ports/Import, and Notes/Import all accept `file://` URLs via UrlStreamHelper. This enables pipeline patterns: HttpRequest (saveToFile) → UnzipFile → Import (file://).
 
 ---
 
@@ -406,6 +406,10 @@ Imports US states/provinces. Inputs: `organizationId`, `fileUrl`/`stream`/`state
 ### PostalCodes/Import@1
 
 Imports postal/ZIP codes. Inputs: `organizationId`, `fileUrl`/`stream`/`postalCodes`, `matchByFields`. Match-key fields protected from overwrite.
+
+### Ports/Import@1
+
+Imports ports. Inputs: `organizationId`, `fileUrl`/`stream`/`ports`, `matchByFields` (default `["portId"]`), `updateIfExists` (default true). See ref-entity.md for fields and FK rules.
 
 ### TrackingEvent/Import@1
 

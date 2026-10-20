@@ -131,6 +131,9 @@
       "$ref": "postal-codes.json"
     },
     {
+      "$ref": "ports.json"
+    },
+    {
       "$ref": "resolve-timezone.json"
     },
     {
