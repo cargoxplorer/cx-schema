@@ -29,6 +29,7 @@ Full-featured data table with views, filtering, sorting, pagination, and row act
 | `title` | `string \| ILocalizeString` | Optional heading in the toolbar row; supports templates |
 | `titleType` | `h1`–`h6` | Semantic heading level; defaults to `h2` |
 | `toolbar` | `component[]` | Header toolbar components |
+| `selectionToolbar` | `component[]` | Bulk-action components shown while rows are selected; receives `selectedItems` |
 | `toolbarSx` | `object` | MUI `sx` overrides merged onto the toolbar `CardContent`; use this to reduce padding in narrow hosts without hiding toolbar controls |
 | `variant` | `compact` | Opt-in layout for narrow hosts; compacts the toolbar, collection/list gutters, filter controls, and pagination |
 | `dotsMenu` | `{items[]}` | Three-dot menu per row |
@@ -105,6 +106,7 @@ A non-empty `title` renders even when `enableToolbar: false`; `options.showHeade
 |------|------|-------------|
 | `name` | `string` | View identifier |
 | `displayName` | `ILocalizeString` | View label |
+| `icon` | `string` | Tabler icon; views with icons appear in the quick-switch control |
 | `columns` | `IColumn[]` | Column definitions |
 | `filter` | `string` | View-level filter |
 | `search` | `string` | Default search term seeded once on initial load; supports `{{ }}` templates; URL/user search wins |
@@ -115,6 +117,8 @@ A non-empty `title` renders even when `enableToolbar: false`; `options.showHeade
 | `includeEntityKeysInExport` | `boolean` | Per-view override for exporting entity keys |
 | `stickyColumns` | `{left: string[], right: string[]}` | User-pinned columns for the view. Left-pinned columns render first, normal columns next, right-pinned columns last |
 | `childViews` | `object` | Expandable child views |
+
+Collection views support `collection.minItemWidth`, `gap`, `sizes`, and `defaultSize`. Each size requires `name` and may define `label`, `icon`, `minItemWidth`, `gap`, plus template-specific values such as `thumbHeight`. The chosen entry is available to card templates as `collectionSize` and is remembered per grid/view. Multi-select collection views also show a select-all control.
 
 **Column definition:**
 | Prop | Type | Description |

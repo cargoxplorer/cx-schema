@@ -9,6 +9,7 @@
         "name": { "type": "string", "description": "Dialog identifier" },
         "props": { "type": "object", "description": "Props to pass to dialog" },
         "component": { "$ref": "../schemas.json#/definitions/component" },
+        "onLoad": { "$ref": "../schemas.json#/definitions/actionsList", "description": "Actions run once in the dialog's own store context after it opens" },
         "onClose": { "$ref": "../schemas.json#/definitions/actionsList" }
       },
       "x-examples": [

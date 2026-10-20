@@ -90,6 +90,14 @@
         "displayName": {
           "$ref": "#/definitions/localized"
         },
+        "icon": {
+          "type": "string",
+          "description": "Tabler icon that enables the view's quick-switch toolbar button"
+        },
+        "viewType": {
+          "type": "string",
+          "enum": ["table", "collection"]
+        },
         "enableSelect": {
           "type": "string",
           "enum": ["Single", "Multiple", "None"],
@@ -205,6 +213,25 @@
           "properties": {
             "itemName": { "type": "string" },
             "children": { "$ref": "#/definitions/componentChildren" },
+            "minItemWidth": { "oneOf": [{ "type": "number" }, { "type": "string" }], "description": "Minimum collection card width for the auto-fill layout" },
+            "gap": { "type": "number", "description": "Gap between collection cards in theme spacing units" },
+            "defaultSize": { "type": "string", "description": "Initial named size until the user chooses one" },
+            "sizes": {
+              "type": "array",
+              "description": "User-selectable collection layouts; custom fields are exposed through collectionSize",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "label": {},
+                  "icon": { "type": "string" },
+                  "minItemWidth": { "oneOf": [{ "type": "number" }, { "type": "string" }] },
+                  "gap": { "type": "number" }
+                },
+                "additionalProperties": true
+              }
+            },
             "dragSource": { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" }, "data": {}, "canDrag": {} }, "additionalProperties": false }
           },
           "additionalProperties": true
