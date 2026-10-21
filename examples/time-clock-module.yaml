@@ -82,30 +82,47 @@ components:
         title:
           en-US: "Shift Track"
       children:
-        - component: map
-          name: shiftTrackMap
+        # The map owns no query: a datasource loads the track and the map re-runs it every minute
+        - component: datasource
+          name: shiftTrack
           props:
-            height: 480
-            refreshInterval: 60000
             refreshHandler: shiftTrack
-            paths:
-              - points: "{{ shiftTrack.points }}"
-                color: primary
-                width: 4
-                gapMinutes: 10
-                label: Shift track
-            markers:
-              - id: start
-                label: Clocked in
-                lat: 33.749
-                lng: -84.388
-                color: success
-                text: S
+            queries:
+              - name: shiftTrack
+                query:
+                  command: >-
+                    query ShiftTrack($organizationId: Int!, $filter: String) {
+                      track: telemetryRecords(organizationId: $organizationId, filter: $filter, orderBy: "recordedAt", take: 5000) {
+                        items { recordedAt latitude longitude }
+                      }
+                    }
+                  variables:
+                    organizationId: "{{ number organizationId }}"
+                    # the driver's real fixes of the last 12 hours
+                    filter: >-
+                      {{ eval 'subjectType: Contact AND subjectId: ' + Number(employeeContactId)
+                        + ' AND kind: Position AND isMocked: false AND NOT accuracy:>100 AND recordedAt:["'
+                        + new Date(Date.now() - 12 * 3600000).toISOString() + '" TO "' + new Date().toISOString() + '"]' }}
+          children:
+            - component: map
+              name: shiftTrackMap
+              props:
+                height: 480
+                refreshInterval: 60000
+                refreshHandler: shiftTrack
+                paths:
+                  - points: >-
+                      {{ eval (shiftTrack.track && shiftTrack.track.items || [])
+                        .map(p => ({ lat: p.latitude, lng: p.longitude, recordedAt: p.recordedAt })) }}
+                    color: primary
+                    width: 4
+                    gapMinutes: 10
+                    label: Shift track
 
 routes:
   - path: /time-clock-example
     component: TimeClockExample/Clock
-  - path: /time-clock-example/track
+  - path: /time-clock-example/track/:employeeContactId
     component: TimeClockExample/ShiftTrack
 
 permissions:

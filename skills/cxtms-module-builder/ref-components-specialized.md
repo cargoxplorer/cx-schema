@@ -161,20 +161,42 @@ props:
       address: "Atlanta, GA"
 ```
 
+The map owns no query: put it inside the datasource (or form) that loads its data and point `refreshHandler` at it.
+Each tick sends `refresh` and `reload` to every target; a form with unsaved changes is skipped.
+
 ```yaml
-component: map
-name: shiftTrackMap
+component: datasource
+name: shiftTrack
 props:
-  height: 480
-  refreshInterval: 60000
   refreshHandler: shiftTrack
-  paths:
-    - points: "{{ shiftTrack.points }}"   # [{ lat, lng, recordedAt }]
-      color: primary
-      gapMinutes: 10
-      label: Shift track
-  markers:
-    - { id: start, label: Clocked in, lat: 33.749, lng: -84.388, color: success, text: S }
+  queries:
+    - name: shiftTrack
+      query:
+        command: >-
+          query ShiftTrack($organizationId: Int!, $filter: String) {
+            track: telemetryRecords(organizationId: $organizationId, filter: $filter, orderBy: "recordedAt", take: 5000) {
+              items { recordedAt latitude longitude }
+            }
+          }
+        variables:
+          organizationId: "{{ number organizationId }}"
+          filter: "subjectType: Contact AND subjectId: {{ number employeeContactId }} AND kind: Position AND isMocked: false"
+children:
+  - component: map
+    name: shiftTrackMap
+    props:
+      height: 480
+      refreshInterval: 60000          # milliseconds
+      refreshHandler: shiftTrack
+      paths:
+        - points: >-
+            {{ eval (shiftTrack.track && shiftTrack.track.items || [])
+              .map(p => ({ lat: p.latitude, lng: p.longitude, recordedAt: p.recordedAt })) }}
+          color: primary
+          gapMinutes: 10
+          label: Shift track
+      markers:
+        - { id: start, label: Clocked in, lat: 33.749, lng: -84.388, color: success, text: S }
 ```
 
 ---

@@ -207,7 +207,7 @@
             { "type": "number", "minimum": 1000 },
             { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
           ],
-          "description": "Refresh the map's data every N milliseconds, like the dataGrid's refreshInterval (e.g. 60000 to follow a live GPS track every minute). At least 1000; omit or 0 to disable."
+          "description": "Every N milliseconds (like the dataGrid's refreshInterval; at least 1000, omit or 0 to disable) the map sends refresh and reload to refreshHandler, or to the enclosing form, so the component that loaded its data re-fetches it (e.g. 60000 to follow a live GPS track every minute). The map owns no query itself."
         },
         "refreshHandler": {
           "oneOf": [
