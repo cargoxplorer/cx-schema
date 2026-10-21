@@ -124,8 +124,15 @@ Inline Google Maps component for plotting explicit markers or dispatch route/tem
 | `showUnmappedNote` | `boolean` | `true` | Show a caption for unplotted markers/stops |
 | `showInfoWindow` | `boolean` | `true` | Show marker label/address/stop type in a Google info window |
 | `onMarkerClick` | `action[]` | - | Fired with clicked marker as `result` |
+| `paths` | `array` | - | Polylines (e.g. a GPS track); points are included in `fitBounds` |
+| `refreshInterval` | `number` | - | Refresh the map's data every N **milliseconds** (like the dataGrid; at least `1000`); omit or `0` to disable |
+| `refreshHandler` | `string | string[]` | enclosing form | What `refreshInterval` re-fetches: datasource, dataGrid or form signal names (each gets `refresh` and `reload`); a form with unsaved changes is skipped |
 
-`markers` should include `id`, `label`, `lat`, `lng`, and optionally `number`, `address`, `stopType`. Invalid coordinates and `0,0` are treated as unmapped.
+`markers` should include `id`, `label`, `lat`, `lng`, and optionally `number`, `address`, `stopType`, `color` and `text` (shown inside the pin instead of the sequence number). Invalid coordinates and `0,0` are treated as unmapped.
+
+`paths` items (array or template): `points` (required; `[{ lat, lng, recordedAt? }]` or a template), `color` (default `primary`), `width` (px, default `4`), `dashed` (default `false`), `gapMinutes` (consecutive points more than that many minutes apart by `recordedAt` are joined by a dashed warning-colored segment) and `label`.
+
+`color` on markers and paths is a CSS color (`"#1e88e5"`, `teal`) or a theme palette key: `primary`, `secondary`, `success`, `warning`, `error`, `info`.
 
 ```yaml
 component: map
@@ -152,6 +159,44 @@ props:
       lat: 33.749
       lng: -84.388
       address: "Atlanta, GA"
+```
+
+The map owns no query: put it inside the datasource (or form) that loads its data and point `refreshHandler` at it.
+Each tick sends `refresh` and `reload` to every target; a form with unsaved changes is skipped.
+
+```yaml
+component: datasource
+name: shiftTrack
+props:
+  refreshHandler: shiftTrack
+  queries:
+    - name: shiftTrack
+      query:
+        command: >-
+          query ShiftTrack($organizationId: Int!, $filter: String) {
+            track: telemetryRecords(organizationId: $organizationId, filter: $filter, orderBy: "recordedAt", take: 5000) {
+              items { recordedAt latitude longitude }
+            }
+          }
+        variables:
+          organizationId: "{{ number organizationId }}"
+          filter: "subjectType: Contact AND subjectId: {{ number employeeContactId }} AND kind: Position AND isMocked: false"
+children:
+  - component: map
+    name: shiftTrackMap
+    props:
+      height: 480
+      refreshInterval: 60000          # milliseconds
+      refreshHandler: shiftTrack
+      paths:
+        - points: >-
+            {{ eval (shiftTrack.track && shiftTrack.track.items || [])
+              .map(p => ({ lat: p.latitude, lng: p.longitude, recordedAt: p.recordedAt })) }}
+          color: primary
+          gapMinutes: 10
+          label: Shift track
+      markers:
+        - { id: start, label: Clocked in, lat: 33.749, lng: -84.388, color: success, text: S }
 ```
 
 ---

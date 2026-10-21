@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "timePunch Action",
+  "type": "object",
+  "properties": {
+    "timePunch": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": ["ClockIn", "ClockOut", "BreakStart", "BreakEnd"]
+            },
+            {
+              "type": "string",
+              "pattern": "\\{\\{.*\\}\\}",
+              "description": "Template expression that resolves to ClockIn, ClockOut, BreakStart or BreakEnd"
+            }
+          ],
+          "description": "Punch type. Valid transitions: Off → ClockIn; Working → BreakStart or ClockOut; OnBreak → BreakEnd or ClockOut."
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional note stored with the punch. Template expressions are allowed."
+        }
+      },
+      "required": ["type"],
+      "additionalProperties": false,
+      "description": "Time clock (mobile): manual punch for Clock in / Break / End break / Clock out buttons. Works offline (the punch is queued). Stops the action chain, with a toast, when the punch is not a valid transition from the current clock state ({{ clockState.state }}), when the type does not resolve to a punch type, or when the punch could not be saved.",
+      "x-examples": [
+        { "type": "ClockIn" },
+        { "type": "BreakStart", "note": "{{ breakNote }}" },
+        { "type": "{{ nextPunchType }}" },
+        { "type": "ClockOut", "note": "End of shift" }
+      ]
+    }
+  },
+  "required": ["timePunch"],
+  "additionalProperties": false
+}

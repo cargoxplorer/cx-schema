@@ -141,3 +141,42 @@ describe('assistantContext action schema', () => {
     expect(validate({ refresh: 'ordersGrid' })).toBe(true);
   });
 });
+
+describe('time clock action schemas', () => {
+  const validate = compileAllActions();
+
+  it.each([
+    { ensureClockedIn: 'leg.arrive' },
+    { ensureClockedIn: '{{ stopType }}.arrive' },
+    { ensureClockedIn: {} },
+    { ensureClockedIn: { trigger: 'stop.complete' } },
+    { timePunch: { type: 'ClockIn' } },
+    { timePunch: { type: 'ClockOut', note: 'End of shift' } },
+    { timePunch: { type: 'BreakStart', note: '{{ breakNote }}' } },
+    { timePunch: { type: 'BreakEnd' } },
+    { timePunch: { type: '{{ nextPunchType }}' } }
+  ])('accepts %j', (action) => {
+    expect(validate(action)).toBe(true);
+  });
+
+  it.each([
+    { ensureClockedIn: '' },
+    { ensureClockedIn: true },
+    { ensureClockedIn: { trigger: 1 } },
+    { ensureClockedIn: { reason: 'leg.arrive' } },
+    { timePunch: {} },
+    { timePunch: 'ClockIn' },
+    { timePunch: { type: 'Lunch' } },
+    { timePunch: { type: 'ClockIn', note: 5 } },
+    { timePunch: { type: 'ClockIn', at: '2026-01-01T08:00:00Z' } }
+  ])('rejects %j', (action) => {
+    expect(validate(action)).toBe(false);
+  });
+
+  it('the time clock example module passes full CLI validation', async () => {
+    const validator = new ModuleValidator();
+    const result = await validator.validateModule(path.join(__dirname, '../examples/time-clock-module.yaml'));
+    expect(result.errors).toEqual([]);
+    expect(result.isValid).toBe(true);
+  });
+});

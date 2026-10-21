@@ -1,0 +1,129 @@
+# Time Clock Example
+# Demonstrates the ensureClockedIn and timePunch actions, the clockState
+# template variable (mobile) and a map with a recorded GPS track (web).
+
+module:
+  name: TimeClockExample
+  appModuleId: 4b7e2c91-6a3d-4f08-8e15-9d2a7c3b5f61
+  displayName:
+    en-US: "Time Clock Example"
+  description:
+    en-US: "Demonstrates time clock actions, clockState and map paths"
+  application: CXTMS
+
+components:
+  - name: TimeClockExample/Clock
+    displayName:
+      en-US: "Time Clock"
+    platforms:
+      - mobile
+    layout:
+      component: layout
+      props:
+        title:
+          en-US: "Time Clock"
+      children:
+        - component: text
+          props:
+            value: "Working since {{ format clockState.clockedInAt HH:mm }} ({{ clockState.shiftDuration }})"
+            isHidden: "{{ eval clockState.state !== 'Working' }}"
+        - component: button
+          props:
+            label:
+              en-US: "Clock in"
+            isHidden: "{{ eval clockState.state !== 'Off' }}"
+            onClick:
+              - timePunch:
+                  type: ClockIn
+        - component: button
+          props:
+            label:
+              en-US: "Break"
+            isHidden: "{{ eval clockState.state !== 'Working' }}"
+            onClick:
+              - timePunch:
+                  type: BreakStart
+                  note: "{{ breakNote }}"
+        - component: button
+          props:
+            label:
+              en-US: "End break"
+            isHidden: "{{ eval clockState.state !== 'OnBreak' }}"
+            onClick:
+              - timePunch:
+                  type: BreakEnd
+        - component: button
+          props:
+            label:
+              en-US: "Clock out"
+            isHidden: "{{ eval clockState.state === 'Off' }}"
+            onClick:
+              - timePunch:
+                  type: ClockOut
+        - component: button
+          props:
+            label:
+              en-US: "Arrive"
+            onClick:
+              - ensureClockedIn: leg.arrive
+              - workflow:
+                  workflowId: 2f6c1d84-9b3e-4a57-8c20-7e1f5a9d3b46
+                  inputs:
+                    orderMoveLegId: "{{ number legId }}"
+
+  - name: TimeClockExample/ShiftTrack
+    displayName:
+      en-US: "Shift Track"
+    platforms:
+      - web
+    layout:
+      component: layout
+      props:
+        title:
+          en-US: "Shift Track"
+      children:
+        # The map owns no query: a datasource loads the track and the map re-runs it every minute
+        - component: datasource
+          name: shiftTrack
+          props:
+            refreshHandler: shiftTrack
+            queries:
+              - name: shiftTrack
+                query:
+                  command: >-
+                    query ShiftTrack($organizationId: Int!, $filter: String) {
+                      track: telemetryRecords(organizationId: $organizationId, filter: $filter, orderBy: "recordedAt", take: 5000) {
+                        items { recordedAt latitude longitude }
+                      }
+                    }
+                  variables:
+                    organizationId: "{{ number organizationId }}"
+                    # the driver's real fixes of the last 12 hours
+                    filter: >-
+                      {{ eval 'subjectType: Contact AND subjectId: ' + Number(employeeContactId)
+                        + ' AND kind: Position AND isMocked: false AND NOT accuracy:>100 AND recordedAt:["'
+                        + new Date(Date.now() - 12 * 3600000).toISOString() + '" TO "' + new Date().toISOString() + '"]' }}
+          children:
+            - component: map
+              name: shiftTrackMap
+              props:
+                height: 480
+                refreshInterval: 60000
+                refreshHandler: shiftTrack
+                paths:
+                  - points: >-
+                      {{ eval (shiftTrack.track && shiftTrack.track.items || [])
+                        .map(p => ({ lat: p.latitude, lng: p.longitude, recordedAt: p.recordedAt })) }}
+                    color: primary
+                    width: 4
+                    gapMinutes: 10
+                    label: Shift track
+
+routes:
+  - path: /time-clock-example
+    component: TimeClockExample/Clock
+  - path: /time-clock-example/track/:employeeContactId
+    component: TimeClockExample/ShiftTrack
+
+permissions:
+  - timeClockExample.view

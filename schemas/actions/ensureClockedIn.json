@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ensureClockedIn Action",
+  "type": "object",
+  "properties": {
+    "ensureClockedIn": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "description": "Trigger shorthand: why the punch happens, e.g. \"leg.arrive\". Template expressions are allowed."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "trigger": {
+              "type": "string",
+              "description": "Why the punch happens, e.g. \"leg.arrive\" or \"stop.complete\". Stored with an automatic clock-in. Template expressions are allowed. Defaults to \"action\"."
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Time clock (mobile): put in front of data-changing actions such as arrive, complete or scan. When the employee is clocked out it clocks them in (a toast tells them, and location tracking starts where the organization's apps.telemetry config enables it); when on a break it ends the break; otherwise it only records activity. Works offline (the punch is queued). Never stops the action chain — not offline, not when location is denied, not on errors.",
+      "x-examples": [
+        "leg.arrive",
+        { "trigger": "stop.complete" },
+        { "trigger": "{{ stopType }}.arrive" },
+        {}
+      ]
+    }
+  },
+  "required": ["ensureClockedIn"],
+  "additionalProperties": false
+}
