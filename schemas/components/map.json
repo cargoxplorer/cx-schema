@@ -203,10 +203,18 @@
         },
         "refreshInterval": {
           "oneOf": [
-            { "type": "number", "minimum": 0 },
+            { "const": 0 },
+            { "type": "number", "minimum": 1000 },
             { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
           ],
-          "description": "Refresh the map's data every N seconds (e.g. to follow a live GPS track). Omit or 0 to disable."
+          "description": "Refresh the map's data every N milliseconds, like the dataGrid's refreshInterval (e.g. 60000 to follow a live GPS track every minute). At least 1000; omit or 0 to disable."
+        },
+        "refreshHandler": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ],
+          "description": "What refreshInterval re-fetches: one or more datasource, dataGrid or form signal names (each gets refresh and reload). Defaults to the enclosing form's reload signal. A form with unsaved changes is skipped."
         },
         "onMarkerClick": {
           "$ref": "../schemas.json#/definitions/actionsList",
@@ -253,7 +261,8 @@
       "name": "shiftTrackMap",
       "props": {
         "height": 480,
-        "refreshInterval": 60,
+        "refreshInterval": 60000,
+        "refreshHandler": "shiftTrack",
         "paths": [
           {
             "points": "{{ shiftTrack.points }}",

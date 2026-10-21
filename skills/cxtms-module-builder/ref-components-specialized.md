@@ -125,7 +125,8 @@ Inline Google Maps component for plotting explicit markers or dispatch route/tem
 | `showInfoWindow` | `boolean` | `true` | Show marker label/address/stop type in a Google info window |
 | `onMarkerClick` | `action[]` | - | Fired with clicked marker as `result` |
 | `paths` | `array` | - | Polylines (e.g. a GPS track); points are included in `fitBounds` |
-| `refreshInterval` | `number` | - | Refresh the map's data every N **seconds**; omit or `0` to disable |
+| `refreshInterval` | `number` | - | Refresh the map's data every N **milliseconds** (like the dataGrid; at least `1000`); omit or `0` to disable |
+| `refreshHandler` | `string | string[]` | enclosing form | What `refreshInterval` re-fetches: datasource, dataGrid or form signal names (each gets `refresh` and `reload`); a form with unsaved changes is skipped |
 
 `markers` should include `id`, `label`, `lat`, `lng`, and optionally `number`, `address`, `stopType`, `color` and `text` (shown inside the pin instead of the sequence number). Invalid coordinates and `0,0` are treated as unmapped.
 
@@ -165,7 +166,8 @@ component: map
 name: shiftTrackMap
 props:
   height: 480
-  refreshInterval: 60
+  refreshInterval: 60000
+  refreshHandler: shiftTrack
   paths:
     - points: "{{ shiftTrack.points }}"   # [{ lat, lng, recordedAt }]
       color: primary

@@ -86,7 +86,8 @@ components:
           name: shiftTrackMap
           props:
             height: 480
-            refreshInterval: 60
+            refreshInterval: 60000
+            refreshHandler: shiftTrack
             paths:
               - points: "{{ shiftTrack.points }}"
                 color: primary

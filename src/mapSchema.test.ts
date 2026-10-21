@@ -55,8 +55,12 @@ describe('map component schema', () => {
     }),
     map({ markers: [{ id: 1, lat: 33.7, lng: -84.3, color: 'warning', text: 'A' }] }),
     map({ markers: [{ id: 1, lat: 33.7, lng: -84.3, color: 'rgb(30, 136, 229)' }] }),
-    map({ refreshInterval: 60 }),
-    map({ refreshInterval: '{{ refreshSeconds }}' }),
+    map({ refreshInterval: 60000 }),
+    map({ refreshInterval: 0 }),
+    map({ refreshInterval: '{{ refreshMs }}' }),
+    map({ refreshInterval: 30000, refreshHandler: 'driverTrack' }),
+    map({ refreshHandler: ['driverTrack', 'liveMap'] }),
+    map({ refreshHandler: '{{ trackHandler }}' }),
     map({ stops: '{{ dispatchRoute.stops }}', fitBounds: true })
   ])('accepts %j', (component) => {
     expect(validate(component)).toBe(true);
@@ -73,7 +77,11 @@ describe('map component schema', () => {
     map({ markers: [{ id: 1, lat: 33.7, lng: -84.3, color: 1 }] }),
     map({ markers: [{ id: 1, lat: 33.7, lng: -84.3, text: 7 }] }),
     map({ refreshInterval: -5 }),
-    map({ refreshInterval: 'fast' })
+    map({ refreshInterval: 'fast' }),
+    // milliseconds: a value meant as seconds is caught
+    map({ refreshInterval: 60 }),
+    map({ refreshHandler: 7 }),
+    map({ refreshHandler: [7] })
   ])('rejects %j', (component) => {
     expect(validate(component)).toBe(false);
   });
