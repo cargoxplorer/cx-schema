@@ -68,7 +68,7 @@ Input priority: `stream` > `fileUrl` > `postalCodes`. Task catches exceptions an
 
 ### Ports/Import@1
 
-Imports ports (CSV, JSON, Excel). Supports upsert via `matchByFields` (default `["portId"]`); matching by `portId` alone uses a dictionary lookup, so large imports (e.g. the full UN/LOCODE list) stay fast. A `portId` repeated within one import updates the port added earlier instead of adding a duplicate.
+Imports ports (CSV, JSON, Excel). Supports upsert via `matchByFields` (default `["portId"]`); a port matches only when all listed fields match, and only the existing ports whose key values occur in the import are loaded. A `portId` repeated within one import updates the port added earlier instead of adding a duplicate.
 
 ```yaml
 - task: "Ports/Import@1"

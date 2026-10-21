@@ -40,6 +40,10 @@
       "type": "object",
       "description": "Ports/Import inputs — provide fileUrl, stream, or ports",
       "properties": {
+        "organizationId": {
+          "type": "string",
+          "description": "Organization ID"
+        },
         "fileUrl": {
           "type": "string",
           "description": "URL to import file (CSV, XLSX, JSON, XML). File type is auto-detected from URL extension."
@@ -59,7 +63,10 @@
           "description": "Raw stream data (binary). Requires fileType to be set."
         },
         "ports": {
-          "type": "array",
+          "type": [
+            "array",
+            "string"
+          ],
           "items": {
             "type": "object",
             "properties": {
@@ -127,13 +134,16 @@
           "items": {
             "type": "string"
           },
-          "description": "Fields to match existing records for upsert (default ['portId'])"
+          "description": "Fields to match existing records for upsert, all of them must match (default ['portId'])"
         },
         "updateIfExists": {
           "type": "boolean",
           "description": "Update matched ports (default true); false skips them"
         }
       },
+      "required": [
+        "organizationId"
+      ],
       "additionalProperties": true
     },
     "outputs": {
