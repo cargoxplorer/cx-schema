@@ -12,6 +12,23 @@
 - Diff component
 - Viewer component
 - Embed component
+- Map component
+
+## map
+
+Google Maps display for route stops, explicit markers, and live track paths. `markers` takes precedence over `stops`. Invalid coordinates and `0,0` are not plotted.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `markers` | `object[] \| template` | — | Marker data; supports `id`, `label`, `lat`, `lng`, `address`, `stopType`, `color`, and `text` |
+| `stops` | `object[] \| template` | — | Dispatch route/template stops converted to numbered markers |
+| `paths` | `object[] \| template` | — | Polylines with `points`, `color`, `width`, `dashed`, `gapMinutes`, and `label` |
+| `fitBounds` | `boolean` | `true` | Fit valid markers and path points when no fixed center is supplied |
+| `refreshInterval` | `number` | — | Polling interval in milliseconds; values below 1000 are ignored |
+| `refreshHandler` | `string \| string[]` | enclosing form | Targets refreshed/reloaded on each tick |
+| `onMarkerClick` | `action[]` | — | Actions receiving the clicked marker as `result` |
+
+Palette keys (`primary`, `secondary`, `success`, `warning`, `error`, `info`) in marker/path `color` values follow the tenant theme. A path's `gapMinutes` draws long timestamp gaps as dashed warning segments. Polling skips dirty forms, pauses in hidden tabs, and resumes when visible.
 
 ## dataGrid
 

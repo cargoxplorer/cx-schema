@@ -91,6 +91,52 @@
                   },
                   "stopType": {
                     "type": ["string", "null"]
+                  },
+                  "color": {
+                    "type": "string",
+                    "description": "Theme palette key or CSS color for a custom pin"
+                  },
+                  "text": {
+                    "type": ["string", "number"],
+                    "description": "Text drawn inside the pin instead of its sequence number"
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+          ]
+        },
+        "paths": {
+          "description": "Polyline paths or a template expression resolving to paths.",
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "color": { "type": "string" },
+                  "width": { "type": "number", "minimum": 0 },
+                  "dashed": { "type": "boolean" },
+                  "gapMinutes": { "type": "number", "exclusiveMinimum": 0 },
+                  "points": {
+                    "oneOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "lat": { "type": ["number", "string", "null"] },
+                            "lng": { "type": ["number", "string", "null"] },
+                            "recordedAt": { "type": ["string", "null"] }
+                          },
+                          "required": ["lat", "lng"],
+                          "additionalProperties": true
+                        }
+                      },
+                      { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+                    ]
                   }
                 },
                 "additionalProperties": true
@@ -126,6 +172,20 @@
         "onMarkerClick": {
           "$ref": "../schemas.json#/definitions/actionsList",
           "description": "Actions fired when a marker is clicked. Receives the marker as result."
+        },
+        "refreshInterval": {
+          "oneOf": [
+            { "type": "number", "minimum": 1000 },
+            { "type": "string", "pattern": "\\{\\{.*\\}\\}" }
+          ],
+          "description": "Polling interval in milliseconds. Values below 1000 are ignored by the renderer."
+        },
+        "refreshHandler": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+          ],
+          "description": "Signal target or targets refreshed and reloaded by periodic polling. Defaults to the enclosing form."
         }
       },
       "additionalProperties": true
