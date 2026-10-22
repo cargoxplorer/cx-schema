@@ -154,7 +154,8 @@ describe('time clock action schemas', () => {
     { timePunch: { type: 'ClockOut', note: 'End of shift' } },
     { timePunch: { type: 'BreakStart', note: '{{ breakNote }}' } },
     { timePunch: { type: 'BreakEnd' } },
-    { timePunch: { type: '{{ nextPunchType }}' } }
+    { timePunch: { type: '{{ nextPunchType }}' } },
+    { requestLocationAccess: {} }
   ])('accepts %j', (action) => {
     expect(validate(action)).toBe(true);
   });
@@ -168,7 +169,10 @@ describe('time clock action schemas', () => {
     { timePunch: 'ClockIn' },
     { timePunch: { type: 'Lunch' } },
     { timePunch: { type: 'ClockIn', note: 5 } },
-    { timePunch: { type: 'ClockIn', at: '2026-01-01T08:00:00Z' } }
+    { timePunch: { type: 'ClockIn', at: '2026-01-01T08:00:00Z' } },
+    { requestLocationAccess: true },
+    { requestLocationAccess: 'always' },
+    { requestLocationAccess: { openSettings: true } }
   ])('rejects %j', (action) => {
     expect(validate(action)).toBe(false);
   });

@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "requestLocationAccess Action",
+  "type": "object",
+  "properties": {
+    "requestLocationAccess": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "description": "Time clock (mobile): while the employee is working, asks for location access again — the in-app explanation, then the OS prompt, or the app settings when the OS no longer asks — and restarts location tracking with what was granted. Does nothing when not working. For a \"tap to fix\" banner shown while {{ clockState.locationAccess }} is not \"always\". Never stops the action chain.",
+      "x-examples": [{}]
+    }
+  },
+  "required": ["requestLocationAccess"],
+  "additionalProperties": false
+}
