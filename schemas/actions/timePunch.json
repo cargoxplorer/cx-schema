@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "timePunch Action",
+  "type": "object",
+  "properties": {
+    "timePunch": {
+      "type": "object",
+      "description": "Mobile time clock: queue a manual clock punch offline.",
+      "properties": {
+        "type": { "type": "string", "enum": ["ClockIn", "ClockOut", "BreakStart", "BreakEnd"] },
+        "note": { "type": "string", "description": "Optional template-resolved note stored with the punch." }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["timePunch"],
+  "additionalProperties": false
+}

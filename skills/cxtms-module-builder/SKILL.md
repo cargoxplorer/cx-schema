@@ -362,7 +362,12 @@ onClick:
       data: { orderId: "{{ orderId }}" }
       agent: tracking-agent           # optional: target that agent's thread
       open: true                      # optional: open the panel on that agent
+  - ensureClockedIn: { trigger: leg.arrive }  # mobile: queue automatic clock-in/activity; chain continues
+  - timePunch: { type: BreakStart, note: "{{ breakNote }}" } # mobile: ClockIn|ClockOut|BreakStart|BreakEnd
+  - requestLocationAccess: {}         # mobile: ask again while working; chain continues
 ```
+
+Mobile time-clock templates can read global `clockState`: `state` (`Off`, `Working`, `OnBreak`), `stateSince`, `clockedInAt`, `tracking`, `locationAccess`, `pending`, `shiftDuration`, and `stateDuration`. Put `ensureClockedIn` before data-changing actions. Use `requestLocationAccess` for a remediation button when `clockState.locationAccess` is not `always`; denied location never prevents a punch.
 
 ## Common Patterns
 

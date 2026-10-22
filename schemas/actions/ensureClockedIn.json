@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ensureClockedIn Action",
+  "type": "object",
+  "properties": {
+    "ensureClockedIn": {
+      "description": "Mobile time clock: ensure the employee is working before a data-changing action. Queued offline and never stops the action chain.",
+      "oneOf": [
+        { "type": "string", "description": "Trigger shorthand, for example leg.arrive." },
+        { "type": "object", "properties": { "trigger": { "type": "string", "description": "Template-resolved reason for the punch. Defaults to action." } }, "additionalProperties": false }
+      ]
+    }
+  },
+  "required": ["ensureClockedIn"],
+  "additionalProperties": false
+}

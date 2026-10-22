@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "requestLocationAccess Action",
+  "type": "object",
+  "properties": {
+    "requestLocationAccess": {
+      "type": "object",
+      "description": "Mobile time clock: request location access while working and restart tracking when granted. Never stops the action chain.",
+      "additionalProperties": false
+    }
+  },
+  "required": ["requestLocationAccess"],
+  "additionalProperties": false
+}
