@@ -449,10 +449,23 @@ export class ModuleValidator {
   private validateRoutes(
     routes: any[],
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    warnings: ValidationWarning[],
+    basePath = 'routes'
   ): void {
     routes.forEach((route, index) => {
-      const routePath = `routes[${index}]`;
+      const routePath = `${basePath}[${index}]`;
+      for (const oldProp of ['requiredPermissions', 'permissions']) {
+        if (route?.props && oldProp in route.props) {
+          warnings.push({
+            type: 'deprecated_property',
+            path: `${routePath}.props.${oldProp}`,
+            message: `Use "permission" instead of "${oldProp}" in route props`
+          });
+        }
+      }
+      if (Array.isArray(route?.children)) {
+        this.validateRoutes(route.children, errors, warnings, `${routePath}.children`);
+      }
       if (!route.path) {
         errors.push({
           type: 'missing_property',

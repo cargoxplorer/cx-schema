@@ -81,8 +81,18 @@
                 "description": "Icon class name"
               },
               "permission": {
-                "type": "string",
-                "description": "Required permission to access this route"
+                "$ref": "../schemas.json#/definitions/permissions",
+                "description": "Permission(s) required to open this route (string or array). The user must hold all of them."
+              },
+              "requiredPermissions": {
+                "$ref": "../schemas.json#/definitions/permissions",
+                "deprecated": true,
+                "description": "Deprecated: use \"permission\" instead."
+              },
+              "permissions": {
+                "$ref": "../schemas.json#/definitions/permissions",
+                "deprecated": true,
+                "description": "Deprecated: use \"permission\" instead."
               }
             },
             "required": ["title"],
