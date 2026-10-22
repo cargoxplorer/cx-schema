@@ -272,7 +272,8 @@ routes:
     props:
       title: { en-US: "..." }
       icon: "icon-name"
-      permission: "permission-name"
+      permission: "permission-name"        # String or array; gates the page on web and mobile
+                                           # (requiredPermissions / permissions are deprecated)
 
 components:
   - name: "ModuleName/ComponentName"       # Pattern: Module/Component
@@ -469,6 +470,8 @@ permissions:                                # Array
   - "ModuleName/Read"
   - "ModuleName/Update"
 ```
+On routes use only `props.permission` (string or array). `props.requiredPermissions` and
+`props.permissions` still work but `npx cxtms` warns `deprecated_property` for them.
 
 ### Async Select Component Pattern
 
