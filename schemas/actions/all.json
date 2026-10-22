@@ -30,6 +30,7 @@
     { "$ref": "vibrate.json" },
     { "$ref": "assistantContext.json" },
     { "$ref": "ensureClockedIn.json" },
-    { "$ref": "timePunch.json" }
+    { "$ref": "timePunch.json" },
+    { "$ref": "requestLocationAccess.json" }
   ]
 }

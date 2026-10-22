@@ -701,6 +701,7 @@ The mobile app keeps the employee's clock state and exposes it as the global tem
 | `stateSince` | When the current state started (ISO 8601) |
 | `clockedInAt` | When the current shift was clocked in (ISO 8601); null while `Off` |
 | `tracking` | `true` while location updates run (Working, `apps.telemetry` enabled, permission granted) |
+| `locationAccess` | `always` | `whileInUse` | `none` while Working with `apps.telemetry` enabled, null otherwise. `whileInUse` records only while the app runs |
 | `pending` | `true` while the employee's own punches are still queued on the device |
 | `shiftDuration` | Time since clock-in, breaks included (e.g. `"4 h 12 min"`); null while `Off`, refreshed every minute |
 | `stateDuration` | Time in the current state; null while `Off`, refreshed every minute |
@@ -709,6 +710,7 @@ Two actions change it. Both work offline (punches are queued):
 
 - **`ensureClockedIn`** — put in front of data-changing actions (arrive, complete, scan). Clocks the employee in when `Off` (with a toast; location tracking starts where `apps.telemetry` enables it), ends the break when `OnBreak`, otherwise only records activity. Never stops the chain. Value: the trigger string (`ensureClockedIn: leg.arrive`) or `{ trigger }`; templates allowed; default trigger `action`.
 - **`timePunch`** — manual punch: `{ type: ClockIn | ClockOut | BreakStart | BreakEnd, note? }` (both templates allowed). Valid transitions: `Off` → `ClockIn`; `Working` → `BreakStart` / `ClockOut`; `OnBreak` → `BreakEnd` / `ClockOut`. Any other punch shows a toast and stops the chain, as does a punch that could not be saved.
+- **`requestLocationAccess: {}`** — while `Working`, asks for location access again (the in-app explanation, then the OS prompt, or the app settings when the OS no longer asks) and restarts tracking. Does nothing otherwise; never stops the chain. Use it for a "tap to fix" banner shown while `locationAccess` is not `always`.
 
 ```yaml
 - component: text
@@ -721,6 +723,12 @@ Two actions change it. Both work offline (punches are queued):
     isHidden: "{{ eval clockState.state !== 'Working' }}"
     onClick:
       - timePunch: { type: BreakStart }
+- component: button
+  props:
+    label: "Location is limited — tap to fix"
+    isHidden: "{{ eval !clockState.locationAccess || clockState.locationAccess === 'always' }}"
+    onClick:
+      - requestLocationAccess: {}
 - component: button
   props:
     label: Arrive

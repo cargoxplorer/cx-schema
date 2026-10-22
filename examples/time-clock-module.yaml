@@ -30,6 +30,13 @@ components:
         - component: button
           props:
             label:
+              en-US: "Location is limited — tap to fix"
+            isHidden: "{{ eval !clockState.locationAccess || clockState.locationAccess === 'always' }}"
+            onClick:
+              - requestLocationAccess: {}
+        - component: button
+          props:
+            label:
               en-US: "Clock in"
             isHidden: "{{ eval clockState.state !== 'Off' }}"
             onClick:
