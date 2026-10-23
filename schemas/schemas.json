@@ -345,6 +345,11 @@
           "type": "boolean",
           "description": "Pre-expand parent rows on first load when childViews are configured; preserves user collapse/expand choices on refresh"
         },
+        "keepSelectionOnRefresh": {
+          "type": "boolean",
+          "default": false,
+          "description": "Retain and reconcile selected rows by entityKeys when an external refresh handler fires; deleted rows are removed from selection"
+        },
         "onRowClick": {
           "oneOf": [
             { "$ref": "#/definitions/actionsList" },

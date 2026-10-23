@@ -83,6 +83,7 @@ A non-empty `title` renders even when `enableToolbar: false`; `options.showHeade
 | `highlightUpdated` | `boolean` | `true` | Highlight rows with updated values |
 | `highlightForRefreshes` | `number` | `1` | Per-row TTL — refresh cycles a highlight persists |
 | `defaultExpandedRows` | `boolean` | `false` | Pre-expand parent rows once on first load when `childViews` exist; refreshes preserve user collapse/expand choices |
+| `keepSelectionOnRefresh` | `boolean` | `false` | Preserve selected rows across external refreshes and reconcile them by `entityKeys`; use `clearSelection: true` on a refresh action to reset explicitly |
 | `onRowClick` | `action[]` | — | Default row click action |
 | `onDataLoad` | `action[]` | — | Action after data loads |
 | `items` | `any` | — | Static data (instead of query) |
