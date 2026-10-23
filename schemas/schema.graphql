@@ -1470,7 +1470,69 @@ type ModeOfTransportationsCollectionSegment {
   totalCount: Int! @cost(weight: "10")
 }
 
+enum NotificationType {
+  System
+  OrderUpdate
+  TaskAssignment
+  Alert
+  Info
+}
+
+enum NotificationPriority {
+  Low
+  Normal
+  High
+  Urgent
+}
+
+type NotificationsCollectionSegment {
+  pageInfo: CollectionSegmentInfo!
+  items: [NotificationDto!]
+  totalCount: Int!
+}
+
+type NotificationDto {
+  notificationId: Int!
+  organizationId: Int!
+  title: String!
+  message: String
+  type: NotificationType!
+  priority: NotificationPriority!
+  targetUserId: String
+  entityType: String
+  entityId: String
+  expiresAt: DateTime
+  isRead: Boolean!
+  readAt: DateTime
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+}
+
+input MarkNotificationReadInput {
+  organizationId: Int!
+  notificationId: Int!
+}
+
+input MarkAllNotificationsReadInput {
+  organizationId: Int!
+  filter: String
+}
+
+type MarkNotificationReadPayload {
+  boolean: Boolean
+  query: Query!
+}
+
+type MarkAllNotificationsReadPayload {
+  int: Int
+  query: Query!
+}
+
 type Mutation {
+  markNotificationRead(input: MarkNotificationReadInput!): MarkNotificationReadPayload!
+  markAllNotificationsRead(input: MarkAllNotificationsReadInput!): MarkAllNotificationsReadPayload!
   createWorkflow(input: CreateWorkflowInput!): CreateWorkflowPayload!
     @cost(weight: "10")
   updateWorkflow(input: UpdateWorkflowInput!): UpdateWorkflowPayload!
@@ -2140,6 +2202,8 @@ type PublishAppManifestPayload {
 }
 
 type Query {
+  notifications(organizationId: Int!, filter: String, search: String, orderBy: String, skip: Int, take: Int): NotificationsCollectionSegment!
+  unreadNotificationCount(organizationId: Int!, filter: String): Int!
   workflow(organizationId: Int!, workflowId: UUID!): workflow
     @cost(weight: "10")
   workflows(
