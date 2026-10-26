@@ -51,7 +51,7 @@
         "executionMode": {
           "type": "string",
           "enum": ["Async", "Sync"],
-          "description": "Async (default) queues the transition as a background job and returns queued/jobId; Sync runs it immediately and returns the new state."
+          "description": "Sync (default) runs the transition immediately and returns the new state; Async queues it as a background job and returns queued/jobId."
         }
       },
       "additionalProperties": true
