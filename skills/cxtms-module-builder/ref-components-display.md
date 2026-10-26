@@ -718,6 +718,34 @@ props:
 
 ---
 
+## attachmentGallery
+
+Lightbox gallery for loaded attachment records or a complete paged DataGrid result. Row and dots-menu actions receive the grid's latest `gqlCommand`, so a dialog can preserve the active filter, search, sort, and result order.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `items` | `array \| string` | — | Records already in context; no query runs |
+| `query` | `string` | — | GraphQL query, commonly `{{ gqlCommand.query }}` |
+| `variables` | `object \| string` | — | Query variables, commonly `{{ gqlCommand.variables }}` |
+| `currentAttachmentId` | `string \| number` | first item | Attachment to open |
+| `urlField` | `string` | `presignedFileUri` | File URL path in each record |
+| `fileNameField` | `string` | `fileName` | Display-name path in each record |
+| `options.pageSize` | `number` | `10` | Page size used around the current file |
+| `options.height` | `string` | `70vh` | Lightbox height |
+
+```yaml
+component: attachmentGallery
+props:
+  query: "{{ gqlCommand.query }}"
+  variables: "{{ gqlCommand.variables }}"
+  currentAttachmentId: "{{ attachmentId }}"
+  options: { pageSize: 10, height: 70vh }
+```
+
+Use either `items` or `query`. Query responses follow the DataGrid shape: the first result field contains `items` and `totalCount`.
+
+---
+
 ## photo
 
 Camera capture component. Opens device camera, captures photos, uploads to S3.

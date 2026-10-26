@@ -791,6 +791,10 @@
         "$ref": "components/dataGrid.json"
       },
 
+      "attachmentGallery": {
+        "$ref": "components/attachmentGallery.json"
+      },
+
       "barcodeScanner": {
         "$ref": "components/barcodeScanner.json"
       },
