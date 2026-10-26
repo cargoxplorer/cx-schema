@@ -16,7 +16,7 @@ workflow:
   workflowId: "<uuid>"
   name: "Flow Workflow Name"
   workflowType: Flow                        # Required - identifies this as a Flow workflow
-  executionMode: Async
+  executionMode: Async                      # Async (default) | Sync - see "Execution Mode" below
   isActive: true
   priority: 75                              # 0-100, default 50
   tags: ["tag1"]
@@ -36,6 +36,15 @@ states: [...]                               # Required, at least 1 state
 transitions: [...]                          # Required, at least 1 transition
 aggregations: [...]                         # Optional
 ```
+
+### Execution Mode
+
+Flows default to `workflow.executionMode: Async`. Auto-transitions then run as background (Hangfire) jobs after the triggering save commits. Set `executionMode: Sync` to run them inline inside the save (the previous behavior).
+
+- Async jobs for the same entity can run concurrently; there is no per-entity ordering.
+- Each background transition that runs writes a workflow execution log entry (success or failure); errors before a transition runs (for example the Flow was deactivated) appear only in server logs.
+- Flow jobs are not retried automatically; a job interrupted by a server crash or restart is re-run from the entity's current state.
+- Manual transitions (`Flow/Transition@1` task, `executeFlowTransition` mutation) default to Sync: they run immediately and return the new state, whatever the Flow's own `executionMode`. Pass `executionMode: Async` to queue them as a background job; the call then returns `queued` and `jobId`. See `ref-other.md` for the task inputs and outputs.
 
 ## Entity Section
 
