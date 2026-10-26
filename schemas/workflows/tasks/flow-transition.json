@@ -47,6 +47,11 @@
         "transition": {
           "type": "string",
           "description": "Transition name to trigger"
+        },
+        "executionMode": {
+          "type": "string",
+          "enum": ["Async", "Sync"],
+          "description": "Async (default) queues the transition as a background job and returns queued/jobId; Sync runs it immediately and returns the new state."
         }
       },
       "additionalProperties": true
