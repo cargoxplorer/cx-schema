@@ -644,6 +644,8 @@ When `options.allowRemove` is enabled and the item count is above `minItems`, re
 | `showMoveButtons` | `boolean` | `false` | Show up/down move buttons for accessible reordering; requires `options.allowReorder` |
 | `label` | `ILocalizeString` | — | Enables a collection header; nested collections use a compact section header |
 | `itemTitle` | `string` | derived | Field path or template for the accordion row title |
+| `itemExpanded` | `string` | — | Per-row template for initial expansion; overrides `defaultExpanded` |
+| `scrollToExpanded` | `boolean \| string` | `false` | Scroll the first initially expanded row into view after rows load |
 | `itemIcon` | `string` | — | Icon name or per-item template rendered before the row title |
 | `itemSubtitle` | `string` | — | Per-item template for muted row metadata |
 | `itemBadges` | `{label,color?,when?}[]` | — | Inline semantic badges; colors: `danger`, `warning`, `info`, `success`, `primary`, `neutral` |

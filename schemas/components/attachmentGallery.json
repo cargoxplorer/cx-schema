@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "attachment-gallery-component",
+  "title": "Attachment Gallery Component",
+  "description": "A lightbox gallery over loaded attachment records or a paged DataGrid GraphQL result.",
+  "type": "object",
+  "required": ["component", "props"],
+  "properties": {
+    "component": { "const": "attachmentGallery" },
+    "name": { "type": "string" },
+    "props": {
+      "type": "object",
+      "properties": {
+        "items": { "description": "Attachment records or a template resolving to an array of records" },
+        "query": { "type": "string", "description": "GraphQL query for paged mode; commonly {{ gqlCommand.query }}" },
+        "variables": { "description": "Query variables object or template; commonly {{ gqlCommand.variables }}" },
+        "urlField": { "type": "string", "default": "presignedFileUri" },
+        "fileNameField": { "type": "string", "default": "fileName" },
+        "currentAttachmentId": { "description": "Attachment id to display first" },
+        "options": {
+          "type": "object",
+          "properties": {
+            "height": { "type": "string", "default": "70vh" },
+            "pageSize": { "type": "integer", "minimum": 1, "default": 10 }
+          },
+          "additionalProperties": true
+        }
+      },
+      "anyOf": [{ "required": ["items"] }, { "required": ["query"] }],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

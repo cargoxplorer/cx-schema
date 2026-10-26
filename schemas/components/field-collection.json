@@ -424,6 +424,8 @@
         },
         "itemTitle": { "type": "string", "description": "Field path or template used as the accordion row title" },
         "defaultExpanded": { "type": "boolean", "default": false },
+        "itemExpanded": { "type": "string", "description": "Per-row template for the initial accordion expansion state; overrides defaultExpanded" },
+        "scrollToExpanded": { "description": "Boolean or template that scrolls the first initially expanded row into view after rows load" },
         "itemIcon": { "type": "string", "description": "Icon name or per-item template rendered before the accordion row title" },
         "itemSubtitle": { "type": "string", "description": "Per-item template for muted row metadata" },
         "itemBadges": {
