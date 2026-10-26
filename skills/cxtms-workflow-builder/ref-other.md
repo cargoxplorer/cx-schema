@@ -119,10 +119,10 @@
     entityName: "Order"
     entityId: "{{ inputs.orderId }}"
     transition: "approve"
-    executionMode: Sync                     # Optional: Async | Sync (case-insensitive)
+    executionMode: Sync                     # Optional: Async | Sync (exactly these values)
 ```
 
-`executionMode` is optional. Without it the Flow's own `executionMode` applies (Async when unset). Async queues the transition as a background job; Sync runs it immediately. An invalid value fails the task with `Invalid executionMode '<value>' for Flow/Transition. Expected Async or Sync.`
+`executionMode` is optional and must be exactly `Async` or `Sync`. Without it the Flow's own `executionMode` applies (Async when unset). Async queues the transition as a background job; Sync runs it immediately. An invalid value fails the task with `Invalid executionMode '<value>' for Flow/Transition. Expected Async or Sync.`
 
 Outputs: `success`, `previousState`, `newState`, `error`, `queued` (bool), `jobId` (string, empty when not queued). When queued, `newState` is empty. The GraphQL mutation `executeFlowTransition` takes the same optional `executionMode` argument (`Async` | `Sync`) and returns `queued` and `jobId`. An error is still returned immediately if no active Flow for the entity defines the transition.
 

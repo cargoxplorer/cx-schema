@@ -42,8 +42,8 @@ aggregations: [...]                         # Optional
 Flows default to `workflow.executionMode: Async`. Auto-transitions then run as background (Hangfire) jobs after the triggering save commits. Set `executionMode: Sync` to run them inline inside the save (the previous behavior).
 
 - Async jobs for the same entity can run concurrently; there is no per-entity ordering.
-- Each background transition writes a workflow execution log entry (success or failure).
-- Flow jobs are not retried automatically.
+- Each background transition that runs writes a workflow execution log entry (success or failure); errors before a transition runs (for example the Flow was deactivated) appear only in server logs.
+- Flow jobs are not retried automatically; a job interrupted by a server crash or restart is re-run from the entity's current state.
 - Manual transitions (`Flow/Transition@1` task, `executeFlowTransition` mutation) also default to Async and return `queued` and `jobId`. Pass `executionMode: Sync` to run immediately and get the new state back. See `ref-other.md` for the task inputs and outputs.
 
 ## Entity Section
