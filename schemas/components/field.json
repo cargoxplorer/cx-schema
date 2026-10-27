@@ -237,6 +237,10 @@
           "$ref": "../schemas.json#/definitions/actionsList",
           "description": "Actions to execute when a value is selected in select-async fields"
         },
+        "skipOnSelectValueOnLoad": {
+          "type": "boolean",
+          "description": "For select-async fields, run onSelectValue and merge selectedItem only after a user selection, not when resolving a saved value or remounting. Defaults to false."
+        },
         "allowMultiple": {
           "type": "boolean",
           "description": "Toggle field multi-select mode (array value when true)."

@@ -490,6 +490,7 @@ If the key is missing or the Maps SDK fails to load, suggestions are unavailable
 | `onFocus` | Fires on focus |
 | `onKeyPress` | Fires on keypress (data: `key`, `keyCode`) |
 | `onSelectValue` | Fires on select-async value selection |
+| `skipOnSelectValueOnLoad` | For `select-async`, when `true`, fires `onSelectValue` and merges `selectedItem` only after a user pick, not while loading a saved value or remounting. Defaults to `false` |
 | `onEditClick` | Fires when edit icon clicked. Supported on `text`, `select-async`, and `autocomplete-async` fields when a single value is set. Passes current form values (with optional `valueFieldName`) to the action context |
 
 ```yaml
