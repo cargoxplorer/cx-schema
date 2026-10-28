@@ -4926,7 +4926,6 @@ type contactPaymentMethod {
   cardHolderName: String!
   contactId: Int!
   customerId: String!
-  paymentDataEncrypted: [Byte!]!
   description: String
   expDate: String!
   paymentType: PaymentType!

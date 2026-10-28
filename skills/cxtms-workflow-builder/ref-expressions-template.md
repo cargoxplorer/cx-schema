@@ -137,13 +137,13 @@ dynamicConfig:
   $eval: "{{ configJsonString }}"
 ```
 
-**`decrypt`** / **`encrypt`** -- AES-CBC encryption (optional key/IV, has defaults):
+**`decrypt`** / **`encrypt`** -- AES-CBC encryption. Both `key` and `initializationVector` are required; workflow templates never fall back to the server's internal encryption key:
 ```yaml
 apiKey:
   decrypt:
     encryptedValue: "{{ encryptedApiKey }}"
-    key: "{{ encryptionKey }}"             # optional Base64 AES key
-    initializationVector: "{{ iv }}"       # optional Base64 IV
+    key: "{{ encryptionKey }}"             # required Base64 AES key
+    initializationVector: "{{ iv }}"       # required Base64 IV
 ```
 
 ### Template-Substituted Dictionary Keys
