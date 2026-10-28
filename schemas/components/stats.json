@@ -23,20 +23,20 @@
               "caption": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
               "decimals": { "type": "number", "minimum": 0 },
               "emphasis": { "type": "boolean" },
-              "icon": { "type": "string", "description": "Cards variant: Tabler icon name or template." },
+              "icon": { "type": "string", "description": "Cards and chips variants: Tabler icon name or template." },
               "color": {
                 "type": "string",
                 "enum": ["primary", "secondary", "success", "info", "warning", "error"],
                 "default": "primary",
-                "description": "Cards variant: icon tile color."
+                "description": "Cards and chips variants: icon tile color."
               }
             },
             "additionalProperties": false
           }
         },
-        "variant": { "type": "string", "enum": ["row", "list", "cards"], "default": "row" },
+        "variant": { "type": "string", "enum": ["row", "list", "cards", "chips"], "default": "row" },
         "size": { "type": "string", "enum": ["sm", "md", "lg"], "default": "md", "description": "Value or card density; cards support compact sm sizing" },
-        "align": { "type": "string", "enum": ["start", "end"], "default": "start" },
+        "align": { "type": "string", "enum": ["start", "end"], "default": "start", "description": "Row and chips variants: horizontal alignment" },
         "className": { "type": "string" }
       },
       "additionalProperties": true
