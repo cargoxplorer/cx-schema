@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AttachmentGallery Component",
+  "type": "object",
+  "required": [
+    "component"
+  ],
+  "properties": {
+    "component": {
+      "const": "attachmentGallery"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name identifier for the gallery"
+    },
+    "props": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "description": "Already loaded records shown as is, no query is made: an array or a single-chunk template resolving to one, e.g. '{{ photos }}'"
+        },
+        "query": {
+          "type": "string",
+          "description": "GraphQL query that loads the records: a grid's '{{ gqlCommand.query }}'. Ignored when items is set"
+        },
+        "variables": {
+          "description": "Query variables: a grid's '{{ gqlCommand.variables }}'. The gallery first loads the page skip/take point at (take defaults to options.pageSize), then pages through the whole result with its own skip/take; the records are read from the first result field's items and totalCount"
+        },
+        "currentAttachmentId": {
+          "description": "attachmentId of the record to open first. Not found → the first record (with a query: the first record of the loaded page)"
+        },
+        "urlField": {
+          "type": "string",
+          "description": "Record field with the file URL to show. Default presignedFileUri"
+        },
+        "fileNameField": {
+          "type": "string",
+          "description": "Record field with the file name. Default fileName"
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "height": {
+              "type": "string",
+              "description": "Gallery height, e.g. 70vh. Default 70vh"
+            },
+            "pageSize": {
+              "type": "number",
+              "description": "Paged mode: records kept loaded on each side of the current one, and how many more are loaded at once when the user goes past them. Default 10"
+            }
+          },
+          "additionalProperties": true
+        },
+        "isHidden": {
+          "description": "Conditionally hide the gallery"
+        },
+        "permission": {
+          "description": "Permission(s) required to render the component: a permission string or an array of permission strings"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true,
+  "description": "Web only. Lightbox over a list of files: the current file (images; PDFs through the viewer), prev/next arrows and keys, an 'n / N' counter, a thumbnail strip and Download. Records come from items, or from query + variables — with a grid's gqlCommand it shows everything the grid's filter, search and sort match, not just the grid page.",
+  "x-examples": [
+    {
+      "component": "attachmentGallery",
+      "name": "attachmentsGallery",
+      "props": {
+        "query": "{{ galleryQuery }}",
+        "variables": "{{ galleryVariables }}",
+        "currentAttachmentId": "{{ attachmentId }}",
+        "options": {
+          "height": "70vh"
+        }
+      }
+    },
+    {
+      "component": "attachmentGallery",
+      "name": "eventPhotosGallery",
+      "props": {
+        "items": "{{ photos }}",
+        "currentAttachmentId": "{{ attachmentId }}"
+      }
+    }
+  ]
+}

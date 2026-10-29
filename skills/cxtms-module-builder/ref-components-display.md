@@ -11,6 +11,7 @@
 - Summary component
 - Diff component
 - Viewer component
+- AttachmentGallery component
 - Embed component
 
 ## dataGrid
@@ -772,6 +773,61 @@ props:
     enableDownload: true
     fileName: "invoice-{{ orderNumber }}.pdf"
     height: "800px"
+```
+
+---
+
+## attachmentGallery
+
+Web only. Lightbox over a list of files: the current file (images; PDFs through the viewer), prev/next arrows and ← / → keys, an `n / N` counter, a thumbnail strip and Download for the current file. Put it in a dialog to replace a one-file `viewer`.
+
+**Props:**
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `items` | `array \| template` | — | Already loaded records, shown as is; no query is made |
+| `query` | `string` | — | GraphQL query that loads the records: a grid's `{{ gqlCommand.query }}`. Ignored when `items` is set |
+| `variables` | `object \| template` | — | Query variables: a grid's `{{ gqlCommand.variables }}` |
+| `currentAttachmentId` | `any` | — | `attachmentId` of the record to open first; not found → the first one |
+| `urlField` | `string` | `presignedFileUri` | Record field with the file URL |
+| `fileNameField` | `string` | `fileName` | Record field with the file name |
+| `options.height` | `string` | `70vh` | Gallery height |
+| `options.pageSize` | `number` | `10` | Query mode: records kept loaded on each side of the current one, and how many more load at once past them |
+
+**Query mode:** the gallery first loads the page `skip`/`take` point at and opens on `currentAttachmentId` there, then pages through the **whole** result with its own `skip`/`take`: ±`pageSize` around the current file and the thumbnails scrolled into view. The total comes from `totalCount`, so the counter and the strip cover every file the grid's filter, search and sort match, not just the grid page. Records are read from the first result field's `items` and `totalCount` (the shape of grid queries); without `take` in the variables it pages by `pageSize`.
+
+**Opening from a grid:** dataGrid row actions (`onRowClick`, view `onRowClick`, `dotsMenu` items) get `gqlCommand` — the grid's current `query` and `variables` — along with the row data. Pass them to the dialog:
+
+```yaml
+onRowClick:
+  - dialog:
+      name: attachmentPreviewDialog
+      props:
+        title: { en-US: Attachments }
+        galleryQuery: "{{ gqlCommand.query }}"
+        galleryVariables: "{{ gqlCommand.variables }}"
+        attachmentId: "{{ attachmentId }}"
+      component:
+        layout:
+          component: layout
+          children:
+            - component: attachmentGallery
+              props:
+                query: "{{ galleryQuery }}"
+                variables: "{{ galleryVariables }}"
+                currentAttachmentId: "{{ attachmentId }}"
+                options:
+                  height: "70vh"
+      onClose:
+        - refresh: "attachments"
+```
+
+**From a loaded list** (e.g. a timeline event's photos):
+
+```yaml
+component: attachmentGallery
+props:
+  items: "{{ photos }}"
+  currentAttachmentId: "{{ attachmentId }}"
 ```
 
 ---
