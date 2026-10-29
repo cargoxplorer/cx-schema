@@ -175,6 +175,17 @@
                 "additionalProperties": false
               }
             },
+            "batch": {
+              "type": ["object", "null"],
+              "description": "Collect matching deliverable outbound creates into one pending transmission",
+              "properties": {
+                "key": { "type": "string", "minLength": 1, "maxLength": 200 },
+                "mode": { "type": ["string", "integer"], "enum": ["Merge", "Replace", 0, 1], "default": "Merge" },
+                "windowSeconds": { "type": "integer", "minimum": 1, "maximum": 300 }
+              },
+              "required": ["key", "windowSeconds"],
+              "additionalProperties": false
+            },
             "scheduledAt": {
               "type": ["string", "null"],
               "description": "Scheduled send time (ISO 8601)"

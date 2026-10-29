@@ -134,7 +134,7 @@ Levels: `Debug`, `Information`, `Warning`, `Error`.
 
 ## Error@1
 
-Throws a workflow error that halts execution (unless `continueOnError: true` on a parent step).
+Throws a user-facing workflow error that halts execution (unless `continueOnError: true` on a parent step). API callers receive the configured message unchanged, without a generic workflow-id prefix.
 
 ```yaml
 - task: "Utilities/Error@1"

@@ -96,7 +96,7 @@ A non-empty `title` renders even when `enableToolbar: false`; `options.showHeade
 
 ## stats
 
-`stats` renders read-only totals. Its `items` accept `label`, `value`, `unit`, `caption`, and `decimals`; `list` also supports `emphasis`. Use `variant: cards` for a responsive totals strip above a grid. Each card may set a templated Tabler `icon` and `color` (`primary`, `secondary`, `success`, `info`, `warning`, or `error`).
+`stats` renders read-only totals. Its `items` accept `label`, `value`, `unit`, `caption`, and `decimals`; `list` also supports `emphasis`. Use `variant: cards` for a responsive totals strip above a grid, or `variant: chips` for compact content-width summaries in toolbars and card headers. Cards and chips may set a templated Tabler `icon` and `color` (`primary`, `secondary`, `success`, `info`, `warning`, or `error`).
 
 ```yaml
 - component: stats

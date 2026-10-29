@@ -34,7 +34,7 @@
             "additionalProperties": false
           }
         },
-        "variant": { "type": "string", "enum": ["row", "list", "cards"], "default": "row" },
+        "variant": { "type": "string", "enum": ["row", "list", "cards", "chips"], "default": "row" },
         "size": { "type": "string", "enum": ["sm", "md", "lg"], "default": "md", "description": "Value or card density; cards support compact sm sizing" },
         "align": { "type": "string", "enum": ["start", "end"], "default": "start" },
         "className": { "type": "string" }

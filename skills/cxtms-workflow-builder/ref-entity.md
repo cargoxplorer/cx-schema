@@ -564,7 +564,9 @@ Records inbound/outbound message transmissions (EDI, API, Email, Webhook). Conta
       mapping: "success"
 ```
 
-**Create inputs:** `organizationId` (int, required), `transmission` object — optional `orderIds`; `contactId`; `channel` (required without `contactId`); `direction` (Inbound/Outbound, defaults to Outbound); `messageType`, `sender`, `receiver`, `status`, `endpoint`, `protocol`, `correlationId` (auto-generated if omitted), `parentId`, `httpStatus`, `byteSize`, `retryCount`, `maxRetries`, `nextRetryAt`, `errorCode`, `errorMessage`, `customValues`, `headers`, `payloadRef`, `payload`, `payloadContentType`, `attachments`, `scheduledAt`, `startedAt`, `completedAt`, `durationMs`. `payload` and `payloadRef` are mutually exclusive. Each attachment uses exactly one of `attachmentId`, `attachmentGuid`, `url`, or `data`; URL/data entries require `fileName`.
+**Create inputs:** `organizationId` (int, required), `transmission` object — optional `orderIds`; `contactId`; `channel` (required without `contactId`); `direction` (Inbound/Outbound, defaults to Outbound); `messageType`, `sender`, `receiver`, `status`, `endpoint`, `protocol`, `correlationId` (auto-generated if omitted), `parentId`, `httpStatus`, `byteSize`, `retryCount`, `maxRetries`, `nextRetryAt`, `errorCode`, `errorMessage`, `customValues`, `headers`, `payloadRef`, `payload`, `payloadContentType`, `attachments`, `batch`, `scheduledAt`, `startedAt`, `completedAt`, `durationMs`. `payload` and `payloadRef` are mutually exclusive. Each attachment uses exactly one of `attachmentId`, `attachmentGuid`, `url`, or `data`; URL/data entries require `fileName`.
+
+**Batching:** `batch: { key, mode, windowSeconds }` collects deliverable outbound creates for the same contact/message type/key into one pending row. `key` is required (max 200 chars), `windowSeconds` is 1–300 from the first create, and `mode` is `Merge` (default, JSON objects only) or `Replace`. Batch mode requires `contactId` + `messageType` and disallows `payloadRef`.
 
 **Create outputs:** `transmission` (full TransmissionDto).
 **Update inputs:** `organizationId`, `transmissionId`, `transmission` (dynamic partial fields).
