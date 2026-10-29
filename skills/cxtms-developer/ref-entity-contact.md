@@ -207,3 +207,12 @@ inputs:
 - `Contact.customValues` — contact-level custom fields
 - `ContactAddress.customValues` — address-level custom fields
 - `ContactPaymentMethod.customValues` — payment method custom fields
+
+### ContactPaymentMethod stored card fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `paymentDataEncrypted` | `Byte[]?` | Encrypted stored card data; never log or expose its plaintext value |
+| `paymentDataKeyVersion` | `Int32?` | Encryption key version; `null` denotes data written by the legacy encryption scheme |
+
+Stored card data uses versioned AES-256-GCM keys. Key rotation is handled by the backend's scheduled re-encryption job; application modules and workflows must not attempt to decrypt or rotate these values.
