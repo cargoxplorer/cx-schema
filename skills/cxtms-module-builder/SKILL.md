@@ -237,7 +237,7 @@ entities:
     quickSearch:                           # Optional: show this entity in the global quick search (Ctrl+K)
       enabled: true
       filter: "orderType: AirShipmentOrder" # Lucene, same syntax as grid filters
-      permission: AirShipments/Read          # Not enforced by the backend yet
+      permission: AirShipments/Read          # UI visibility gate for quick-search results
       matchFields: [orderNumber, trackingNumber]   # Allowed per entityKind: .cx-schema/quick-search-kinds.json
       select: [orderNumber, trackingNumber, billToContact.name, orderStatus.orderStatusName, customValues.hawb]
       groupLabel: { en-US: "Air Shipments" } # Defaults to displayName
@@ -254,6 +254,13 @@ permissions:
   - name: "ModuleName/Read"                   # PascalCase with slashes
     displayName: { en-US: "..." }
     roles: ["Admin", "Manager"]
+
+# To activate backend API enforcement, declare each exact API permission needed.
+# Pattern: System/<Entity>[/<Subtype>]/<Action>. Wildcards grant but do not enforce.
+# Configuration reads use List/Get; selected operational entities use Read.
+  - name: "System/Contact/Customer/Update"
+    displayName: { en-US: "Update customers through the API" }
+    roles: ["Administrator", "Manager"]
 
 configurations:                              # Optional: org-level config definitions
   - configName: "apps.myFeature"             # Unique config key
