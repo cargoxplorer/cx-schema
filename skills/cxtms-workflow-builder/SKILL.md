@@ -107,7 +107,8 @@ workflow:
   enableAudit: true
   filePath: "workflows/<name>.yaml"
   workflowType: Document | Quote | Flow | Webhook | PublicApi | McpTool | McpResource | McpPrompt | Agent | EmailTemplate | RulesTariff  # omit for standard process workflows
-  runAs: "system"                           # Optional elevated permissions
+  runAs: "system"                           # Optional elevated permissions; user-callable workflows also require permission
+  permission: "System/Store/Update"          # Required when users can directly call a SYSTEM workflow
   tags: ["tag1", "tag2"]
   concurrency:                              # Optional
     enabled: true
