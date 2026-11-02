@@ -40,6 +40,7 @@ config: "{{ fromJson configJsonString }}" # JSON string -> dict/array
 payload: "{{ toJson someObject }}"        # object -> JSON string
 name: "{{ trim value }}"
 search: "{{ luceneString query }}"        # escape & quote for Lucene
+secret: "{{ toSecret apiToken }}"        # secure Organization Config update value
 ```
 
 | Converter | Returns | Null handling |
@@ -59,7 +60,13 @@ search: "{{ luceneString query }}"        # escape & quote for Lucene
 | `fromJson` | `dict` or `array` | null. Empty string -> empty dict |
 | `toJson` | `string` | `""` if null |
 | `trim` | `string` | null |
+| `toSecret` | masked secret value | null for null/empty; rejects an already-secret token |
 | `toLocalTime` | `DateTime` or `string` | null. Syntax: `{{ toLocalTime path 'TimezoneId' 'format?' }}` |
+
+`toSecret` is only useful when its result is assigned to a `customValues` key handled by
+`OrganizationConfig/Update@1`. The handler writes the plaintext to the organization secret
+store and persists a `${secret:...}` reference. The wrapped value renders and serializes as
+`***` everywhere else, including logs, action events, JSON, and workflow outputs.
 
 ### Value Directives (in YAML input mappings)
 
