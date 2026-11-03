@@ -200,7 +200,7 @@ For NCalc conditions and functions: see [ref-expressions-ncalc.md](skills/cxtms-
 **`{{ path }}`** — in step inputs. Single `{{ }}` returns raw object. Multiple returns string interpolation. Supports sub-expressions `(variableName)` inside filter brackets for dynamic matching.
 **`[variable]`** — in conditions and `expression:` directives. NCalc syntax. **Warning**: empty strings are silently converted to `null` — always use `isNullOrEmpty()` instead of comparing to `''`. See [ref-expressions-ncalc.md](skills/cxtms-workflow-builder/ref-expressions-ncalc.md) Pitfalls section.
 **Value directives**: `expression`, `coalesce`, `foreach`, `switch`, `extends`, `$raw`, `$eval`, `resolve`, `decrypt`/`encrypt`
-**Type converters** (prefix in `{{ }}`): `int`, `decimal`, `bool`, `boolOrFalse`, `boolOrTrue`, `datetime`, `string`, `emptyIfNull`, `nullIfEmpty`, `luceneString`, `transliterate`, `transliterateUa`, `fromJson`, `toJson`, `trim`, `toLocalTime`
+**Type converters** (prefix in `{{ }}`): `int`, `decimal`, `double`, `bool`, `boolOrFalse`, `boolOrTrue`, `datetime`, `string`, `emptyIfNull`, `nullIfEmpty`, `luceneString`, `transliterate`, `transliterateUa`, `fromJson`, `toJson`, `trim`, `toLocalTime`
 **51 custom functions** + NCalc built-ins. Key ones: `isNullOrEmpty()`, `any()`, `all()`, `count()`, `sum()`, `first()`, `last()`, `contains()`, `join()`, `split()`, `format()`, `now()`, `addDays()`, `addHours()`, `dateDiff()`, `formatDate()`, `if()`, `groupBy()`, `concat()`, `distinct()`, `select()`, `zip()`, `regex()`, `fromJson()`
 
 ### Resolution Pipeline

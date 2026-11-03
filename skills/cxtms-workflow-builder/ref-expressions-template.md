@@ -31,6 +31,7 @@ inputs:
 ```yaml
 organizationId: "{{ int organizationId }}"
 amount: "{{ decimal totalAmount }}"
+latitude: "{{ double sourceLatitude }}"   # numeric value/string -> double (GraphQL Float)
 isActive: "{{ bool isActive }}"
 flag: "{{ boolOrFalse someFlag }}"        # null -> false
 flagOn: "{{ boolOrTrue someFlag }}"       # null -> true
@@ -47,6 +48,7 @@ search: "{{ luceneString query }}"        # escape & quote for Lucene
 | `string` | `string` | null. Reads `Stream` to string if value is Stream |
 | `int` | `int` | Throws on null |
 | `decimal` | `decimal` | Throws on null |
+| `double` | `double` | Throws on null |
 | `bool` | `bool` | Throws on null |
 | `boolOrFalse` | `bool` | `false` if null |
 | `boolOrTrue` | `bool` | `true` if null |
