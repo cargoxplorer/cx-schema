@@ -9,6 +9,8 @@ argument-hint: <entity name or question about fields>
 
 Shared domain reference for CXTMS entities. Used by `cxtms-workflow-builder` and `cxtms-module-builder` skills for entity field names, types, navigation properties, enums, and customValues extension patterns.
 
+For module permission declarations and API authorization behavior, read `ref-api-permissions.md`.
+
 ## Feature File Layout
 
 All modules and workflows are organized under feature directories:
