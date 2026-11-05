@@ -251,9 +251,9 @@ entities:
         navigate: "consolidatedShipments/AirShipmentOrder/{{ orderId }}"   # or dialog: Module/Component (opened in a dialog with the record key)
 
 permissions:
-  - name: "ModuleName/Read"                   # PascalCase with slashes
+  - name: "ModuleName/Read"                   # UI name, PascalCase with slashes. Server-side names: see "API permissions"
     displayName: { en-US: "..." }
-    roles: ["Admin", "Manager"]
+    roles: ["Administrator", "Manager"]
 
 configurations:                              # Optional: org-level config definitions
   - configName: "apps.myFeature"             # Unique config key
@@ -513,6 +513,56 @@ permissions:                                # Array
   - "ModuleName/Update"
 ```
 
+These are UI names: they show or hide components and routes. They do not satisfy the server's check on API calls. See "API permissions".
+
+### API permissions
+
+The server checks a separate set of names, `API/...`, on GraphQL, REST, MCP and agent-tool calls. A UI name never satisfies this check: a role holding `System/Contact/Store/Create` sees the Create button, and the mutation behind it still fails with `AUTH_NOT_AUTHORIZED` ("Missing permission API/Contact/Store/Create.", REST 403) until the role holds the API name. The check runs where the environment sets `ApiPermissions:Enabled=true`; `ApiPermissions:Mode=Audit` logs refusals instead of refusing.
+
+**Name format:** `API/<Entity>[/<Subtype>]/<Action>`, compared case-insensitively.
+
+- **Entity** is the singular entity name, without the operation's verb: `createContact` and `importContacts` both use `Contact`.
+- **Subtype** is the record's type, on writes to `Contact` (`ContactType`: `Store`, `PoolPoint`), `Order` (`OrderType`: `DeliveryOrder`), `Attachment` (`AttachmentType`: `Picture`), `Charge` (`ChargeType`), `AccountingTransaction` (`AccountingTransactionType`), `Rate` (`RateType`), `DispatchRoute` and `DispatchRouteTemplate` (`RouteType`). `Calendar` uses its free-text `CalendarType` only once a module declares a calendar subtype for that action.
+- **Action** is `Create`, `Update`, `Delete`, `Read`, `List`, `Get` or `Execute`.
+
+| Call | Name it needs |
+|------|---------------|
+| Create with a type | `API/Contact/Store/Create`. `API/Contact/Create` does not satisfy it |
+| Update or delete by id | The stored type: `deleteContact` on a Pool Point needs `API/Contact/PoolPoint/Delete` |
+| Soft delete or restore (an update that sets `isDeleted`) | `Delete` |
+| Change type A to B | `Update` + `Delete` on A, `Create` + `Update` on B |
+| Import, or a create with no type | Every subtype the organization declares for that action: `importContacts` needs `Create` on each type declared for `Create`, and `Update` on each type declared for `Update` (`API/Contact/Create` and `/Update` if it declares none) |
+| Child record (`deleteContactAddress`, commodity tags, order documents) | `Update` on the parent, with the parent's subtype: an address on a Store needs `API/Contact/Store/Update` |
+| Entity with no subtype | `API/Commodity/Update` |
+| Any field returning `Order`, `Commodity`, `InventoryItem` or `Attachment`, root or nested | `API/<Entity>/Read`, no subtype. Mutation payloads are not checked |
+| Root query of most other entities | `API/<Entity>/List` for many records, `API/<Entity>/Get` for one (`API/Contact/List`, `API/OrderStatus/Get`). Nested fields are not checked |
+| User runs a workflow | The workflow's `permission`; with none, `API/Workflow/Execute` |
+
+**A declaration grants; it does not switch anything on.** Every name a call needs is enforced whether or not a module declares it, and a name no role holds refuses everyone except system administrators (members of the System Administration organization, not an organization's `Administrator` role).
+
+- `roles` is the full list of who gets the name, and each name is granted on its own: `API/Contact/Store/Create` gives no `Update` or `Delete`.
+- Wildcards exist only under `API/` and only grant: `API/Contact/Store/*`, `API/Contact/*`, `API/*`. `API/Contact/*` stops at that entity: it does not cover `API/ContactAddress/List`. `API/*` grants no UI name. `System/Contact/*` grants no API name and no other UI name, and enforces nothing.
+- A misspelled name grants nothing and nothing reports the mistake: `npx cxtms` does not check names. The symptom is the role being refused; a refused write names the missing permission in its error.
+- Declaring a subtype raises the bar for calls of unknown type: once `API/Contact/Customer/Create` is declared, `importContacts` needs it too. Wildcards do not count as declaring a subtype.
+- An organization's `Administrator` role passes through the `API/*` that cx-app-core declares for it; there is no code bypass. Keep `Administrator` in `roles` like any other role.
+
+**When a module adds a screen or action:** a role needs both the UI name that shows it and the API names its calls need. For each query, mutation and workflow it calls, add one `permissions:` entry per API name from the table, with the same roles as the UI name. Use exact names for anything below full access: `API/Commodity/*` would also hand `Delete` to a role that only scans.
+
+```yaml
+permissions:
+  - name: System/Contact/Store/Create         # UI name: shows the button
+    displayName: { en-US: "Create Stores" }
+    roles: ["Administrator", "Store Manager"]
+  - name: API/Contact/Store/Create            # API name: lets the call through
+    displayName: { en-US: "API: Create Stores" }
+    description: { en-US: "Create stores through the API" }
+    roles: ["Administrator", "Store Manager"]
+```
+
+To restrict a call, list only the roles that may make it and check that no other role holds a covering wildcard.
+
+**Not checked:** system administrators, requests with no user (background jobs), and everything a workflow does once started (see `cxtms-workflow-builder`). Not every operation is gated yet; https://cxtms.com/docs/development/app-modules/api-permissions lists the current coverage.
+
 ### Async Select Component Pattern
 
 Reusable select components (e.g., `Countries/Select`, `Ports/Select`) follow this structure:
@@ -640,7 +690,7 @@ npx cxtms app release -m "Add warehouse locations module" --org 42
    - Module names: PascalCase (e.g., `WarehouseLocations`)
    - Component names: Module/Component pattern (e.g., `WarehouseLocations/List`)
    - Route paths: kebab-case (e.g., `/warehouse-locations`)
-   - Permission names: PascalCase with slashes (e.g., `WarehouseLocations/Read`, `System/Contacts/Update`)
+   - Permission names: PascalCase with slashes. UI names are free-form (e.g., `WarehouseLocations/Read`, `System/Contacts/Update`); API names use the singular entity, `API/<Entity>[/<Subtype>]/<Action>` (e.g., `API/Contact/Store/Update`). See "API permissions"
 4. **Template expressions** use `{{ expression }}` syntax (double curly braces); prefer built-in functions (`isEqual`, `any`, `isNullOrEmpty`, `format`, …) over `eval`, and write non-trivial `eval` expressions as multiline block scalars (`>-`) — see Template expressions
 5. **Include filePath** property pointing to the YAML file location
 6. **Set proper entityKind** when defining entities (Order, Contact, OrderEntity, AccountingTransaction, Job, Commodity, Calendar, CalendarEvent, CalendarAvailabilityBlock, AuditChangeEntry, Other); it is required for `quickSearch`
@@ -681,6 +731,7 @@ npx cxtms app release -m "Add warehouse locations module" --org 42
             name: orderTitle
             props: { value: "{{ order.orderNumber }}", type: h5 }
     ```
+14. **Declare the API names a screen calls** — a UI `permission` alone does not make the call succeed. See "API permissions"
 
 
 ## Reactive page titles

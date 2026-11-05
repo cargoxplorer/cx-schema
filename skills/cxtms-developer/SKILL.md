@@ -76,6 +76,10 @@ Use `--feature <feature_name>` with `cx-cli create` to automatically place files
 | **Warehouse** | InventoryItem, WarehouseLocation, CargoMovement (Order variant) | ref-entity-warehouse.md |
 | **Notification** | Notification, UserNotification | ref-entity-notification.md |
 
+## API Permissions
+
+API permission names are `API/<Entity>[/<Subtype>]/<Action>`: the singular entity name and, where the entity has one, the value of its type field as the subtype (`ContactType` in `API/Contact/PoolPoint/Delete`, `OrderType` in `API/Order/DeliveryOrder/Update`). Workflow tasks are not permission-checked. Rules and YAML: "API permissions" in `cxtms-module-builder`.
+
 ## CustomValues Pattern
 
 Most entities have `customValues` — a `Dictionary<string, object?>` stored as PostgreSQL `jsonb`:

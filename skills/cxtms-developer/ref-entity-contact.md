@@ -115,6 +115,10 @@ Contact CSV/import handling protects division scoping:
 | `ContactUser` | 14 | User associated with contact |
 | `USPPI` | 15 | US Principal Party in Interest |
 | `Port` | 16 | Port contact/location reference |
+| `TruckingCompany` | 17 | |
+| `DestinationAgent` | 18 | |
+
+These values are the `<Subtype>` in API permission names, e.g. `API/Contact/PoolPoint/Delete`. Rules: "API permissions" in `cxtms-module-builder`.
 
 ## ContactAddress Sub-Entity
 
