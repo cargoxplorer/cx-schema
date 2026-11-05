@@ -28,7 +28,11 @@ Actions are `Read`, `Create`, `Update`, `Delete`, `Execute`, and—on configurat
 
 GraphQL, REST, MCP, and agent writes share the same checks. Subtyped entities use the subtype permission when applicable. Ownership is always checked before the operation.
 
-Direct reads of `Order`, `Commodity`, `InventoryItem`, and `Attachment` require `API/<Entity>/Read`. Root reads of configuration and embedded entities use `API/<Entity>/List` for collections and `API/<Entity>/Get` for one record. This includes contacts, users, accounting entities, organization users/connections, workflows, app metadata, statuses, types, document templates, and entity fields. Nested GraphQL fields remain readable through an authorized parent.
+Direct reads of `Order`, `Commodity`, `InventoryItem`, and `Attachment` require `API/<Entity>/Read`. Root reads of configuration and embedded entities use `API/<Entity>/List` for collections and `API/<Entity>/Get` for one record. Coverage includes order children and tracking records; accounting; jobs, moves, dispatch routes, and routes; transmissions, knowledge assets, and action events; reference data; calendars; audit logs; access-control records; search results; and telemetry state. Nested GraphQL fields remain readable through an authorized parent.
+
+Order writes carry `OrderType` as a subtype, for example `API/Order/Freight/Update`; writes to order commodities, documents, and entities count as `Update` on the parent order. `Charge`, `AccountingTransaction`, and `Rate` likewise carry their configured type as the subtype. Imports require both `Create` and `Update`. Linking charges, assigning jobs, changing move legs or route-leg links, activating/reordering dispatch routes, and redelivering transmissions count as `Update` on the owning entity.
+
+The following stay open intentionally because they return caller-owned/bootstrap data or apply a separate check: `currentUser`, the caller's own `organizationUser` and clock state, app routes/components, notification reads, device registration, mobile telemetry/clock-in operations, workflow execution, Flow transitions, and agent-session ownership.
 
 ## Workflows
 
