@@ -17,7 +17,6 @@
         "Order/Import@1",
         "Order/RecalculateCharges@1",
         "Order/GenerateTrackingNumber@1",
-        "Order/Purge@1",
         "Order/GetCargoMovementByPalletQuery"
       ],
       "description": "Task type identifier"

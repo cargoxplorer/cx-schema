@@ -120,7 +120,6 @@ Creates draft dispatch routes for enabled templates whose `daysOfWeek` contains 
 | `Order/Get` | Get order by ID |
 | `Order/Copy` | Copy/duplicate an order |
 | `Order/Split` | Split order into multiple |
-| `Order/Purge` | Purge order data |
 | `Order/Import` | Import order from external data |
 | `Order/RecalculateCharges` | Recalculate all charges |
 | `Order/GenerateTrackingNumber` | Generate tracking number |
