@@ -90,6 +90,10 @@ MUI Button with icon, label, loading state, and action dispatch.
           variables: { id: "{{ number id }}" }
 ```
 
+On mobile, `confirm` may render a custom SDUI body with `children`; set `fullScreen: true` for a
+full-screen review. `confirmText` and `cancelText` accept localized labels. A plain title/message
+continues to use the native alert, and `onConfirm` / `onCancel` run after the user's choice.
+
 ---
 
 ## dropdown

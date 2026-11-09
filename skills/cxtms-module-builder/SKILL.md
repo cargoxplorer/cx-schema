@@ -315,7 +315,7 @@ onClick:
   - refresh: "componentName"                               # Refresh a component
   - reload: "formName"                                    # Refetch and replace a form's initial values
   - notification: { message: { en-US: "Saved!" }, type: success }  # success|error|warning|info
-  - confirm: { title: { en-US: "Delete?" }, message: { en-US: "Are you sure?" } }
+  - confirm: { title: { en-US: "Delete?" }, message: { en-US: "Are you sure?" }, confirmText: { en-US: "Delete" }, cancelText: { en-US: "Cancel" } }
   - mutation:
       command: "mutation M($input: MInput!) { m(input: $input) { result } }"
       variables: { input: "{{ form }}" }

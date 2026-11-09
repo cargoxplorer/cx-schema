@@ -7,12 +7,20 @@
       "type": "object",
       "properties": {
         "title": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
-        "message": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] }
+        "message": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }] },
+        "children": { "$ref": "../schemas.json#/definitions/componentChildren", "description": "Custom mobile dialog body; the dialog supplies its own Cancel and Confirm buttons" },
+        "fullScreen": { "type": "boolean", "description": "On mobile, fill the screen instead of showing a centered card" },
+        "confirmText": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }], "description": "Confirm button label; defaults to OK" },
+        "cancelText": { "oneOf": [{ "type": "string" }, { "$ref": "../schemas.json#/definitions/localized" }], "description": "Cancel button label; defaults to Cancel" },
+        "onConfirm": { "$ref": "../schemas.json#/definitions/actionsList" },
+        "onCancel": { "$ref": "../schemas.json#/definitions/actionsList" }
       },
       "x-examples": [
         {
           "title": { "en-US": "Delete Calendar" },
-          "message": { "en-US": "Are you sure you want to delete this calendar?" }
+          "message": { "en-US": "Are you sure you want to delete this calendar?" },
+          "confirmText": { "en-US": "Delete" },
+          "cancelText": { "en-US": "Keep" }
         }
       ]
     }
