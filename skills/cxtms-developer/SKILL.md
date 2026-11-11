@@ -65,7 +65,7 @@ Use `--feature <feature_name>` with `cx-cli create` to automatically place files
 | Category | Entities | Reference |
 |----------|----------|-----------|
 | **Primary** | Order, Contact, Commodity, AccountingTransaction | ref-entity-order/contact/commodity/accounting.md |
-| **Order sub** | OrderEntity, TrackingEvent, EventDefinition, LinkedOrder, OrderDocument | ref-entity-order-sub.md |
+| **Order sub** | OrderEntity, TrackingEvent, EventDefinition, OrderDocument | ref-entity-order-sub.md |
 | **Job** | Job, JobOrder, JobStatus | ref-entity-job.md |
 | **Dispatch routing** | DispatchRouteStatus, DispatchRouteTemplate, DispatchRoute, stops | ref-entity-dispatch-routing.md |
 | **Order moves** | OrderMove, OrderMoveLeg, move and leg statuses | ref-entity-dispatch-routing.md |
@@ -91,7 +91,7 @@ Most entities have `customValues` — a `Dictionary<string, object?>` stored as 
 
 **Primary entities**: Order, Contact, Commodity, AccountingTransaction, Charge, Payment
 
-**Sub-entities**: OrderEntity, OrderCommodity, ContactAddress, ContactPaymentMethod, CommodityType, CommodityTag, OrderTag, LinkedOrder, InventoryItemTag
+**Sub-entities**: OrderEntity, OrderCommodity, ContactAddress, ContactPaymentMethod, CommodityType, CommodityTag, OrderTag, InventoryItemTag
 
 **Lookup entities**: Job, JobStatus, DispatchRouteStatus, DispatchRouteTemplate, DispatchRoute, DispatchRouteStop, DispatchRouteTemplateStop, Tag, Attachment, EventDefinition, Rate, Lane, Discount, AccountingItem, Port, Country, State, City, ModeOfTransportation
 

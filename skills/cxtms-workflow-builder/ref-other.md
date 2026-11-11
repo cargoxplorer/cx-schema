@@ -1,7 +1,7 @@
 # Other Tasks Reference
 
 ## Contents
-- User & Auth tasks (User CRUD, verification codes, OAuth2 authentication)
+- User, verification & Auth tasks (User CRUD, current-user verification, OAuth2 authentication)
 - Caching tasks (SetCache and GetCache for in-memory key-value storage)
 - EDI & Structured File Parsing tasks (EDI/Parse for X12/EDIFACT, StructuredFile/Parse)
 - Flow/Transition task (trigger state machine transitions programmatically)
@@ -19,7 +19,16 @@
 | `User/GetVerificationCode` | Get phone verification code |
 | `User/GetEmailVerificationCode` | Get email verification code |
 | `User/GetResetPasswordToken` | Get password reset token |
+| `Verification/SendPhoneCode@1` | Set the current user's phone number and send a code |
+| `Verification/CheckPhoneCode@1` | Verify the current user's phone code |
+| `Verification/ConfirmAcknowledgement@1` | Record acknowledgement for the current user and contact |
+| `Verification/SendNewEmailCode@1` | Change the current user's email and send a verification code |
 | `Authentication/OAuth2` | Execute OAuth2 authentication flow |
+
+Verification tasks always act on the workflow's current user and do not accept a `userId`.
+`SendPhoneCode` requires `phoneNumber` and optionally accepts `sendingType` (default `sms`);
+`CheckPhoneCode` requires `verificationCode`; `SendNewEmailCode` requires `email` and
+`organizationId`; `ConfirmAcknowledgement` has no inputs. Each returns `result`.
 
 ```yaml
 - task: "Authentication/OAuth2"

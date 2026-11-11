@@ -81,7 +81,7 @@ Contact CSV/import handling protects division scoping:
 | `discounts` | `[Discount]` | Via ContactDiscount join |
 | `rates` | `[Rate]` | Carrier rates |
 | `additionalDivisions` | `[Division]` | Beyond primary division |
-| `orders` | `[Order]` | Via OrderCarrier |
+| `orders` | `[Order]` | Orders related through `OrderEntity` carrier roles |
 
 ## Computed/Resolved GraphQL Fields
 

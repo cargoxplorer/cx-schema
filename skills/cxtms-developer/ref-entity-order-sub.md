@@ -4,10 +4,9 @@
 - OrderEntity
 - TrackingEvent
 - EventDefinition
-- LinkedOrder
 - OrderDocument
 
-Entities associated with orders: OrderEntity (parties), TrackingEvent, LinkedOrder, OrderDocument.
+Entities associated with orders: OrderEntity (parties), TrackingEvent, EventDefinition, and OrderDocument.
 
 ## OrderEntity
 
@@ -112,28 +111,6 @@ Template/type definition for tracking events.
 | Resolver | Arguments | Returns | Description |
 |----------|-----------|---------|-------------|
 | `getContact` | `customValuesKey: String!` | `Contact` | Looks up a Contact by ID stored in `customValues[key]` |
-
----
-
-## LinkedOrder
-
-Links between orders (source → target).
-
-### Fields
-
-| Field | Type | Notes |
-|-------|------|-------|
-| `sourceOrderId` | `int` | FK to Order (source) |
-| `targetOrderId` | `int` | FK to Order (target) |
-| `isDeleted` | `bool` | Soft delete |
-| `customValues` | `Dictionary` | jsonb |
-
-### Navigation
-
-| Field | Type |
-|-------|------|
-| `sourceOrder` | `Order` |
-| `targetOrder` | `Order` |
 
 ---
 

@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Current-user verification tasks",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "Verification/SendPhoneCode",
+        "Verification/CheckPhoneCode",
+        "Verification/ConfirmAcknowledgement",
+        "Verification/SendNewEmailCode"
+      ]
+    },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "conditions": { "type": "array" },
+    "continueOnError": { "type": "boolean" },
+    "inputs": {
+      "type": "object",
+      "properties": {
+        "phoneNumber": { "type": "string" },
+        "sendingType": { "type": "string", "default": "sms" },
+        "verificationCode": { "type": "string" },
+        "email": { "type": "string" },
+        "organizationId": { "type": ["integer", "string"] }
+      },
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "mapping": { "type": "string" }
+        },
+        "required": ["name", "mapping"]
+      }
+    }
+  },
+  "required": ["task"],
+  "additionalProperties": true
+}
