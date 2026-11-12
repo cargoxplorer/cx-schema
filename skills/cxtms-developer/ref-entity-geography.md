@@ -148,6 +148,8 @@ Organization-scoped terminal / operating location (facility record). Optional Po
 
 **Navigation:** `carrier`, `country`. No customValues.
 
+Vessels are unique within an organization by `(name, countryCode, vesselCode)`. Name matching is case-insensitive and trims surrounding whitespace. Blank country and vessel codes are normalized to `null`, and null values are treated as equal for uniqueness. Create, update, dynamic update, and import operations reject duplicate combinations.
+
 ---
 
 ## CustomCode

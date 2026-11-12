@@ -417,7 +417,7 @@ the common cases — use them first. Reach for `eval` only when nothing below fi
 | `elapsed` | `{{ elapsed arrivedAt departedAt }}` | Elapsed hours/minutes (`1h 05m`); optional end path, otherwise now |
 | `isDateBefore` / `isDateAfter` | `{{ isDateBefore pickupDate deliveryDate }}` | Date comparison |
 | `hasPermission` | `{{ hasPermission Orders/Update }}` | Current user permission check |
-| `fromConfig` | `{{ fromConfig apps.myFeature key }}` | Organization config lookup |
+| `fromConfig` | `{{ fromConfig apps.myFeature key }}` | Organization config lookup. App components batch declared configs through `organizationConfig`, requiring `API/OrganizationConfig/Get`; missing or unauthorized configs resolve to name-only objects. |
 | `localStorage` / `sessionStorage` | `{{ localStorage recentSearch }}` | Browser storage read |
 | `parse` | `{{ parse configs.labelTemplate }}` | Re-parse a template stored in a variable |
 
