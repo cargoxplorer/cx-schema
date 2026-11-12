@@ -1,5 +1,9 @@
 # GraphQL Query Reference
 
+## Blocked email domains
+
+System administrators can query the global registration deny-list with `blockedEmailDomains(organizationId, search)`. The organization must be the System Administration organization. Results use offset paging and expose `blockedEmailDomainId`, `domain`, `isActive`, `created`, and `createdBy`. Mutations `createBlockedEmailDomain`, `updateBlockedEmailDomain`, `deleteBlockedEmailDomain`, and `importBlockedEmailDomains` maintain the list; imports report `added`, `skipped`, and `failed` counts and preserve existing rows.
+
 ## CLI Query Command
 
 ```bash

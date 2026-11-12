@@ -45,15 +45,6 @@ type AddUserToUserGroupPayload {
 }
 
 "A segment of a collection."
-type AllLinkedOrdersCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [linkedOrders!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-"A segment of a collection."
 type AllOrderAttachmentsCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
@@ -168,7 +159,8 @@ type ApplicationUserRolesCollectionSegment {
 
 type AttachmentGqlDto {
   getParentOrder: order @cost(weight: "10")
-  getPresignedUri(expiresInDays: Int!, uriType: String!, download: Boolean = false): String
+  links: [AttachmentLinkGqlDto!]! @cost(weight: "10")
+  getPresignedUri(expiresInDays: Int!, uriType: String!): String
     @cost(weight: "10")
   attachmentId: Int!
   attachmentGuid: UUID
@@ -192,8 +184,12 @@ type AttachmentGqlDto {
   isPdf: Boolean
   updatedUser: user!
   createdUser: user!
-  orders(where: orderFilterInput @cost(weight: "10")): [order!]!
   customValues: MapOfObject
+}
+
+type AttachmentLinkGqlDto {
+  entityType: AttachmentParentType!
+  entityId: String!
 }
 
 "A segment of a collection."
@@ -1151,6 +1147,11 @@ type DeleteWorkflowPayload {
   query: Query!
 }
 
+type DisableTwoFactorPayload {
+  boolean: Boolean
+  query: Query!
+}
+
 "A segment of a collection."
 type DiscountsCollectionSegment {
   "Information to aid in pagination."
@@ -1215,6 +1216,11 @@ type EmailAttachmentGqlDto {
   previewUri: String
 }
 
+type EnableTwoFactorPayload {
+  recoveryCodes: [String!]!
+  query: Query!
+}
+
 "A segment of a collection."
 type EntityFieldsCollectionSegment {
   "Information to aid in pagination."
@@ -1263,6 +1269,13 @@ type ExportResult {
 type FromConfigValue {
   configName: String
   key: String
+}
+
+type GenerateTwoFactorSetupPayload {
+  sharedKey: String!
+  authenticatorUri: String!
+  qrCodeDataUri: String!
+  query: Query!
 }
 
 type GroupedOrderCommoditySummaryGqlDto {
@@ -1353,15 +1366,6 @@ type ImportStatesPayload {
   query: Query!
 }
 
-"A segment of a collection."
-type IncomingLinkedOrdersCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [linkedOrders!]
-  totalCount: Int! @cost(weight: "10")
-}
-
 type InstallAppManifestPayload {
   appManifest: appManifest
   query: Query!
@@ -1378,6 +1382,8 @@ type InventoryItemsCollectionSegment {
 
 type Job {
   getJobOrders(filter: String): [order] @cost(weight: "10")
+  getJobAttachments(filter: String, orderBy: String): [AttachmentGqlDto]
+    @cost(weight: "10")
   jobId: UUID!
   created: DateTime!
   createdBy: String!
@@ -1444,6 +1450,11 @@ type LanesCollectionSegment {
   totalCount: Int! @cost(weight: "10")
 }
 
+type LinkAttachmentPayload {
+  attachmentGqlDto: AttachmentGqlDto
+  query: Query!
+}
+
 type LinkDto {
   href: String!
   rel: String!
@@ -1470,69 +1481,7 @@ type ModeOfTransportationsCollectionSegment {
   totalCount: Int! @cost(weight: "10")
 }
 
-enum NotificationType {
-  System
-  OrderUpdate
-  TaskAssignment
-  Alert
-  Info
-}
-
-enum NotificationPriority {
-  Low
-  Normal
-  High
-  Urgent
-}
-
-type NotificationsCollectionSegment {
-  pageInfo: CollectionSegmentInfo!
-  items: [NotificationDto!]
-  totalCount: Int!
-}
-
-type NotificationDto {
-  notificationId: Int!
-  organizationId: Int!
-  title: String!
-  message: String
-  type: NotificationType!
-  priority: NotificationPriority!
-  targetUserId: String
-  entityType: String
-  entityId: String
-  expiresAt: DateTime
-  isRead: Boolean!
-  readAt: DateTime
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-}
-
-input MarkNotificationReadInput {
-  organizationId: Int!
-  notificationId: Int!
-}
-
-input MarkAllNotificationsReadInput {
-  organizationId: Int!
-  filter: String
-}
-
-type MarkNotificationReadPayload {
-  boolean: Boolean
-  query: Query!
-}
-
-type MarkAllNotificationsReadPayload {
-  int: Int
-  query: Query!
-}
-
 type Mutation {
-  markNotificationRead(input: MarkNotificationReadInput!): MarkNotificationReadPayload!
-  markAllNotificationsRead(input: MarkAllNotificationsReadInput!): MarkAllNotificationsReadPayload!
   createWorkflow(input: CreateWorkflowInput!): CreateWorkflowPayload!
     @cost(weight: "10")
   updateWorkflow(input: UpdateWorkflowInput!): UpdateWorkflowPayload!
@@ -1951,6 +1900,10 @@ type Mutation {
     @cost(weight: "10")
   updateAttachment(input: UpdateAttachmentInput!): UpdateAttachmentPayload!
     @cost(weight: "10")
+  linkAttachment(input: LinkAttachmentInput!): LinkAttachmentPayload!
+    @cost(weight: "10")
+  unlinkAttachment(input: UnlinkAttachmentInput!): UnlinkAttachmentPayload!
+    @cost(weight: "10")
   deleteAttachment(input: DeleteAttachmentInput!): DeleteAttachmentPayload!
     @cost(weight: "10")
   createAppModule(input: CreateAppModuleInput!): CreateAppModulePayload!
@@ -2009,6 +1962,16 @@ type Mutation {
   deleteAccountingAccount(
     input: DeleteAccountingAccountInput!
   ): DeleteAccountingAccountPayload! @cost(weight: "10")
+  generateTwoFactorSetup: GenerateTwoFactorSetupPayload! @cost(weight: "10")
+  enableTwoFactor(input: EnableTwoFactorInput!): EnableTwoFactorPayload! @cost(weight: "10")
+  disableTwoFactor(input: DisableTwoFactorInput!): DisableTwoFactorPayload! @cost(weight: "10")
+  regenerateTwoFactorRecoveryCodes(input: RegenerateTwoFactorRecoveryCodesInput!): RegenerateTwoFactorRecoveryCodesPayload! @cost(weight: "10")
+  revokeUserSession(input: RevokeUserSessionInput!): RevokeUserSessionPayload! @cost(weight: "10")
+  revokeAllUserSessions: RevokeAllUserSessionsPayload! @cost(weight: "10")
+  createTimePunch(input: CreateTimePunchInput!): CreateTimePunchPayload! @cost(weight: "10")
+  ensureClockedIn(input: EnsureClockedInInput!): EnsureClockedInPayload! @cost(weight: "10")
+  voidTimePunch(input: VoidTimePunchInput!): VoidTimePunchPayload! @cost(weight: "10")
+  createTelemetryRecords(input: CreateTelemetryRecordsInput!): CreateTelemetryRecordsPayload! @cost(weight: "10")
 }
 
 "A segment of a collection."
@@ -2044,6 +2007,15 @@ type OrderEntitiesCollectionSegment {
   pageInfo: CollectionSegmentInfo!
   "A flattened list of the items."
   items: [orderEntity!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+"A segment of a collection."
+type OrderMoveLegsCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [orderMoveLeg!]
   totalCount: Int! @cost(weight: "10")
 }
 
@@ -2115,15 +2087,6 @@ type OrganizationsCollectionSegment {
   pageInfo: CollectionSegmentInfo!
   "A flattened list of the items."
   items: [organization!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-"A segment of a collection."
-type OutgoingLinkedOrdersCollectionSegment {
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  "A flattened list of the items."
-  items: [linkedOrders!]
   totalCount: Int! @cost(weight: "10")
 }
 
@@ -2202,8 +2165,6 @@ type PublishAppManifestPayload {
 }
 
 type Query {
-  notifications(organizationId: Int!, filter: String, search: String, orderBy: String, skip: Int, take: Int): NotificationsCollectionSegment!
-  unreadNotificationCount(organizationId: Int!, filter: String): Int!
   workflow(organizationId: Int!, workflowId: UUID!): workflow
     @cost(weight: "10")
   workflows(
@@ -2659,6 +2620,22 @@ type Query {
       requireOneSlicingArgument: false
     )
     @cost(weight: "10")
+  orderMoveLegs(
+    skip: Int
+    take: Int
+    organizationId: Int!
+    filter: String
+    search: String
+    orderBy: String
+  ): OrderMoveLegsCollectionSegment
+    @listSize(
+      assumedSize: 10000
+      slicingArguments: ["take"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["items"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
   orderStatus(organizationId: Int!, orderStatusId: Int!): orderStatus
     @cost(weight: "10")
   orderStatuses(
@@ -2822,56 +2799,6 @@ type Query {
     search: String
     orderBy: String
   ): ModeOfTransportationsCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-  linkedOrder(sourceOrderId: Int!, targetOrderId: Int!): linkedOrders
-    @cost(weight: "10")
-  allLinkedOrders(
-    skip: Int
-    take: Int
-    orderId: Int
-    filter: String
-    search: String
-    orderBy: String
-  ): AllLinkedOrdersCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-  outgoingLinkedOrders(
-    skip: Int
-    take: Int
-    orderId: Int!
-    filter: String
-    search: String
-    orderBy: String
-  ): OutgoingLinkedOrdersCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-  incomingLinkedOrders(
-    skip: Int
-    take: Int
-    orderId: Int!
-    filter: String
-    search: String
-    orderBy: String
-  ): IncomingLinkedOrdersCollectionSegment
     @listSize(
       assumedSize: 10000
       slicingArguments: ["take"]
@@ -3787,8 +3714,6 @@ type Query {
     @cost(weight: "10")
   routeForOrder(idPropertyName: String!): route @cost(weight: "10")
   relatedOrderByProperty(idPropertyName: String!): order @cost(weight: "10")
-  outgoingOrderLinks: [linkedOrders!]! @cost(weight: "10")
-  incomingOrderLinks: [linkedOrders!]! @cost(weight: "10")
   accountingTransaction(
     organizationId: Int!
     accountingTransactionId: Int!
@@ -3852,6 +3777,16 @@ type Query {
       requireOneSlicingArgument: false
     )
     @cost(weight: "10")
+  twoFactorRecoveryCodesRemaining: Int! @cost(weight: "10")
+  userSessions: [UserSession!]! @cost(weight: "10")
+  timePunch(organizationId: Int! timePunchId: Int!): timePunch @cost(weight: "10")
+  timePunches(skip: Int take: Int organizationId: Int! filter: String search: String orderBy: String): TimePunchesCollectionSegment @listSize(assumedSize: 10000, slicingArguments: [ "take" ], slicingArgumentDefaultValue: 10, sizedFields: [ "items" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  getShiftSummary(organizationId: Int! employeeContactId: Int! from: DateTime! to: DateTime!): shiftSummary! @cost(weight: "10")
+  employeeClockStates(skip: Int take: Int organizationId: Int! filter: String search: String orderBy: String): EmployeeClockStatesCollectionSegment @listSize(assumedSize: 10000, slicingArguments: [ "take" ], slicingArgumentDefaultValue: 10, sizedFields: [ "items" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  getCurrentClockState(organizationId: Int!): employeeClockState @cost(weight: "10")
+  telemetrySources(skip: Int take: Int organizationId: Int! filter: String orderBy: String): TelemetrySourcesCollectionSegment @listSize(assumedSize: 10000, slicingArguments: [ "take" ], slicingArgumentDefaultValue: 10, sizedFields: [ "items" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  telemetrySubjectStates(skip: Int take: Int organizationId: Int! filter: String search: String orderBy: String): TelemetrySubjectStatesCollectionSegment @listSize(assumedSize: 10000, slicingArguments: [ "take" ], slicingArgumentDefaultValue: 10, sizedFields: [ "items" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  telemetryRecords(skip: Int take: Int organizationId: Int! filter: String orderBy: String): TelemetryRecordsCollectionSegment @listSize(assumedSize: 10000, slicingArguments: [ "take" ], slicingArgumentDefaultValue: 10, sizedFields: [ "items" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 "A segment of a collection."
@@ -3870,6 +3805,21 @@ type RatesCollectionSegment {
   "A flattened list of the items."
   items: [rate!]
   totalCount: Int! @cost(weight: "10")
+}
+
+type RegenerateTwoFactorRecoveryCodesPayload {
+  recoveryCodes: [String!]!
+  query: Query!
+}
+
+type RevokeAllUserSessionsPayload {
+  int: Int
+  query: Query!
+}
+
+type RevokeUserSessionPayload {
+  boolean: Boolean
+  query: Query!
 }
 
 "A segment of a collection."
@@ -3958,6 +3908,11 @@ type TrackingEventsCollectionSegment {
   "A flattened list of the items."
   items: [trackingEvent!]
   totalCount: Int! @cost(weight: "10")
+}
+
+type UnlinkAttachmentPayload {
+  attachmentGqlDto: AttachmentGqlDto
+  query: Query!
 }
 
 type UpdateAccountingAccountPayload {
@@ -4807,7 +4762,6 @@ type contact {
     @cost(weight: "10")
   getCustomValuesAttachment(filter: String): AttachmentGqlDto
     @cost(weight: "10")
-  getEquipment(idPropertyName: String!): equipment @cost(weight: "10")
   availableCredit: [AvailableCreditByCurrency] @cost(weight: "10")
   contactId: Int!
   accountNumber: String
@@ -5249,19 +5203,6 @@ type lane {
   createdUser: user!
 }
 
-type linkedOrders {
-  sourceOrderId: Int!
-  targetOrderId: Int!
-  isDeleted: Boolean!
-  customValues: MapOfObject
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-  sourceOrder: order!
-  targetOrder: order!
-}
-
 type modeOfTransportation {
   modeOfTransportationId: Int!
   created: DateTime!
@@ -5293,10 +5234,6 @@ type order {
   getRelatedOrders(filter: String): [order] @cost(weight: "10")
   getOrderJobsRelatedOrders(filter: String): [order] @cost(weight: "10")
   getOrderAttachments(filter: String): [AttachmentGqlDto] @cost(weight: "10")
-  getOrderMoves(filter: String, orderBy: String): [orderMove]
-    @cost(weight: "10")
-  getOrderMove(filter: String, orderBy: String): orderMove
-    @cost(weight: "10")
   getOrderEntityByType(
     idPropertyName: String!
     customValuesKey: String
@@ -5314,8 +5251,6 @@ type order {
     @cost(weight: "10")
   getRoute(idPropertyName: String!): route @cost(weight: "10")
   getRelatedOrderByProperty(idPropertyName: String): order @cost(weight: "10")
-  outgoingLinks: [linkedOrders] @cost(weight: "10")
-  incomingLinks: [linkedOrders] @cost(weight: "10")
   orderId: Int!
   isDraft: Boolean
   billToContactId: Int
@@ -5348,9 +5283,6 @@ type order {
   orderEntities(
     where: orderEntityFilterInput @cost(weight: "10")
   ): [orderEntity!]!
-  orderCarriers(
-    where: orderCarrierFilterInput @cost(weight: "10")
-  ): [orderCarrier!]!
   orderEntityCarriers: [orderEntity!]!
   orderEntityVendors: [orderEntity!]!
   orderEntityPickups: [orderEntity!]!
@@ -5383,19 +5315,11 @@ type order {
   attachments(
     where: AttachmentGqlDtoFilterInput @cost(weight: "10")
   ): [AttachmentGqlDto!]
-  carriers(where: contactFilterInput @cost(weight: "10")): [contact!]!
   updatedUser: user!
   createdUser: user!
   commoditySummary: commoditySummary!
   accountingSummary: accountingSummary!
   links: [LinkDto!]!
-}
-
-type orderCarrier {
-  orderCarrierId: Int!
-  orderId: Int!
-  carrierId: Int!
-  carrier: contact!
 }
 
 type orderCommodity {
@@ -5455,6 +5379,64 @@ type orderEntity {
   attachments(
     where: AttachmentGqlDtoFilterInput @cost(weight: "10")
   ): [AttachmentGqlDto!]!
+}
+
+type orderMove {
+  orderMoveId: Int!
+  organizationId: Int!
+  orderId: Int!
+  order: order
+  sequence: Int!
+  name: String
+  assignedDriverContactId: Int
+  assignedDriverContact: contact
+  assignedDriverAt: DateTime
+  orderMoveStatusId: Int
+  orderMoveStatus: orderMoveStatus
+  startDate: DateTime
+  endDate: DateTime
+  orderMoveLegs(
+    where: orderMoveLegFilterInput @cost(weight: "10")
+  ): [orderMoveLeg!]
+  trackingEvents(
+    where: trackingEventFilterInput @cost(weight: "10")
+  ): [trackingEvent!]
+  dispatchRouteStops(
+    where: dispatchRouteStopFilterInput @cost(weight: "10")
+  ): [dispatchRouteStop!]
+  customValues: MapOfObject
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+  createdUser: user!
+  updatedUser: user!
+}
+
+type orderMoveLeg {
+  getAddress(idPropertyName: String!): contactAddress @cost(weight: "10")
+  getEquipment(idPropertyName: String!): equipment @cost(weight: "10")
+  orderMoveLegId: Int!
+  orderMoveId: Int!
+  orderMove: orderMove
+  sequence: Int!
+  name: String
+  orderMoveLegStatusId: Int
+  orderMoveLegStatus: orderMoveLegStatus
+  startDate: DateTime
+  endDate: DateTime
+  customValues: MapOfObject
+  trackingEvents(
+    where: trackingEventFilterInput @cost(weight: "10")
+  ): [trackingEvent!]
+  isDeleted: Boolean!
+  created: DateTime!
+  createdBy: String!
+  lastModified: DateTime!
+  lastModifiedBy: String!
+  createdUser: user!
+  updatedUser: user!
 }
 
 type orderStatus {
@@ -5819,6 +5801,10 @@ type state {
 }
 
 type trackingEvent {
+  getTrackingEventAttachments(
+    filter: String
+    orderBy: String
+  ): [AttachmentGqlDto] @cost(weight: "10")
   trackingEventId: Int!
   created: DateTime!
   createdBy: String!
@@ -5837,6 +5823,15 @@ type trackingEvent {
   createdUser: user!
 }
 
+type UserSession {
+  userSessionId: Int!
+  deviceLabel: String
+  ipAddress: String
+  created: DateTime!
+  lastSeenAt: DateTime!
+  isCurrent: Boolean!
+}
+
 type user {
   permissions(organizationId: Int!): [AppPermissionGqlDto] @cost(weight: "10")
   contact(organizationId: Int!): contact @cost(weight: "10")
@@ -5850,6 +5845,7 @@ type user {
   acknowledgementConfirmed: Boolean!
   phoneNumber: String
   phoneNumberConfirmed: Boolean!
+  twoFactorEnabled: Boolean!
   isInactive: Boolean!
   created: DateTime
   lastModified: DateTime
@@ -6062,8 +6058,12 @@ input AttachmentGqlDtoFilterInput {
   isPdf: BooleanOperationFilterInput
   updatedUser: userFilterInput
   createdUser: userFilterInput
-  orders: ListFilterInputTypeOforderFilterInput
   customValues: ListFilterInputTypeOfKeyValuePairOfStringAndObjectFilterInput
+}
+
+input AttachmentLinkInput {
+  entityType: AttachmentParentType!
+  entityId: String!
 }
 
 input AttachmentParentTypeOperationFilterInput {
@@ -6114,6 +6114,11 @@ input CarrierEquipmentDtoInput {
 input ChangePasswordUserInput {
   userId: String!
   password: String!
+  "Required to change your own password."
+  currentPassword: String
+  "Required with the current password when two-factor authentication is on."
+  twoFactorCode: String
+  signOutOtherDevices: Boolean @deprecated(reason: "Ignored: a password change always signs out every other session.")
 }
 
 input ChargeStatusOperationFilterInput {
@@ -6350,6 +6355,7 @@ input CreateAttachmentCommandValuesInput {
   bytesArray: [Byte!]
   fileUrl: String
   customValues: [MapOfObject!]
+  links: [AttachmentLinkInput!]
 }
 
 input CreateAttachmentInput {
@@ -6865,7 +6871,6 @@ input CreateOrderCommandValuesInput {
   charges: [CreateChargeCommandInput!]!
   trackingEvents: [CreateTrackingEventCommandInput!]!
   orderDocuments: [CreateOrderDocumentCommandValuesInput!]!
-  carriersId: [Int!]!
   customValues: MapOfObject
   jobIds: [UUID!]
   isDraft: Boolean
@@ -7015,10 +7020,10 @@ input CreatePortCommandValuesInput {
   isMail: Boolean!
   isMariTime: Boolean!
   name: String!
-  portRemarks: String!
+  portRemarks: String
   isRail: Boolean!
   isRoad: Boolean!
-  stateCode: String!
+  stateCode: String
 }
 
 input CreatePortInput {
@@ -7648,6 +7653,10 @@ input DimensionsUnitOperationFilterInput {
   nin: [DimensionsUnit!] @cost(weight: "10")
 }
 
+input DisableTwoFactorInput {
+  code: String!
+}
+
 input DiscountDtoInput {
   discountId: Int!
   activationCount: Int!
@@ -7714,6 +7723,11 @@ input DocumentTemplateTypeOperationFilterInput {
   neq: DocumentTemplateType @cost(weight: "10")
   in: [DocumentTemplateType!] @cost(weight: "10")
   nin: [DocumentTemplateType!] @cost(weight: "10")
+}
+
+input EnableTwoFactorInput {
+  code: String!
+  password: String!
 }
 
 input EventTriggerDtoInput {
@@ -7880,6 +7894,13 @@ input KeyValuePairOfStringAndObjectFilterInput {
   and: [KeyValuePairOfStringAndObjectFilterInput!]
   or: [KeyValuePairOfStringAndObjectFilterInput!]
   key: StringOperationFilterInput
+}
+
+input LinkAttachmentInput {
+  organizationId: Int!
+  attachmentId: Int!
+  entityType: AttachmentParentType!
+  entityId: String!
 }
 
 input LinkDtoFilterInput {
@@ -8091,13 +8112,6 @@ input ListFilterInputTypeOfmodeOfTransportationFilterInput {
   all: modeOfTransportationFilterInput @cost(weight: "10")
   none: modeOfTransportationFilterInput @cost(weight: "10")
   some: modeOfTransportationFilterInput @cost(weight: "10")
-  any: Boolean @cost(weight: "10")
-}
-
-input ListFilterInputTypeOforderCarrierFilterInput {
-  all: orderCarrierFilterInput @cost(weight: "10")
-  none: orderCarrierFilterInput @cost(weight: "10")
-  some: orderCarrierFilterInput @cost(weight: "10")
   any: Boolean @cost(weight: "10")
 }
 
@@ -8420,6 +8434,14 @@ input RateTypeOperationFilterInput {
   nin: [RateType!] @cost(weight: "10")
 }
 
+input RegenerateTwoFactorRecoveryCodesInput {
+  code: String!
+}
+
+input RevokeUserSessionInput {
+  userSessionId: Int!
+}
+
 input ScheduleFilterInput {
   and: [ScheduleFilterInput!]
   or: [ScheduleFilterInput!]
@@ -8529,6 +8551,13 @@ input TransportationMethodOperationFilterInput {
   neq: TransportationMethod @cost(weight: "10")
   in: [TransportationMethod!] @cost(weight: "10")
   nin: [TransportationMethod!] @cost(weight: "10")
+}
+
+input UnlinkAttachmentInput {
+  organizationId: Int!
+  attachmentId: Int!
+  entityType: AttachmentParentType!
+  entityId: String!
 }
 
 input UpdateAccountingAccountInput {
@@ -9745,15 +9774,6 @@ input modeOfTransportationFilterInput {
   createdUser: userFilterInput
 }
 
-input orderCarrierFilterInput {
-  and: [orderCarrierFilterInput!]
-  or: [orderCarrierFilterInput!]
-  orderCarrierId: IntOperationFilterInput
-  orderId: IntOperationFilterInput
-  carrierId: IntOperationFilterInput
-  carrier: contactFilterInput
-}
-
 input orderCommodityFilterInput {
   and: [orderCommodityFilterInput!]
   or: [orderCommodityFilterInput!]
@@ -9841,7 +9861,6 @@ input orderFilterInput {
   trackingNumber: StringOperationFilterInput
   orderDocuments: ListFilterInputTypeOforderDocumentFilterInput
   orderEntities: ListFilterInputTypeOforderEntityFilterInput
-  orderCarriers: ListFilterInputTypeOforderCarrierFilterInput
   orderEntityCarriers: ListFilterInputTypeOforderEntityFilterInput
   orderEntityVendors: ListFilterInputTypeOforderEntityFilterInput
   orderEntityPickups: ListFilterInputTypeOforderEntityFilterInput
@@ -9864,7 +9883,6 @@ input orderFilterInput {
   jobs: ListFilterInputTypeOfJobFilterInput
   jobOrders: ListFilterInputTypeOfJobOrderGqlDtoFilterInput
   attachments: ListFilterInputTypeOfAttachmentGqlDtoFilterInput
-  carriers: ListFilterInputTypeOfcontactFilterInput
   updatedUser: userFilterInput
   createdUser: userFilterInput
   commoditySummary: commoditySummaryFilterInput
@@ -10257,6 +10275,7 @@ input userFilterInput {
   acknowledgementConfirmed: BooleanOperationFilterInput
   phoneNumber: StringOperationFilterInput
   phoneNumberConfirmed: BooleanOperationFilterInput
+  twoFactorEnabled: BooleanOperationFilterInput
   isInactive: BooleanOperationFilterInput
   created: DateTimeOperationFilterInput
   lastModified: DateTimeOperationFilterInput
@@ -10406,6 +10425,7 @@ enum AttachmentParentType {
   EquipmentType
   Job
   Commodity
+  TrackingEvent
 }
 
 enum AttachmentType {
@@ -10873,258 +10893,193 @@ scalar TimeSpanScalar
 
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 
-scalar Long
-
-extend type Query {
-  quickSearch(organizationId: Int!, query: String!, entityNames: [String!], take: Int! = 5): QuickSearchResult!
-  quickSearchEntities(organizationId: Int!): [QuickSearchEntity!]!
-  agentSessionAttachments(skip: Int, take: Int, organizationId: Int!, agentSessionId: UUID, contentKind: AttachmentContentKind): AgentSessionAttachmentsCollectionSegment @cost(weight: "10")
+type CreateTelemetryRecordsPayload {
+  createTelemetryRecordsResult: CreateTelemetryRecordsResult
+  query: Query!
 }
 
-type QuickSearchResult {
-  groups: [QuickSearchGroup!]!
+type CreateTelemetryRecordsResult {
+  accepted: Int!
+  dropped: Int!
+  clockState: EmployeeClockStateDto
 }
 
-type QuickSearchGroup {
-  entityName: String!
-  items: [QuickSearchItem!]!
-  total: Int!
-  hasMore: Boolean!
-  partial: Boolean!
+type CreateTimePunchPayload {
+  timePunch: timePunch
+  query: Query!
 }
 
-type QuickSearchItem {
-  key: String!
-  matchRank: Int!
-  data: MapOfObject
+type EmployeeClockStateDto {
+  employeeContactId: Int!
+  organizationId: Int!
+  state: ClockState!
+  stateSince: DateTime
+  clockedInAt: DateTime
+  lastTimePunchId: Int
+  contactAddressId: Int
+  lastActivityAt: DateTime
 }
 
-type QuickSearchEntity {
-  entityName: String!
-  entityKind: String!
-  groupLabel: MapOfObject
-  icon: String!
-  order: Int!
-  display: MapOfObject
-  open: MapOfObject
-}
-
-type AgentSessionAttachmentGqlDto {
-  attachmentId: Int!
-  fileName: String!
-  contentType: String
-  size: Long
-  origin: AgentSessionAttachmentOrigin!
-  createdAt: DateTime!
-  agentSessionId: UUID!
-  sessionTitle: String
-  workflowId: UUID!
-}
-
-type AgentSessionAttachmentsCollectionSegment {
-  pageInfo: CollectionSegmentInfo!
-  items: [AgentSessionAttachmentGqlDto!]
-  totalCount: Int! @cost(weight: "10")
-}
-
-enum AttachmentContentKind {
-  Image
-  Document
-}
-
-enum AgentSessionAttachmentOrigin {
-  Uploaded
-  Produced
-}
-
-extend type Query {
-  dispatchRouteStopStatus(
-    organizationId: Int!
-    dispatchRouteStopStatusId: Int!
-  ): dispatchRouteStopStatus @cost(weight: "10")
-  dispatchRouteStopStatuses(
-    skip: Int
-    take: Int
-    organizationId: Int!
-    filter: String
-    search: String
-    orderBy: String
-  ): DispatchRouteStopStatusesCollectionSegment
-    @listSize(
-      assumedSize: 10000
-      slicingArguments: ["take"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["items"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
-}
-
-extend type Mutation {
-  createDispatchRouteStopStatus(
-    input: CreateDispatchRouteStopStatusInput!
-  ): CreateDispatchRouteStopStatusPayload! @cost(weight: "10")
-  updateDispatchRouteStopStatus(
-    input: UpdateDispatchRouteStopStatusInput!
-  ): UpdateDispatchRouteStopStatusPayload! @cost(weight: "10")
-  deleteDispatchRouteStopStatus(
-    input: DeleteDispatchRouteStopStatusInput!
-  ): DeleteDispatchRouteStopStatusPayload! @cost(weight: "10")
-}
-
-type DispatchRouteStopStatusesCollectionSegment {
+type EmployeeClockStatesCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
   "A flattened list of the items."
-  items: [dispatchRouteStopStatus!]
+  items: [employeeClockState!]
   totalCount: Int! @cost(weight: "10")
 }
 
-type CreateDispatchRouteStopStatusPayload {
-  dispatchRouteStopStatus: dispatchRouteStopStatus
+type EnsureClockedInPayload {
+  timePunch: timePunch
   query: Query!
 }
 
-type UpdateDispatchRouteStopStatusPayload {
-  dispatchRouteStopStatus: dispatchRouteStopStatus
+"A segment of a collection."
+type TelemetryRecordsCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [telemetryRecord!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+type TelemetrySourcesCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [telemetrySource!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+type TelemetrySubjectStatesCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [telemetrySubjectState!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+type TimePunchesCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [timePunch!]
+  totalCount: Int! @cost(weight: "10")
+}
+
+type VoidTimePunchPayload {
+  timePunch: timePunch
   query: Query!
 }
 
-type DeleteDispatchRouteStopStatusPayload {
-  deleteResult: DeleteResult
-  query: Query!
-}
-
-type dispatchRouteStopStatus {
-  dispatchRouteStopStatusId: Int!
+type employeeClockState {
+  employeeContactId: Int!
+  employeeContact: contact
   organizationId: Int!
-  statusName: String!
-  statusDescription: String
-  statusStage: StatusStage!
-  stopType: DispatchRouteType
-  priority: Int!
-  color: String
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  created: DateTime!
-  createdBy: String!
+  state: ClockState!
+  stateSince: DateTime
+  clockedInAt: DateTime
+  lastTimePunchId: Int
+  lastTimePunch: timePunch
+  contactAddressId: Int
+  lastActivityAt: DateTime
   lastModified: DateTime!
-  lastModifiedBy: String!
-  createdUser: user!
-  updatedUser: user!
+  lastSeenAt: DateTime @cost(weight: "10")
 }
 
-input CreateDispatchRouteStopStatusInput {
+type shiftGap {
+  from: DateTime!
+  to: DateTime!
+  minutes: Float!
+}
+
+type shiftSummary {
+  employeeContactId: Int!
+  from: DateTime!
+  to: DateTime!
+  clockedInAt: DateTime
+  clockedOutAt: DateTime
+  onClockMinutes: Float!
+  breakMinutes: Float!
+  distanceMeters: Float!
+  distanceMiles: Float!
+  fixCount: Int!
+  gaps: [shiftGap!]!
+  lastEvidenceOfWorkAt: DateTime
+  lastSeenAt: DateTime
+}
+
+type telemetrySource {
+  telemetrySourceId: Int!
   organizationId: Int!
-  values: CreateDispatchRouteStopStatusCommandValuesInput!
-}
-
-input CreateDispatchRouteStopStatusCommandValuesInput {
-  statusName: String!
-  statusDescription: String
-  statusStage: StatusStage!
-  stopType: DispatchRouteType
-  priority: Int!
-  color: String
-  customValues: MapOfObject
-}
-
-input UpdateDispatchRouteStopStatusInput {
-  organizationId: Int!
-  dispatchRouteStopStatusId: Int!
-  values: MapOfObject!
-}
-
-input DeleteDispatchRouteStopStatusInput {
-  organizationId: Int!
-  dispatchRouteStopStatusId: Int!
-}
-
-enum DispatchRouteType {
-  Delivery
-  Pickup
-  PickupDelivery
-}
-
-extend type order {
-  dispatchRouteStopOrders: [dispatchRouteStopOrder!]!
-}
-
-extend type trackingEvent {
-  dispatchRoutes: [dispatchRoute!]
-  dispatchRouteStops: [dispatchRouteStop!]
-}
-
-type dispatchRoute {
-  dispatchRouteId: Int!
-  organizationId: Int!
-  name: String!
-  routeType: DispatchRouteType!
-  routeDate: DateTime!
-  dispatchRouteTemplateId: Int
-  divisionId: Int
-  division: division
-  driverContactId: Int
-  driverContact: contact
-  equipmentId: Int
-  equipment: equipment
-  dispatchRouteStatusId: Int!
-  dispatchRouteStatus: dispatchRouteStatus
-  isDraft: Boolean!
-  isInactive: Boolean!
-  collapsedIntoDispatchRouteId: Int
-  stops: [dispatchRouteStop!]
-  trackingEvents: [trackingEvent!]
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-  createdUser: user!
-  updatedUser: user!
-}
-
-type dispatchRouteStatus {
-  dispatchRouteStatusId: Int!
-  organizationId: Int!
-  statusName: String!
-  statusDescription: String
-  statusStage: StatusStage!
-  routeType: DispatchRouteType
-  priority: Int!
-  color: String
+  sourceType: TelemetrySourceType!
+  externalId: String!
+  name: String
+  lastSeenAt: DateTime
   customValues: MapOfObject
   created: DateTime!
-  createdBy: String!
   lastModified: DateTime!
-  lastModifiedBy: String!
-  createdUser: user!
-  updatedUser: user!
 }
 
-type dispatchRouteStop {
-  dispatchRouteStopId: Int!
-  dispatchRouteId: Int!
-  stopContactId: Int
-  stopContact: contact
+type telemetryRecord {
+  organizationId: Int!
+  telemetrySourceId: Int!
+  recordedAt: DateTime!
+  kind: TelemetryRecordKind!
+  receivedAt: DateTime!
+  subjectType: TelemetrySubjectType
+  subjectId: Int
+  latitude: Float
+  longitude: Float
+  accuracy: Float
+  speed: Float
+  heading: Float
+  altitude: Float
+  isMocked: Boolean!
+  metrics: MapOfObject
+  dispatchRouteId: Int
+  orderMoveLegId: Int
+}
+
+type telemetrySubjectState {
+  subjectType: TelemetrySubjectType!
+  subjectId: Int!
+  organizationId: Int!
+  telemetrySourceId: Int!
+  telemetrySource: telemetrySource
+  recordedAt: DateTime!
+  receivedAt: DateTime!
+  latitude: Float!
+  longitude: Float!
+  accuracy: Float
+  speed: Float
+  heading: Float
+  metrics: MapOfObject
+}
+
+type timePunch {
+  timePunchId: Int!
+  organizationId: Int!
+  employeeContactId: Int!
+  employeeContact: contact
+  type: TimePunchType!
+  source: TimePunchSource!
+  trigger: String
+  occurredAt: DateTime!
+  receivedAt: DateTime!
+  timeZoneId: String!
+  idempotencyKey: String!
+  deviceId: String
+  latitude: Float
+  longitude: Float
+  locationAccuracy: Float
   contactAddressId: Int
   contactAddress: contactAddress
-  stopType: DispatchRouteType!
-  plannedSequence: Int!
-  actualSequence: Int
-  estimatedServiceMinutes: Int
-  dispatchRouteStopStatusId: Int
-  dispatchRouteStopStatus: dispatchRouteStopStatus
-  actualArrivalTime: DateTime
-  actualCompletionTime: DateTime
-  orderMoveId: Int
-  orderMove: orderMove
-  orderIds: [Int!]!
-  orders: [dispatchRouteStopOrder!]
-  trackingEvents: [trackingEvent!]
-  customValues: MapOfObject
-  isDeleted: Boolean!
+  note: String
+  needsReview: Boolean!
+  reviewReason: String
+  voidedAt: DateTime
+  voidedBy: String
+  voidReason: String
   created: DateTime!
   createdBy: String!
   lastModified: DateTime!
@@ -11133,109 +11088,112 @@ type dispatchRouteStop {
   updatedUser: user!
 }
 
-type dispatchRouteStopOrder {
-  dispatchRouteStopOrderId: Int!
-  dispatchRouteStopId: Int!
-  orderId: Int!
-  order: order
-  dispatchRouteStop: dispatchRouteStop
-  customValues: MapOfObject
+input CreateTelemetryRecordsCommandValuesInput {
+  sourceType: TelemetrySourceType
+  externalId: String!
+  records: [TelemetryRecordInput!]!
 }
 
-type equipment {
-  equipmentId: Int!
+input CreateTelemetryRecordsInput {
   organizationId: Int!
-  unitNumber: String!
-  equipmentTypeId: Int!
-  equipmentType: equipmentType
-  equipmentStatusId: Int!
-  notes: String
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-  createdUser: user!
-  updatedUser: user!
+  values: CreateTelemetryRecordsCommandValuesInput!
 }
 
-extend type Query {
-  orderMove(organizationId: Int!, orderMoveId: Int!): orderMove
-  orderMoves(skip: Int, take: Int, organizationId: Int!, filter: String, search: String, orderBy: String): OrderMovesCollectionSegment
+input CreateTimePunchCommandValuesInput {
+  type: TimePunchType!
+  occurredAt: DateTime!
+  timeZoneId: String!
+  idempotencyKey: String!
+  source: TimePunchSource
+  trigger: String
+  deviceId: String
+  latitude: Float
+  longitude: Float
+  locationAccuracy: Float
+  contactAddressId: Int
+  employeeContactId: Int
+  note: String
 }
 
-extend type Mutation {
-  createOrderMove(input: CreateOrderMoveInput!): CreateOrderMovePayload!
-  updateOrderMove(input: UpdateOrderMoveInput!): UpdateOrderMovePayload!
-  deleteOrderMove(input: DeleteOrderMoveInput!): DeleteOrderMovePayload!
-  createOrderMoveLeg(input: CreateOrderMoveLegInput!): CreateOrderMoveLegPayload!
-  updateOrderMoveLeg(input: UpdateOrderMoveLegInput!): UpdateOrderMoveLegPayload!
-  deleteOrderMoveLeg(input: DeleteOrderMoveLegInput!): DeleteOrderMoveLegPayload!
-}
-
-type OrderMovesCollectionSegment {
-  pageInfo: CollectionSegmentInfo!
-  items: [orderMove!]
-  totalCount: Int!
-}
-
-type orderMove {
-  orderMoveId: Int!
+input CreateTimePunchInput {
   organizationId: Int!
-  orderId: Int!
-  sequence: Int!
-  name: String
-  assignedDriverContactId: Int
-  assignedDriverContact: contact
-  orderMoveStatusId: Int
-  orderMoveStatus: orderMoveStatus
-  startDate: DateTime
-  endDate: DateTime
-  orderMoveLegs: [orderMoveLeg!]
-  dispatchRouteStops: [dispatchRouteStop!]
-  trackingEvents: [trackingEvent!]
-  customValues: MapOfObject
-  isDeleted: Boolean!
-  created: DateTime!
-  createdBy: String!
-  lastModified: DateTime!
-  lastModifiedBy: String!
-  createdUser: user!
-  updatedUser: user!
+  values: CreateTimePunchCommandValuesInput!
 }
 
-type orderMoveLeg {
-  orderMoveLegId: Int!
-  orderMoveId: Int!
-  sequence: Int!
-  name: String
-  orderMoveLegStatusId: Int
-  orderMoveLegStatus: orderMoveLegStatus
-  startDate: DateTime
-  endDate: DateTime
-  getAddress(idPropertyName: String!): contactAddress
-  trackingEvents: [trackingEvent!]
-  customValues: MapOfObject
-  isDeleted: Boolean!
+input EnsureClockedInCommandValuesInput {
+  occurredAt: DateTime!
+  timeZoneId: String!
+  idempotencyKey: String!
+  trigger: String!
+  deviceId: String
+  latitude: Float
+  longitude: Float
+  locationAccuracy: Float
+  contactAddressId: Int
 }
 
-type orderMoveStatus { orderMoveStatusId: Int!, organizationId: Int!, statusName: String!, statusDescription: String, statusStage: StatusStage!, priority: Int!, color: String, customValues: MapOfObject }
-type orderMoveLegStatus { orderMoveLegStatusId: Int!, organizationId: Int!, statusName: String!, statusDescription: String, statusStage: StatusStage!, priority: Int!, color: String, customValues: MapOfObject }
+input EnsureClockedInInput {
+  organizationId: Int!
+  values: EnsureClockedInCommandValuesInput!
+}
 
-input CreateOrderMoveInput { organizationId: Int!, values: CreateOrderMoveCommandValuesInput! }
-input CreateOrderMoveCommandValuesInput { orderId: Int!, sequence: Int, name: String, assignedDriverContactId: Int, orderMoveStatusId: Int, startDate: DateTime, endDate: DateTime, customValues: MapOfObject, orderMoveLegs: [CreateOrderMoveLegValuesInput!] }
-input CreateOrderMoveLegValuesInput { name: String, orderMoveLegStatusId: Int, startDate: DateTime, endDate: DateTime, customValues: MapOfObject }
-input UpdateOrderMoveInput { organizationId: Int!, orderMoveId: Int!, values: MapOfObject! }
-input DeleteOrderMoveInput { organizationId: Int!, orderMoveId: Int! }
-input CreateOrderMoveLegInput { organizationId: Int!, values: CreateOrderMoveLegCommandValuesInput! }
-input CreateOrderMoveLegCommandValuesInput { orderMoveId: Int!, sequence: Int, name: String, orderMoveLegStatusId: Int, startDate: DateTime, endDate: DateTime, customValues: MapOfObject }
-input UpdateOrderMoveLegInput { organizationId: Int!, orderMoveLegId: Int!, values: MapOfObject! }
-input DeleteOrderMoveLegInput { organizationId: Int!, orderMoveLegId: Int! }
-type CreateOrderMovePayload { orderMove: orderMove, query: Query! }
-type UpdateOrderMovePayload { orderMove: orderMove, query: Query! }
-type DeleteOrderMovePayload { deleteResult: DeleteResult, query: Query! }
-type CreateOrderMoveLegPayload { orderMoveLeg: orderMoveLeg, query: Query! }
-type UpdateOrderMoveLegPayload { orderMoveLeg: orderMoveLeg, query: Query! }
-type DeleteOrderMoveLegPayload { deleteResult: DeleteResult, query: Query! }
+input TelemetryRecordInput {
+  recordedAt: DateTime!
+  kind: TelemetryRecordKind
+  latitude: Float
+  longitude: Float
+  accuracy: Float
+  speed: Float
+  heading: Float
+  altitude: Float
+  isMocked: Boolean
+  metrics: MapOfObject
+  dispatchRouteId: Int
+  orderMoveLegId: Int
+}
 
+input VoidTimePunchInput {
+  organizationId: Int!
+  timePunchId: Int!
+  reason: String!
+}
+
+enum ClockState {
+  Off
+  Working
+  OnBreak
+}
+
+enum TelemetryRecordKind {
+  Position
+  Metrics
+}
+
+enum TelemetrySourceType {
+  MobileApp
+  Eld
+  ContainerTracker
+  ReeferTracker
+  TrailerTracker
+}
+
+enum TelemetrySubjectType {
+  Contact
+  Equipment
+  Commodity
+}
+
+enum TimePunchSource {
+  Mobile
+  Kiosk
+  Web
+  Manager
+  System
+}
+
+enum TimePunchType {
+  ClockIn
+  ClockOut
+  BreakStart
+  BreakEnd
+}
