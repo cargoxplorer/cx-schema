@@ -384,9 +384,12 @@ High-level summary of changes (grouped by change event):
 
 ### Root-level: `auditChange` — single change detail
 
+`organizationId` is required. `filePath` must be a path from `auditChanges` of the same organization
+(`logs/changes-data/orgs/{organizationId}/...`); any other path returns an empty result.
+
 ```graphql
 {
-  auditChange(filePath: "<s3-file-path>") {
+  auditChange(organizationId: 1, filePath: "<s3-file-path>") {
     entityName
     state
     primaryKey
