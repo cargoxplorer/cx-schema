@@ -12,8 +12,28 @@
 - NoteThread
 - Note
 - OrganizationConnection
+- NetworkPolicyRule
 
 EntityField, Tag, Attachment, Division, EquipmentType, Equipment, EquipmentStatus, PackageType, Note/NoteThread.
+
+## NetworkPolicyRule
+
+Global password-login network policy, maintained by system administrators in the System Administration organization.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `networkPolicyRuleId` | `int` | PK |
+| `address` | `string` | IPv4/IPv6 address or CIDR range; max 64 characters |
+| `device` | `string` | Device label, or empty for every device; max 100 characters |
+| `action` | `NetworkPolicyAction` | `Allow=0`, `Block=1` |
+| `expiresOn` | `DateTime?` | UTC; null means permanent |
+| `note` | `string?` | Max 500 characters |
+| `created`, `lastModified` | `DateTime` | Audit timestamps |
+| `createdByUserName`, `lastModifiedByUserName` | `string?` | `SYSTEM` may be the last modifier for automatic blocks |
+
+**GraphQL:** `networkPolicyRules(organizationId, filter, search, orderBy)` and `networkPolicyRule(organizationId, networkPolicyRuleId)` query rules. `createNetworkPolicyRule`, `updateNetworkPolicyRule`, and `deleteNetworkPolicyRule` manage them. All operations are restricted to system administrators working in the System Administration organization.
+
+---
 
 ## OrganizationConnection
 

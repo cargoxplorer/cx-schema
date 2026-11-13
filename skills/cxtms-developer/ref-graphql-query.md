@@ -30,6 +30,8 @@ Entity-specific extras:
 
 Available root queries: `orders`, `contacts`, `commodities`, `accountingTransactions`, `jobs`, `entityFields`, and others.
 
+`networkPolicyRules(organizationId, filter, search, orderBy)` is an offset-paged system-administration query that includes ended rules; `search` covers address, device, and note. `networkPolicyRule(organizationId, networkPolicyRuleId)` returns one rule. These queries and their create/update/delete mutations require a system administrator in the System Administration organization.
+
 `entityFields` returns field metadata. When `entityName` is supplied, the API filters out inactive fields and duplicate field names resolve to the active definition with the highest `priority`.
 
 `getEntityFieldsLastModified(organizationId, entityName, filter)` returns the newest matching field timestamp (or `null`) for cheap saved-view reconciliation without fetching every definition. Entity-name matching is case-insensitive.
