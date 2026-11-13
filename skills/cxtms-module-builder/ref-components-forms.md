@@ -610,6 +610,11 @@ If the key is missing or the Maps SDK fails to load, suggestions are unavailable
 
 Dynamic array/list editor for repeating field groups. Supports add/remove/reorder with drag-and-drop and optional up/down move buttons. Reorder UI adds stable internal `_uuid` keys to object rows only when drag handles or move buttons are shown, so non-reorder payloads stay untouched.
 
+On web, drag hover shows a landing slot but does not mutate the form array; the reorder is applied
+once on drop. With `showDragHandle: true`, only the grip starts dragging; otherwise the entire row
+is draggable. Nested collections use isolated drag scopes, and grouped rows can move only within
+their current group. Escape cancels a drag without changing the array.
+
 When `options.allowRemove` is enabled and the item count is above `minItems`, removal is exposed through a theme-colored three-dots menu with a **Delete** action. The same menu is used for list/grid items and accordion headers; selecting it still follows `options.removeType` (`soft` or `hard`).
 
 **Props:**
