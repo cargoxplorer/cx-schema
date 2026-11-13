@@ -260,27 +260,27 @@ Parses CSV/TSV data from a URL (file://, http://, https://). Headers are trimmed
 | `columns` | string[] | no | Explicit column names; overrides file header |
 | `distinct` | string[] | no | Deduplicate by these fields; output projected to only these fields |
 
-**Outputs:** `records` (array of dicts), `count` (int), `hasRecords` (boolean).
+**Outputs:** `result` → `{ records }` (array of dicts). Map it as `result?.records?`.
 
 ```yaml
 - task: "Utilities/CsvParse@1"
   name: ParseCsv
   inputs:
-    url: "{{ Data?.DownloadFile?.filePath? }}"
+    url: "file://{{ Data?.Download?.result?.FilePath? }}"
     hasHeader: true
   outputs:
     - name: rows
-      mapping: "records?"
+      mapping: "result?.records?"
 
 - task: "Utilities/CsvParse@1"
   name: ParsePostalCodes
   inputs:
-    url: "{{ Data?.UnzipFiles?.filePath? }}"
+    url: "file://{{ Data?.Unzip?.files?[0] }}"
     delimiter: "\t"
     columns: ["CountryCode", "Code", "PlaceName", "StateName", "StateCode"]
   outputs:
     - name: postalCodes
-      mapping: "records?"
+      mapping: "result?.records?"
 
 - task: "Utilities/CsvParse@1"
   name: ExtractDistinctStates
@@ -289,7 +289,7 @@ Parses CSV/TSV data from a URL (file://, http://, https://). Headers are trimmed
     distinct: ["stateCode", "stateName", "countryCode"]
   outputs:
     - name: states
-      mapping: "records?"
+      mapping: "result?.records?"
 ```
 
 ## Export@1
@@ -348,18 +348,22 @@ Use `columnMappings` when inbound CSV/XLSX headers do not match the internal fie
 ```
 
 ```yaml
-# Import from local file (e.g. extracted from ZIP)
+# Import a file an earlier step of the same run extracted from a ZIP
 - task: "Utilities/Import@1"
-  name: ImportLocalFile
+  name: ImportExtractedFile
   inputs:
-    fileUrl: "file://{{ localFilePath }}"
+    fileUrl: "file://{{ Main?.Unzip?.files?[0] }}"
     format: "csv"
   outputs:
     - name: data
       mapping: "data?"
 ```
 
-**`file://` URL support**: Import, Order/Import, PostalCodes/Import, and Notes/Import all accept `file://` URLs via UrlStreamHelper. This enables pipeline patterns: HttpRequest (saveToFile) → UnzipFile → Import (file://).
+**`file://` URL support**: Import, Order/Import, PostalCodes/Import, Ports/Import, States/Import, Notes/Import, CsvParse and UnzipFile accept `file://` URLs. This enables pipeline patterns: HttpRequest (saveToFile) → UnzipFile → Import (file://).
+
+**What these tasks can read** (CXTMS-537):
+- `file://` URLs and UnzipFile's `filePath` read **only files created by the same workflow run**: HttpRequest `saveToFile` downloads and UnzipFile output, which live in the run's temp directory. Any other local path is refused, typically with "file:// URLs and file paths can only read files created by this workflow run". Files are not shared with child workflows (each run has its own temp directory), and FileTransfer `localPath` downloads are not readable by these tasks. Don't build `file://` URLs from inputs or fixed paths.
+- `http(s)` URLs to private or internal addresses are refused: loopback, `10/8`, `172.16/12`, `192.168/16`, link-local `169.254/16` and similar. The error is "Request to host '<host>' was blocked: it resolves to a private or internal network address". Only public hosts can be fetched. To import a file the user uploaded, pass a presigned URL into the organization's storage. On a local development server only, `WorkflowHttp:AllowPrivateNetworks` (env `APP_WorkflowHttp__AllowPrivateNetworks=true`) allows private and internal addresses such as `localhost` and Azurite. The same rules apply to `Utilities/HttpRequest` and `Authentication/OAuth2`.
 
 ---
 
@@ -419,18 +423,27 @@ Imports tracking events for exactly one order, dispatch route, or dispatch route
     url: "{{ downloadUrl }}"
     method: GET
     saveToFile: true
+  outputs:
+    - name: result
+      mapping: "response?"
 
 - task: "Utilities/UnzipFile@1"
   name: Unzip
   inputs:
     filePath: "{{ Main?.Download?.result?.FilePath? }}"
     filePattern: "*.csv"
+  outputs:
+    - name: files
+      mapping: "Files?"
 
 - task: "Utilities/CsvParse@1"
   name: Parse
   inputs:
     url: "file://{{ Main?.Unzip?.files?[0] }}"
     distinct: ["stateCode", "stateName", "countryCode"]
+  outputs:
+    - name: records
+      mapping: "result?.records?"
 
 - task: "States/Import@1"
   name: ImportStates
