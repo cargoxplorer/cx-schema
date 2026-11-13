@@ -348,18 +348,22 @@ Use `columnMappings` when inbound CSV/XLSX headers do not match the internal fie
 ```
 
 ```yaml
-# Import from local file (e.g. extracted from ZIP)
+# Import a file an earlier step of the same run extracted from a ZIP
 - task: "Utilities/Import@1"
-  name: ImportLocalFile
+  name: ImportExtractedFile
   inputs:
-    fileUrl: "file://{{ localFilePath }}"
+    fileUrl: "file://{{ Main?.Unzip?.files?[0] }}"
     format: "csv"
   outputs:
     - name: data
       mapping: "data?"
 ```
 
-**`file://` URL support**: Import, Order/Import, PostalCodes/Import, and Notes/Import all accept `file://` URLs via UrlStreamHelper. This enables pipeline patterns: HttpRequest (saveToFile) → UnzipFile → Import (file://).
+**`file://` URL support**: Import, Order/Import, PostalCodes/Import, Ports/Import, States/Import, Notes/Import, CsvParse and UnzipFile accept `file://` URLs. This enables pipeline patterns: HttpRequest (saveToFile) → UnzipFile → Import (file://).
+
+**What these tasks can read** (CXTMS-537):
+- `file://` URLs and UnzipFile's `filePath` read **only files created by the same workflow run**: HttpRequest `saveToFile` downloads and UnzipFile output, which live in the run's temp directory. Any other local path is refused with "file:// URLs and file paths can only read files created by this workflow run". Don't build `file://` URLs from inputs or fixed paths.
+- `http(s)` URLs to private or internal addresses are refused: loopback, `10/8`, `172.16/12`, `192.168/16`, link-local `169.254/16` and similar. Only public hosts can be fetched. To import a file the user uploaded, pass a presigned URL into the organization's storage. On a local development server, `WorkflowHttp:AllowPrivateNetworks` lets `localhost` through. The same rules apply to `Utilities/HttpRequest` and `Authentication/OAuth2`.
 
 ---
 
