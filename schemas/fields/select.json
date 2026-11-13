@@ -59,9 +59,16 @@
         }
       }
     },
+    "optionLabelTemplate": {
+      "description": "Component (or a list of components) that draws each option in the dropdown list. Rendered once per option with the item's own keys in scope ({{ label }}, {{ value }} and any extra keys the item carries) and the whole item as {{ option }}. The input keeps the plain label and search matches the label alone",
+      "oneOf": [
+        { "$ref": "../schemas.json#/definitions/component" },
+        { "type": "array", "items": { "$ref": "../schemas.json#/definitions/component" } }
+      ]
+    },
     "items": {
       "type": "array",
-      "description": "Static options for select field",
+      "description": "Static options for select field. An item may carry extra keys for optionLabelTemplate",
       "items": {
         "type": "object",
         "properties": {

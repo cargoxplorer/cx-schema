@@ -347,6 +347,7 @@ Polymorphic form field — renders different input types based on `type` prop.
 | `required` | `boolean` | Required field |
 | `prefix` | `string` | Field name prefix for nested paths |
 | `transformValue` | `{onEdit?, onLoad?}` | Template expressions to transform values |
+| `computedValue` | `string` | Display-only field: shows the template result in a disabled input; the field is not part of the form, so nothing is stored or submitted |
 | `multiple` | `boolean` | Multi-value mode (for `text`) |
 | `autoComplete` | `string` | HTML autocomplete attribute |
 | `rows` | `number` | Rows for textarea (default 2) |
@@ -379,6 +380,8 @@ For `type: select`, the web renderer forwards the parsed `disabled` value to the
 | `datetime` | Date + time picker |
 | `rangedatetime` | Date range picker |
 | `enhanced-rangedatetime` | Enhanced date range picker |
+
+**Select option template:** `optionLabelTemplate` on a `select` field is a component (or a list of components) that draws each option in the dropdown list; without it an option is its plain `label`. It is rendered once per option with the item's own keys in scope (`{{ label }}`, `{{ value }}` and any extra keys) and the whole item as `{{ option }}`; the field's own variables (e.g. `item` of a field-collection row) stay available. Items may carry any extra keys, and `items` can be a template, so they can be calculated per row: `items: "{{ eval days.map(d => ({ label: d.name, value: d.value, leadTime: d.lead + ' days', noWindow: !d.open })) }}"` with `optionLabelTemplate: { component: layout, props: { containerTag: box, direction: row, spacing: 2 }, children: [ { component: text, props: { value: "{{ label }}", type: span } }, { component: text, props: { value: "{{ leadTime }}", type: span, color: text.secondary } }, { component: badge, props: { label: "{{ eval noWindow ? 'NO WINDOW' : '' }}", variant: warning, size: xs } } ] }`. The input keeps the plain label and search matches the label alone. An `eval` that declares a variable with `const` / `let` runs as statements and returns nothing — pass values as arrow-function arguments instead.
 
 **Timezone-aware datetime fields:** For appointment or terminal times that must be stored as UTC but displayed as a fixed local wall clock, set `options.useTimezone: true`, `options.storeAsUTC: true`, and an IANA `options.timezone` such as `America/New_York`. The picker treats the selected time as being in that configured timezone, not the user's browser timezone, so saving `11:00 PM` in New York stores the matching UTC instant and reads back as `11:00 PM` on machines in any timezone.
 
@@ -619,11 +622,13 @@ When `options.allowRemove` is enabled and the item count is above `minItems`, re
 | `options.allowReorder` | `boolean` | `true` | Enable drag-and-drop |
 | `options.minItems` | `number` | `0` | Minimum items (auto-created) |
 | `options.maxItems` | `number` | `∞` | Maximum items |
+| `options.maxItemsPerGroup` | `number` | `∞` | Group mode: maximum items per group; a group at its cap hides its add button (`1` = one row per group) |
+| `readonly` | `boolean \| string` | `false` | Boolean or template. No add, remove, Remove All or reorder, whatever `options.allow*` say; row fields keep their own `disabled` / `readonly` |
 | `options.removeType` | `soft \| hard` | `soft` | Individual remove behavior. `soft` marks object rows with `isDeleted: true`; `hard` splices the row from the array |
 | `addButton.label` | `ILocalizeString` | `Add Item` | Add button label |
 | `addButton.icon` | `string` | `plus` | Add button icon |
 | `addButton.position` | `top \| bottom \| both` | `bottom` | Add button placement |
-| `defaultItem` | `any` | — | Template for new items |
+| `defaultItem` | `any` | — | Template for new items. In group mode it is resolved with the target `groupKey` and the page store in scope, so a row can be prefilled per group |
 | `onItemAdd` | `action[]` | — | Fires after add with `parentItem`, new `item`, `index`, and `fieldName` |
 | `onItemRemove` | `action[]` | — | Fires after removal with `parentItem`, removed `item`, `index`, and `fieldName` |
 | `dotsMenu.items` | `{label,disabled?,permission?,onClick?,remove?}[]` | Delete only | Custom per-item menu; `remove: true` invokes built-in soft/hard removal |
