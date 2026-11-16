@@ -232,7 +232,7 @@ CSS Grid-based dashboard with draggable/resizable widgets.
 | `options.showGridLines` | `boolean` | `true` | Grid background in edit mode |
 | `options.autoSave` | `boolean` | `false` | Auto-save layout to UserSettings (`tms:dashboards:{name}:layout`) |
 | `options.title` | `string` | — | Dashboard title |
-| `options.height` | `string` | — | Container height |
+| `options.height` | `string` | — | CSS container height; when set, grid rows divide the available height evenly (otherwise each row is 50px) |
 
 **Children:** `dashboard-widget` components only. Saved layouts merge sparse YAML-widget overrides, removed-widget markers, and user-added widget entries back onto YAML defaults.
 
