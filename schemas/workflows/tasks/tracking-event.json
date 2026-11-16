@@ -37,7 +37,7 @@
     },
     "inputs": {
       "type": "object",
-      "description": "TrackingEvent/Create inputs (organizationId, eventDefinitionId or eventDefinitionName, order/commodity/dispatch-route target, description, location, includeInTracking, sendEmail, eventDate, customValues, skipIfExists, eventDefinitionValues) OR TrackingEvent/Import inputs",
+      "description": "TrackingEvent/Create inputs (organizationId, eventDefinitionId or eventDefinitionName, order/commodity/dispatch-route target, description, location, includeInTracking, sendEmail, eventDate, customValues, skipIfExists, matchByFields, eventDefinitionValues) OR TrackingEvent/Import inputs",
       "properties": {
         "organizationId": {
           "type": ["integer", "string"],
@@ -149,14 +149,14 @@
         },
         "matchByFields": {
           "type": "array",
-          "description": "Fields used to detect duplicate events. Supports dot notation for customValues (e.g., customValues.eventType). Default: [eventDefinitionName, eventDate]",
+          "description": "Fields that identify a duplicate event: eventDefinitionName, eventDate (within one minute), description, location, includeInTracking, sendEmail, customValues.<key> (e.g., customValues.eventType). Strings compare case-insensitively. (TrackingEvent/Import@1) Default: [eventDefinitionName, eventDate]. (TrackingEvent/Create@1) Used when skipIfExists is true; without it a duplicate is an event of the same event definition. When it contains eventDate, eventDate is required. Unknown fields are rejected.",
           "items": {
             "type": "string"
           }
         },
         "skipIfExists": {
           "type": ["boolean", "string"],
-          "description": "(TrackingEvent/Import@1) Skip event if duplicate found via matchByFields. Default: true. (TrackingEvent/Create@1) Skip if an event with the same event definition already exists on a target order, commodity, dispatch route, or dispatch route stop."
+          "description": "(TrackingEvent/Import@1) Skip event if duplicate found via matchByFields. Default: true. (TrackingEvent/Create@1) Reuse a duplicate already on any target (order, commodity, dispatch route, dispatch route stop, order move or leg) instead of creating a new event: the existing event is linked to the targets it is missing from and returned. A duplicate is an event of the same event definition, or, with matchByFields, an event that matches on all listed fields."
         },
         "createEventDefinitions": {
           "type": ["boolean", "string"],

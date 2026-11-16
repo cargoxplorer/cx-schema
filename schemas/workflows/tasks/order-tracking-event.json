@@ -72,7 +72,14 @@
         },
         "skipIfExists": {
           "type": ["boolean", "string"],
-          "description": "Skip if same EventDefinitionId already on order"
+          "description": "Skip if a duplicate event is already on the order. Without matchByFields a duplicate is an event of the same event definition; with matchByFields it is an event that matches on all listed fields."
+        },
+        "matchByFields": {
+          "type": ["array", "string"],
+          "description": "Fields that identify a duplicate when skipIfExists is true: eventDefinitionName, eventDate (within one minute), description, location, includeInTracking, sendEmail, customValues.<key>. Strings compare case-insensitively. When it contains eventDate, eventDate is required. Unknown fields are rejected. Ignored when skipIfExists is false.",
+          "items": {
+            "type": "string"
+          }
         },
         "autoLinkToCommodities": {
           "type": ["boolean", "string"],

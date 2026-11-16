@@ -454,6 +454,26 @@ Bulk imports contact addresses for one `organizationId` + `contactId` from file/
 
 Use [`OrderTrackingEvent/Create@1`](#order-sub-entities) when you want per-task overrides of the commodity auto-link behavior (`autoLinkToCommodities`, `commodityIds`). `TrackingEvent/Create@1` only honors the org-wide `tms.trackingEvents.autoLinkToCommodities` default for the auto-link step.
 
+**Duplicates (`skipIfExists`, `matchByFields`).** With `skipIfExists: true`, `TrackingEvent/Create@1` looks for a duplicate among the events of every target it was given (orders, commodities, dispatch route, stop, order move, leg). If it finds one, it creates nothing: it links that existing event to the targets it is missing from and returns it. Without `matchByFields` a duplicate is an event of the same event definition. `matchByFields` narrows that, the same way as in `TrackingEvent/Import@1`: an event is a duplicate only when it matches on all listed fields — `eventDefinitionName`, `eventDate` (within one minute), `description`, `location`, `includeInTracking`, `sendEmail`, `customValues.<key>`; strings compare case-insensitively. A list that contains `eventDate` requires `eventDate` on the task (otherwise the date would be "now" and never match), and an unknown field fails validation. `skipIfExists: false` always creates. `OrderTrackingEvent/Create@1` accepts the same `matchByFields`.
+
+```yaml
+# Several "Arrived" scans per order are legitimate; skip only a repeat of the same scan
+- task: "TrackingEvent/Create@1"
+  name: RecordArrival
+  inputs:
+    organizationId: "{{ organizationId }}"
+    orderId: "{{ order.orderId }}"
+    eventDefinitionName: "Arrived"
+    eventDate: "{{ scan.date }}"
+    customValues:
+      carrierEventId: "{{ scan.id }}"
+    skipIfExists: true
+    matchByFields:
+      - eventDefinitionName
+      - eventDate
+      # or match by the carrier's own id: - customValues.carrierEventId
+```
+
 For dispatch milestones, pass `dispatchRouteId` or `dispatchRouteStopId` to `TrackingEvent/Create@1`. For `TrackingEvent/Import@1`, provide exactly one of `orderId`, `dispatchRouteId`, or `dispatchRouteStopId`; route and stop imports do not auto-link commodities.
 
 ```yaml
