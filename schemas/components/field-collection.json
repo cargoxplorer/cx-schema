@@ -31,6 +31,10 @@
           "default": "object",
           "description": "Array item type. Primitive collections can omit itemTemplate; auto detects from existing data."
         },
+        "readonly": {
+          "type": ["boolean", "string"],
+          "description": "Disable adding, removing, remove-all, and reordering. A string may be a template expression. Child fields are unaffected."
+        },
         "itemTemplate": {
           "oneOf": [
             {
@@ -111,6 +115,12 @@
               "default": null,
               "description": "Maximum number of items allowed",
               "x-example": 10
+            },
+            "maxItemsPerGroup": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum number of rows in each group when groupMode is enabled",
+              "x-example": 1
             },
             "removeType": {
               "type": "string",
@@ -202,7 +212,7 @@
         },
         "defaultItem": {
           "type": ["object", "array", "string", "number", "boolean"],
-          "description": "Default values for new items",
+          "description": "Default values for new items. In group mode, templates receive groupKey.",
           "x-example": {
             "dayOfWeek": 1,
             "startTime": "09:00:00",

@@ -255,6 +255,16 @@
         },
         "defaultValue": {
           "description": "Initial field value."
+        },
+        "computedValue": {
+          "description": "Display-only template value. The field is not registered, stored, or submitted."
+        },
+        "optionLabelTemplate": {
+          "oneOf": [
+            { "$ref": "../schemas.json#/definitions/component" },
+            { "type": "array", "items": { "$ref": "../schemas.json#/definitions/component" } }
+          ],
+          "description": "Select option renderer. Receives the option keys and the complete option object."
         }
       }
     }

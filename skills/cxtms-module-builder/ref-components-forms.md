@@ -388,6 +388,8 @@ For `type: select`, the web renderer forwards the parsed `disabled` value to the
 | `time` | Time picker |
 | `select` | Dropdown select from `items[]` |
 | `select-async` | Async search select (GraphQL-backed) |
+
+Set `computedValue` on a field to show a template-derived value in a disabled input without registering or submitting it. For a select dropdown, `optionLabelTemplate` accepts a component or component list rendered with each option's keys and the full `option` object; the selected input and search still use the plain label.
 | `autocomplete` | Autocomplete from `items[]` |
 | `autocomplete-async` | Async autocomplete (GraphQL-backed) |
 | `autocomplete-googleplaces` | Google Places autocomplete |
@@ -607,6 +609,8 @@ If the key is missing or the Maps SDK fails to load, suggestions are unavailable
 ---
 
 ## field-collection
+
+`readonly` (boolean or template) disables add, remove, remove-all, and reorder controls without changing child-field editability. In grouped collections, `options.maxItemsPerGroup` caps each group independently, and `defaultItem` templates receive `groupKey` for group-specific defaults.
 
 Dynamic array/list editor for repeating field groups. Supports add/remove/reorder with drag-and-drop and optional up/down move buttons. Reorder UI adds stable internal `_uuid` keys to object rows only when drag handles or move buttons are shown, so non-reorder payloads stay untouched.
 

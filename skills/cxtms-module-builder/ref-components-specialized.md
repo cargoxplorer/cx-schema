@@ -225,6 +225,7 @@ CSS Grid-based dashboard with draggable/resizable widgets.
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `toolbar` | `component[]` | — | Filter/form fields in header |
+| `toolbar[].props.defaultValue` | any/template | — | Initial toolbar value; templates resolve against store and dashboard variables and are visible as `dashboard.*` on first widget render |
 | `options.rows` | `number` | `12` | Grid rows |
 | `options.columns` | `number` | `12` | Grid columns |
 | `options.gridGap` | `number` | `16` | Gap between cells (px) |
