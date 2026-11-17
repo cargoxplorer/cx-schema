@@ -367,7 +367,7 @@ onClick:
   - requestLocationAccess: {}         # mobile: ask again while working; chain continues
 ```
 
-Mobile time-clock templates can read global `clockState`: `state` (`Off`, `Working`, `OnBreak`), `stateSince`, `clockedInAt`, `tracking`, `locationAccess`, `pending`, `shiftDuration`, and `stateDuration`. Put `ensureClockedIn` before data-changing actions. Use `requestLocationAccess` for a remediation button when `clockState.locationAccess` is not `always`; denied location never prevents a punch.
+Mobile time-clock templates can read global `clockState`: `state` (`Off`, `Working`, `OnBreak`), `stateSince`, `clockedInAt`, `tracking`, `locationAccess`, `locationPrecise`, `locationServices`, `pending`, `shiftDuration`, and `stateDuration`. The two location booleans are `null` when unknown or telemetry does not apply. Put `ensureClockedIn` before data-changing actions. Use `requestLocationAccess` for remediation when access is insufficient, precision is approximate, or device location services are off; denied location never prevents a punch.
 
 ## Common Patterns
 
