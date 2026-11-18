@@ -746,6 +746,35 @@ Use either `items` or `query`. Query responses follow the DataGrid shape: the fi
 
 ---
 
+## camera
+
+Camera capture and mobile scanner component. Use `mode: hybrid` when the same view needs live scanning and a shutter.
+
+**Scanner props:**
+| Prop | Type | Description |
+|------|------|-------------|
+| `recognize` | `("barcode" \| "vin" \| "container")[]` | Recognition modes; VIN and container use native OCR and checksum validation |
+| `autoCapture` | `boolean` | Capture a proof photo after an accepted live scan |
+| `photoRecognize` | `boolean` | Native mobile hybrid mode: OCR the shutter photo; fires `onScan` when recognized and falls back to `onCapture` otherwise |
+
+`photoRecognize` is useful for distant container numbers that are too small for live OCR. The mobile renderer uses a high-resolution still and overlapping crops; it is ignored outside hybrid mode and unavailable in Expo Go.
+
+```yaml
+component: camera
+name: containerCamera
+props:
+  mode: hybrid
+  scanner:
+    recognize: [container]
+    photoRecognize: true
+  onScan:
+    - setFields: { containerNumber: "{{ result.data }}" }
+  onCapture:
+    - notification: { message: "No container number found", variant: warning }
+```
+
+---
+
 ## photo
 
 Camera capture component. Opens device camera, captures photos, uploads to S3.

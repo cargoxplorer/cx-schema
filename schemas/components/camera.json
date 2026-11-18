@@ -50,6 +50,11 @@
               "default": false,
               "description": "Mobile: capture a proof photo immediately after accepting a scan."
             },
+            "photoRecognize": {
+              "type": "boolean",
+              "default": false,
+              "description": "Native mobile hybrid mode: run VIN/container OCR on the shutter photo; fire onScan for recognized candidates or onCapture when none are found."
+            },
             "barcodeTypes": { "type": "array", "items": { "type": "string" } },
             "minBarcodeLength": { "type": "integer", "minimum": 1 },
             "continuous": { "type": "boolean" },
