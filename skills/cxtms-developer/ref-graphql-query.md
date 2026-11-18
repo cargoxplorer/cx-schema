@@ -83,6 +83,12 @@ filter: "NOT customValues.po:123"
 filter: "orderType:ParcelShipment AND (status:Active OR status:Pending)"
 ```
 
+Filters are limited to 5,000 conditions, 100 nested parenthesis levels, and a translated logical depth of 500. Split larger or deeply chained filters across multiple queries. Large valid `OR` chains are balanced automatically.
+
+### Order-type read permissions
+
+Order lists can be restricted with `API/Order/<OrderType>/List`; single-order reads use `API/Order/<OrderType>/Get`. Entity-level `API/Order/List` or `Get` and covering wildcards still grant all order types. List results, counts, related-order resolvers, grouping, time buckets, and quick search are narrowed to readable types; a single unreadable order resolves as not found.
+
 ### Nested paths (dot notation)
 ```
 filter: "orderEntities.entityType:Consignee"
