@@ -267,7 +267,7 @@ When `rootEntityName` is set in datagrid options, the component fetches entity f
 - `fieldType: Entity` is filtered out of the column picker entirely by the runtime — do not use it.
 - `isHidden` is only valid on view columns, not entity field definitions.
 - View column `name` must exactly match entity field `name`. If they differ (e.g., using a GraphQL alias prefix), the datagrid treats them as two separate columns — one always visible from the view, one hidden in the picker from the entity field.
-- Saved database views override YAML definitions. User customizations take priority. If a user has saved a view, YAML visibility changes have no effect until the saved view is deleted.
+- Saved database views generally override YAML definitions, so user customizations such as visibility take priority. The current YAML `accessor` is the exception: it replaces the accessor stored with a saved column when the view loads, allowing resolver and custom-value paths to be corrected without deleting the view. Saved `showAs` wins when present; otherwise the YAML `showAs` is used.
 
 **Correct pattern** (resolver column, sortable, filterable, in picker):
 
