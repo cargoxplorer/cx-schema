@@ -96,7 +96,8 @@
         },
         "filePath": {
           "type": "string",
-          "description": "Repository file path under workflows/ or features/{name}/workflows/"
+          "description": "Repository file path under workflows/ or features/{name}/workflows/; path traversal is not allowed",
+          "pattern": "^(?!.*\\.\\.)(?:workflows/|features/[^/]+/workflows/).+"
         },
         "agentInstruction": {
           "type": "string",

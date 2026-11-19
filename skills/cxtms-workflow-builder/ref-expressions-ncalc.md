@@ -18,6 +18,8 @@ For template expressions `{{ path }}` used in step inputs, see [ref-expressions-
 
 Used in `conditions[].expression`, `switch` case `when`, and `expression:` value directives. Variables use **square bracket** `[name]` syntax.
 
+The `+` operator adds numeric operands and concatenates when either plain operand is text, including inside functions: `'orderId:' + [each.entityId]` is valid when `entityId` is numeric. Do not use `+` to transform secret values; secret transformation restrictions still apply.
+
 ```yaml
 conditions:
   - expression: "[status] = 'Active' AND [amount] > 100"
