@@ -224,7 +224,8 @@ CSS Grid-based dashboard with draggable/resizable widgets.
 **Props:**
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `toolbar` | `component[]` | — | Filter/form fields in header |
+| `toolbar` | `component[]` | — | Filter/form fields in a row under the title |
+| `headerActions` | `component[]` | — | Components in the title row, before the ⋮ menu (e.g. a filters form); same context and variables as the widgets |
 | `options.rows` | `number` | `12` | Grid rows |
 | `options.columns` | `number` | `12` | Grid columns |
 | `options.gridGap` | `number` | `16` | Gap between cells (px) |
@@ -232,6 +233,7 @@ CSS Grid-based dashboard with draggable/resizable widgets.
 | `options.showGridLines` | `boolean` | `true` | Grid background in edit mode |
 | `options.autoSave` | `boolean` | `false` | Auto-save layout to UserSettings (`tms:dashboards:{name}:layout`) |
 | `options.title` | `string` | — | Dashboard title |
+| `options.subtitle` | `string` | — | Line under the title (template) |
 | `options.height` | `string` | — | Container height |
 
 **Children:** `dashboard-widget` components only. Saved layouts merge sparse YAML-widget overrides, removed-widget markers, and user-added widget entries back onto YAML defaults.
