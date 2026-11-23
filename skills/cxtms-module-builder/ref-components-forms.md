@@ -1,5 +1,7 @@
 # Form & Input Components
 
+Validation `message` strings used by an action-driven `validateForm` may contain `{{ }}` templates. They resolve from the current store and action data before validation, so runtime field labels can appear in errors (for example, `message: "{{ referenceLabel }} is required"`). Only message values are templated.
+
 ## Contents
 - Mobile-friendly form layout (adaptive design)
 - Form component

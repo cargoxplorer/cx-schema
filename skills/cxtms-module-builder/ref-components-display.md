@@ -32,6 +32,10 @@ Palette keys (`primary`, `secondary`, `success`, `warning`, `error`, `info`) in 
 
 ## dataGrid
 
+**Link filters:** URL-backed grids accept a Lucene clause in `filter` and a removable chip label in `title`. The clause is combined with the active view filter using `AND`. Override the names with `props.options.overrides.filterParamName` and `titleParamName`. Do not use this for `navigationType: store`, which intentionally ignores URL filters.
+
+**Templated labels:** column labels in YAML views and entity field display names may use `{{ }}` templates. They resolve from grid variables and store for headers, filters, selectors, and exports; saved views follow the current value instead of preserving stale resolved text.
+
 Full-featured data table with views, filtering, sorting, pagination, and row actions.
 
 **Responsive layout:**
