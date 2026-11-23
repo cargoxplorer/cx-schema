@@ -12,6 +12,7 @@
         "pollInterval": { "oneOf": [{ "type": "number" }, { "type": "string" }], "description": "Polling interval in milliseconds or as a duration such as 2s" },
         "timeout": { "oneOf": [{ "type": "number" }, { "type": "string" }], "description": "Maximum wait in milliseconds or as a duration such as 5m" },
         "onStart": { "$ref": "../schemas.json#/definitions/actionsList", "description": "Actions run after the execution is created; receives executionId" },
+        "onProgress": { "$ref": "../schemas.json#/definitions/actionsList", "description": "Actions run immediately after an asynchronous start, after status checks, and once per second between checks; receives execution progress fields" },
         "onSuccess": { "$ref": "../schemas.json#/definitions/actionsList" },
         "onError": { "$ref": "../schemas.json#/definitions/actionsList" }
       },

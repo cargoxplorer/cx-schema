@@ -339,7 +339,7 @@ onClick:
   - workflow:
       workflowId: "<uuid>"
       inputs: { key: "value" }
-      waitForCompletion: true           # Poll async execution; supports onStart/pollInterval/timeout
+      waitForCompletion: true           # Poll async execution; supports onStart/onProgress/pollInterval/timeout
       onSuccess: [...]
       onError: [...]
   - fileDownload: { url: "...", fileName: "..." }

@@ -149,14 +149,14 @@
         },
         "matchByFields": {
           "type": "array",
-          "description": "Fields used to detect duplicate events. Supports dot notation for customValues (e.g., customValues.eventType). Default: [eventDefinitionName, eventDate]",
+          "description": "Fields used to detect duplicate events. Import defaults to [eventDefinitionName, eventDate]. Create with skipIfExists defaults to event-definition matching. Supports dot notation for customValues (e.g., customValues.eventType).",
           "items": {
             "type": "string"
           }
         },
         "skipIfExists": {
           "type": ["boolean", "string"],
-          "description": "(TrackingEvent/Import@1) Skip event if duplicate found via matchByFields. Default: true. (TrackingEvent/Create@1) Skip if an event with the same event definition already exists on a target order, commodity, dispatch route, or dispatch route stop."
+          "description": "(TrackingEvent/Import@1) Skip event if duplicate found via matchByFields. Default: true. (TrackingEvent/Create@1) Reuse a matching event on a requested target and link it to all requested targets; matching defaults to event definition and can be customized with matchByFields."
         },
         "createEventDefinitions": {
           "type": ["boolean", "string"],

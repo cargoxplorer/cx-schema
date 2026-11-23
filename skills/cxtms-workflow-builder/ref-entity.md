@@ -369,7 +369,7 @@ Bulk imports contact addresses for one `organizationId` + `contactId` from file/
 | `OrderCharge/Create` | Create order charge |
 | `OrderDocument/Create` | Create order document |
 | `OrderDocument/Send` | Send order document |
-| `OrderTrackingEvent/Create` | Create a single tracking event on an order. Auto-links to first-level commodities by default; override per task via `autoLinkToCommodities` or target specific commodities via `commodityIds`. |
+| `OrderTrackingEvent/Create` | Create a single tracking event on an order. With `skipIfExists`, customize duplicate identity using `matchByFields` (event fields or dotted custom values). Auto-links to first-level commodities by default; override per task via `autoLinkToCommodities` or target specific commodities via `commodityIds`. |
 | `OrderEntity/ChangeCustomValue` | Change custom field value |
 
 ```yaml
@@ -433,7 +433,7 @@ Bulk imports contact addresses for one `organizationId` + `contactId` from file/
 | `Country/Create`, `Country/Update`, `Country/Delete` | Country CRUD |
 | `Cities/Import` | Import cities |
 | `Rate/Update` | Update rate |
-| `TrackingEvent/Create` | Create a single tracking event and link to an order, commodity, dispatch route, or dispatch route stop |
+| `TrackingEvent/Create` | Create a single tracking event and link to supported targets. With `skipIfExists`, it reuses the first matching target event; `matchByFields` customizes duplicate identity (default: event definition). |
 | `TrackingEvent/Import` | Batch import tracking events into exactly one order, dispatch route, or dispatch route stop |
 
 ```yaml

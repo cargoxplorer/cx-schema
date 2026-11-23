@@ -72,7 +72,12 @@
         },
         "skipIfExists": {
           "type": ["boolean", "string"],
-          "description": "Skip if same EventDefinitionId already on order"
+          "description": "Reuse a matching tracking event already on the order"
+        },
+        "matchByFields": {
+          "type": ["array", "string"],
+          "description": "Fields used to identify a duplicate when skipIfExists is true. Defaults to event definition matching; supports eventDefinitionName, standard event fields, and dotted custom-value paths.",
+          "items": { "type": "string" }
         },
         "autoLinkToCommodities": {
           "type": ["boolean", "string"],
