@@ -310,6 +310,11 @@
           "type": ["boolean", "string"],
           "description": "Enable filtering. String templates are resolved against component variables and store state."
         },
+        "filterPanel": {
+          "type": "string",
+          "enum": ["inline", "popover"],
+          "description": "Where filters live: 'inline' rows above the table or a 'popover' behind a Filters button that shows the active filter count. Defaults to the white-label dataGrid.filterPanel, else 'inline'."
+        },
         "defaultView": {
           "type": "string",
           "description": "Default view name"

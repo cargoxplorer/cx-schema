@@ -55,6 +55,7 @@ A non-empty `title` renders even when `enableToolbar: false`; `options.showHeade
 | `enablePagination` | `boolean` | — | Show pagination |
 | `enableColumns` | `boolean` | — | Show column selector |
 | `enableFilter` | `boolean \| template` | — | Show filter panel; templates resolve against variables and store |
+| `filterPanel` | `inline \| popover` | white label, else `inline` | `popover` hides filters behind a **Filters (n)** button; values apply instantly; view filters are defaults and cannot be removed |
 | `defaultView` | `string` | — | Default view name |
 | `defaultPageSize` | `number` | `20` | Rows per page |
 | `enableRefresh` | `boolean` | — | Auto-refresh |
