@@ -204,6 +204,24 @@
           "type": "string",
           "description": "Filter expression for this view"
         },
+        "filters": {
+          "type": "array",
+          "description": "Saved filter definitions for this view",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "values": {},
+              "component": { "type": "string" },
+              "componentProps": { "type": "object", "additionalProperties": true },
+              "filterByTemplate": {
+                "type": "string",
+                "description": "Compound Lucene template; each {path:{$value}} placeholder is replaced with this filter's generated term for path"
+              }
+            },
+            "required": ["name"]
+          }
+        },
         "search": {
           "type": "string",
           "description": "Default search term seeded once when the grid first loads this view. Supports template expressions; URL search parameters and user input take precedence."
@@ -336,6 +354,12 @@
         "enableFilter": {
           "type": ["boolean", "string"],
           "description": "Enable filtering. String templates are resolved against component variables and store state."
+        },
+        "filterPanel": {
+          "type": "string",
+          "enum": ["inline", "popover"],
+          "default": "inline",
+          "description": "Render filter fields inline above the table or in a popover opened from the toolbar"
         },
         "defaultView": {
           "type": "string",

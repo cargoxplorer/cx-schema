@@ -74,6 +74,7 @@ A non-empty `title` renders even when `enableToolbar: false`; `options.showHeade
 | `enablePagination` | `boolean` | — | Show pagination |
 | `enableColumns` | `boolean` | — | Show column selector |
 | `enableFilter` | `boolean \| template` | — | Show filter panel; templates resolve against variables and store |
+| `filterPanel` | `inline \| popover` | `inline` | Render filter rows inline or behind a toolbar Filters button; overrides the white-label default |
 | `defaultView` | `string` | — | Default view name |
 | `defaultPageSize` | `number` | `20` | Rows per page |
 | `enableRefresh` | `boolean` | — | Auto-refresh |
@@ -89,6 +90,8 @@ A non-empty `title` renders even when `enableToolbar: false`; `options.showHeade
 | `items` | `any` | — | Static data (instead of query) |
 
 **Pagination display:** when `totalCount` is `0`, DataGrid shows `Showing 0 to 0 of 0 entries` instead of starting at row `1`.
+
+**Compound view filters:** a view filter may define `filterByTemplate`. Each `{path:{$value}}` placeholder is replaced by the Lucene term generated from that filter's value for `path`. Use this when one input must target alternate or fallback paths. The filter is omitted while any placeholder lacks a complete value.
 
 **Jump to page:** selecting a pagination ellipsis (`…`) opens a numeric field for jumping directly to any valid page.
 
