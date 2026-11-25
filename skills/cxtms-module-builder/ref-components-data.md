@@ -113,6 +113,35 @@ props:
 
 ---
 
+## dataGrid opened pre-filtered from a link
+
+A link can open a grid narrowed to a subset of rows by passing `filter` (a Lucene clause) and `title` (chip text) in the query string. The grid queries `(<view filter>) AND (<filter>)` and shows the title as a chip in its header; clicking × removes both parameters. The target grid needs no YAML for this — do not splice URL variables into the view `filter` with `eval`.
+
+```yaml
+# dashboard tile / button that opens the Invoices list filtered
+onClick:
+  - navigate: "{{ eval 'invoices?title=' + encodeURIComponent('Open Invoices') + '&filter=' + encodeURIComponent('accountingTransactionStatus:Open') }}"
+```
+
+- Encode both values with `encodeURIComponent`.
+- The clause only narrows: both sides are parenthesised and ANDed, so an `OR` in either cannot widen the view's own filter. A clause with unbalanced parentheses (outside double quotes) is not applied; the chip reads "Invalid link filter".
+- Only values in the browser URL count. A `filter` variable passed to an embedded component through `props.variables` (e.g. `Transmissions/EntityTransmissionsTab`) stays an ordinary template variable and shows no chip.
+- Without `title` the chip reads "Filtered by link"; `title` without `filter` shows nothing.
+- The clause applies to whichever view is selected and is never saved into views.
+- `options.navigationType: store` grids ignore both parameters.
+- A screen with more than one URL-navigated grid gives each its own names:
+
+```yaml
+options:
+  overrides:
+    filterParamName: invoicesFilter
+    titleParamName: invoicesTitle
+```
+
+`options.overrides` is not checked by `npx cxtms` validation; the names are read by the web renderer only (not mobile).
+
+---
+
 ## collection
 
 Iterates over data items and renders children as templates. Supports drag-and-drop reordering.
