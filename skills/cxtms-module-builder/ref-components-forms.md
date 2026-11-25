@@ -631,6 +631,7 @@ When `options.allowRemove` is enabled and the item count is above `minItems`, re
 | `defaultItem` | `any` | — | Template for new items |
 | `onItemAdd` | `action[]` | — | Fires after add with `parentItem`, new `item`, `index`, and `fieldName` |
 | `onItemRemove` | `action[]` | — | Fires after removal with `parentItem`, removed `item`, `index`, and `fieldName` |
+| `onItemReorder` | `action[]` | — | Fires after reorder with moved `item`, reordered `items`, global `fromIndex`/`toIndex`, `fieldName`, and `parentItem` |
 | `dotsMenu.items` | `{label,disabled?,permission?,onClick?,remove?}[]` | Delete only | Custom per-item menu; `remove: true` invokes built-in soft/hard removal |
 | `layout` | `list \| grid \| accordion` | `list` | Layout mode |
 | `cols` | `number` | `1` | Grid columns (non-responsive). For adaptive item layouts, set `cols: 1` and use a `layout` inside `itemTemplate` with `itemDefaults.size: { xs, md }`. |

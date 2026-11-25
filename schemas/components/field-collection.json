@@ -218,6 +218,10 @@
           "$ref": "../schemas.json#/definitions/actionsList",
           "description": "Actions fired after an item is removed. Variables include parentItem, the removed item, index, and fieldName."
         },
+        "onItemReorder": {
+          "$ref": "../schemas.json#/definitions/actionsList",
+          "description": "Actions fired after an item reorder. Variables include parentItem, item, items, fromIndex, toIndex, and fieldName."
+        },
         "dotsMenu": {
           "type": "object",
           "required": ["items"],
