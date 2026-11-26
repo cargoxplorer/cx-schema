@@ -138,6 +138,23 @@ options:
     titleParamName: invoicesTitle
 ```
 
+When the target view already declares a filter for the condition, preset the grid's visible filter panel with `filterValues` instead of hiding the condition in a Lucene clause:
+
+```yaml
+onClick:
+  - navigate: "{{ eval 'freights?filterValues=' + encodeURIComponent(JSON.stringify({ orderStatusId: [orderStatusId] })) }}"
+```
+
+The encoded JSON object maps view-filter names to the same value shapes used by the panel (for example, an ID array for a multi-select or a two-item `[from, to]` array for `rangedatetime`). Only filters declared on the initial view are accepted. Unknown names show a red error chip and are not applied; malformed JSON shows "Invalid link filter". Applied values replace the view's retained filter values, are visible and editable in the panel, and the parameter is removed from the URL after application. `navigationType: store` grids ignore it.
+
+For several URL-backed grids, rename this parameter too:
+
+```yaml
+options:
+  overrides:
+    filterValuesParamName: freightFilterValues
+```
+
 `options.overrides` is not checked by `npx cxtms` validation; the names are read by the web renderer only (not mobile).
 
 ---
